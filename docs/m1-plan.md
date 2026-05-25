@@ -54,6 +54,13 @@
 **Priority**: HIGH
 **Depends on**: 無(可與 Issue 2 平行進行)
 
+**Status (updated 2026-05-25)**: ✅ Complete
+- 169 features composition resolved (B.1)
+- Unknown #1 (feature gap) and #7 (CSV upstream) resolved
+- Unknown #5 (target encoding) partially resolved — mechanism known,
+  leakage impact deferred to M2
+- B.2 (per-feature enumeration) skipped: generation rules suffice
+
 ---
 
 ### Issue 2: 釐清訓練 pipeline 的三個相依細節
@@ -145,6 +152,21 @@ M2 第一天需要立即跑程式。如果環境沒有在 M1 確認,M2 的第一
 ---
 
 ## 建議執行順序
+
+**現況 (2026-05-25)**:
+
+| Issue | GitHub # | 狀態 |
+|-------|----------|------|
+| Issue 1: feature composition | #4 | ✅ done |
+| Issue 2: CV / downsampling / target encoding | #5 | partially resolved — 剩下需 M2 實驗驗證,先不動 |
+| Issue 3: hyperparameters + post-processing | #6 | still open (超參數尚未讀取) |
+| Issue 4: dev environment | #7 | ✅ done (closed earlier) |
+
+**現在只剩 Issue 3(GitHub #6)待處理**: 讀 Modeling notebook Cell 4 取出四個 GBDT 模型的超參數;Rule 2 邊界已在 B.1 中解決(Unknown #3 resolved)。
+
+---
+
+**原始規劃 (供參考)**:
 
 **第一步(可平行)**: Issues 1、2、4
 
