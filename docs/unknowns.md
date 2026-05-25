@@ -10,9 +10,17 @@
 
 **術語**: 總特徵數 169(Table 3: "Raw, V-C (169)")
 
+**狀態**: upgraded — 缺口來源更精確,但仍未解
+
 **出現脈絡**: §2.2 說原始特徵「up to 57」;§2.2.1–2.2.3 描述的 value-change shifts 為 8 個值 × 2 方向 × 2 類型(差值/比值) = 32 個 value-change features。57 + 32 = 89,與 Table 3 標示的 169 差距 80 個,論文完全未解釋。
 
-**為什麼重要**: 如果重現時只建出 89 個特徵,就漏掉了 80 個對模型有貢獻的特徵,AUC 可能無法達到 0.9866。需要看 buds-lab/LEAD-1st-solution 的 notebook 數清楚的特徵列表才能確定。
+**Issue #7 發現(精確化)**:
+- 競賽提供的 `train_features.csv` 已預計算 **57 個 original features** ✓ — 含 building meta、weather、temporal、target encoding,欄位數完全吻合。
+- 論文 §2.2 描述的 value-change features 只有 **32 個**(8 shifts × 2 方向 × 2 類型)。
+- 缺口收斂為:**80 個未知的 value-change features**(169 − 57 − 32 = 80)。
+- Original features 已確認,問題完全聚焦在 value-change 的計算方式上。
+
+**為什麼重要**: 如果重現時只建出 89 個特徵,就漏掉了 80 個 value-change features,AUC 可能無法達到 0.9866。需要看 buds-lab/LEAD-1st-solution 的 notebook 確認完整 shift 清單與計算邏輯。
 
 ---
 

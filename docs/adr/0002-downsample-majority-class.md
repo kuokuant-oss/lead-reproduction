@@ -8,4 +8,20 @@
 
 ---
 
-Last reviewed: pending
+## Empirical mismatch
+
+實測 LEAD dataset(Issue #7,2026-05-25):
+
+- **論文宣稱**: 異常率約 5%(majority class 約 95%)
+- **實測值**: 異常率 **2.13%**(majority class 97.87%)
+
+差距約 2.5 倍,比論文描述更不平衡。影響:
+
+- 若照論文做 50:50 downsampling,正常資料需被壓縮到異常資料的數量,訓練集規模將大幅縮小
+- M2 重現時需驗證 50:50 是否仍為最佳比例,或需根據實際 2.13% 重新評估
+
+本 ADR 記錄的決策(使用 downsampling 而非 oversampling/class_weight)仍維持,此段為補充實測資訊。
+
+---
+
+Last reviewed: 2026-05-25
