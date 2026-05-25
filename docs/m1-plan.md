@@ -215,3 +215,62 @@ M2 第一天需要立即跑程式。如果環境沒有在 M1 確認,M2 的第一
 ---
 
 Last reviewed: 2026-05-26
+
+---
+
+## M1 Closure (2026-05-26)
+
+M1 milestone 完成,進入 M2。
+
+### Final issue status
+
+| GitHub # | Title | Status |
+|---|---|---|
+| #4 | Map all 169 features | ✅ Closed (B.1) |
+| #5 | CV / downsampling / target encoding | 🟡 Mechanism documented, moved to M2 for experimental validation |
+| #6 | Hyperparameters + Rule 2 boundary | ✅ Closed (B.1) |
+| #7 | Set up dev environment | ✅ Closed (earlier) |
+
+### Final unknowns status
+
+| # | Topic | Status |
+|---|---|---|
+| 1 | Feature count composition | ✅ Resolved: 169 = 46 numeric + 1 ClusterNo + 60 diff + 60 ratio + 1 SavGol + 1 dayofyear |
+| 2 | CV split details | 🟡 Mechanism known (`building_id % 5 == 4`), single/multi-fold deferred to M2 |
+| 3 | Rule 2 post-processing boundary | ✅ Resolved |
+| 4 | Downsampling scope & seed | 🟡 Mechanism known (seeds 10, 20), final class ratio deferred to M2 |
+| 5 | Target encoding leakage | 🟡 Mechanism known (GaussianTargetEncoder on log1p, fit on good_train), leakage quantification deferred to M2 |
+| 6 | GBDT hyperparameters | ✅ Resolved: all defaults |
+| 7 | LEAD CSV upstream | ✅ Resolved: 02_preprocess_data.py with 3 deltas |
+
+### Key takeaways for M2
+
+1. **Feature engineering is the primary contribution**, not model tuning.
+   LEAD train_features.csv already contains 57 pre-computed columns
+   (building meta + weather + target encoding via GTE). M2 only needs to
+   add 120 value-change features + ClusterNo + SavGol + dayofyear.
+
+2. **Models use library defaults** (LightGBM/XGBoost: n_estimators=100,
+   CatBoost: iterations=1000, HistGBT: max_iter=100). Equal-weight ensemble
+   (each 0.25). No early stopping. M2 should not waste time tuning models.
+
+3. **CV split is deterministic** (`building_id % 5 == 4`). Reproducing this
+   exactly is critical — paper reports local vs leaderboard gap < 1% which
+   depends on this specific split.
+
+4. **Class imbalance handling matters**: empirical anomaly rate is 2.13%
+   (paper says ~5%). The 2× normal + 2× anomaly pattern needs verification
+   for final class ratio.
+
+5. **Methodological lesson** (see ADR 0006): apparent paper-code
+   discrepancies require verification against PDF before claiming
+   "contradiction". 3 initial claims downgraded to imprecise description
+   / over-interpretation / file inconsistency.
+
+### Documentation index for M2 reference
+
+- `docs/paper-notes.md` — paper structured summary
+- `docs/feature-engineering-rules.md` — complete feature + model rules
+- `docs/unknowns.md` — all 7 unknowns with current status
+- `docs/adr/0001`–`0006` — design decisions and methodology
+- `CONTEXT.md` — glossary, conventions, working principles
