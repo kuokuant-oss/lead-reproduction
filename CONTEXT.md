@@ -11,13 +11,40 @@
 - M3:擴展到完整 ASHRAE 資料集(~2000 meters)
 
 ## Glossary
-(隨著專案進行持續更新)
 
-- **LEAD**:Large-scale Energy Anomaly Detection,本次 Kaggle 比賽名稱
-- **ASHRAE**:American Society of Heating, Refrigerating and A/C Engineers;原始大資料集來源
-- **Anomaly label**:每筆讀數是否為異常(0/1)
-- **Meter**:電表/能源表讀數
-- **Feature engineering**:從原始 meter readings 衍生出模型用的特徵
+**LEAD**:
+Large-scale Energy Anomaly Detection,以 Kaggle 為平台的建築能源異常偵測社群比賽(2022)。資料來自 ASHRAE GEPIII 競賽的標注子集。
+_Avoid_: 以 "LEAD" 單獨指涉資料時容易混淆 — 明確使用 "LEAD competition"(比賽本身)或 "LEAD dataset"(競賽使用的資料集)。
+
+**ASHRAE**:
+American Society of Heating, Refrigerating and Air-Conditioning Engineers。在本專案中以兩個脈絡出現:(1) ASHRAE 組織發起的 GEPIII 能源預測競賽;(2) GEPIII 產生的完整能源資料集(~1,413 meters),是本專案 M3 的目標資料集。
+_Avoid_: 以 "ASHRAE dataset" 不加限定時無法區分 GEPIII 子集還是完整資料集 — 明確使用 "ASHRAE GEPIII dataset" 或 "full ASHRAE dataset"。
+
+**GEPIII**:
+Great Energy Predictor III,ASHRAE 在 Kaggle 舉辦的建築能源預測競賽(2020)。LEAD dataset 是 GEPIII 資料的人工標注子集;GEPIII 衍生的特徵(building meta、weather data 等)被直接沿用至 LEAD 解法中。
+
+**Anomaly label**:
+每筆 meter reading 的二元標籤:0(正常)或 1(異常)。在 LEAD dataset 中由人工標注,異常率約 5%。
+
+**Meter**:
+在本專案中指單一建築的能源電表,資料形式為以小時為單位的 `meter_reading` 時間序列(全年約 8,760 筆/meter)。
+_Avoid_: "sensor" 或 "device" — meter 專指已彙總成每小時讀數的電表資料,不是原始感測器訊號。
+
+**Point anomaly**:
+時間序列中一個孤立的異常讀數,與鄰近點或整體時間序列相比明顯偏離。特徵:隨機、偶發、不連續。對應特徵:value-change 在相鄰 timestep 數值急遽改變。
+
+**Sequential anomaly**:
+連續多個 timestep 的異常讀數,代表某個持續性的異常事件(如設備故障導致讀數長時間 flatline 或持續偏低)。又稱 collective anomaly。
+_Avoid_: "flatline anomaly" — flatline 是 sequential anomaly 的一個常見子類型,不是同義詞。
+
+**Feature engineering**:
+從原始 meter readings 及 metadata 衍生出模型特徵的過程。在本論文中包含六類:energy use、building meta、weather data、temporal、target encoding、value-change。
+
+**Value-change feature**:
+本論文的核心 feature innovation。透過計算 X(t) 與 X(t-s) 之間的差值 `X(t) - X(t-s)` 或比值 `(X(t)+1)/(X(t-s)+1)` 來捕捉時間序列的變化幅度。用以偵測 point anomaly(急遽變化)和 sequential anomaly(零變化 / flatline)。
+
+**Target encoding**:
+將類別欄位(如 `building_id`)替換成對應的 anomaly label 平均值的技術。在本專案中若未在 CV fold 內部計算,會產生 data leakage,導致 validation score 虛高。
 
 ## Tech stack
 - Python 3.11+
@@ -34,3 +61,7 @@
 - \`src/lead/\`:穩定的可重用程式碼
 - \`docs/\`:筆記、決策紀錄
 - \`reports/\`:圖表、結果輸出
+
+---
+
+Last reviewed: pending
