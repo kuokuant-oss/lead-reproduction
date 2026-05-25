@@ -10,21 +10,22 @@
 
 **術語**: 總特徵數 169(Table 3: "Raw, V-C (169)")
 
-**狀態**: partially-resolved — shift 範圍已從原始碼確認,總特徵數差距 6 待階段 B 計算確認
+**狀態**: partially-resolved — 57 original features 與 120 value-change features 已確認,剩下確認 `57 + 120 - X = 169` 的 X 是什麼(階段 B 主要工作)
 
 **出現脈絡**: §2.2 說原始特徵「up to 57」;§2.2.1–2.2.3 描述的 value-change shifts 為 8 個值 × 2 方向 × 2 類型(差值/比值) = 32 個 value-change features。57 + 32 = 89,與 Table 3 標示的 169 差距 80 個,論文完全未解釋。
 
-**Issue #7 發現(原始碼觀察)**:
+**原始碼觀察(Feature generator notebook)**:
 - 競賽提供的 `train_features.csv` 已預計算 **57 個 original features** ✓
-- 原始碼 Feature generator Cells 11–12 的實際 shift 範圍:
+- Feature generator Cells 11–12 的實際 shift 範圍:
   - `np.arange(-24, 0)` + `np.arange(1, 25)` = 每小時 ±1~24(48 個)
   - `np.arange(-168, -24, 24)` + `np.arange(48, 169, 24)` = 每日 ±2~7 week(12 個)
   - 合計 **60 shifts × 2 類型(diff + ratio) = 120 value-change features**
 - 論文宣稱 32 個 value-change features 是**嚴重低估**,實際是 120 個
-- 初估總特徵數:57 + 120 + ClusterNo + Savitzky-Golay residual + dayofyear ≈ **175**
-- 論文說 169,差距 **6 個** — 原因待階段 B 執行 Cell 4 的 `list_variables` 確認
+- Feature generator 還加了 ClusterNo(K-means)、Savitzky-Golay residual
+- Modeling notebook Cell 2 加了 dayofyear(float)
+- Modeling notebook Cell 4 的 `list_variables` 再 drop 幾欄 + 排除非 float/int
 
-**剩下待確認**: 精確的 175 vs 169 差距(可能某些欄被 `select_dtypes` 或 drop 排除);ClusterNo 和 Savitzky-Golay 是否真的在最終特徵集內。
+**剩下待確認(階段 B 主要工作)**: 執行 Cell 4 的 `list_variables` 邏輯,確認最終特徵集是 169 還是其他數字,找出 `X`(被排除的欄位)。ClusterNo 和 Savitzky-Golay 是否真的進了最終特徵集。
 
 ---
 
@@ -39,10 +40,10 @@
 **原始碼觀察(Modeling notebook Cell 6)**:
 - 實作:`building_id % 5 < 4` → train;`building_id % 5 == 4` → validation
 - **確定性切分,無 random seed** — building_id 模 5 等於 4 的建築固定為 validation
-- 200 棟建築中約 40 棟(20%)進 validation,約 160 棟(80%)進 train
-- 這是單次 split(非 k-fold);論文說「k-fold」的解讀有誤,就是單次
+- 推論:modulo-5 本質上是 5-fold 結構,validation 約 40 棟建築(200 × 1/5 = 40)
+- 但 notebook 只跑 fold 4(即 `% 5 == 4`),並非 5-fold cross-validation loop
 
-**剩下待確認**: 確切的 validation 建築數(需計算 200 棟中 building_id % 5 == 4 有幾棟)。
+**剩下待確認**: 確認是否只跑 1 fold(holdout)還是真的有 5-fold loop;確切的 validation 建築數(需計算 200 棟中 building_id % 5 == 4 有幾棟)。
 
 **為什麼重要**: Split 策略直接影響每次本地評估的可靠性。「差距 < 1%」這個特性也依賴此特定 split 設計才能重現。
 
@@ -88,7 +89,7 @@ df_eq = pd.concat([negs1, pos, negs2, pos], axis=0)
 - 全域一次操作(非按建築、非每 fold 重抽);在 CV split 之前執行
 - Random seed 已確認:**10 和 20**
 
-**剩下待確認**: 論文說「downsampling」,但實際上 anomaly 資料是被複製(upsampling 的成分),normal 才是 downsampling。這個語義差異對重現是否有影響需在階段 B 驗證。
+**剩下待確認**: 確認最終訓練集的 class ratio(50:50 是否成立,或因 2× anomaly 重複而有其他效應);釐清這個「2× normal + 2× anomaly」策略對應論文 §2.3.2 的哪段描述,以及論文說「downsampling」是否準確(anomaly 被複製是 upsampling 成分)。
 
 ---
 
