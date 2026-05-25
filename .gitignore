@@ -216,3 +216,20 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# Data and models — ignore contents but keep folder structure
+data/raw/*
+data/interim/*
+data/processed/*
+models/*
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+!models/.gitkeep
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Env files
+.env
