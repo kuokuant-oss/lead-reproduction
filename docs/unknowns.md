@@ -119,9 +119,24 @@ df_eq = pd.concat([negs1, pos, negs2, pos], axis=0)
 
 **術語**: hyperparameters (LightGBM, XGBoost, CatBoost, HistGradientBoosting)
 
+**狀態**: resolved ✓
+
 **出現脈絡**: §2.3.3 提及四個模型各自訓練並做 hyperparameter tuning,但論文完全未揭露任何超參數數值(如 `num_leaves`、`learning_rate`、`max_depth`、`n_estimators` 等)。
 
-**為什麼重要**: 超參數不同,Train/Test AUC 會有差距。XGBoost 和 CatBoost 的 Train AUC 高達 0.9999,暗示有特定的超參數設定導致高度 fitting。若重現時用預設值,各模型的 AUC 分布可能和論文 Table 2 不一致,ensemble 後的 AUC 也可能偏低。需看 buds-lab/LEAD-1st-solution 的各 notebook 確認。
+**原始碼觀察(Modeling notebook Cells 8–11)**:
+
+| Model | Constructor | 非預設設定 |
+|-------|------------|-----------|
+| XGBoost | `XGBClassifier(n_estimators=100)` | 無(100 是預設值) |
+| LightGBM | `LGBMClassifier(n_estimators=100)` | 無(100 是預設值) |
+| CatBoost | `CatBoostClassifier()` | 無(純預設,iterations=1000) |
+| HistGBT | `HistGradientBoostingClassifier()` | 無(純預設,max_iter=100) |
+
+**核心發現**:所有四個模型均使用庫的預設超參數。論文所稱「hyperparameter tuning」在原始碼中**無對應實作**。Train AUC 0.9999 並非來自特殊超參數,而是因為特徵本身對 anomaly 有極高判別力,加上 downsampled 訓練集中 anomaly 比例達 50%。
+
+**其他訓練設計**:無 early stopping;等權平均 ensemble(1/4 each);HistGBT 以 `np.nan_to_num()` 處理 NaN。
+
+**ADR**: 見 `docs/feature-engineering-rules.md` "Model hyperparameters" 章節。
 
 ---
 
@@ -158,4 +173,4 @@ df_eq = pd.concat([negs1, pos, negs2, pos], axis=0)
 
 ---
 
-Last reviewed: 2026-05-25 (B.1 update: resolved #1, #7; partially-resolved #5)
+Last reviewed: 2026-05-26 (Issue #6: resolved #6; #2/#4/#5 partially-resolved deferred to M2)

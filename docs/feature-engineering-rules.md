@@ -109,4 +109,29 @@ dayofyear = timestamp_as_day_of_year + hour / 24
 
 ---
 
-Last updated: 2026-05-25
+## Model hyperparameters
+
+四個 GBDT 模型的超參數設定,由 Modeling notebook Cells 8–11 提取。
+
+**核心發現:所有模型幾乎全用預設值。論文宣稱的「hyperparameter tuning」在原始碼中看不到對應實作。**
+
+| Model | Constructor call | 明確設定參數 | 值 | 庫預設 | 備註 |
+|-------|-----------------|-------------|---|--------|------|
+| XGBoost | `XGBClassifier(n_estimators=100)` | `n_estimators` | 100 | 100 | 與預設相同,明確寫出 |
+| LightGBM | `LGBMClassifier(n_estimators=100)` | `n_estimators` | 100 | 100 | 與預設相同,明確寫出 |
+| CatBoost | `CatBoostClassifier()` | 無 | — | iterations=1000 | 純預設;`.fit(silent=True)` 僅抑制輸出 |
+| HistGBT | `HistGradientBoostingClassifier()` | 無 | — | max_iter=100 | 純預設;輸入以 `np.nan_to_num()` 預處理 |
+
+### 訓練流程的關鍵設計(非論文揭露)
+
+| 設計 | 說明 |
+|------|------|
+| StandardScaler | Cell 7:全部特徵在 train 上 `fit_transform`,val/test 只 `transform`。GBDT 理論上不需要正規化,此處可能是保守做法或遺留設定。 |
+| Ensemble 權重 | 四個模型預測值**等權平均**(各 1/4),非加權或 stacking。Cell 12–13。 |
+| Early stopping | **無**。所有模型跑完預設輪數後直接評估。 |
+| NaN 處理 | HistGradientBoosting 使用 `np.nan_to_num(X)`(NaN → 0.0)。其餘三個模型直接接受 NaN。 |
+| Final refit | Cell 13:在 `X_all`(train+val 合併,仍有 downsampled 結構)上重新訓練全部四個模型後再預測 test。 |
+
+---
+
+Last updated: 2026-05-26
