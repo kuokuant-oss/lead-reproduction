@@ -236,3 +236,6 @@ models/*
 
 # Scratch — local-only work area
 .scratch/
+
+# Claude Code personal permission settings — varies per user/agent, not for repo
+.claude/settings.local.json
