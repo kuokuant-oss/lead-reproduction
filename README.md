@@ -18,7 +18,16 @@ TODO — will be filled in during M2.
 
 ## Data
 Data is not committed to this repo. Download from Kaggle:
-- LEAD competition: https://www.kaggle.com/competitions/energy-anomaly-detection/data
-- Full ASHRAE: https://www.kaggle.com/competitions/ashrae-energy-prediction/data
+
+**LEAD dataset (M2)**
+- https://www.kaggle.com/competitions/energy-anomaly-detection/data
+
+**Full dataset (M3)**
+- Raw data (Kaggle GEPIII): https://www.kaggle.com/competitions/ashrae-energy-prediction/data
+  (M3 只需 train data,不需 test)
+- Feature engineering reference:
+  https://github.com/buds-lab/ashrae-great-energy-predictor-3-solution-analysis/blob/master/solutions/rank-1/scripts/02_preprocess_data.py
+- Anomaly label source:
+  https://github.com/buds-lab/ashrae-great-energy-predictor-3-solution-analysis/blob/master/solutions/rank-1/input/bad_meter_readings.zip
 
 Place files in \`data/raw/\`.

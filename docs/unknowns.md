@@ -112,4 +112,27 @@ df_eq = pd.concat([negs1, pos, negs2, pos], axis=0)
 
 ---
 
-Last reviewed: pending
+## 7. LEAD 比賽資料的上游 pipeline
+
+**術語**: `train_features.csv` 的 57 欄來源
+
+**狀態**: unresolved — working hypothesis,待階段 B 驗證
+
+**出現脈絡**: LEAD 競賽直接提供 `train_features.csv`(57 欄,含 building meta、weather、temporal、target encoding),但未說明這 57 欄是如何產生的。LEAD-1st-solution 的 Feature generator notebook 讀取這個 CSV 作為輸入,只在其上疊加 value-change features,沒有從更底層的 raw data 重新產生。
+
+**假設**: 這 57 欄可能來自 `buds-lab/ashrae-great-energy-predictor-3-solution-analysis` 的 `solutions/rank-1/scripts/02_preprocess_data.py`(GEPIII 第一名解法的前處理腳本)。LEAD 比賽的組成公式可能是:GEPIII raw data + `bad_meter_readings.zip` 異常標注 → 以 `02_preprocess_data.py` 產出 57 欄 feature CSV。
+
+**為什麼重要**:
+- **HIGH** — 若假設成立:解 169 vs ~175 的特徵差距時必須同時讀此 script
+- 若假設不成立:57 欄的來源更難追,可能阻塞 M3 的 feature engineering 起點
+- M3 的工作量估計依賴此假設:「換資料」還是「從頭重建 pipeline」
+
+**驗證方式**: 比對 `02_preprocess_data.py` 的輸出欄位名稱與 `train_features.csv` 的 57 欄是否完全一致。可在階段 B 開頭快速執行。
+
+**參考**:
+- `02_preprocess_data.py`: https://github.com/buds-lab/ashrae-great-energy-predictor-3-solution-analysis/blob/master/solutions/rank-1/scripts/02_preprocess_data.py
+- `bad_meter_readings.zip`: https://github.com/buds-lab/ashrae-great-energy-predictor-3-solution-analysis/blob/master/solutions/rank-1/input/bad_meter_readings.zip
+
+---
+
+Last reviewed: 2026-05-25

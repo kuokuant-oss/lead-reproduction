@@ -10,6 +10,24 @@
 - M2:重現比賽結果(LEAD 資料集,~200 meters)
 - M3:擴展到完整 ASHRAE 資料集(~2000 meters)
 
+## 資料來源關係(working hypothesis,M1 階段 B 驗證)
+
+LEAD 比賽資料的組成假設:
+
+```
+GEPIII raw data (Kaggle)
+    + bad_meter_readings.zip (異常標注)
+    → LEAD dataset (train/test CSV + train_features.csv 57 欄)
+```
+
+- **LEAD 提供的 `train_features.csv`(57 欄)可能來自** `buds-lab/ashrae-great-energy-predictor-3-solution-analysis` 的 `solutions/rank-1/scripts/02_preprocess_data.py`
+- 此假設若成立,影響三件事:
+  1. LEAD-1st-solution 的 Feature generator notebook 只負責 value-change features,不負責原始 57 欄的產生
+  2. 解 169 vs ~175 特徵數差距時,必須同時參照 `02_preprocess_data.py`
+  3. M3 不只是「換更大的資料」,而是「從頭跑完整 feature engineering pipeline(GEPIII raw → 57 欄 → value-change → 模型)」
+
+驗證方式:比對 `02_preprocess_data.py` 的輸出欄位名稱與 `train_features.csv` 的 57 欄是否完全一致(見 `docs/unknowns.md` #7)。
+
 ## Glossary
 
 **LEAD**:
