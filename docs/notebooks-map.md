@@ -1,7 +1,7 @@
 # Notebooks Map: buds-lab/LEAD-1st-solution
 
-Source: https://github.com/buds-lab/LEAD-1st-solution  
-Cloned to: `.scratch/lead-1st-solution/` (gitignored)  
+Source: https://github.com/buds-lab/LEAD-1st-solution
+Cloned to: `.scratch/lead-1st-solution/` (gitignored)
 Purpose: 為 Issues #4、#5、#6 提供索引,不需要每次重讀原始碼
 
 ---

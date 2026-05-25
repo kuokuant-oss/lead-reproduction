@@ -1,0 +1,16 @@
+config:
+  MD013: false   # line-length: 允許長行(中文段落)
+  MD022: false   # blanks-around-headings: 中文 docs 常緊接標題
+  MD031: false   # blanks-around-fences: code block 前後空行選擇性
+  MD032: false   # blanks-around-lists: 列表前後空行選擇性
+  MD033: false   # no-inline-html: 允許偶爾的 HTML
+  MD034: false   # no-bare-urls: 允許在列表中使用裸 URL
+  MD036: false   # no-emphasis-as-heading: 允許 **bold** 作非正式標題
+  MD040: false   # fenced-code-language: 不強制 code block 標語言
+  MD041: false   # first-line-h1: 允許檔案不以 # 開頭(例如 ADR)
+  MD058: false   # blanks-around-tables: table 前後空行選擇性
+
+ignores:
+  - ".scratch/**"
+  - ".agents/**"
+  - "node_modules/**"

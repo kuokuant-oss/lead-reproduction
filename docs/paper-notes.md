@@ -1,9 +1,9 @@
 # Paper Notes: Trimming outliers using trees
 
-**論文**: "Trimming outliers using trees: Winning solution of the Large-scale Energy Anomaly Detection (LEAD) competition"  
-**作者**: Chun Fu, Pandarasamy Arjunan, Clayton Miller (NUS / BEARS-Berkeley)  
-**發表**: BuildSys '22, November 9–10, 2022, Boston, MA, USA  
-**DOI**: https://doi.org/10.1145/3563357.3566147  
+**論文**: "Trimming outliers using trees: Winning solution of the Large-scale Energy Anomaly Detection (LEAD) competition"
+**作者**: Chun Fu, Pandarasamy Arjunan, Clayton Miller (NUS / BEARS-Berkeley)
+**發表**: BuildSys '22, November 9–10, 2022, Boston, MA, USA
+**DOI**: https://doi.org/10.1145/3563357.3566147
 **原始碼**: https://github.com/buds-lab/LEAD-1st-solution
 
 ---
@@ -159,11 +159,11 @@ $$\text{prediction} = (\text{LightGBM} + \text{XGBoost} + \text{CatBoost} + \tex
 
 兩條 hard rule,依序套用於 ensemble 機率輸出之後:
 
-**Rule 1**: `meter_reading == 1` → 強制預測為 **異常(1)**  
+**Rule 1**: `meter_reading == 1` → 強制預測為 **異常(1)**
 來源:競賽討論區觀察,幾乎 100% 的 `meter_reading = 1` 都是異常(資料特有 artifact)。
 
-**Rule 2**: 時間序列的 start/end points → 強制預測為 **正常(0)**  
-來源:視覺化觀察,各電表時間序列的起始和結束點幾乎都不是異常。  
+**Rule 2**: 時間序列的 start/end points → 強制預測為 **正常(0)**
+來源:視覺化觀察,各電表時間序列的起始和結束點幾乎都不是異常。
 ⚠️ **論文未定義 "start/end points" 的邊界**:首尾各幾筆?**見原始碼。**
 
 ---
