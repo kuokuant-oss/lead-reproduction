@@ -10,22 +10,23 @@
 
 **術語**: 總特徵數 169(Table 3: "Raw, V-C (169)")
 
-**狀態**: partially-resolved — 57 original features 與 120 value-change features 已確認,剩下確認 `57 + 120 - X = 169` 的 X 是什麼(階段 B 主要工作)
+**狀態**: resolved ✓
 
-**出現脈絡**: §2.2 說原始特徵「up to 57」;§2.2.1–2.2.3 描述的 value-change shifts 為 8 個值 × 2 方向 × 2 類型(差值/比值) = 32 個 value-change features。57 + 32 = 89,與 Table 3 標示的 169 差距 80 個,論文完全未解釋。
+**精確組成(B.1 確認)**:
 
-**原始碼觀察(Feature generator notebook)**:
-- 競賽提供的 `train_features.csv` 已預計算 **57 個 original features** ✓
-- Feature generator Cells 11–12 的實際 shift 範圍:
-  - `np.arange(-24, 0)` + `np.arange(1, 25)` = 每小時 ±1~24(48 個)
-  - `np.arange(-168, -24, 24)` + `np.arange(48, 169, 24)` = 每日 ±2~7 week(12 個)
-  - 合計 **60 shifts × 2 類型(diff + ratio) = 120 value-change features**
-- 論文宣稱 32 個 value-change features 是**嚴重低估**,實際是 120 個
-- Feature generator 還加了 ClusterNo(K-means)、Savitzky-Golay residual
-- Modeling notebook Cell 2 加了 dayofyear(float)
-- Modeling notebook Cell 4 的 `list_variables` 再 drop 幾欄 + 排除非 float/int
+| 來源 | 數量 | 說明 |
+|------|------|------|
+| Original 57 → 扣除 string cols | 46 | `select_dtypes(include=['float','int'])` 排除 8 個 object 欄(timestamp, primary_use, weekday_hour, building_weekday_hour, building_weekday, building_month, building_hour, building_meter);再 drop anomaly/wind_direction/air_temperature_std_lag73 |
+| ClusterNo | 1 | K-means 分 10 群,Feature generator Cell 9 |
+| Diff features | 60 | 60 shifts × `lag_value_{n}` |
+| Ratio features | 60 | 60 shifts × `lag_value_ratio_{n}` |
+| Residual_savgol_w5p3 | 1 | Savitzky-Golay 殘差,Feature generator Cells 13–14 |
+| dayofyear | 1 | Modeling notebook Cell 2 新增(float = day + hour/24) |
+| **Total** | **169** | ✓ |
 
-**剩下待確認(階段 B 主要工作)**: 執行 Cell 4 的 `list_variables` 邏輯,確認最終特徵集是 169 還是其他數字,找出 `X`(被排除的欄位)。ClusterNo 和 Savitzky-Golay 是否真的進了最終特徵集。
+**論文宣稱 32 個 value-change features 嚴重低估**:實際 120 個(60 shifts × 2 types)。論文描述的 {1,2,3,23,24,48,72,168} × 2 方向 = 16 shifts 是對實際 60 shifts 的高度簡化。
+
+**ADR**: 見 `docs/feature-engineering-rules.md` 完整 value-change 生成規則。
 
 ---
 
@@ -97,9 +98,20 @@ df_eq = pd.concat([negs1, pos, negs2, pos], axis=0)
 
 **術語**: target encoding
 
+**狀態**: partially-resolved — encoding 機制已確認,leakage 影響尚待量化
+
 **出現脈絡**: §2.2 Table 1 列出「Average values of the target variable aggregated by category (e.g., average values grouped by building_id)」作為一類特徵。若在 CV 切割前對完整訓練集計算 target encoding,validation set 的 label 資訊會洩漏進 training features,導致 validation AUC 虛高。論文未說明如何防範。
 
-**為什麼重要**: 若重現時未防護 leakage,本地 validation 分數會過度樂觀,而 test set(206 棟新建築)上的性能不如預期。正確做法通常是 out-of-fold target encoding 或在 CV 內部計算;需看 GitHub 確認原版實作。
+**原始碼觀察(`02_preprocess_data.py` lines 179–190)**:
+- 使用 `GaussianTargetEncoder`,target 為 `log1p(meter_reading)`(非異常 label)
+- 僅在 `good_train`(is_bad_meter_reading==0 的子集)上 `fit_transform`,再對全量 train/test `transform`
+- **此 encoding 在 LEAD 競賽資料生成時已完成**,`train_features.csv` 的 `gte_*` 欄已是編碼後的值
+- 重現時直接讀取 competition CSV 即可,**無需重算 target encoding**
+- 能量讀數的平均值(非異常 label)不構成直接 label leakage,但 validation 建築的讀數統計仍有間接 leakage
+
+**剩下待確認**: 量化此 `gte_*` leakage 對 validation AUC 的影響幅度;確認是否需要在 M2 重現中排除 `gte_*` 欄來測試純特徵貢獻。
+
+**為什麼重要**: M2 直接使用 competition CSV 繞過了此問題;M3 從 GEPIII raw data 重建時需要決定是否沿用同一 GaussianTargetEncoder 策略。
 
 ---
 
@@ -117,18 +129,28 @@ df_eq = pd.concat([negs1, pos, negs2, pos], axis=0)
 
 **術語**: `train_features.csv` 的 57 欄來源
 
-**狀態**: unresolved — working hypothesis,待階段 B 驗證
+**狀態**: resolved ✓
 
 **出現脈絡**: LEAD 競賽直接提供 `train_features.csv`(57 欄,含 building meta、weather、temporal、target encoding),但未說明這 57 欄是如何產生的。LEAD-1st-solution 的 Feature generator notebook 讀取這個 CSV 作為輸入,只在其上疊加 value-change features,沒有從更底層的 raw data 重新產生。
 
-**假設**: 這 57 欄可能來自 `buds-lab/ashrae-great-energy-predictor-3-solution-analysis` 的 `solutions/rank-1/scripts/02_preprocess_data.py`(GEPIII 第一名解法的前處理腳本)。LEAD 比賽的組成公式可能是:GEPIII raw data + `bad_meter_readings.zip` 異常標注 → 以 `02_preprocess_data.py` 產出 57 欄 feature CSV。
+**確認結果**: `02_preprocess_data.py` 是 57 欄的直接上游來源。
 
-**為什麼重要**:
-- **HIGH** — 若假設成立:解 169 vs ~175 的特徵差距時必須同時讀此 script
-- 若假設不成立:57 欄的來源更難追,可能阻塞 M3 的 feature engineering 起點
-- M3 的工作量估計依賴此假設:「換資料」還是「從頭重建 pipeline」
+**欄位對應**(`02_preprocess_data.py` → LEAD CSV,全部吻合):
+- `meter_reading`、`site_id`、`building_id`、`meter`(建築/計量基本欄)
+- `square_feet`、`year_built`、`floor_count`、`primary_use`(building meta)
+- `air_temperature`、`dew_temperature`、`sea_level_pressure`、`wind_speed` 等氣象欄 + `had_*` NA 指示欄
+- `air_temperature_mean_lag7`、`air_temperature_mean_lag73` 等滾動統計
+- `hour`、`weekday`、`month`、`year`、`hour_x`/`y`、`month_x`/`y`、`weekday_x`/`y`(時間特徵)
+- `weekday_hour`、`building_weekday_hour`、`building_weekday`、`building_month`、`building_hour`、`building_meter`(string 互動欄)
+- `is_holiday`、`is_bad_meter_reading`(→ LEAD 改名為 `anomaly`)
+- 16 個 `gte_*` target encoding 欄(GaussianTargetEncoder on `log1p(meter_reading)`)
 
-**驗證方式**: 比對 `02_preprocess_data.py` 的輸出欄位名稱與 `train_features.csv` 的 57 欄是否完全一致。可在階段 B 開頭快速執行。
+**三個差異點**:
+1. `meter` 欄:原始碼有,LEAD CSV 無(比賽資料僅一種 meter 或已合入 building_id)
+2. `is_bad_meter_reading` → LEAD 改名為 `anomaly`
+3. `had_*` 天氣 NA 指示欄:原始碼產生,LEAD CSV 無(或已刪除)
+
+**M3 含義**: 從 GEPIII raw data 重建時,執行 `02_preprocess_data.py` 即可得到與 LEAD 相同的特徵基礎;差異點需補充處理。
 
 **參考**:
 - `02_preprocess_data.py`: https://github.com/buds-lab/ashrae-great-energy-predictor-3-solution-analysis/blob/master/solutions/rank-1/scripts/02_preprocess_data.py
@@ -136,4 +158,4 @@ df_eq = pd.concat([negs1, pos, negs2, pos], axis=0)
 
 ---
 
-Last reviewed: 2026-05-25
+Last reviewed: 2026-05-25 (B.1 update: resolved #1, #7; partially-resolved #5)
