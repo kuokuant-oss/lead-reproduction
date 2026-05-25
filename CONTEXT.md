@@ -47,6 +47,10 @@ _Avoid_: "value-changing feature"(語法不正確)。
 **Target encoding**:
 將類別欄位(如 `building_id`)替換成對應的 anomaly label 平均值的技術。在本專案中若未在 CV fold 內部計算,會產生 data leakage,導致 validation score 虛高。
 
+## Working principles
+
+**三方不一致原則**: 當論文、README、程式碼描述不一致時,以程式碼為準(例:ADR 0005,imputation method)。發現任何不一致都記 ADR,不省略。
+
 ## Tech stack
 - Python 3.11+
 - uv(package manager)
