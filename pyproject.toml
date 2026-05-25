@@ -1,0 +1,29 @@
+[project]
+name = "lead-reproduction"
+version = "0.1.0"
+description = "Reproduction of the LEAD competition winning solution (BuildSys '22)"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.0",
+    "numpy>=1.26",
+    "scikit-learn>=1.4",
+    "lightgbm>=4.0",
+    "xgboost>=2.0",
+    "catboost>=1.2",
+    "jupyter>=1.0",
+    "ipykernel>=6.0",
+    "matplotlib>=3.8",
+    "seaborn>=0.13",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/lead"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.4",
+]
