@@ -1,0 +1,387 @@
+# M2 Plan: Reproduce Competition Results
+
+## M2 完成標準
+
+在 LEAD 訓練集的 validation fold 上,以完整 169-feature pipeline + 4-model ensemble
++ post-processing 跑出 **validation AUC ≥ 0.97**,且 M1 遺留的三個
+partially-resolved unknowns(#2 CV split、#4 downsampling、#5 gte leakage)全數
+在過程中透過實驗 resolved。
+
+**量化指標**:
+
+| 指標 | 目標 | 論文數字 | 備註 |
+|------|------|----------|------|
+| LightGBM val AUC(57 features) | ≥ 0.90 | 0.9311 (Fig 4) | baseline before feature engineering |
+| LightGBM val AUC(169 features) | ≥ 0.97 | 0.9849 (Table 2) | after feature engineering |
+| 4-model ensemble val AUC | ≥ 0.97 | 0.9866 (Table 2) | final ensemble |
+| Val vs leaderboard gap | < 1% | < 1% (§2.3.1) | can only verify indirectly |
+
+**限制說明**:Kaggle 競賽已關閉,無法取得 private leaderboard AUC。M2 以
+validation AUC 作為主要量化指標;若論文 val/test gap < 1% 的特性能在本地
+val 數字中重現,視為等價通過。
+
+---
+
+## 你提議的 6-issue 切法 — 我的判斷與調整
+
+你提議的切法大致合理,但有兩個結構問題:
+
+**問題 1:M2.3(downsampling)不該獨立成一張 issue**
+
+Downsampling 是 pipeline 的**前置基礎設施**,不是一個可以「加上去看 AUC 變化」的
+enhancement。原始碼的執行順序是:downsampling → CV split → StandardScaler → 模型。
+若 M2.1 不含 downsampling,得到的 AUC 會因 class imbalance 嚴重偏低,跟論文 Fig 4
+的 0.9311 baseline 無法比較。
+
+**調整**:把 downsampling 併入 M2.1(baseline pipeline),讓 M2.1 一出來就是
+end-to-end 可驗證的 pipeline,只是 feature 少。
+
+**問題 2:M2.6(validate unknowns)不該是獨立 issue**
+
+Unknown #2(CV split)和 #4(downsampling class ratio)會在 M2.1 執行時**自然
+resolved** — 跑 split 就能算建築數;跑 downsampling 就能印 class ratio。
+做成獨立 issue 反而讓「印個 shape」變成一件大事。
+
+Unknown #5(gte leakage)需要 ablation experiment,值得一個明確的驗證步驟,
+但不需要整張 issue,可以放在最後一張 issue 的 checklist 裡。
+
+**調整**:移除 M2.6,把 unknowns 驗收分散進各 issue 的 Done when。
+
+**最終切法:5 張 issue(從 6 → 5)**
+
+| 你的版本 | 我的版本 | 調整說明 |
+|---------|---------|---------|
+| M2.1 Baseline (57 features, no downsampling) | M2.1 Baseline pipeline (57 features + full infra) | 加入 downsampling |
+| M2.2 Add value-change | M2.2 Value-change feature engineering | 同 |
+| M2.3 Add downsampling | (merged into M2.1) | 不獨立 |
+| M2.4 Add 4-model ensemble | M2.3 4-model ensemble | 同 |
+| M2.5 Add post-processing | M2.4 Post-processing + final refit | 同 |
+| M2.6 Validate unknowns | (distributed + M2.5 ablation) | 分散進各 issue |
+| — | M2.5 Ablation study + milestone closure | Unknown #5 + 最終文件化 |
+
+---
+
+## M2 工作切片
+
+---
+
+### M2.1: Reproduce baseline pipeline (57 raw features, LightGBM)
+
+**Title**: Reproduce pre-feature-engineering baseline: load LEAD data, implement
+full pipeline infrastructure, run LightGBM with 57 features
+
+**Why**:
+建立可運行的端到端 pipeline 是一切的基礎。57-feature baseline 的
+AUC(~0.93)是論文 Figure 4 「feature engineering 前」的基準點,重現這個數字
+證明 downsampling、CV split、StandardScaler 全部正確。M1 遺留的 Unknown #2
+(CV split 建築數)和 Unknown #4(downsampling class ratio)在這張 issue
+的執行過程中自然 resolved。
+
+**What**:
+
+1. 讀取 `data/raw/train_features.csv`,確認 schema 與 M1 期望一致
+2. 確認實際 anomaly rate(M1 暫記為 ~2.13%;論文說 ~5%,需要實測)
+3. 實作 downsampling:
+   ```python
+   negs1 = neg.sample(n=pos.shape[0], random_state=10)
+   negs2 = neg.sample(n=pos.shape[0], random_state=20)
+   df_eq = pd.concat([negs1, pos, negs2, pos], axis=0)
+   ```
+4. 實作特徵選擇(select numeric + drop wind_direction, air_temperature_std_lag73)
+5. 實作 CV split:`building_id % 5 < 4` → train,`building_id % 5 == 4` → val
+6. 實作 StandardScaler(fit on train, transform val)
+7. 訓練 `LGBMClassifier(n_estimators=100)`,eval val AUC
+
+**Done when**:
+
++ [ ] `data/raw/train_features.csv` 讀取成功,行數與 schema 確認
++ [ ] 實際 anomaly rate 印出:約 X%(解答 M1 暫記 2.13% vs 論文 5% 的差異)
++ [ ] Downsampling 後 class ratio 確認:normal:anomaly 印出 → **Unknown #4 resolved**
++ [ ] CV split 建築數確認:validation set 有幾棟建築 → **Unknown #2 resolved**
++ [ ] LightGBM val AUC ≥ 0.90(論文基準 0.9311,差異 < 5% 算 pass)
++ [ ] 一個 notebook 或 script 記錄以上數字,可重跑
+
+**Out of scope**:
++ Value-change features(M2.2)
++ 其他三個 GBDT 模型(M2.3)
++ Post-processing(M2.4)
++ 超參數搜索(M2 整體不做)
+
+**Labels**: `type:code`, priority: HIGH
+**Depends on**: 無(但需要 data/raw/ 已有 LEAD CSV)
+
+---
+
+### M2.2: Implement value-change feature engineering (169 features total)
+
+**Title**: Add 120 value-change features + ClusterNo + SavGol + dayofyear,
+validate AUC jump
+
+**Why**:
+Feature engineering 是論文的核心貢獻,AUC 從 0.9311 跳到 0.9849(+5.8%)全
+來自這一步。M2.2 驗證了論文 Fig 4 的 feature engineering 效果是否可重現,
+也驗證了 M1 解碼的 169-feature 組成(46 + 1 + 60 + 60 + 1 + 1)是否正確。
+
+**What**:
+
+1. 實作 value-change features(在 downsampled df 之前,在完整 train 資料上計算):
+
+   ```python
+   shifts = (
+       list(np.arange(-24, 0)) + list(np.arange(1, 25))        # ±1..24
+       + list(np.arange(-168, -24, 24)) + list(np.arange(48, 169, 24))  # ±48..168 step 24
+   )
+   # 共 60 shifts
+   for n in shifts:
+       df[f'lag_value_{n}'] = df.groupby('building_id')['meter_reading'].shift(n) - df['meter_reading']
+       df[f'lag_value_ratio_{n}'] = (df.groupby('building_id')['meter_reading'].shift(n) + 1) / (df['meter_reading'] + 1)
+   ```
+
+2. 實作 ClusterNo:K-means(`n_clusters=10`)on `meter_reading`,fit 全部資料
+
+3. 實作 `Residual_savgol_w5p3`:Savitzky-Golay 濾波(window=5, polyorder=3)殘差
+
+4. 實作 `dayofyear`:
+   ```python
+   df['dayofyear'] = pd.to_datetime(df['timestamp']).dt.dayofyear + pd.to_datetime(df['timestamp']).dt.hour / 24
+   ```
+
+5. 驗證 feature count = 169
+
+6. 重跑 M2.1 pipeline(downsampling → CV split → StandardScaler),替換成 169 features
+
+7. 訓練 LightGBM,eval val AUC
+
+**Done when**:
+
++ [ ] Feature count 確認 = 169(印出欄位數)
++ [ ] 各類 feature 的 NaN rate 確認(value-change 邊界 NaN 是正常的)
++ [ ] LightGBM val AUC ≥ 0.97(論文 0.9849,差異 < 3% 算 pass)
++ [ ] AUC jump 幅度(vs M2.1 baseline)在 +4% 以上,方向正確
++ [ ] 可重跑的 notebook/script
+
+**Out of scope**:
++ 其他三個 GBDT 模型(M2.3)
++ 特徵重要性排名分析(M2.5 的 optional)
++ Shift 數量或 window 調整實驗(M3 工作)
+
+**Labels**: `type:code`, priority: HIGH
+**Depends on**: M2.1(pipeline infrastructure)
+
+---
+
+### M2.3: Add XGBoost, CatBoost, HistGBT; implement 4-model ensemble
+
+**Title**: Extend to 4-model GBDT ensemble, validate per-model AUC and
+ensemble improvement
+
+**Why**:
+Ensemble 是最後 +0.21% AUC 的來源,且論文 Table 2 提供各模型 AUC 作為驗證基準。
+重現各模型 AUC 的排序(LightGBM 0.9849 > CatBoost 0.9857 > XGBoost 0.9840 >
+HistGBT 0.9839)是確認 pipeline 正確的額外信心。
+
+**What**:
+
+1. 加入 XGBoost:`XGBClassifier(n_estimators=100)`,注意 NaN 處理(XGBoost 原生支援)
+2. 加入 CatBoost:`CatBoostClassifier()`,`.fit(..., silent=True)`
+3. 加入 HistGBT:`HistGradientBoostingClassifier()`,輸入用 `np.nan_to_num(X)`
+4. 實作 equal-weight ensemble:
+   ```python
+   pred_ensemble = (pred_lgb + pred_xgb + pred_cat + pred_hist) / 4
+   ```
+5. 印出各模型 val AUC 及 ensemble val AUC,對照論文 Table 2
+
+**Done when**:
+
++ [ ] 4 個模型各自 val AUC 印出,排序與論文 Table 2 方向一致
+  (CatBoost/XGBoost 略高,HistGBT 略低,LightGBM 中間)
++ [ ] Ensemble val AUC 高於各模型平均(方向正確)
++ [ ] Ensemble val AUC ≥ 0.97
+
+**Out of scope**:
++ 超參數調整(paper + code 皆用 defaults)
++ Stacking 或加權 ensemble 實驗(M3 工作)
++ Post-processing(M2.4)
+
+**Labels**: `type:code`, priority: MEDIUM
+**Depends on**: M2.2
+
+---
+
+### M2.4: Implement post-processing + final refit on all training data
+
+**Title**: Apply Rule 1 and Rule 2 post-processing; refit models on full
+training data
+
+**Why**:
+論文 §2.4 的兩條 hard rules 做最後修正,且最終 submission 是在 train+val 合併後
+重新 refit 的模型輸出。這是 pipeline 的最後一步,也是最終 AUC 的所在。
+
+**What**:
+
+1. 實作 Rule 1:
+   ```python
+   predictions[test['meter_reading'] == 1] = 1
+   ```
+
+2. 實作 Rule 2(Modeling notebook Cell 14 的實際條件):
+   ```python
+   predictions[(test['dayofyear'] == 1) & ((test['building_id'] > 145) | (test['building_id'] < 105))] = 0
+   predictions[test['dayofyear'] > 366.9583] = 0
+   ```
+
+3. Final refit:在 `X_all`(train + val 合併,保留 downsampled 結構)上
+   重新 fit 全部四個模型
+
+4. 對 LEAD test set 產生 prediction file(即使無法提交,保留供 M3 對比)
+
+5. 在 validation fold 上評估 post-processing 的 AUC 變化(前後對比)
+
+**Done when**:
+
++ [ ] Rule 1 + Rule 2 套用後,val AUC 印出(預計微幅變動)
++ [ ] X_all refit 完成,test prediction CSV 存到 `data/processed/`
++ [ ] Post-processing 前後 AUC 對比記錄(確認 rules 方向正確)
+
+**Out of scope**:
++ Rule 參數調整實驗
++ 提交至 Kaggle(競賽已關閉)
+
+**Labels**: `type:code`, priority: MEDIUM
+**Depends on**: M2.3
+
+---
+
+### M2.5: Ablation study + Unknown #5 resolution + milestone closure
+
+**Title**: Quantify gte_* leakage impact; document reproduction gap; close M2
+unknowns
+
+**Why**:
+M1 遺留 Unknown #5(gte_* target encoding leakage 影響尚待量化)。M2.5 透過
+ablation experiment 正式 resolve 它,同時文件化整個 M2 的重現結果與論文的差距。
+這是 M2 milestone 的 closure issue。
+
+**What**:
+
+1. **Unknown #5 ablation**:
+   + 從 169 features 移除所有 `gte_*` 欄(16 欄),重跑 LightGBM
+   + 比較 val AUC: 含 gte vs 不含 gte
+   + 量化 leakage 影響(幅度、方向)
+   + 在 `docs/unknowns.md` #5 標記 resolved,附 AUC 數字
+
+2. **重現 gap 分析**:
+   + 整理完整 AUC progression 表(對照論文 Table 2)
+   + 記錄與論文 0.9866 的差距,分析可能原因(seed 差異、NaN 處理細節等)
+   + 決定差距是否在 "acceptable" 範圍(目標:< 1% gap)
+
+3. **文件更新**:
+   + `docs/unknowns.md`:Unknown #2, #4, #5 全部標記 resolved
+   + `docs/m2-plan.md`:加 M2 closure 段落
+   + Close GitHub Issue #5
+
+**Done when**:
+
++ [ ] gte ablation AUC 差值印出並記錄 → **Unknown #5 resolved**
++ [ ] 最終 AUC 與論文 0.9866 差距 < 1%(若不滿足,記錄原因並標記為 acceptable gap)
++ [ ] `docs/unknowns.md` #2, #4, #5 全部標記 resolved
++ [ ] GitHub Issue #5 closed with resolution comment
++ [ ] M2 milestone closed
+
+**Out of scope**:
++ 超參數搜索以縮小 gap
++ M3 的工作(從 GEPIII raw data 重建 57-feature pipeline)
+
+**Labels**: `type:research`, priority: LOW
+**Depends on**: M2.4(需要 working full pipeline 才能跑 ablation)
+
+---
+
+## 建議執行順序與並行性
+
+```
+M2.1 ──► M2.2 ──► M2.3 ──► M2.4 ──► M2.5
+(必須串行)
+```
+
+**全部串行**,原因:每張 issue 的輸出是下一張的輸入(pipeline 漸進式建構)。
+沒有可以並行的 issue。
+
+**工作量估計**:
+
+| Issue | 預估工作量 | 主要瓶頸 |
+|-------|-----------|---------|
+| M2.1 | 中 | 確認 data schema + downsampling implementation |
+| M2.2 | 長 | value-change feature generation(60 shifts per building)的效能考量 |
+| M2.3 | 短-中 | CatBoost 1000 iterations 訓練時間 |
+| M2.4 | 短 | 兩條 rules 簡單;refit 是機械步驟 |
+| M2.5 | 短 | 主要是跑 ablation + 文件整理 |
+
+**Compute 估計**:
+訓練集在 downsampling 後約 150K–350K 行(取決於實際 anomaly rate)× 169 features:
+
++ LightGBM(100 trees): < 1 分鐘
++ XGBoost(100 trees): 1–3 分鐘
++ CatBoost(1000 iterations): 5–15 分鐘(CatBoost 有 GPU 加速,若無 GPU 較慢)
++ HistGBT(100 iterations): 1–3 分鐘
+
+全部模型合計:預估 **10–25 分鐘**,在一般 laptop 上 M2 整體一天可完成。
+
+---
+
+## 主要風險
+
+### 1. Reproduction gap 超過 1%(最可能發生)
+
+**原因**:任何 seed 差異、NaN 填補細節、column ordering 或 K-means 初始化
+都可能影響最終 AUC。
+
+**降級規則**:
++ Gap < 0.5%:perfect reproduction,直接關閉 M2
++ Gap 0.5%–2%:acceptable;文件化差異原因,關閉 M2,移至 M3 追蹤
++ Gap > 2%:troubleshoot pipeline(檢查 shift 方向、downsampling seed、
+  feature selection)後重跑;若仍 > 2%,標記為 open question
+
+### 2. 實際 anomaly rate 與論文描述不符
+
+M1 暫記 2.13%,論文說 ~5%。若實際 rate 差異大,downsampled 資料集大小和
+CatBoost 訓練時間都會受影響。M2.1 執行時直接量測解決。
+
+### 3. Value-change feature 生成效能
+
+對 200 棟建築逐一做 60 shifts 的 groupby + shift 操作,若實作不當會很慢。
+建議一次對整個 DataFrame 做 shift(不需要 groupby loop),NaN 自然出現在建築邊界。
+
+**防範**:M2.2 優先實作 vectorized shift;若效能不足,可用 pandas MultiIndex 優化。
+
+### 4. CatBoost 沒有 GPU
+
+CatBoost 1000 iterations 在純 CPU 上可能需要 15–30 分鐘。
+**降級**:在等待時可先跑 M2.4 的 Rule coding(獨立於 model 訓練),或先
+用較少 iterations 做功能驗證再跑完整版。
+
+### 5. StandardScaler 對 NaN 的行為
+
+`StandardScaler.fit_transform(X_train)` 遇到 NaN 預設會報錯
+(sklearn ≥ 1.0 如此)。原始碼可能有特殊處理或依賴舊版行為。
+**防範**:M2.1 先測試,若報錯則在 StandardScaler 前加
+`sklearn.impute.SimpleImputer(strategy='mean')` 或改用 `np.nan_to_num()`。
+
+---
+
+## M2 Exit Criteria
+
++ [ ] LightGBM val AUC(57 features)≥ 0.90,方向符合論文 Fig 4
++ [ ] LightGBM val AUC(169 features)≥ 0.97
++ [ ] 4-model ensemble val AUC ≥ 0.97
++ [ ] Post-processing 前後 AUC 對比已記錄
++ [ ] 5 個漸進式 commits,每個都有 model run 數字記錄在 commit message 或 docs
++ [ ] Unknown #2(CV 建築數)resolved
++ [ ] Unknown #4(downsampling class ratio)resolved
++ [ ] Unknown #5(gte leakage 量化)resolved
++ [ ] GitHub Issue #5 closed
++ [ ] M2 milestone closed
+
+---
+
+Last reviewed: 2026-05-26
