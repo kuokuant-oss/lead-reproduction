@@ -103,8 +103,8 @@ dayofyear = timestamp_as_day_of_year + hour / 24
 
 ## 注意事項
 
-- Paper §2.2 宣稱 32 個 value-change features;實際為 120 個(60 shifts × 2 types)。
-  論文描述的 `{1,2,3,23,24,48,72,168} × 2 方向 = 16 shifts` 是高度簡化。
+- 論文 §2.2.2 以 "i.e." 列舉 shift 舉例(sub-day {1,2,3,23},multi-day {24,48,72,168}),描述不精確。
+  代碼 ground truth:60 shifts × 2 types = 120 value-change features。
 - Shift 集合設計的物理意義:短期(±1–24h)捕捉日週期,長期(±48–168h,間隔 24h)捕捉週週期。
 
 ---
@@ -113,7 +113,7 @@ dayofyear = timestamp_as_day_of_year + hour / 24
 
 四個 GBDT 模型的超參數設定,由 Modeling notebook Cells 8–11 提取。
 
-**核心發現:所有模型幾乎全用預設值。論文宣稱的「hyperparameter tuning」在原始碼中看不到對應實作。**
+**原始碼結果:四個模型均使用各 GBDT 庫預設值(LightGBM/XGBoost: n_estimators=100,CatBoost: iterations=1000,HistGBT: max_iter=100)。論文 §2.3.3 提到 "hyperparameter tuning will be considered",但代碼中未見對應實作。Train AUC 0.9999 的高擬合來自特徵判別力 + balanced downsampling。**
 
 | Model | Constructor call | 明確設定參數 | 值 | 庫預設 | 備註 |
 |-------|-----------------|-------------|---|--------|------|

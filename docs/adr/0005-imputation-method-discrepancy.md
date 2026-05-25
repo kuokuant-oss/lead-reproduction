@@ -1,4 +1,4 @@
-# Use mean imputation as observed in code, not median as documented
+# Use mean imputation; README description appears incorrect
 
 Missing value imputation 採用**每棟建築的 mean** 填補 NaN,以程式碼為準。
 

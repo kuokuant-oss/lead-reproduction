@@ -24,7 +24,7 @@
 | dayofyear | 1 | Modeling notebook Cell 2 新增(float = day + hour/24) |
 | **Total** | **169** | ✓ |
 
-**論文宣稱 32 個 value-change features 嚴重低估**:實際 120 個(60 shifts × 2 types)。論文描述的 {1,2,3,23,24,48,72,168} × 2 方向 = 16 shifts 是對實際 60 shifts 的高度簡化。
+**論文 §2.2.2 描述不精確**:以 "i.e." 列舉 sub-day shifts {1,2,3,23} 和 multi-day shifts {24,48,72,168},但同段也說 "shifts within one day were fully accounted for",暗示完整 1-day 涵蓋是設計意圖。代碼實際實作 60 個 shifts(sub-day {1..24} + multi-day {48,72,96,120,144,168})× 2 types = 120 value-change features。論文舉例不完整,但設計方向與代碼一致;以代碼為 ground truth。
 
 **ADR**: 見 `docs/feature-engineering-rules.md` 完整 value-change 生成規則。
 
@@ -132,7 +132,7 @@ df_eq = pd.concat([negs1, pos, negs2, pos], axis=0)
 | CatBoost | `CatBoostClassifier()` | 無(純預設,iterations=1000) |
 | HistGBT | `HistGradientBoostingClassifier()` | 無(純預設,max_iter=100) |
 
-**核心發現**:所有四個模型均使用庫的預設超參數。論文所稱「hyperparameter tuning」在原始碼中**無對應實作**。Train AUC 0.9999 並非來自特殊超參數,而是因為特徵本身對 anomaly 有極高判別力,加上 downsampled 訓練集中 anomaly 比例達 50%。
+**原始碼結果**:所有四個模型均使用庫預設超參數。論文 §2.3.3 以 "will be considered for modeling and hyperparameter tuning" 描述計畫意圖,未承諾調出非預設值;代碼最終使用預設值,與論文措辭不衝突。Train AUC 0.9999 來自特徵判別力 + balanced downsampling,而非特殊超參數設定。
 
 **其他訓練設計**:無 early stopping;等權平均 ensemble(1/4 each);HistGBT 以 `np.nan_to_num()` 處理 NaN。
 
