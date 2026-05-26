@@ -182,4 +182,47 @@ df_eq = pd.concat([negs1, pos, negs2, pos], axis=0)
 
 ---
 
-Last reviewed: 2026-05-26 (Issue #6: resolved #6; #2/#4/#5 partially-resolved deferred to M2)
+## 8. Anomaly rate: 論文敘述與實測差距
+
+**術語**: anomaly rate / prevalence
+
+**狀態**: resolved ✓
+
+**出現脈絡**: §2.3.2 描述「about 5%」的 anomaly rate 作為 downsampling 的背景。
+
+**M2.1 measured**:
+- 實測 anomaly rate: **2.13%**（37,296 pos / 1,712,198 neg / 1,749,494 total）
+- 論文描述: "about 5%"
+
+**解釋**:
+- LEAD 競賽資料集為 GEPIII 1,449 棟的子集(200 棟),anomaly rate 因子集選取而異於全集
+- 論文的 "about 5%" 可能描述的是 GEPIII 完整資料集的 anomaly rate,而非 LEAD 子集
+- 不排除是概估或包含了更廣泛的異常定義
+
+**不影響重現性**: Downsampling 策略(50:50)以實際 pos/neg 筆數為基準,
+與論文描述的比例無關;2.13% 的實際 rate 代入公式後仍得到正確的 50:50 結果。
+
+---
+
+## 9. building_id 範圍非連續(LEAD 為 GEPIII 子集)
+
+**術語**: building_id range, modulo split
+
+**狀態**: resolved ✓
+
+**出現脈絡**: CV split 用 `building_id % 5 == 4` 選出 validation set。M1 估計約 40 棟（200 × 1/5），實際測量為 38 棟。
+
+**M2.1 measured**:
+- building_id 最大值: 1319（非連續 0–199）
+- 原因: LEAD 200 棟保留 GEPIII 原始 building_id，跨越更大範圍
+- `% 5 == 4` 實際落入的建築數: **38 棟**（非理論 40 棟）
+
+**設計含義**:
+- building_id 稀疏分佈在 0–1319，`% 5` 的分佈不均勻，造成 val 為 38 棟而非 40 棟
+- 但 modulo split 的核心優點仍成立：確定性分割、無 random seed、
+  building 層級完整隔離
+- 38/162 ≈ 19% val rate，接近理論 20%，不影響評估可靠性
+
+---
+
+Last reviewed: 2026-05-26 (M2.1: resolved #4, partially-resolved #2; added #8/#9 from measurements)
