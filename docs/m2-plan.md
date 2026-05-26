@@ -133,102 +133,147 @@ Feature engineering 是論文的核心貢獻,AUC 從 0.9311 跳到 0.9849(+5.8%)
 來自這一步。M2.2 驗證了論文 Fig 4 的 feature engineering 效果是否可重現,
 也驗證了 M1 解碼的 169-feature 組成(46 + 1 + 60 + 60 + 1 + 1)是否正確。
 
-**What**:
+**Alignment strategy**: 結構對齊 + ClusterNo 數字對齊。
+ClusterNo 必須跑出與原版相同的 200 棟 cluster labels(高風險,複雜預處理鏈)。
+其他 features 跑通 + shape 正確即可,不嚴格要求數字對齊。M2.5 才系統性 ablate。
 
-1. 實作 value-change features(在完整 train_features 上計算,downsampling 之前):
+**整體執行順序**: ClusterNo → value-change → SavGol → dayofyear → downsampling
+→ CV split → StandardScaler → LightGBM
 
-   ```python
-   # 近似實作(M2.2):groupby().shift() — 對無缺時間點的資料等價
-   shifts = (
-       list(np.arange(-24, 0)) + list(np.arange(1, 25))        # ±1..24
-       + list(np.arange(-168, -24, 24)) + list(np.arange(48, 169, 24))  # ±48..168 step 24
-   )
-   # 共 60 shifts
-   for n in shifts:
-       df[f'lag_value_{n}'] = df.groupby('building_id')['meter_reading'].shift(n) - df['meter_reading']
-       df[f'lag_value_ratio_{n}'] = (df.groupby('building_id')['meter_reading'].shift(n) + 1) / (df['meter_reading'] + 1)
-   ```
+M2.2 分 5 個獨立 sub-step,每個 sub-step 對應一個 commit。
 
-   > **實作差異注意**:buds-lab 原版用 timestamp-based merge(shift timestamp ± N hours,
-   > 再 merge on [building_id, timestamp]),不是 groupby().shift()。
-   > 對無缺洞時間序列兩者等價;若 LEAD 有缺洞 building,結果可能不同。
-   > M2.2 先用 groupby().shift()(實作簡單),Done when 加驗證步驟。
+---
 
-2. 實作 ClusterNo(per-building shape clustering,工作量最大的單一 feature):
+#### M2.2.a: ClusterNo (per-building shape clustering) — 數字對齊
 
-   ```python
-   # Step 1: 合併 train + test,建立 timestamp × building_id pivot
-   merged = pd.concat([train_features, test_features], axis=0, ignore_index=True)
-   pivot = merged.pivot_table(index='timestamp', columns='building_id', values='meter_reading')
+```python
+# Step 1: 合併 train + test,建立 timestamp × building_id pivot
+merged = pd.concat([train_features, test_features], axis=0, ignore_index=True)
+pivot = merged.pivot_table(index='timestamp', columns='building_id', values='meter_reading')
 
-   # Step 2: 預處理鏈(log1p → double z-score + ±10σ clip → log1p)
-   pivot = np.log1p(pivot)
-   for _ in range(2):
-       pivot = (pivot - pivot.mean()) / pivot.std()
-       pivot = pivot[pivot < 10]
-       pivot = pivot[pivot > -10]
+# Step 2: 預處理鏈 (log1p → double z-score + ±10σ clip)
+pivot = np.log1p(pivot)
+for _ in range(2):
+    pivot = (pivot - pivot.mean()) / pivot.std()
+    pivot = pivot[pivot < 10]
+    pivot = pivot[pivot > -10]
 
-   # Step 3: 轉置 → (200 buildings) × (T timestamps);StandardScaler + fillna(0)
-   df_buildings = pivot.T
-   scaler = StandardScaler()
-   X_cluster = scaler.fit_transform(df_buildings.fillna(0))
+# Step 3: 轉置 → (200 buildings) × (T timestamps);StandardScaler + fillna(0)
+df_buildings = pivot.T
+X_cluster = StandardScaler().fit_transform(df_buildings.fillna(0))
 
-   # Step 4: KMeans fit — random_state=666(不是 42)
-   km = KMeans(n_clusters=10, max_iter=10000, random_state=666)
-   df_buildings['ClusterNo'] = km.fit_predict(X_cluster)
+# Step 4: KMeans — random_state=666, max_iter=10000
+km = KMeans(n_clusters=10, max_iter=10000, random_state=666)
+df_buildings['ClusterNo'] = km.fit_predict(X_cluster)
 
-   # Step 5: merge 回 train_features by building_id
-   train_features = train_features.merge(
-       df_buildings[['ClusterNo']].reset_index(), on='building_id', how='left'
-   )
-   ```
+# Step 5: merge 回 train_features by building_id
+train_features = train_features.merge(
+    df_buildings[['ClusterNo']].reset_index(), on='building_id', how='left'
+)
+```
 
-   > **M1 plan 描述有誤**:「K-means on meter_reading」是錯的。
-   > 實際是對 **建築時間序列形狀**分群(200 buildings × T timestamps 矩陣)。
-   > 需要 `test_features.csv`。random_state=666(非 42)。
-   > ClusterNo 是 per-building integer label(0–9),合併後每棟建築所有 row 共享同一值。
+> ClusterNo 是 per-building integer label(0–9),每棟建築所有 row 共享同一值。
+> 需要 `data/raw/test_features.csv`。random_state=666(不是 42)。
 
-3. 實作 `Residual_savgol_w5p3`:
+**M2.2.a Done when**:
 
-   ```python
-   from scipy.signal import savgol_filter
-   results = []
-   for bid in train_features['building_id'].unique():
-       tmp = train_features[train_features['building_id'] == bid].copy()
-       smoothed = savgol_filter(tmp['meter_reading'].fillna(method='ffill'), 5, 3)
-       tmp['Residual_savgol_w5p3'] = tmp['meter_reading'] - smoothed
-       results.append(tmp)
-   train_features = pd.concat(results).sort_index()
-   ```
++ [ ] 跑 buds-lab Feature generator notebook 的 K-means cells(Cell 8–10),
+      儲存 200 棟 cluster labels 為參照(ref_labels)
++ [ ] 跑我們的 ClusterNo 實作,輸出 200 棟 cluster labels(our_labels)
++ [ ] 比對:N/200 棟一致;理想 200/200,差異 ≤ 5/200 算 pass
++ [ ] 若有不一致 → 印出差異棟號 + label 值,標記 debug 方向
 
-   > savgol 的 input 用 ffill(不是 mean imputation);
-   > residual 的分子是原始(可含 NaN)meter_reading,邊界 NaN 正常。
+---
 
-4. 實作 `dayofyear`(**必須在 downsampling 之前**,buds-lab Modeling notebook Cell 3 順序):
+#### M2.2.b: Value-change features (120 features)
 
-   ```python
-   train_features['dayofyear'] = (
-       pd.to_datetime(train_features['timestamp']).dt.dayofyear
-       + pd.to_datetime(train_features['timestamp']).dt.hour / 24
-   )
-   ```
+```python
+# 近似實作:groupby().shift() — 對無缺時間點的資料等價
+shifts = (
+    list(np.arange(-24, 0)) + list(np.arange(1, 25))
+    + list(np.arange(-168, -24, 24)) + list(np.arange(48, 169, 24))
+)  # 共 60 shifts
+for n in shifts:
+    train_features[f'lag_value_{n}'] = (
+        train_features.groupby('building_id')['meter_reading'].shift(n)
+        - train_features['meter_reading']
+    )
+    train_features[f'lag_value_ratio_{n}'] = (
+        (train_features.groupby('building_id')['meter_reading'].shift(n) + 1)
+        / (train_features['meter_reading'] + 1)
+    )
+```
 
-5. 驗證 feature count = 169
+> buds-lab 原版用 timestamp-based merge,不是 groupby().shift()。
+> 對無缺洞時間序列等價;若 LEAD 有缺洞 building,Done when 加驗證項。
 
-6. 執行順序:ClusterNo → impute → value-change → SavGol → dayofyear → downsampling
-   → CV split → StandardScaler
+**M2.2.b Done when**:
 
-7. 訓練 LightGBM,eval val AUC
++ [ ] `lag_value_*` × 60 + `lag_value_ratio_*` × 60 = 120 新欄確認
++ [ ] 抽查 building_id=0 的 lag_value_1 前 5 行:值 = shifted - original,方向正確
++ [ ] 確認 LEAD 資料是否有缺時間點:per-building row count 是否全為 8,784
+      (365天 × 24小時);若有缺洞,記入 unknowns
 
-**Done when**:
+---
+
+#### M2.2.c: Savitzky-Golay residual
+
+```python
+from scipy.signal import savgol_filter
+results = []
+for bid in train_features['building_id'].unique():
+    tmp = train_features[train_features['building_id'] == bid].copy()
+    smoothed = savgol_filter(tmp['meter_reading'].fillna(method='ffill'), 5, 3)
+    tmp['Residual_savgol_w5p3'] = tmp['meter_reading'] - smoothed
+    results.append(tmp)
+train_features = pd.concat(results).sort_index()
+```
+
+> savgol input 用 ffill;residual 分子是原始 meter_reading(可含 NaN)。
+
+**M2.2.c Done when**:
+
++ [ ] `Residual_savgol_w5p3` 欄存在,shape 正確
++ [ ] 抽查一棟建築:residual mean ≈ 0(無系統偏移)
+
+---
+
+#### M2.2.d: dayofyear (必須在 downsampling 之前)
+
+```python
+train_features['dayofyear'] = (
+    pd.to_datetime(train_features['timestamp']).dt.dayofyear
+    + pd.to_datetime(train_features['timestamp']).dt.hour / 24
+)
+```
+
+> 加在 downsampling 之前(buds-lab Modeling notebook Cell 3 順序)。
+
+**M2.2.d Done when**:
+
++ [ ] `dayofyear` 欄存在,dtype float
++ [ ] 值域合理:1.0 ≤ dayofyear ≤ 366.958
+
+---
+
+#### M2.2.e: 整合 + LightGBM val AUC
+
+接續 M2.1 的 downsampling → CV split → StandardScaler → LightGBM 流程,
+全部 features 就位後:
+
+1. 確認 feature count = 169(select_dtypes 後)
+2. 執行 downsampling → CV split → StandardScaler
+3. 訓練 `LGBMClassifier(n_estimators=100)`,eval val AUC
+
+**M2.2.e Done when**:
 
 + [ ] Feature count 確認 = 169(印出欄位數)
-+ [ ] 各類 feature 的 NaN rate 確認(value-change 邊界 NaN 是正常的)
-+ [ ] LEAD 資料是否有缺時間點:印出 per-building timestamp 連續性檢查;
-      若有缺洞,記入 unknowns 待 M2.5 驗證 timestamp-merge vs shift 差異
++ [ ] 各類 feature 的 NaN rate 確認(value-change 邊界 NaN 正常)
 + [ ] LightGBM val AUC ≥ 0.97(論文 0.9849,差異 < 3% 算 pass)
-+ [ ] AUC jump 幅度(vs M2.1 baseline)在 +4% 以上,方向正確
++ [ ] AUC jump ≥ +4% vs M2.1 baseline 0.8952,方向正確
 + [ ] 可重跑的 notebook/script
+
+---
 
 **Out of scope**:
 + 其他三個 GBDT 模型(M2.3)
