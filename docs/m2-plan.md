@@ -210,12 +210,12 @@ for _ in range(2):
 # Step 3: log1p AFTER z-score (z-scored values in [-10,10]; z < -1 → NaN, handled by fillna(0) below)
 pivot = np.log1p(pivot)
 
-# Step 4: 轉置 → (200 buildings) × (T timestamps);StandardScaler + fillna(0)
+# Step 4: 轉置 → (train 200 + test 206 = 406 buildings) × (T timestamps);StandardScaler + fillna(0)
 df_buildings = pivot.T
 X_cluster = StandardScaler().fit_transform(df_buildings.fillna(0))
 
-# Step 5: KMeans — random_state=666, max_iter=10000
-km = KMeans(n_clusters=10, max_iter=10000, random_state=666)
+# Step 5: KMeans — n_init=10 EXPLICIT (sklearn 1.4+ 'auto' with k-means++ = 1, was 10!)
+km = KMeans(n_clusters=10, max_iter=10000, random_state=666, n_init=10)
 df_buildings['ClusterNo'] = km.fit_predict(X_cluster)
 
 # Step 6: merge 回 train_features by building_id
@@ -228,14 +228,26 @@ train_features = train_features.merge(
 > z < −1 的位置會產生 NaN;後續 `fillna(0)` 是 intentional 行為(與原 code 一致)。
 > ClusterNo 是 per-building integer label(0–9),每棟建築所有 row 共享同一值。
 > 需要 `data/raw/test_features.csv`。random_state=666(不是 42)。
+> n_init=10 必須明確設定(sklearn 1.4+ 'auto' with k-means++ = 1;不設會 ARI=0.503)。
 
 **M2.2.a Done when**:
 
-+ [ ] 跑 buds-lab Feature generator notebook 的 K-means cells(Cell 8–10),
++ [x] 跑 buds-lab Feature generator notebook 的 K-means cells(Cell 8–10),
       儲存 200 棟 cluster labels 為參照(ref_labels)
-+ [ ] 跑我們的 ClusterNo 實作,輸出 200 棟 cluster labels(our_labels)
-+ [ ] 比對:N/200 棟一致;理想 200/200,差異 ≤ 5/200 算 pass
-+ [ ] 若有不一致 → 印出差異棟號 + label 值,標記 debug 方向
++ [x] 跑我們的 ClusterNo 實作,輸出 200 棟 cluster labels(our_labels)
++ [x] 比對:N/200 棟一致;理想 200/200,差異 ≤ 5/200 算 pass
++ [x] 若有不一致 → 印出差異棟號 + label 值,標記 debug 方向
+
+**M2.2.a Status (2026-05-26)**: ✅ Complete
+
++ Pivot shape: (8784, 406) timestamps × buildings (train 200 + test 206)
++ KMeans inertia: 2,598,263.45, n_iter_=16 (converged)
++ ARI = **1.0** (406/406 buildings, perfect alignment with buds-lab)
++ Key finding: sklearn 1.4+ changed `n_init='auto'` with k-means++ to mean
+  `n_init=1` (was 10 in 2022). Without explicit `n_init=10`, ARI=0.503.
+  Fix: explicit `n_init=10` → ARI=1.0.
++ Saved: `data/interim/clusterno.csv` (406 rows × 2 cols)
++ Notebook: `notebooks/02-m2-clusterno.ipynb`
 
 ---
 
@@ -577,7 +589,7 @@ M2.1 和 M2.2 均跳過此步(讓 LightGBM 原生處理 NaN)。
 
 ---
 
-Last reviewed: 2026-05-26 (M2.1 complete)
+Last reviewed: 2026-05-26 (M2.2.a complete: ClusterNo ARI=1.0, sklearn n_init version trap fixed)
 
 ---
 
