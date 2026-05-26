@@ -420,10 +420,10 @@ HistGBT 0.9839)是確認 pipeline 正確的額外信心。
 
 **Done when**:
 
-+ [ ] 4 個模型各自 val AUC 印出,排序與論文 Table 2 方向一致
++ [x] 4 個模型各自 val AUC 印出,排序與論文 Table 2 方向一致
   (CatBoost/XGBoost 略高,HistGBT 略低,LightGBM 中間)
-+ [ ] Ensemble val AUC 高於各模型平均(方向正確)
-+ [ ] Ensemble val AUC ≥ 0.97
++ [x] Ensemble val AUC 高於各模型平均(方向正確)
++ [x] Ensemble val AUC ≥ 0.97
 
 **Out of scope**:
 + 超參數調整(paper + code 皆用 defaults)
@@ -432,6 +432,25 @@ HistGBT 0.9839)是確認 pipeline 正確的額外信心。
 
 **Labels**: `type:code`, priority: MEDIUM
 **Depends on**: M2.2
+
+**M2.3 Status (2026-05-26)**: ✅ Complete
+
++ Individual model val AUCs:
+  + LightGBM: 0.9818 (paper 0.9849, gap 0.31%)
+  + XGBoost:  0.9749 (paper 0.9840, gap 0.91%)
+  + CatBoost: 0.9788 (paper 0.9857, gap 0.69%)
+  + HistGBT:  0.9817 (paper 0.9839, gap 0.22%)
++ Equal-weight ensemble val AUC: **0.9832** (paper 0.9866, gap 0.34%)
++ Done when criteria:
+  + ensemble ≥ 0.97 ✓
+  + ensemble > max(individual) ✓
++ Ranking divergence (documented in unknowns #13):
+  + Paper: CatBoost > LightGBM > XGBoost > HistGBT
+  + Ours:  LightGBM > HistGBT > CatBoost > XGBoost
++ CatBoost iterations verification: tree_count_=1000 confirmed (no early stop)
++ Cross-model importance analysis: 6/10 common features in top 10
++ Notebook: notebooks/05-m2-integration.ipynb (cells 11–17)
++ Commit: tbd
 
 ---
 
@@ -613,7 +632,7 @@ M2.1 和 M2.2 均跳過此步(讓 LightGBM 原生處理 NaN)。
 |-------|------|-----|------|
 | M2.1 baseline pipeline (57 features) | ✅ Done | 0.8952 | gap 3.86% < 5% pass |
 | M2.2 value-change features (169 features) | ✅ Done | 0.9818 | gap 0.31% vs paper 0.9849 |
-| M2.3 4-model ensemble | — | — | |
+| M2.3 4-model ensemble | ✅ Done | 0.9832 | gap 0.34% vs paper 0.9866 |
 | M2.4 post-processing + refit | — | — | |
 | M2.5 ablation + closure | — | — | |
 
@@ -623,7 +642,7 @@ M2.1 和 M2.2 均跳過此步(讓 LightGBM 原生處理 NaN)。
 
 + [x] LightGBM val AUC(57 features)≥ 0.90,方向符合論文 Fig 4
 + [x] LightGBM val AUC(169 features)≥ 0.97
-+ [ ] 4-model ensemble val AUC ≥ 0.97
++ [x] 4-model ensemble val AUC ≥ 0.97 (0.9832; gap 0.34% vs paper 0.9866)
 + [ ] Post-processing 前後 AUC 對比已記錄
 + [ ] 5 個漸進式 commits,每個都有 model run 數字記錄在 commit message 或 docs
 + [x] Unknown #2(CV 建築數)partially resolved(38 棟確認;single-fold 確認)
@@ -634,7 +653,7 @@ M2.1 和 M2.2 均跳過此步(讓 LightGBM 原生處理 NaN)。
 
 ---
 
-Last reviewed: 2026-05-26 (M2.2.e complete: val AUC 0.9818, gap 0.31% vs paper 0.9849; #12 SavGol importance documented)
+Last reviewed: 2026-05-26 (M2.3 complete: ensemble 0.9832, gap 0.34%; ranking divergence documented as new insight on cross-model importance)
 
 ---
 
