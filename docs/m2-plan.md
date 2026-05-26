@@ -271,14 +271,27 @@ for n in shifts:
 ```
 
 > buds-lab 原版用 timestamp-based merge,不是 groupby().shift()。
-> 對無缺洞時間序列等價;若 LEAD 有缺洞 building,Done when 加驗證項。
+> 對無缺洞時間序列等價;LEAD 有 104/200 棟缺洞建築,divergence 已記入 unknowns #11。
 
 **M2.2.b Done when**:
 
-+ [ ] `lag_value_*` × 60 + `lag_value_ratio_*` × 60 = 120 新欄確認
-+ [ ] 抽查 building_id=0 的 lag_value_1 前 5 行:值 = shifted - original,方向正確
-+ [ ] 確認 LEAD 資料是否有缺時間點:per-building row count 是否全為 8,784
-      (365天 × 24小時);若有缺洞,記入 unknowns
++ [x] `lag_value_*` × 60 + `lag_value_ratio_*` × 60 = 120 新欄確認
++ [x] 抽查 building_id=107(第一棟 non-NaN 建築)的 lag_value_1:
+      lag_value_1 = -175.183(expected -175.183)✓; lag_ratio_1 = 0.501424 ✓
++ [x] 確認 LEAD 資料是否有缺時間點:96/200 完整,104/200 缺洞,記入 unknowns #11
+
+**M2.2.b Status (2026-05-26)**: ✅ Complete
+
++ 120 features 生成: `lag_value_{60}` + `lag_value_ratio_{60}` ✓
++ Direction verified on building_id=107 (non-NaN):
+  + `lag_value_1` = -175.183 (expected -175.183) ✓
+  + `lag_value_ratio_1` = 0.501424 (expected 0.501424) ✓
++ NaN counts (boundary + source propagation):
+  + `lag_value_+/-1`: 110,950 each (107,653 source NaN + ~3,297 boundary) — symmetric ✓
+  + `lag_value_+/-168`: 166,958 each (107,653 source NaN + ~59,305 boundary) — symmetric ✓
++ 缺時間點: 104/200 buildings incomplete (min 7,471 ts); 見 unknowns.md #11
++ Output: 不存 CSV (2.9 GB 過大); M2.2.e 重生成(Cell 3 elapsed 3.3s)
++ Notebook: `notebooks/03-m2-value-change.ipynb`
 
 ---
 
@@ -589,7 +602,7 @@ M2.1 和 M2.2 均跳過此步(讓 LightGBM 原生處理 NaN)。
 
 ---
 
-Last reviewed: 2026-05-26 (M2.2.a complete: ClusterNo ARI=1.0, sklearn n_init version trap fixed)
+Last reviewed: 2026-05-26 (M2.2.b complete: 120 value-change features, 104/200 buildings have missing timestamps)
 
 ---
 
