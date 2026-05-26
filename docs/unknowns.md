@@ -229,7 +229,7 @@ df_eq = pd.concat([negs1, pos, negs2, pos], axis=0)
 
 **術語**: val AUC 0.8952 vs 論文 Fig 4 baseline 0.9311
 
-**狀態**: open — investigation deferred to M2.5
+**狀態**: open — investigation in progress; cloud_coverage candidate to verify first
 
 **出現脈絡**: M2.1 跑出 val AUC 0.8952,論文 Fig 4 報告 0.9311(feature engineering 前
 baseline)。Gap 3.86% 在 m2-plan 的 < 5% pass 範圍,但顯著到值得列候選原因清單。
@@ -238,6 +238,7 @@ baseline)。Gap 3.86% 在 m2-plan 的 < 5% pass 範圍,但顯著到值得列候�
 
 | # | 原因 | 優先驗證時機 | 備註 |
 |---|------|------------|------|
+| 0 | **cloud_coverage sentinel:255 未 replace 成 10(797,545 rows = 45.6% 受影響)** | **M2.2.0** — 直接量測 ΔAUC | 主要候選;feature 分佈嚴重偏差 |
 | 1 | CV fold variance:只跑 fold 4;論文可能是 5-fold 平均 | M2.5 | 跑 5-fold loop 看各 fold AUC std |
 | 2 | Downsampling seed variance:seeds 10/20 固定;論文 seed 未揭露 | M2.5 | 多 seed 組合看 std |
 | 3 | 缺 impute_nulls:跳過 per-building mean imputation(Feature generator Cell 11),LightGBM 自然處理 NaN | M2.2/M2.5 | M2.2 跳過;M2.5 加對照組 |
@@ -258,4 +259,4 @@ baseline)。Gap 3.86% 在 m2-plan 的 < 5% pass 範圍,但顯著到值得列候�
 
 ---
 
-Last reviewed: 2026-05-26 (M2.1: resolved #4, partially-resolved #2; added #8/#9 from measurements; added #10 from Step (c) review)
+Last reviewed: 2026-05-26 (M2.1: resolved #4, partially-resolved #2; added #8/#9 from measurements; added #10 from Step (c) review; #10 updated with cloud_coverage candidate from systematic review)

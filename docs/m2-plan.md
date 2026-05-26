@@ -121,6 +121,13 @@ AUC(~0.93)是論文 Figure 4 「feature engineering 前」的基準點,重現這
 + Issue #8 closed
 + Commits: fefde05 (main), 8dcf3ca (reproducibility follow-up)
 
+**Discovered after closure (2026-05-26)**:
+
++ `cloud_coverage = 255` sentinel value 應該 `replace({255:10})`
+  (buds-lab Feature generator Cells 4–5);M2.1 baseline 未做此修正
++ 797,545 rows 受影響(45.6% of all rows),為 M2.1 AUC gap 主要候選原因
++ 修正後重跑 M2.1 是 M2.2 開頭的 M2.2.0 sanity check
+
 ---
 
 ### M2.2: Implement value-change feature engineering (169 features total)
@@ -140,7 +147,46 @@ ClusterNo 必須跑出與原版相同的 200 棟 cluster labels(高風險,複雜
 **整體執行順序**: ClusterNo → value-change → SavGol → dayofyear → downsampling
 → CV split → StandardScaler → LightGBM
 
-M2.2 分 5 個獨立 sub-step,每個 sub-step 對應一個 commit。
+M2.2 分 6 個獨立 sub-step(含 M2.2.0 sanity check),每個 sub-step 對應一個 commit。
+
+---
+
+#### M2.2.0: cloud_coverage sentinel fix (Pre-M2.2 sanity check)
+
+**Why**:
+buds-lab Feature generator Cells 4–5 對 train 和 test 兩個 CSV 讀取後立即執行
+`cloud_coverage.replace({255:10})`。M2.1 baseline 漏掉此步,797,545 rows(45.6%)
+的 cloud_coverage 值是 255 而非 10。cloud_coverage 是 46 numeric features 之一,
+進入 StandardScaler 和 LightGBM,分佈偏差極大(mean 117 vs mean ≈ 3)。
+**這是 M2.1 AUC gap 3.86% 的主要候選原因,必須先量化再推進。**
+
+**What**:
+
+1. 在 `notebooks/01-m2-baseline-pipeline.ipynb` 的 Load data section 加入:
+
+   ```python
+   df['cloud_coverage'] = df['cloud_coverage'].replace({255: 10})
+   # verify: no more 255s
+   assert (df['cloud_coverage'] == 255).sum() == 0
+   ```
+
+2. 重跑 notebook 全部 cells
+
+3. 印出 val AUC 和 ΔAUC = new_AUC − 0.8952
+
+4. 更新 unknowns.md #10
+
+**M2.2.0 Done when**:
+
++ [ ] cloud_coverage = 255 的 count 印出:確認 797,545
++ [ ] replace 後確認:no more 255s
++ [ ] 重跑後新 val AUC 印出
++ [ ] ΔAUC = new_AUC − 0.8952 記錄
++ [ ] unknowns.md #10 candidate 0 (cloud_coverage)標記 measured,附 ΔAUC
+
+**Out of scope**:
++ 其他 sentinel values 偵測(可能 GEPIII 還有其他 255 類似編碼)
++ M2.2.a–e 的工作
 
 ---
 
@@ -151,27 +197,31 @@ M2.2 分 5 個獨立 sub-step,每個 sub-step 對應一個 commit。
 merged = pd.concat([train_features, test_features], axis=0, ignore_index=True)
 pivot = merged.pivot_table(index='timestamp', columns='building_id', values='meter_reading')
 
-# Step 2: 預處理鏈 (log1p → double z-score + ±10σ clip)
-pivot = np.log1p(pivot)
+# Step 2: (z-score + ±10σ clip) × 2 — z-score FIRST, log1p comes later
 for _ in range(2):
     pivot = (pivot - pivot.mean()) / pivot.std()
     pivot = pivot[pivot < 10]
     pivot = pivot[pivot > -10]
 
-# Step 3: 轉置 → (200 buildings) × (T timestamps);StandardScaler + fillna(0)
+# Step 3: log1p AFTER z-score (z-scored values in [-10,10]; z < -1 → NaN, handled by fillna(0) below)
+pivot = np.log1p(pivot)
+
+# Step 4: 轉置 → (200 buildings) × (T timestamps);StandardScaler + fillna(0)
 df_buildings = pivot.T
 X_cluster = StandardScaler().fit_transform(df_buildings.fillna(0))
 
-# Step 4: KMeans — random_state=666, max_iter=10000
+# Step 5: KMeans — random_state=666, max_iter=10000
 km = KMeans(n_clusters=10, max_iter=10000, random_state=666)
 df_buildings['ClusterNo'] = km.fit_predict(X_cluster)
 
-# Step 5: merge 回 train_features by building_id
+# Step 6: merge 回 train_features by building_id
 train_features = train_features.merge(
     df_buildings[['ClusterNo']].reset_index(), on='building_id', how='left'
 )
 ```
 
+> **順序重要**:z-score+clip 先,log1p 後。log1p 套在 z-scored 值(可為負)上,
+> z < −1 的位置會產生 NaN;後續 `fillna(0)` 是 intentional 行為(與原 code 一致)。
 > ClusterNo 是 per-building integer label(0–9),每棟建築所有 row 共享同一值。
 > 需要 `data/raw/test_features.csv`。random_state=666(不是 42)。
 
