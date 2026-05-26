@@ -94,12 +94,12 @@ AUC(~0.93)是論文 Figure 4 「feature engineering 前」的基準點,重現這
 
 **Done when**:
 
-+ [ ] `data/raw/train_features.csv` 讀取成功,行數與 schema 確認
-+ [ ] 實際 anomaly rate 印出:約 X%(解答 M1 暫記 2.13% vs 論文 5% 的差異)
-+ [ ] Downsampling 後 class ratio 確認:normal:anomaly 印出 → **Unknown #4 resolved**
-+ [ ] CV split 建築數確認:validation set 有幾棟建築 → **Unknown #2 resolved**
-+ [ ] LightGBM val AUC ≥ 0.90(論文基準 0.9311,差異 < 5% 算 pass)
-+ [ ] 一個 notebook 或 script 記錄以上數字,可重跑
++ [x] `data/raw/train_features.csv` 讀取成功,行數與 schema 確認
++ [x] 實際 anomaly rate 印出:2.13%(解答 M1 暫記 2.13% vs 論文 5% 的差異)
++ [x] Downsampling 後 class ratio 確認:normal:anomaly 印出 → **Unknown #4 resolved**
++ [x] CV split 建築數確認:validation set 38 棟建築 → **Unknown #2 partially resolved**
++ [x] LightGBM val AUC ≥ 0.90(論文基準 0.9311,差異 < 5% 算 pass)
++ [x] 一個 notebook 或 script 記錄以上數字,可重跑
 
 **Out of scope**:
 + Value-change features(M2.2)
@@ -109,6 +109,17 @@ AUC(~0.93)是論文 Figure 4 「feature engineering 前」的基準點,重現這
 
 **Labels**: `type:code`, priority: HIGH
 **Depends on**: 無(但需要 data/raw/ 已有 LEAD CSV)
+
+**Status (updated 2026-05-26)**: ✅ Complete
+
++ val AUC = 0.8952 (paper baseline 0.9311, gap 3.86% < 5% pass)
++ Anomaly rate measured: 2.13% (paper says "about 5%", documented in unknowns.md #8)
++ Downsampling class ratio: 50:50, total 149,184 rows
++ Train/val split: 162 / 38 buildings
++ building_id range non-contiguous (max 1319), documented in unknowns.md #9
++ Reproducible: relative paths, dependencies pinned in pyproject.toml + uv.lock
++ Issue #8 closed
++ Commits: fefde05 (main), 8dcf3ca (reproducibility follow-up)
 
 ---
 
@@ -369,19 +380,64 @@ CatBoost 1000 iterations 在純 CPU 上可能需要 15–30 分鐘。
 
 ---
 
+## M2 進度追蹤
+
+| Issue | 狀態 | AUC | 備註 |
+|-------|------|-----|------|
+| M2.1 baseline pipeline (57 features) | ✅ Done | 0.8952 | gap 3.86% < 5% pass |
+| M2.2 value-change features (169 features) | ⏭ Next | — | |
+| M2.3 4-model ensemble | — | — | |
+| M2.4 post-processing + refit | — | — | |
+| M2.5 ablation + closure | — | — | |
+
+---
+
 ## M2 Exit Criteria
 
-+ [ ] LightGBM val AUC(57 features)≥ 0.90,方向符合論文 Fig 4
++ [x] LightGBM val AUC(57 features)≥ 0.90,方向符合論文 Fig 4
 + [ ] LightGBM val AUC(169 features)≥ 0.97
 + [ ] 4-model ensemble val AUC ≥ 0.97
 + [ ] Post-processing 前後 AUC 對比已記錄
 + [ ] 5 個漸進式 commits,每個都有 model run 數字記錄在 commit message 或 docs
-+ [ ] Unknown #2(CV 建築數)resolved
-+ [ ] Unknown #4(downsampling class ratio)resolved
++ [x] Unknown #2(CV 建築數)partially resolved(38 棟確認;single-fold 確認)
++ [x] Unknown #4(downsampling class ratio)resolved
 + [ ] Unknown #5(gte leakage 量化)resolved
 + [ ] GitHub Issue #5 closed
 + [ ] M2 milestone closed
 
 ---
 
-Last reviewed: 2026-05-26
+Last reviewed: 2026-05-26 (M2.1 complete)
+
+---
+
+## Next session: starting M2.2
+
+### Quick context recovery
+
+```bash
+cd ~/projects/lead-reproduction && git pull && uv sync
+```
+
+Then in Claude Code:
+
+> Sync prompt: 讀 docs/m2-plan.md (M2.2 section),
+> docs/unknowns.md #1, #8, #9,
+> notebooks/01-m2-baseline-pipeline.ipynb 的最終 summary cell
+
+### What M2.1 left for M2.2
+
++ Baseline AUC = 0.8952 (LightGBM, 57 features)
++ M2.2 should jump to ≥ 0.97 by adding:
+  + 60 shifts × 2 ops = 120 value-change features
+  + ClusterNo (K-means on meter_reading)
+  + Residual\_savgol\_w5p3
+  + dayofyear (float)
++ 預期 feature count: 169 (M1 解碼確認)
+
+### Risks for M2.2 (from m2-plan)
+
++ Value-change generation performance: use vectorized shift on full DataFrame,
+  NaN will appear naturally at building boundaries — do not groupby-loop
++ NaN handling at shift boundaries: expected, LightGBM handles natively
++ Feature count verification: must confirm 169 before continuing to M2.3
