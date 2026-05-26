@@ -225,4 +225,37 @@ df_eq = pd.concat([negs1, pos, negs2, pos], axis=0)
 
 ---
 
-Last reviewed: 2026-05-26 (M2.1: resolved #4, partially-resolved #2; added #8/#9 from measurements)
+## 10. M2.1 baseline AUC gap (3.86%)
+
+**術語**: val AUC 0.8952 vs 論文 Fig 4 baseline 0.9311
+
+**狀態**: open — investigation deferred to M2.5
+
+**出現脈絡**: M2.1 跑出 val AUC 0.8952,論文 Fig 4 報告 0.9311(feature engineering 前
+baseline)。Gap 3.86% 在 m2-plan 的 < 5% pass 範圍,但顯著到值得列候選原因清單。
+
+**候選原因**:
+
+| # | 原因 | 優先驗證時機 | 備註 |
+|---|------|------------|------|
+| 1 | CV fold variance:只跑 fold 4;論文可能是 5-fold 平均 | M2.5 | 跑 5-fold loop 看各 fold AUC std |
+| 2 | Downsampling seed variance:seeds 10/20 固定;論文 seed 未揭露 | M2.5 | 多 seed 組合看 std |
+| 3 | 缺 impute_nulls:跳過 per-building mean imputation(Feature generator Cell 11),LightGBM 自然處理 NaN | M2.2/M2.5 | M2.2 跳過;M2.5 加對照組 |
+| 4 | LightGBM 版本差異:2022 vs 2026 default 行為微調(min_child_samples、num_leaves 等) | M2.5 | 版本 pin 或查 changelog |
+| 5 | 論文 Fig 4 數字本質:0.9311 是 val 還是 test AUC,或是 5-fold 平均而非 fold 4 | M2.5 | 論文未明說,只能間接推論 |
+| 6 | Preprocessing 完整度 | **Resolved by Step (c)** | buds-lab 流程已確認;M2.1 跳過 impute_nulls 已記錄為候選 3 |
+| 7 | Feature subset 差異(46 vs buds-lab list_variables) | **Resolved by Step (c)** | 邏輯完全一致;差異來自 df_eq 的欄位數,非 selection 邏輯 |
+
+**預期演進**: M2.2 加入 value-change features 後 AUC 應跳至 ≥ 0.97(+5% 跳幅)。
+若 M2.2 後相對 gap 仍 ~0.04,代表是 pipeline-level 差異,需 M2.5 系統 ablation。
+若 gap 隨 feature 增加而縮小,候選 4/5 可能性上升。
+
+**M2.5 ablation 計畫**:
+- 5-fold loop AUC variance(驗證候選 1)
+- 多 seed 組合:seeds {10,20}, {10,30}, {42,43} 等(驗證候選 2)
+- impute_nulls 加/不加對照(驗證候選 3)
+- LightGBM 版本降級測試(驗證候選 4,若前三項不收斂)
+
+---
+
+Last reviewed: 2026-05-26 (M2.1: resolved #4, partially-resolved #2; added #8/#9 from measurements; added #10 from Step (c) review)
