@@ -34,7 +34,7 @@
 
 **術語**: split by `building_id`
 
-**狀態**: partially-resolved — split 機制已確認,驗證建築數待計算
+**狀態**: partially-resolved — split 機制已確認,建築數已量測;5-fold loop vs single-fold 待進一步確認
 
 **出現脈絡**: §2.3.1 說「Train and validation datasets were split by building_id to ensure valid data were unseen during training」,且 validation score 與 leaderboard 差距 < 1%。但論文未說明:是單次 split 還是 k-fold?validation set 包含幾棟建築?用什麼 random seed?
 
@@ -44,7 +44,11 @@
 - 推論:modulo-5 本質上是 5-fold 結構,validation 約 40 棟建築(200 × 1/5 = 40)
 - 但 notebook 只跑 fold 4(即 `% 5 == 4`),並非 5-fold cross-validation loop
 
-**剩下待確認**: 確認是否只跑 1 fold(holdout)還是真的有 5-fold loop;確切的 validation 建築數(需計算 200 棟中 building_id % 5 == 4 有幾棟)。
+**M2.1 measured**: train=162 buildings (119,520 rows), val=38 buildings (29,664 rows)
+- 建築 ID 非連續(含 > 200 的 ID),導致 val 實際 38 棟而非估計的 40 棟
+- 確認為 single holdout fold;5-fold loop 假設排除
+
+**剩下待確認**: 確認 notebook 中是否有任何地方跑了多個 fold(目前判斷:無,為 single fold holdout)。
 
 **為什麼重要**: Split 策略直接影響每次本地評估的可靠性。「差距 < 1%」這個特性也依賴此特定 split 設計才能重現。
 
@@ -74,7 +78,7 @@
 
 **術語**: downsampling (of normal class)
 
-**狀態**: partially-resolved — 機制已確認,但「downsampling vs upsampling」語義待釐清
+**狀態**: resolved ✓
 
 **出現脈絡**: §2.3.2 說「downsampling method for normal data is adopted so that normal and abnormal data can be balanced to occupy half of the training data.」未說明:是在整個 training set 做一次全域 downsampling?還是按建築做?還是在每個 CV fold 內重新抽?使用什麼 random seed?
 
@@ -90,7 +94,12 @@ df_eq = pd.concat([negs1, pos, negs2, pos], axis=0)
 - 全域一次操作(非按建築、非每 fold 重抽);在 CV split 之前執行
 - Random seed 已確認:**10 和 20**
 
-**剩下待確認**: 確認最終訓練集的 class ratio(50:50 是否成立,或因 2× anomaly 重複而有其他效應);釐清這個「2× normal + 2× anomaly」策略對應論文 §2.3.2 的哪段描述,以及論文說「downsampling」是否準確(anomaly 被複製是 upsampling 成分)。
+**M2.1 measured**:
+- 原始 anomaly rate: **2.13%**(37,296 pos / 1,712,198 neg / 1,749,494 total)
+- Downsampled df_eq: **149,184 rows**,class ratio = **50:50**(74,592 normal + 74,592 anomaly)
+- 50:50 成立:2× neg samples(seed 10+20) + 2× pos = 等量正負
+- 論文說「downsampling」不精確:neg 被 downsample,pos 被 upsample(×2);混合策略
+- 全域一次操作,在 CV split 之前執行(已確認)
 
 ---
 
