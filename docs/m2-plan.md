@@ -450,7 +450,7 @@ HistGBT 0.9839)是確認 pipeline 正確的額外信心。
 + CatBoost iterations verification: tree_count_=1000 confirmed (no early stop)
 + Cross-model importance analysis: 6/10 common features in top 10
 + Notebook: notebooks/05-m2-integration.ipynb (cells 11–17)
-+ Commit: tbd
++ Commit: 354140f
 
 ---
 
