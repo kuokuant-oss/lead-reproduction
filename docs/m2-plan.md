@@ -308,12 +308,26 @@ for bid in train_features['building_id'].unique():
 train_features = pd.concat(results).sort_index()
 ```
 
-> savgol input 用 ffill;residual 分子是原始 meter_reading(可含 NaN)。
+> savgol input 用 `ffill().bfill().fillna(0)` — ffill handles mid-series NaN, bfill handles leading NaN
+> (buildings starting with NaN; savgol_filter rejects NaN input). residual 分子是原始 meter_reading(可含 NaN)。
 
 **M2.2.c Done when**:
 
-+ [ ] `Residual_savgol_w5p3` 欄存在,shape 正確
-+ [ ] 抽查一棟建築:residual mean ≈ 0(無系統偏移)
++ [x] `Residual_savgol_w5p3` 欄存在,shape 正確
++ [x] 抽查一棟建築:residual mean ≈ 0(無系統偏移)
+
+**M2.2.c Status (2026-05-26)**: ✅ Complete
+
++ `Residual_savgol_w5p3` column generated for all 200 buildings ✓
++ SavGol loop elapsed: 1.5s
++ Sample building (id=1): residual mean = -0.0022 (≈ 0) ✓
++ Across 200 buildings: mean of means = -0.0026; max |mean| = 0.1170 ✓
++ 0 buildings with |residual mean| > 1 ✓
++ Note: `fillna(method='ffill')` (plan) → `.ffill().bfill().fillna(0)` (pandas 2.0+ compat
+  + handles leading NaN that savgol_filter rejects)
++ Note: paper §2.2.4 says "no apparent positive effect" — still implementing for buds-lab
+  alignment; M2.5 ablation will verify
++ Notebook: `notebooks/04-m2-savgol-dayofyear.ipynb`
 
 ---
 
@@ -330,8 +344,17 @@ train_features['dayofyear'] = (
 
 **M2.2.d Done when**:
 
-+ [ ] `dayofyear` 欄存在,dtype float
-+ [ ] 值域合理:1.0 ≤ dayofyear ≤ 366.958
++ [x] `dayofyear` 欄存在,dtype float
++ [x] 值域合理:1.0 ≤ dayofyear ≤ 366.958
+
+**M2.2.d Status (2026-05-26)**: ✅ Complete
+
++ `dayofyear` column generated as float64 ✓
++ Value range: 1.0 to 366.9583 (2016 leap year) ✓
++ dayofyear vs anomaly Pearson corr: -0.0034 (low linear corr; tree importance still high)
++ Anomaly rate by month: highest in bucket 6 (~July, 5.28%); varies across months ✓
++ Paper Fig 5: dayofyear ranks #5 (importance 95)
++ Notebook: `notebooks/04-m2-savgol-dayofyear.ipynb` (shared with M2.2.c)
 
 ---
 
@@ -602,7 +625,7 @@ M2.1 和 M2.2 均跳過此步(讓 LightGBM 原生處理 NaN)。
 
 ---
 
-Last reviewed: 2026-05-26 (M2.2.b complete: 120 value-change features, 104/200 buildings have missing timestamps)
+Last reviewed: 2026-05-26 (M2.2.c+d complete: SavGol residual + dayofyear; M2.2.e integration next)
 
 ---
 
