@@ -508,6 +508,34 @@ training data
 **Labels**: `type:code`, priority: MEDIUM
 **Depends on**: M2.3
 
+**M2.4 Status (2026-05-28)**: ✅ Complete
+
++ Phase 1 (val side post-processing):
+  + 3 rules applied, ΔAUC = +0.0004 (within noise floor ±0.0005)
+  + Rule 2a 在 val 零觸發 (downsampling artifact — val 沒有 dayofyear==1 rows)
+  + Rule 2b 在 val 觸發 2 rows
+  + 確認 paper §3 text precision 98.7% / recall 81.9% (vs our 98.7% / 81.2%)
+  + Paper §3 vs Fig 3 內部不一致 documented (我們的數字支持 §3 text)
+
++ Phase 2 (test submission pipeline):
+  + Test feature engineering: 1,800,567 rows × 169 features
+  + Test value-change 用 timestamp-merge (per #11 升級版,跟 buds-lab 對齊)
+  + X_all refit: 4 models on full df_eq (149,184 rows, no train/val split)
+  + Rule 1 trigger: 17,660 rows  (vs val 6,528 rows)
+  + Rule 2a trigger: 192 rows    (vs val 0! 證實 val/test 不對稱)
+  + Rule 2b trigger: 206 rows    (vs val 2)
+  + Submission CSV: 1,800,567 rows saved to data/processed/
+
++ Kaggle leaderboard scores:
+  + **Private Score: 0.98616** (gap 0.04% vs paper Table 2 ensemble 0.9866) ⭐
+  + Public Score: 0.96982 (反直覺 outlier, public < private)
+  + Val AUC 0.9830 落在 public/private 之間 (驗證 paper §2.3.1 val < test)
+
++ Done when criteria all pass:
+  + Phase 1 全 3 rules 套用 ✓
+  + Phase 2 submission CSV 1,800,567 rows ✓
+  + Kaggle leaderboard 分數 ✓ (Private 達標)
+
 ---
 
 ### M2.5: Ablation study + Unknown #5 resolution + milestone closure
@@ -645,7 +673,7 @@ M2.1 和 M2.2 均跳過此步(讓 LightGBM 原生處理 NaN)。
 | M2.1 baseline pipeline (57 features) | ✅ Done | 0.8952 | gap 3.86% < 5% pass |
 | M2.2 value-change features (169 features) | ✅ Done | 0.9818 | gap 0.31% vs paper 0.9849 |
 | M2.3 4-model ensemble | ✅ Done | 0.9832 | gap 0.34% vs paper 0.9866 |
-| M2.4 post-processing + refit | — | — | |
+| M2.4 post-processing + refit | ✅ Done | private 0.98616 | gap 0.04% vs paper 0.9866 |
 | M2.5 ablation + closure | — | — | |
 
 ---
@@ -655,7 +683,8 @@ M2.1 和 M2.2 均跳過此步(讓 LightGBM 原生處理 NaN)。
 + [x] LightGBM val AUC(57 features)≥ 0.90,方向符合論文 Fig 4
 + [x] LightGBM val AUC(169 features)≥ 0.97
 + [x] 4-model ensemble val AUC ≥ 0.97 (0.9832; gap 0.34% vs paper 0.9866)
-+ [ ] Post-processing 前後 AUC 對比已記錄
++ [x] Post-processing 前後 AUC 對比已記錄(Phase 1 val ΔAUC=+0.0004; Phase 2 test 待 ablation)
++ [x] **Kaggle Private leaderboard 達標**: 0.98616 vs paper 0.9866 (gap 0.04%)
 + [ ] 5 個漸進式 commits,每個都有 model run 數字記錄在 commit message 或 docs
 + [x] Unknown #2(CV 建築數)partially resolved(38 棟確認;single-fold 確認)
 + [x] Unknown #4(downsampling class ratio)resolved
@@ -665,7 +694,8 @@ M2.1 和 M2.2 均跳過此步(讓 LightGBM 原生處理 NaN)。
 
 ---
 
-Last reviewed: 2026-05-26 (M2.3 complete: ensemble 0.9832, gap 0.34%; ranking divergence documented as new insight on cross-model importance)
+Last reviewed: 2026-05-28 (M2.4 complete: Private Score 0.98616 gap 0.04% vs paper;
+Public/Private outlier documented as #17; Phase 1 val/test asymmetry confirmed)
 
 ---
 
