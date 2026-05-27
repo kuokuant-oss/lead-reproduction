@@ -526,15 +526,17 @@ training data
   + Rule 2b trigger: 206 rows    (vs val 2)
   + Submission CSV: 1,800,567 rows saved to data/processed/
 
-+ Kaggle leaderboard scores:
-  + **Private Score: 0.98616** (gap 0.04% vs paper Table 2 ensemble 0.9866) ⭐
-  + Public Score: 0.96982 (反直覺 outlier, public < private)
++ Kaggle leaderboard scores (paper 0.9866 = Public Score, confirmed by prof team):
+  + **Public Score: 0.96982 (gap 1.68% vs paper 0.9866)** — primary reproduction metric
+  + Private Score: 0.98616 (paper 沒公布 private 對應數字,無法直接比較)
   + Val AUC 0.9830 落在 public/private 之間 (驗證 paper §2.3.1 val < test)
 
 + Done when criteria all pass:
   + Phase 1 全 3 rules 套用 ✓
   + Phase 2 submission CSV 1,800,567 rows ✓
-  + Kaggle leaderboard 分數 ✓ (Private 達標)
+  + Kaggle leaderboard 分數 ✓
+  + Gap < 5% ✓ (1.68%)
+  + Gap close 到 paper level 待 M2.5 ablation
 
 ---
 
@@ -673,7 +675,7 @@ M2.1 和 M2.2 均跳過此步(讓 LightGBM 原生處理 NaN)。
 | M2.1 baseline pipeline (57 features) | ✅ Done | 0.8952 | gap 3.86% < 5% pass |
 | M2.2 value-change features (169 features) | ✅ Done | 0.9818 | gap 0.31% vs paper 0.9849 |
 | M2.3 4-model ensemble | ✅ Done | 0.9832 | gap 0.34% vs paper 0.9866 |
-| M2.4 post-processing + refit | ✅ Done | private 0.98616 | gap 0.04% vs paper 0.9866 |
+| M2.4 post-processing + refit | ✅ Done | public 0.96982 | gap 1.68% vs paper 0.9866 |
 | M2.5 ablation + closure | — | — | |
 
 ---
@@ -684,7 +686,8 @@ M2.1 和 M2.2 均跳過此步(讓 LightGBM 原生處理 NaN)。
 + [x] LightGBM val AUC(169 features)≥ 0.97
 + [x] 4-model ensemble val AUC ≥ 0.97 (0.9832; gap 0.34% vs paper 0.9866)
 + [x] Post-processing 前後 AUC 對比已記錄(Phase 1 val ΔAUC=+0.0004; Phase 2 test 待 ablation)
-+ [x] **Kaggle Private leaderboard 達標**: 0.98616 vs paper 0.9866 (gap 0.04%)
++ [x] **Kaggle Public leaderboard submitted**: 0.96982 (gap 1.68% vs paper 0.9866)
++ [ ] **Gap close to paper level**: 待 M2.5 ablation 量化 post-processing + ensemble 真正貢獻
 + [ ] 5 個漸進式 commits,每個都有 model run 數字記錄在 commit message 或 docs
 + [x] Unknown #2(CV 建築數)partially resolved(38 棟確認;single-fold 確認)
 + [x] Unknown #4(downsampling class ratio)resolved
@@ -694,8 +697,8 @@ M2.1 和 M2.2 均跳過此步(讓 LightGBM 原生處理 NaN)。
 
 ---
 
-Last reviewed: 2026-05-28 (M2.4 complete: Private Score 0.98616 gap 0.04% vs paper;
-Public/Private outlier documented as #17; Phase 1 val/test asymmetry confirmed)
+Last reviewed: 2026-05-28 (M2.4 docs 修正: paper 0.9866 = Public,真實 gap 1.68%;
+unknowns 5/17 修正; lesson 7 added; Public<Private 是常態釐清)
 
 ---
 
