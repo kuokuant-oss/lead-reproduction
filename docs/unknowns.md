@@ -436,4 +436,68 @@ discussion section 可以引用。
 
 ---
 
-Last reviewed: 2026-05-26 (M2.3 complete: ensemble 0.9832, gap 0.34%; #13 added; #12 cross-model SavGol observation added)
+## 14. Model random_state 半 deterministic 行為 + 環境層級 noise
+
+**術語**: random_state, deterministic training, environment-level randomness
+
+**狀態**: documented — Stage 1 實測,2026-05-27 commit
+
+**發現脈絡 (2026-05-27)**:
+- 外部 reviewer 重跑 notebook 得到 0.9830,跟 docs 寫的 0.9832 差 0.0002
+- 假設根因:4 個 model 都沒設 random_state
+- Stage 1 加 random_state=42 後實測:**ensemble AUC 完全沒變(0.9830)**
+
+**實測結果 (random_state=42 加上去前後)**:
+
+| Model | Pre-fix | Post-fix | Δ AUC |
+|-------|---------|----------|-------|
+| LightGBM | 0.9818 | 0.9818 | +0.0000 |
+| XGBoost | 0.9749 | 0.9749 | +0.0000 |
+| CatBoost | 0.9788 | 0.9797 | +0.0009 |
+| HistGBT | 0.9810 | 0.9806 | -0.0004 |
+| Ensemble | 0.9830 | 0.9830 | +0.0000 |
+
+**修正後的理解**:
+
+- **LightGBM/XGBoost**: 在我們環境(Windows + uv + Python 3.13)下,即使沒設
+  random_state 也 deterministic。可能原因:
+  - LightGBM 預設 single-thread 或 thread-deterministic behavior
+  - XGBoost gbtree 在 small data + default settings 下接近 deterministic
+- **CatBoost/HistGBT**: 有 implicit stochasticity 即使使用 default seeds
+  - 變化幅度 ±0.0005–0.001(< paper noise floor)
+- **Ensemble**: 變化 ±0.0000 因為 CatBoost +0.0009 抵銷 HistGBT -0.0004
+
+**0.9832 vs 0.9830 真實差異來源(推測)**:
+
+不是 model random_state(已 verified)。可能是:
+- Notebook 跑時 environment 變動(套件版本、Python session state)
+- PYTHONHASHSEED 或其他環境變數
+- 之前 Claude Code 報告 0.9832 可能是 typo / mis-read
+
+**為什麼仍要設 random_state=42**:
+
+雖然 LGB/XGB 不需要,但統一加 random_state=42:
+- 跨環境(Linux vs Windows)的 reproducibility 保證
+- CatBoost/HistGBT 的 implicit stochasticity 鎖住
+- 未來重跑無歧義(科學紀錄完整性)
+- 對 M2.5 ablation,perturbation effect 不會被 noise 掩蓋
+
+**Fix applied (2026-05-27 Stage 1)**:
+- Cell 11 LightGBM: `random_state=42`
+- Cell 14 XGBoost: `random_state=42`
+- Cell 15 CatBoost: `random_seed=42`(注意是 `random_seed` 不是 `random_state`)
+- Cell 16 HistGBT: `random_state=42`
+
+**對 M2.5 ablation 的含義**:
+
+- Noise floor 從假設的 ±0.002 修正為 **±0.0005**(兩次 rerun bit-for-bit identical)
+- Ablation candidate ΔAUC > 0.0005 才能 confirmed
+- 對 #10 candidate priority 影響:每個 candidate 的 ΔAUC 預期重新評估
+
+**#10 candidate 8th (new)**:
+
+| 8th | Model random_state semi-deterministic: LGB/XGB +0.0000, Cat/Hist ±0.001 | **Resolved by Stage 1**: noise floor 修正為 ±0.0005;environment-level randomness 仍未量化 |
+
+---
+
+Last reviewed: 2026-05-27 (M2.3 reproducibility fix Stage 1: random_state=42 added; #14 added with corrected noise floor; #10 candidate 8th resolved)

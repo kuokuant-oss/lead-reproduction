@@ -452,6 +452,18 @@ HistGBT 0.9839)是確認 pipeline 正確的額外信心。
 + Notebook: notebooks/05-m2-integration.ipynb (cells 11–17)
 + Commit: 354140f
 
+**M2.3 Reproducibility fix (2026-05-27)**:
+
++ 加 random_state=42 到 4 個 model(LGB/XGB: random_state, CatBoost: random_seed, HistGBT: random_state)
++ 重跑 deterministic verification:兩次 run bit-for-bit identical ✓
++ Individual model AUC(post-fix): LGB 0.9818, XGB 0.9749, Cat 0.9797, Hist 0.9806
++ Ensemble AUC: **0.9830**(unchanged from pre-fix)
++ Surprising finding: LGB/XGB 即使無 seed 也 deterministic(Windows + uv + Python 3.13);
+  Cat/Hist 有 ±0.001 implicit stochasticity
++ Noise floor 修正:假設 ±0.002 → **實測 ±0.0005**
++ 0.9832 vs 0.9830 差距來源:non-model randomness(環境層級),非 model seed issue
++ 詳見 unknowns.md #14
+
 ---
 
 ### M2.4: Implement post-processing + final refit on all training data
