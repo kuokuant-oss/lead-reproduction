@@ -69,86 +69,45 @@ gap 的主要指標選擇。
 
 ---
 
-# Ch2: 工作流解釋
+# Ch2: 工作流概覽
 
-## 2.1 整體架構
+完整工作流說明請見 [docs/workflow.md](workflow.md)。本章是摘要版，列出核心設計和關鍵數字。
 
-Reproduction repo 的設計以「未來的 reproducer 能讀懂」為目標:
+## 2.1 文件生態系
 
-```
-lead-reproduction/
-├── docs/
-│   ├── m2-plan.md          # milestone 計畫 + Done when criteria
-│   ├── unknowns.md         # 17 個 open questions 的 living register
-│   ├── adr/                # 6 個架構決策紀錄 (ADR 0001–0006)
-│   └── handoffs/           # 跨 session context (3 份 handoff docs)
-├── notebooks/
-│   └── 05-m2-integration.ipynb   # M2.2.e–M2.4 完整 pipeline (27 cells)
-└── .scratch/
-    └── lead-1st-solution/  # buds-lab 原始 code (read-only reference)
-```
+Reproduction repo 的文件生態系由四個互補系統組成（完整說明：[workflow.md §2](workflow.md#2-文件生態系)）：
 
-`unknowns.md` 是貫穿全程的核心文件:每次發現 paper 未說清楚的地方就加進去,
-並在每個 milestone 更新狀態。`m2-plan.md` 記錄每個 stage 的「Done when」criteria
-和量化指標,防止 scope creep 也防止「跑出數字後不確定算不算完成」。
+| 文件 | 數量 | 用途 |
+|------|------|------|
+| `docs/adr/` | 6 份 | 架構決策紀錄；每個重要決策都有 Status / Decision / Rationale |
+| `docs/unknowns.md` | 17 個問題 | paper 未說清楚的地方的 living register；每次 milestone 更新 |
+| `docs/handoffs/` | 4 份 | 跨 session context；每個 milestone 結束時寫一份 |
+| `docs/m2-plan.md` | — | 量化「Done when」criteria；防止 scope creep 和主觀判斷 |
 
-## 2.2 ADR 0006 verification 紀律
+ADR 涵蓋的決策：building-id split（0001）、downsampling 50:50（0002）、
+value-change features 同時取差值和比值（0003）、post-processing hard rules（0004）、
+imputation method（0005）、paper-code 不一致處理紀律（0006）。
+4 份 handoffs 對應 M2.2、M2.2a（ClusterNo 子里程碑）、M2.3、M2.4。
 
-AI 工具讀長文時容易挑關鍵字、過度解讀。我們採用 ADR 0006(Handling apparent
-paper-code discrepancies)建立三層分類:
+## 2.2 Verification 紀律與執行模式
 
-| 分級 | 定義 | 本 repo 案例 |
-|------|------|------------|
-| **True contradiction** | 論文寫 A,代碼寫 B,兩者 well-defined 且不可能同時為真 | (無真實案例) |
-| **Imprecise description** | 論文舉例不完整,代碼是完整版 | Value-change shifts 舉例 8 個 vs 實際 60 |
-| **Over-interpretation** | 把 "will consider" 讀成 "did" | §2.3.3 超參數 tuning 描述 |
-| **File inconsistency** | 論文沒問題但 README 跟代碼不一致 | Imputation method (README 寫 median,論文/代碼是 mean) |
+**ADR 0006**（[workflow.md §3](workflow.md#3-verification-紀律--adr-0006)）定義
+paper-code 不一致的四層分類框架：True contradiction / Imprecise description /
+Over-interpretation / File inconsistency。M2 共遇到 3 次疑似矛盾，自我 verification
+後全部屬於後三類（無 true contradiction）。這個校準避免了跟作者對話時說錯話。
 
-啟動此 ADR 的事件:我們最初 commits 寫了 3 個「論文 vs 代碼矛盾」,跟教授討論前
-自我 verification(commit `9b3928d`),結果 3 個都屬於 imprecise description 或
-over-interpretation,沒有 true contradiction。這次 calibration 避免了跟作者
-對話時說錯話,也讓後續 docs 措辭更為精確。
+**Stage-gate 模式**（[workflow.md §4](workflow.md#4-stage-gate-執行模式)）：
+讀 handoff → 確認 Done when → pre-flight check → 執行 → commit（帶量化指標）→
+寫 handoff。Checkpoint 讓 Tony 能 catch 數字異常和 framing 偏移，不讓 AI 一次
+跑完整個 milestone。
 
-## 2.3 Stage-gate execution discipline
+**One-shot inference**（[workflow.md §5](workflow.md#5-one-shot-inference-哲學)）：
+不做 leaderboard probing，把不確定性記錄在 unknowns.md 和 ADRs，確定後一次提交。
+結果：6 天累積 → **單次提交** → **Private Score 0.98616，gap 1.68%**。
 
-每個 milestone (M2.1→M2.4) 遵循固定模式:
-
-1. 讀 handoff doc 進入狀態
-2. 確認「Done when」criteria 和量化指標
-3. 動手前報告 pre-flight check(Tony 確認後才動手)
-4. 跑出數字 → commit(commit message 攜帶 AUC 數字和 git hash)
-5. 寫 handoff doc 為下一次 session 準備
-
-不直接讓 Claude Code 一次跑完整個 milestone — stage 之間的 checkpoint 讓 Tony 能 catch 數字異常、邏輯衝突、framing 偏移。
-
-Handoff docs 讓重現工作可以分多個 session 進行,不會因為跨天就失去脈絡。
-每次新 session 開始時都要求讀指定的 5-7 個文件,報告理解後才動手。
-
-**One-shot inference philosophy**: 不反覆提交 Kaggle 去試探分數(leaderboard
-probing),而是把 pipeline 設計的不確定性透過 `unknowns.md` 和 ADRs 累積記錄,
-確定後一次提交。結果:6 天累積 → **單次提交** → **Private gap 0.05%**。
-
-## 2.4 雙 AI 工作流
-
-重現工作使用兩個 Claude 實例分工:
-
-- **Claude Code(本地 repo)**:有 read/write 權限,負責讀 code、執行 notebook
-  cells、寫/更新文件、commit。每次開新 session 讀指定檔案重新進入狀態。
-- **網頁版 Claude(paper + sanity check)**:負責解讀 PDF,確認 § 號、數字來源、
-  方法論 edge cases。不接觸 repo,只提供判斷。
-
-Tony 扮演 **conductor** 角色:把兩個 Claude 的判斷互相對照,發現不一致時停下來
-確認。Repo + paper PDF + buds-lab code 是 ground truth,兩個 Claude 都是
-advisor/executor,不是 authority。
-
-**案例(兩個 Claude 不一致導致校準)**:
-- Claude Code 在 commit `cf1097b` 寫 "paper = Public Score (confirmed)"——後來
-  發現這個理解需要校準,透過比對原作者實際 Kaggle 分數修正(Lesson #7)。
-- M2 stage 命名:buds-lab code 的 "Cell 13"、m2-plan.md 的 "M2.3"、paper 的
-  "§2.3.4 ensemble" 三者之間的對應由 Tony 統一到 m2-plan.md 的命名體系。
-- Paper §2.2.4 提到 SavGol "no apparent positive effect",但 buds-lab code 仍
-  包含此 feature——網頁版 Claude 最初讀成「矛盾」,Claude Code 核對 ADR 0006
-  後標記為 imprecise description,留給 M2.5 ablation 量化。
+**雙 AI 工作流**（[workflow.md §6](workflow.md#6-雙-ai-工作流)）：Claude Code
+負責 repo 操作；網頁版 Claude 負責 paper 解讀；Tony 擔任 conductor，發現
+不一致時停下確認，不讓 AI 自行 reconcile。
 
 ---
 
