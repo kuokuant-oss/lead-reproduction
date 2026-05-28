@@ -1,6 +1,8 @@
 config:
   MD013: false   # line-length: 允許長行(中文段落)
   MD022: false   # blanks-around-headings: 中文 docs 常緊接標題
+  MD025: false   # single-title: reproduction report 以多個 Ch# 作 H1 組織章節
+  MD037: false   # no-space-in-emphasis: gte_* 等技術名詞在 emphasis 內
   MD031: false   # blanks-around-fences: code block 前後空行選擇性
   MD032: false   # blanks-around-lists: 列表前後空行選擇性
   MD033: false   # no-inline-html: 允許偶爾的 HTML
