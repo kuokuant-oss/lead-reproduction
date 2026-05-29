@@ -1,6 +1,6 @@
 # M3 Plan: Full ASHRAE GEPIII Reproduction
 
-**Status**: M3.1 baseline complete; M3.2 value-change in progress
+**Status**: M3.1 ✅ + M3.2 ✅ complete; M3.3 buds-lab alignment next
 **Started**: 2026-05-29
 **Reference**:
 
@@ -24,6 +24,26 @@
 | Weather join | per-building in CSV | per-site: building → site → weather |
 | Meter types | electricity dominant | 4 types (0=elec, 1=chill, 2=steam, 3=hot) |
 | Test 評估 | Kaggle leaderboard | self-defined: building_id % 5 == 4 |
+
+---
+
+## ⚠️ M3 Feature Engineering 校準說明
+
+M3 的 feature engineering 應以 `.scratch/02_preprocess_data.py`（buds-lab GEPIII
+rank-1 solution）為參考基準。M3.1 + M3.2 目前**未包含**以下 buds-lab features：
+
+| Feature 類別 | buds-lab 實作 | M3 現狀 |
+|---|---|---|
+| Cyclic time encodings | sin/cos(hour, day, month, weekday) | ❌ 缺 |
+| Weather rolling lags | windows 7, 73 (lag/lead + rolling mean) | ❌ 缺 |
+| Holiday flags | US Federal Calendar `holidays` library | ❌ 缺 |
+| GaussianTargetEncoder (gte_*) | per-(site, meter) target encoding | ❌ 缺（需 anomaly label，M3 可做） |
+| Building interaction strings | `primary_use + "_" + meter_str` | ❌ 缺 |
+| Site 0 meter 0 correction | × 0.2931 (unit mismatch fix) | ❌ 缺 |
+| Weather GMT offset | per-site UTC correction | ❌ 缺 |
+| Weather interpolation + NA indicators | linear interp + `_na` flag cols | ❌ 缺 |
+
+**M3.3 任務**：對齊以上 buds-lab features（優先），再考慮 ClusterNo + SavGol（次要）。
 
 ---
 
@@ -103,25 +123,37 @@ for n in shifts:
 
 ---
 
-### M3.3: ClusterNo + SavGol (Stretch)
+### M3.3: buds-lab Feature Alignment (Priority)
 
 **GitHub Issue**: TBD
 **Status**: Pending M3.2
 
-**What**: K-means building clustering + SavGol residual → ~139 features total
+**What**: Add buds-lab 02_preprocess_data.py features not yet in M3 pipeline.
+Priority order: cyclic encodings → weather rolling lags → holiday flags →
+GaussianTargetEncoder → building interactions → site corrections.
 
 **Done when**:
 
-+ [ ] ClusterNo: 1449-building KMeans(n_clusters=10, n_init=10, random_state=666)
-+ [ ] SavGol: per-building savgol_filter(ffill().bfill().fillna(0), 5, 3)
-+ [ ] M3.3 val AUC > 0.975
++ [ ] Cyclic time encodings: sin/cos(hour, dayofweek, month) added (6 features)
++ [ ] Weather rolling lags: windows 7, 73 (lag + rolling mean) → ~12 features
++ [ ] Holiday flags: US Federal Calendar `holidays` library
++ [ ] GaussianTargetEncoder: per-(site, meter) target encoding on anomaly label
++ [ ] Building interaction string: `primary_use + "_" + meter_str`
++ [ ] Site 0 meter 0 correction: × 0.2931 applied
++ [ ] M3.3 val AUC > 0.9920 (must exceed M3.2 to justify addition)
++ [ ] Handoff doc created
 
 **Risk**:
 
-+ ClusterNo pivot: 8784 timestamps × 1449 buildings (larger than M2's × 406)
-+ SavGol per-building loop: 1449 buildings × 8784 rows ≈ slower than M2 (× ~3.5)
++ GaussianTargetEncoder needs anomaly label → potential leakage if not done correctly;
+  fit on train only, apply to val with train parameters
++ Weather rolling lags: 20M rows × large window — memory and time significant
++ If AUC ≤ M3.2 + 0.0005 (noise floor): document as negligible, skip to M3.4
 
-**Depends on**: M3.2
+**Note on ClusterNo + SavGol**: Secondary priority. M2 ablation showed SavGol
+had minimal effect (ΔAUC −0.001). Add after buds-lab features if M3.3 AUC improves.
+
+**Depends on**: M3.2 ✅
 
 ---
 
@@ -184,17 +216,18 @@ for n in shifts:
 |---|---|---|
 | M3.1 baseline | [#13](https://github.com/kuokuant-oss/lead-reproduction/issues/13) | ✅ Closed |
 | M3.2 value-change | [#14](https://github.com/kuokuant-oss/lead-reproduction/issues/14) | ✅ Closed |
-| M3.3-M3.5 | TBD | Pending |
+| M3.3 buds-lab alignment | TBD | Pending |
+| M3.4-M3.5 | TBD | Pending |
 
 ---
 
 ## M3 Exit Criteria
 
-+ [ ] M3.2 val AUC > 0.97
++ [x] M3.2 val AUC > 0.97 (0.9920 ✅)
 + [ ] M3 pipeline (baseline + value-change) complete and reproducible
 + [ ] Handoff doc for each completed stage
 + [ ] GitHub Issues closed for completed milestones
 
 ---
 
-**Last reviewed**: 2026-05-29 (M3.1 + M3.2 complete; M3.3 ClusterNo+SavGol next)
+**Last reviewed**: 2026-05-29 (M3.1 + M3.2 complete; M3.3 redefined as buds-lab alignment)

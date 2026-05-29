@@ -596,7 +596,7 @@ paper 沒覆蓋的 findings。
 | Unknown #15 (Rule 2a filter) | ✅ -0.0001 Kaggle Private,精細 design |
 | M2 milestone closed | ✅ M2.5 complete with Kaggle validation |
 
-## 5.6 未來工作 (M3 outlook)
+## 5.6 M3: Full ASHRAE GEPIII (In Progress)
 
 M3 是教授信件提到的「進階部分」,**不是 M2 的 scale up,是完全不同的 dataset 與 workflow**。
 
@@ -605,21 +605,34 @@ M3 是教授信件提到的「進階部分」,**不是 M2 的 scale up,是完全
 | 維度 | M2 (LEAD subset) | M3 (Full ASHRAE GEPIII) |
 |---|---|---|
 | 資料來源 | Kaggle `energy-anomaly-detection` | Kaggle `ashrae-energy-prediction` |
-| 規模 | 406 buildings (200 train + 206 test) | 2000+ buildings (train.csv only) |
+| 規模 | 406 buildings (200 train + 206 test) | 1,449 buildings (building_id % 5 split) |
 | Feature engineering | 已 preprocessed (LEAD csv 含 gte_*) | 從 raw 自己做(reference: buds-lab `02_preprocess_data.py`) |
-| Anomaly labels | LEAD csv 內建 | 從 buds-lab `bad_meter_readings.zip` 取 |
-| Train/test split | 已給定 (200/206 by upstream) | 自定 (~50/50 by building random) |
-| 評估方式 | Kaggle leaderboard (Public/Private) | 自定 test set AUC (無 leaderboard) |
+| Anomaly labels | LEAD csv 內建 | buds-lab `bad_meter_readings.csv` 逐行對齊 |
+| Train/test split | 已給定 (200/206 by upstream) | building_id % 5 == 4 → val (1160/289 buildings) |
+| Anomaly rate | 2.13% | 6.50% |
+| 評估方式 | Kaggle leaderboard (Public/Private) | 自定 val set AUC (無 leaderboard) |
 
-### M3 工作流程
+### M3 實際進度 (2026-05-29)
 
-1. 下載 Kaggle `ashrae-energy-prediction` 的 train.csv(含所有 buildings)
-2. 從 buds-lab `bad_meter_readings.zip` 把 anomaly label join 進 train
-3. Building-level random split:隨機抽 ~50% buildings 當 train,另 50% 當 test
-4. 跑 buds-lab `02_preprocess_data.py` 生 raw + gte_* features
-5. 套用 M2 pipeline:ClusterNo + value-change (60 shifts) + SavGol + dayofyear → 169+ features
-6. 4-model ensemble + 3 rules
-7. 評估自定 test set 的 AUC(無 Kaggle leaderboard 對照)
+| Milestone | Val AUC | Features | 狀態 |
+|---|---|---|---|
+| M3.1 baseline (time + metadata + weather) | 0.9562 | 17 | ✅ Complete |
+| M3.2 + value-change (60 shifts × 2) | **0.9920** | 137 | ✅ Complete |
+| M3.3 buds-lab alignment (cyclic, rolling, holiday, gte_*) | TBD | ~150+ | 🔲 Pending |
+| M3.4 4-model ensemble | TBD | — | 🔲 Pending |
+| M3.5 post-processing | TBD | — | 🔲 Pending |
+
+**M3.2 leakage check**: Past-only AUC 0.9908 ≈ future-only 0.9908 ≈ full 0.9920 (ΔAUC +0.0012). ✅ NO LEAKAGE.
+
+### M3 Pipeline (Implemented)
+
+1. 下載 Kaggle `ashrae-energy-prediction` 的 train.csv (all buildings)
+2. Anomaly labels: buds-lab `bad_meter_readings.csv` — **逐行對齊** (`train["anomaly"] = bad["is_bad_meter_reading"].values`)
+3. Building-level split: `building_id % 5 == 4` → val (289 buildings), rest → train (1160 buildings)
+4. M3.1: 17 baseline features (hour, dayofweek, dayofyear, month, is_weekend, log_square_feet, floor_count, year_built, primary_use_enc, meter, air_temperature, dew_temperature, sea_level_pressure, cloud_coverage, precip_depth_1_hr, wind_direction, wind_speed)
+5. M3.2: + 60 shifts × (diff + ratio) = 120 value-change features → 137 total
+6. Downsampling: 50:50 ratio (negs1 seed=10 + pos + negs2 seed=20 + pos)
+7. Model: LightGBM n_estimators=100, num_leaves=31
 
 ### M3 設計選擇:沿用 M2 vs 重新優化
 
@@ -657,5 +670,5 @@ M3 不需要 rebuild infrastructure,只需擴展 pipeline。
 
 ---
 
-*Last updated: 2026-05-28
+*Last updated: 2026-05-29
 (M2.5 complete: 3 ablations Kaggle-validated, M2 milestone closed)*
