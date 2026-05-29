@@ -336,6 +336,21 @@ GEPIII subset，且 LEAD 的 anomaly 定義可能比 GEPIII 的 bad_meter_readin
 M3 exploration 和 baseline 建立是後續工作的起點，預計沿用 M2 pipeline 結構
 但需要調整 split 方式、重新評估 anomaly rate 對 downsampling ratio 的影響。
 
+### Issue tracker map (M2)
+
+| Milestone | GitHub Issue | Closed |
+|---|---|---|
+| M2.1 baseline pipeline | [#8](https://github.com/kuokuant-oss/lead-reproduction/issues/8) | 2026-05-26 |
+| M2.2 value-change features | [#9](https://github.com/kuokuant-oss/lead-reproduction/issues/9) | 2026-05-26 |
+| M2.3 4-model ensemble | [#10](https://github.com/kuokuant-oss/lead-reproduction/issues/10) | 2026-05-26 |
+| M2.4 post-processing + refit | [#11](https://github.com/kuokuant-oss/lead-reproduction/issues/11) | 2026-05-29 |
+| M2.5 ablation + closure | [#12](https://github.com/kuokuant-oss/lead-reproduction/issues/12) | 2026-05-29 |
+| M2 unknowns research | [#5](https://github.com/kuokuant-oss/lead-reproduction/issues/5) | 2026-05-29 |
+
+**Issue close 紀律**: Commit message 應包含 `Closes #N` 讓 GitHub 自動關閉 issue。
+如果一個 milestone 對應多個 issue，寫 `Closes #N1, #N2`。Workflow §8 寫了這步，
+但 M2 期間漏掉了 — 從 M3 開始嚴格執行。
+
 ---
 
-*最後更新：2026-05-29（M2 milestone closed，M3 exploration 啟動）*
+*最後更新：2026-05-29（M2 issues closed，M3 plan 建立，M3.2 value-change 啟動）*

@@ -67,6 +67,8 @@ Unknown #5(gte leakage)需要 ablation experiment,值得一個明確的驗證步
 
 ### M2.1: Reproduce baseline pipeline (57 raw features, LightGBM)
 
+**GitHub Issue**: #8 (closed 2026-05-26)
+
 **Title**: Reproduce pre-feature-engineering baseline: load LEAD data, implement
 full pipeline infrastructure, run LightGBM with 57 features
 
@@ -131,6 +133,8 @@ AUC(~0.93)是論文 Figure 4 「feature engineering 前」的基準點,重現這
 ---
 
 ### M2.2: Implement value-change feature engineering (169 features total)
+
+**GitHub Issue**: #9 (closed 2026-05-26)
 
 **Title**: Add 120 value-change features + ClusterNo + SavGol + dayofyear,
 validate AUC jump
@@ -399,6 +403,8 @@ train_features['dayofyear'] = (
 
 ### M2.3: Add XGBoost, CatBoost, HistGBT; implement 4-model ensemble
 
+**GitHub Issue**: #10 (closed 2026-05-26)
+
 **Title**: Extend to 4-model GBDT ensemble, validate per-model AUC and
 ensemble improvement
 
@@ -467,6 +473,8 @@ HistGBT 0.9839)是確認 pipeline 正確的額外信心。
 ---
 
 ### M2.4: Implement post-processing + final refit on all training data
+
+**GitHub Issue**: #11 (closed 2026-05-29)
 
 **Title**: Apply Rule 1 and Rule 2 post-processing; refit models on full
 training data
@@ -543,6 +551,8 @@ training data
 ---
 
 ### M2.5: Ablation study + Unknown #5 resolution + M2 milestone closure
+
+**GitHub Issue**: #12 (closed 2026-05-29); also closes #5
 
 **Title**: 3-ablation in-notebook study; resolve unknowns #5/#10/#15; close M2
 
