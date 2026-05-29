@@ -49,7 +49,7 @@ Paper 與 buds-lab code 在多處有 paper 未完整描述的設計:
 
 這些細節在 `docs/unknowns.md` 各有詳細記錄(#3, #4, #15, #16, 等)。
 
-## 1.3 我們特別處理、校準、質疑的地方
+## 1.3 重現過程中特別處理、校準、質疑的部分
 
 重現過程中建立了 17 個 unknowns 的 register,按 milestone 逐一解決:
 
@@ -63,7 +63,7 @@ Paper 與 buds-lab code 在多處有 paper 未完整描述的設計:
   X_all 推斷實作(#16)
 - **已釐清非 issue (1 個)**：Public < Private 是 Kaggle 正常 pattern(#17)
 
-一次重要的校準:paper §3 報告 AUC 0.9866,我們最初以為是 Kaggle Public Score。
+一次重要的校準:paper §3 報告 AUC 0.9866,最初誤判 paper 數字為 Kaggle Public Score。
 比對原作者實際分數(Public 0.9734,Private 0.98661)後確認:**paper Table 2 的 0.9866
 ≈ Private rounded**,不是 Public(差值分別為 0.0005 vs 0.0132)。這影響 reproduction
 gap 的主要指標選擇。
@@ -219,7 +219,7 @@ Pearson 相關係數 −0.0034(近零),但 LightGBM split-count importance 排 #
 **Lesson #4**:Pearson correlation 不能代替 tree feature importance 評估。
 
 Paper §2.2.4 把 SavGol 和 K-means clustering 同列為「嘗試過但 no apparent positive
-effect」,但 buds-lab 最終 code 仍包含兩者。我們的測量:LightGBM importance rank #6
+effect」,但 buds-lab 最終 code 仍包含兩者。測量結果:LightGBM importance rank #6
 (split count 105);XGBoost + CatBoost rank #3。**Lesson #5**(batch legitimacy):
 centered SavGol(使用 i±2 未來點)對 batch 評估任務合法——LEAD 是整年資料一次
 處理,future-info ≠ test-time leakage。
@@ -234,7 +234,7 @@ paper Fig 5:**8/10**(缺 `gte_building_id` 和 `gte_meter_primary_use`)。
 
 加入 XGBoost、CatBoost、HistGBT,等權平均:
 
-| Model | Our val AUC | Paper Table 2 | Gap |
+| Model | 復現 val AUC | Paper Table 2 | Gap |
 |-------|-------------|---------------|-----|
 | LightGBM | 0.9818 | 0.9849 | 0.31% |
 | XGBoost | 0.9749 | 0.9840 | 0.91% |
@@ -242,7 +242,7 @@ paper Fig 5:**8/10**(缺 `gte_building_id` 和 `gte_meter_primary_use`)。
 | HistGBT | 0.9806 | 0.9839 | 0.33% |
 | **Ensemble** | **0.9830** | **0.9866** | **0.36%** |
 
-Paper 排序 CatBoost > LightGBM > XGBoost > HistGBT;我們是 LightGBM > HistGBT
+Paper 排序 CatBoost > LightGBM > XGBoost > HistGBT;復現排序是 LightGBM > HistGBT
 > CatBoost > XGBoost——ranking divergence documented in unknown #13。
 
 **Cross-model importance divergence (Lesson #6)**:
@@ -283,7 +283,7 @@ Post-processing 在 val 幾乎沒有效果(ΔAUC = +0.0004,within noise floor ±
 但 val 端完全看不出來。
 
 Confusion matrix at threshold=0.5:precision **98.7%**,recall **81.2%**。
-Paper §3 text 寫 precision 98.7% / recall 81.9%——我們的 precision 完全對齊。
+Paper §3 text 寫 precision 98.7% / recall 81.9%——復現的 precision 完全對齊。
 Confusion matrix 數字以 §3 text 為準(precision 98.7% 完全 match，recall 81.2% Δ 0.7%)。
 Paper Fig 3 顯示的百分比是 relative to total prediction(TN 96.3% / FP 1.4% /
 FN 0.2% / TP 2.0%)，代入 standard precision/recall 公式需注意分母口徑差異。
@@ -348,15 +348,15 @@ predecessor,但對 LEAD anomaly detection 仍有正向貢獻,不是 harmful leak
 
 **重要解讀**:這個結果**不能 generalize 為「paper 方法不好」**。原因:
 
-- **原作者完整 pipeline (含 mean imputation) Kaggle Private = 0.98661** — 比我們 0.98616 略高
-- 我們的 pipeline 用 raw NaN 拿到 0.98616
-- Ablation B 是「**我們的 pipeline + swap imputation = 0.97331**」 — 比我們自己降 0.0128
+- **原作者完整 pipeline (含 mean imputation) Kaggle Private = 0.98661** — 比本 reproduction 0.98616 略高
+- 本 reproduction 的 pipeline 用 raw NaN 拿到 0.98616
+- Ablation B 是「**本 reproduction pipeline + swap imputation = 0.97331**」 — 比本 reproduction 降 0.0128
 
 這顯示 **pipeline component interaction matters** — paper 的整體設計是 well-tuned,
-某個 component 不能孤立看。我們的 raw NaN 跟我們其他選擇搭配 OK,但**不代表 paper
-的 mean imputation 不好** — paper 的整體 pipeline 拿到比我們更高的分數。
+某個 component 不能孤立看。本 reproduction 的 raw NaN 跟其他選擇搭配 OK,但**不代表 paper
+的 mean imputation 不好** — paper 的整體 pipeline 拿到比本 reproduction 更高的分數。
 
-Unknown #10 candidate 1 量化:**在我們的 pipeline 上,raw NaN 比 per-bldg mean 好** —
+Unknown #10 candidate 1 量化:**在本 reproduction pipeline 上,raw NaN 比 per-bldg mean 好** —
 但這不延伸到 paper 自己的 pipeline。如果要驗證 paper 整體選擇,需要更完整的對齊 ablation
 (這超出本次 reproduction 範圍)。
 
@@ -385,22 +385,22 @@ val 數字不能完全代表 test 表現,特別是涉及 post-processing 跟 imp
 
 ### 重要 Caveat: Ablation 解讀的範圍
 
-這 3 個 ablation 都是「**在我們的 pipeline 內 swap 一個 component**」,**不能** generalize
-為「paper 的 component 選擇不好」。原作者完整 pipeline (Private 0.98661) 比我們 (0.98616)
+這 3 個 ablation 都是「**在本 reproduction pipeline 內 swap 一個 component**」,**不能** generalize
+為「paper 的 component 選擇不好」。原作者完整 pipeline (Private 0.98661) 比本 reproduction (0.98616)
 高 — paper 的整體 design 經過 tuning,各 component 之間有 interaction。
 
 **對 reproducer 的啟示**:
 - 部分 component swap 不一定能改善 reproduction
 - 完整 pipeline 對齊 paper 描述比拆換重要
-- Ablation 揭露的差異是 **我們 pipeline 內部** 的 design space,不是 paper 的 design space
+- Ablation 揭露的差異是 **本 reproduction pipeline 內部** 的 design space,不是 paper 的 design space
 
 ---
 
-# Ch4: 我們的代碼 vs paper 對應關係
+# Ch4: 代碼與 Paper 對應關係
 
-## 4.1 Paper 五個階段 → 我們的 notebook cells
+## 4.1 Paper 五個階段 → 對應的 notebook cells
 
-| Paper § | 描述 | 我們的 cells | 備註 |
+| Paper § | 描述 | 對應 cells | 備註 |
 |---------|------|------------|------|
 | §2.1 Preprocessing | Missing value + normalization | Cell 1–2 | impute_nulls 跳過(M2.5 Ablation B) |
 | §2.2 Feature Engineering | 57 → 169 features | Cells 3–6 | 60 shifts × 2,ClusterNo,SavGol,dayofyear |
@@ -410,9 +410,9 @@ val 數字不能完全代表 test 表現,特別是涉及 post-processing 跟 imp
 | §2.4 | Post-processing | Cell 18–22 (val), 26 (test) | 3 rules(非 paper 寫的 2) |
 | — | Final refit (X_all) | Cells 24–25 | Paper Fig 1 未說明 dual-path |
 
-## 4.2 Paper 數字 vs 我們的數字
+## 4.2 Paper 數字 vs 復現數字
 
-| 指標 | 我們 | Paper | 說明 | Milestone |
+| 指標 | 復現 | Paper | 說明 | Milestone |
 |------|------|-------|------|----------|
 | Feature count | 169 ✓ | 169 (Table 3) | Cell 6 assert | M2.2.e |
 | Baseline val AUC | 0.8952 | 0.9311 (Fig 4) | Gap 3.86%,< 5% pass | M2.1 |
@@ -461,17 +461,17 @@ Paper Fig 1 通用化合理 — reproducer 從 buds-lab Modeling notebook Cell 1
 
 ### b. Pipeline component interaction（M2.5 ablation 量化）
 
-在自己的 pipeline 上做了 3 個 ablation，量化各 component 在我們 pipeline 上的影響：
+在本 reproduction pipeline 上做了 3 個 ablation，量化各 component 的影響：
 
 | Ablation | 設計 | Kaggle Private ΔAUC vs M2.4 baseline | 解讀 |
 |---|---|---|---|
 | A: gte_* removal（LightGBM only） | 移除 16 個 gte_* + ensemble→LGB | -0.0040 | gte_* + ensemble 合計微弱正向 |
-| B: per-bldg mean impute | 取代 raw NaN | -0.0128 | 我們 pipeline 內 swap，不延伸 paper |
+| B: per-bldg mean impute | 取代 raw NaN | -0.0128 | 本 reproduction pipeline 內 swap，不延伸 paper |
 | C: Rule 2a blanket（不 filter） | 14 棟 buildings 不保護 | -0.0001 | dataset-level effect < noise floor |
 
-⚠️ **重要 caveat**：這 3 個 ablation 反映**我們 pipeline 內**的 component
+⚠️ **重要 caveat**：這 3 個 ablation 反映**本 reproduction pipeline 內**的 component
 interaction。原作者完整 pipeline（含所有設計選擇）的 Kaggle Private = 0.98661，
-仍比我們 0.98616 高 0.0005。Paper 整體設計是 well-tuned 的，個別 component swap
+仍比本 reproduction 0.98616 高 0.0005。Paper 整體設計是 well-tuned 的，個別 component swap
 **不一定能延伸**為 paper 設計改善方向。詳細討論見 Ch3.6。
 
 ### c. Reproduction 環境陷阱
@@ -513,7 +513,7 @@ LightGBM / XGBoost / HistGBT 預設 100 iterations，CatBoost 預設 1000。各 
 
 ## 5.2 Kaggle 分數 vs 原作者對比
 
-| Metric | Ours | 原作者 | Gap | 說明 |
+| Metric | 復現 | 原作者 | Gap | 說明 |
 |--------|------|--------|-----|------|
 | Public AUC | 0.9698 | 0.9734 | 0.36% | 20% test sample,高 variance |
 | **Private AUC** | **0.98616** | **0.98661** | **0.05%** ⭐ | Primary reproduction metric |
@@ -522,7 +522,7 @@ LightGBM / XGBoost / HistGBT 預設 100 iterations，CatBoost 預設 1000。各 
 Val AUC 0.9830 < Public AUC 0.9698 < Private AUC 0.98616 的排列符合 §2.3.1 描述的
 「validation 與 leaderboard 差距 < 1%」特性,驗證了 building-based CV split 設計的有效性。
 
-Paper Table 2 寫的 0.9866 與我們 Private 0.98616 差 0.0004,與原作者 Private 0.98661
+Paper Table 2 寫的 0.9866 與復現 Private 0.98616 差 0.0004,與原作者 Private 0.98661
 差 0.0005——兩者都在 ±0.0005 noise floor 範圍內。**Paper Table 2 報告的是 Private
 (rounded),不是 Public**。
 
@@ -541,7 +541,7 @@ Paper Table 2 寫的 0.9866 與我們 Private 0.98616 差 0.0004,與原作者 Pr
 **定義**:在不使用 leaderboard feedback 的情況下,透過累積 domain knowledge 設計
 pipeline,然後單次提交。
 
-我們的 timeline:
+Reproduction timeline:
 
 | 階段 | 工作天 | 主要產出 |
 |------|-------|---------|
@@ -577,7 +577,7 @@ paper 沒覆蓋的 findings。
 | 4 | M2.2.d | Pearson correlation ≈ 0 不代表 tree feature importance 低(非線性捕捉) |
 | 5 | M2.2.e | Centered SavGol 對 batch task 合法;future-info ≠ test-time leakage |
 | 6 | M2.3 | Cross-model importance divergence 提供 ensemble 的量化理論基礎(paper 沒給) |
-| 7 | M2.5 | **Component interaction matters**:Ablation 揭露在我們的 pipeline 內 swap component 的 effect,但**不能 generalize 為 paper 設計的全局 effect**。Paper 整體設計經過 tuning,各 component 之間有 interaction。Reproducer 應對齊完整 pipeline,而不是孤立看單一 component。 |
+| 7 | M2.5 | **Component interaction matters**:Ablation 揭露在本 reproduction pipeline 內 swap component 的 effect,但**不能 generalize 為 paper 設計的全局 effect**。Paper 整體設計經過 tuning,各 component 之間有 interaction。Reproducer 應對齊完整 pipeline,而不是孤立看單一 component。 |
 
 ## 5.5 M2 Exit Criteria 達標情況
 
