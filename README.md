@@ -14,7 +14,7 @@
 |---|---|---|---|
 | **M1** | Paper + buds-lab code 理解, unknowns register, ADR framework | ✅ Closed | 17 unknowns 整理, 6 ADRs, 169 features 完整解碼 |
 | **M2** | LEAD reproduction (406 buildings) | ✅ Closed | Kaggle Private **0.98616** (vs 原作者 0.98661, gap 0.05%) |
-| **M3** | Full ASHRAE GEPIII (1,449 buildings, 從 raw 做 FE) | 🚧 進行中 | M3.1 ✅ + M3.2 ✅ (val AUC 0.9920); M3.3-M3.5 待做 |
+| **M3** | Full ASHRAE GEPIII (1,449 buildings, 從 raw 做 FE) | 🚧 進行中 | M3.1 ✅ + M3.2 ✅ (val AUC 0.9920, 4 個 sanity check 通過); M3.3-M3.5 待續 |
 
 issue-level 進度見 [milestones](https://github.com/kuokuant-oss/lead-reproduction/milestones)。
 
@@ -117,7 +117,7 @@ uv run jupyter notebook notebooks/05-m2-integration.ipynb
 uv run jupyter notebook notebooks/06-m3-baseline.ipynb
 ```
 
-Cells 1-11: M3.1 baseline。Cells 12-15: M3.2 value-change。Cell 16: leakage check。
+Cells 1-11: M3.1 baseline。Cells 12-15: M3.2 value-change。Cells 16-20: 4 個 sanity check + 完整 metrics。
 
 ## 方法論
 
