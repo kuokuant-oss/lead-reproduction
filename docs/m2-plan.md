@@ -719,7 +719,48 @@ M2.1 和 M2.2 均跳過此步(讓 LightGBM 原生處理 NaN)。
 
 ---
 
-Last reviewed: 2026-05-28 (M2.5 complete: 3 ablations + 3 Kaggle submissions; M2 milestone closed)
+Last reviewed: 2026-05-29 (M2 milestone fully closed; report finalized; M3 begins)
+
+---
+
+## Final Closure (2026-05-29)
+
+**M2 is closed.** All criteria met.
+
+### Final Numbers
+
+| Metric | Result | Paper |
+|---|---|---|
+| LightGBM val AUC (57 feat) | 0.8952 | 0.9311 (Fig 4) |
+| LightGBM val AUC (169 feat) | 0.9818 | 0.9849 (Table 2) |
+| Ensemble val AUC | 0.9830 | 0.9866 (Table 2) |
+| **Kaggle Private AUC** | **0.98616** | **0.98661 (原作者)** |
+| Private gap | 0.05% | < noise floor ±0.0005 |
+
+### Unknowns Closure Summary
+
++ Resolved: 9 (#1, #3, #4, #5, #6, #7, #8, #9, #15)
++ Partially resolved: 7 (#2, #10, #11, #12, #13, #14, #16)
++ Non-issue: 1 (#17)
+
+### Key Lessons (7 total)
+
+1. Tree monotonic invariance (#1 cloud_coverage)
+2. sklearn n_init='auto' default change (#2 ClusterNo ARI)
+3. SavGol requires ffill+bfill before filtering (#3)
+4. Pearson correlation ≈ 0 ≠ tree feature importance low (#4)
+5. Centered SavGol on batch task is legitimate (#5)
+6. Cross-model importance divergence supports ensemble (#6)
+7. Component interaction: single swap ≠ paper pipeline effect (#7)
+
+### Deliverables
+
++ docs/reproduction-report.md (~5500 words, neutral framing)
++ docs/workflow.md (~2500 words)
++ notebooks/05-m2-integration.ipynb (34 annotated cells)
++ docs/handoffs/2026-05-29-m2-milestone-closed.md
+
+**Next**: M3 (ASHRAE GEPIII full dataset, 1449 buildings, ~20M rows)
 
 ---
 
