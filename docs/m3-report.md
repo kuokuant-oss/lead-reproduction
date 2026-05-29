@@ -160,6 +160,47 @@ anomaly detection 通常人工 review 排除誤報,FP cost < FN cost。
 **為什麼還是看 AUC**: 對齊 paper §1.2 metric,跟 M2 復現一致。M3 (anomaly rate 6.5%
 比 M2 2.13% 更嚴重 imbalance) 補上 confusion matrix 衍生指標提供更完整評估。
 
+### Precision 偏低的觀察與改進方向
+
+Precision 0.6409 偏低（約 36% false positive），反映 model 為了拿高 recall 把
+threshold 設得寬。在 anomaly detection 任務中這個 trade-off 通常可接受（FN cost
+> FP cost），但仍有改進空間：
+
+**1. 部分原因：M3 目前缺少 buds-lab 完整 feature set**
+
+M3.2 用 137 features（17 baseline + 120 value-change），缺以下 buds-lab
+`02_preprocess_data.py` 的 features（預計 M3.3 補）：
+
++ Cyclic time encodings（sin/cos hour/day/month）
++ Weather rolling lags（windows 7, 73）
++ Holiday flags
++ GaussianTargetEncoder（per-site/meter）
++ Building interaction strings
+
+加入這些 features 可預期降低 false positive（model 對 context 判斷更準）。
+
+**2. Threshold tuning**
+
+目前 threshold=0.5 是預設值，不是 optimized：
+
+| Threshold | Precision | Recall | F1 | 用途 |
+|---|---|---|---|---|
+| 0.5（current） | 0.6409 | 0.9665 | 0.7707 | 預設值 |
+| 提高（e.g. 0.7） | 預期 ↑ | 預期 ↓ | 視情況 | 降低 FP，適合人工 review 成本高的場景 |
+| 降低（e.g. 0.3） | 預期 ↓ | 預期 ↑↑ | 視情況 | 完全不漏 anomaly，適合安全關鍵場景 |
+
+M3.5 post-processing 階段可加 threshold sweep + F1 optimal point 選擇，或依
+deployment 場景的 FP/FN cost 比例調整。
+
+**3. 預期 M3.4 ensemble + M3.5 post-processing 改進**
+
+M2 上 ensemble 對 AUC 加 +0.21%，post-processing rules 也微幅改善。M3 同樣
+擴充應有相近 effect，但對 Precision 的影響需實測。
+
+**結論**：M3.2 的 0.9920 AUC + 0.97 recall 證明 model 抓 anomaly 能力強。
+Precision 0.64 是當前 trade-off 的 snapshot，不是 ceiling。M3.3-M3.5 預期
+可改善 Precision-Recall 平衡。
+
 ---
 
 ## 3.3 M3.3-M3.5: Pending

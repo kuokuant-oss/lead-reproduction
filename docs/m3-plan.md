@@ -125,7 +125,7 @@ for n in shifts:
 
 ### M3.3: buds-lab Feature Alignment (Priority)
 
-**GitHub Issue**: TBD
+**GitHub Issue**: [#15](https://github.com/kuokuant-oss/lead-reproduction/issues/15)
 **Status**: Pending M3.2
 
 **What**: Add buds-lab 02_preprocess_data.py features not yet in M3 pipeline.
@@ -159,7 +159,7 @@ had minimal effect (ΔAUC −0.001). Add after buds-lab features if M3.3 AUC imp
 
 ### M3.4: 4-model ensemble (Stretch)
 
-**GitHub Issue**: TBD
+**GitHub Issue**: [#16](https://github.com/kuokuant-oss/lead-reproduction/issues/16)
 **Status**: Pending M3.3
 
 **What**: LGB + XGB + CatBoost + HistGBT equal-weight ensemble
@@ -178,7 +178,7 @@ had minimal effect (ΔAUC −0.001). Add after buds-lab features if M3.3 AUC imp
 
 ### M3.5: Post-processing (Stretch)
 
-**GitHub Issue**: TBD
+**GitHub Issue**: [#17](https://github.com/kuokuant-oss/lead-reproduction/issues/17)
 **Status**: Pending M3.4
 
 **What**: Rule 1 (meter_reading==1.0) + Rule 2b (year-end); Rule 2a needs EDA
@@ -216,8 +216,9 @@ had minimal effect (ΔAUC −0.001). Add after buds-lab features if M3.3 AUC imp
 |---|---|---|
 | M3.1 baseline | [#13](https://github.com/kuokuant-oss/lead-reproduction/issues/13) | ✅ Closed |
 | M3.2 value-change | [#14](https://github.com/kuokuant-oss/lead-reproduction/issues/14) | ✅ Closed |
-| M3.3 buds-lab alignment | TBD | Pending |
-| M3.4-M3.5 | TBD | Pending |
+| M3.3 buds-lab alignment | [#15](https://github.com/kuokuant-oss/lead-reproduction/issues/15) | 🚧 Open |
+| M3.4 4-model ensemble | [#16](https://github.com/kuokuant-oss/lead-reproduction/issues/16) | 🚧 Open |
+| M3.5 post-processing | [#17](https://github.com/kuokuant-oss/lead-reproduction/issues/17) | 🚧 Open |
 
 ---
 
