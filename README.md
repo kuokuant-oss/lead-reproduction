@@ -1,55 +1,66 @@
 # LEAD Reproduction
 
-Reproducing the 1st-place solution of the [LEAD energy anomaly detection competition](https://www.kaggle.com/competitions/energy-anomaly-detection/overview), then extending to the full ASHRAE GEPIII dataset.
+復現 [LEAD energy anomaly detection competition](https://www.kaggle.com/competitions/energy-anomaly-detection/overview) 第一名解法, 並延伸到完整 ASHRAE GEPIII dataset。
 
-## Background
+## 背景
 
-+ **Paper**: Fu et al. 2022, ["Trimming outliers using trees: Winning solution of the Large-scale Energy Anomaly Detection (LEAD) competition"](https://dl.acm.org/doi/abs/10.1145/3563357.3566147), BuildSys '22
-+ **Original solution**: https://github.com/buds-lab/LEAD-1st-solution
-+ **GEPIII reference**: https://github.com/buds-lab/ashrae-great-energy-predictor-3-solution-analysis
+- **論文**: Fu et al. 2022, ["Trimming outliers using trees: Winning solution of the Large-scale Energy Anomaly Detection (LEAD) competition"](https://dl.acm.org/doi/abs/10.1145/3563357.3566147), BuildSys '22
+- **原作者 code**: https://github.com/buds-lab/LEAD-1st-solution
+- **GEPIII reference**: https://github.com/buds-lab/ashrae-great-energy-predictor-3-solution-analysis
 
-## Status
+## 進度
 
-| Milestone | Scope | Status | Result |
+| Milestone | 範圍 | 狀態 | 結果 |
 |---|---|---|---|
-| **M2** | LEAD reproduction (406 buildings) | ✅ **Closed** | Kaggle Private **0.98616** (vs 原作者 0.98661, gap 0.05%) |
-| **M3** | Full ASHRAE GEPIII (1,449 buildings, raw FE) | 🚧 **In progress** | M3.1 ✅ + M3.2 ✅ (val AUC 0.9920); M3.3-M3.5 pending |
+| **M1** | Paper + buds-lab code 理解, unknowns register, ADR framework | ✅ Closed | 17 unknowns 整理, 6 ADRs, 169 features 完整解碼 |
+| **M2** | LEAD reproduction (406 buildings) | ✅ Closed | Kaggle Private **0.98616** (vs 原作者 0.98661, gap 0.05%) |
+| **M3** | Full ASHRAE GEPIII (1,449 buildings, 從 raw 做 FE) | 🚧 進行中 | M3.1 ✅ + M3.2 ✅ (val AUC 0.9920); M3.3-M3.5 待做 |
 
-See [milestones](https://github.com/kuokuant-oss/lead-reproduction/milestones) for issue-level progress.
+issue-level 進度見 [milestones](https://github.com/kuokuant-oss/lead-reproduction/milestones)。
 
-## Reports
+## 報告
 
-+ **M2 Reproduction Report**: [docs/reproduction-report.md](./docs/reproduction-report.md) (~5500 字, 完整復現紀錄)
-+ **M3 Progress Report**: [docs/m3-report.md](./docs/m3-report.md) (~2500 字, 進行中)
-+ **Workflow**: [docs/workflow.md](./docs/workflow.md) (文件生態系 + Stage-gate + verification 紀律)
+- **M2 復現報告**: [docs/reproduction-report.md](./docs/reproduction-report.md) (~5500 字, 完整復現紀錄)
+- **M3 進度報告**: [docs/m3-report.md](./docs/m3-report.md) (~2500 字, 進行中)
+- **工作方法**: [docs/workflow.md](./docs/workflow.md) (文件生態系 + Stage-gate + verification 紀律)
 
-## Project structure
+## 專案結構
 
 ```
 docs/
-├── reproduction-report.md   # M2 final report
-├── m3-report.md             # M3 progress report (in progress)
-├── workflow.md              # Working methodology
-├── m2-plan.md               # M2 milestone plan (closed)
-├── m3-plan.md               # M3 milestone plan (M3.3+ pending)
-├── unknowns.md              # 17 unknowns register (paper undocumented details)
-├── adr/                     # 6 architecture decision records
-└── handoffs/                # Cross-session context (per milestone)
+├── reproduction-report.md   # M2 完整報告
+├── m3-report.md             # M3 進度報告 (進行中)
+├── workflow.md              # 工作方法
+├── m2-plan.md               # M2 milestone plan (已關閉)
+├── m3-plan.md               # M3 milestone plan (M3.3+ 待做)
+├── unknowns.md              # 17 unknowns register (M1 產出, paper 未說清的地方)
+├── adr/                     # 6 個架構決策紀錄 (M1 產出)
+└── handoffs/                # 跨 session context (每個 milestone 結尾寫一份)
 notebooks/
 ├── 01-m2-baseline-pipeline.ipynb     # M2.1
 ├── 02-m2-clusterno.ipynb             # M2.2.a (ClusterNo)
 ├── 03-m2-value-change.ipynb          # M2.2.b
 ├── 04-m2-savgol-dayofyear.ipynb      # M2.2.c + M2.2.d
-├── 05-m2-integration.ipynb           # M2.2.e → M2.5 (M2 main notebook, 34 cells)
-└── 06-m3-baseline.ipynb              # M3.1 + M3.2 (in progress)
+├── 05-m2-integration.ipynb           # M2.2.e → M2.5 (M2 主 notebook, 34 cells)
+└── 06-m3-baseline.ipynb              # M3.1 + M3.2 (進行中)
 data/
-├── raw/                     # Downloaded data (gitignored)
-└── processed/               # Generated outputs (gitignored)
+├── raw/                     # 下載的資料 (gitignored)
+└── processed/               # 產生的輸出 (gitignored)
 ```
 
-## Setup
+## M1 產出 (基礎工作)
 
-Requires Python 3.13, [uv](https://docs.astral.sh/uv/) for dependency management, and Git Bash on Windows (or any POSIX shell).
+M1 不產生 notebook 或 model, 但是 M2/M3 的基礎:
+
+- **`docs/unknowns.md`**: 17 個 paper 沒說清楚的地方 (e.g. 169 features 完整組成, downsampling seeds, Rule 2a building_id filter), 每個 unknown 隨 milestone 更新狀態
+- **`docs/adr/`**: 6 個架構決策 — building-id split (0001), downsampling 50:50 (0002), value-change features 同時取差值跟比值 (0003), post-processing hard rules (0004), imputation method (0005), paper-code 不一致處理紀律 (0006)
+- **`docs/workflow.md`**: 工作方法 framework, M2/M3 都沿用
+
+M1 大約花 1 週時間, 沒有它就無法做 one-shot 提交 — 所有不確定性都靠 M1 累積的 docs 消化。
+
+## 環境設定
+
+需要 Python 3.13, [uv](https://docs.astral.sh/uv/) 管理 dependencies, Git Bash on Windows (或任何 POSIX shell)。
 
 ```bash
 git clone https://github.com/kuokuant-oss/lead-reproduction.git
@@ -63,59 +74,55 @@ Pre-commit hooks (ruff, markdownlint, large-file-check 500KB):
 uv run pre-commit install
 ```
 
-## Data
+## 資料
 
-Data is not committed to this repo. Download from Kaggle and place in `data/raw/`.
+資料不放 repo。從 Kaggle 下載放到 `data/raw/`。
 
 ### M2 (LEAD subset)
 
-https://www.kaggle.com/competitions/energy-anomaly-detection/data
+- https://www.kaggle.com/competitions/energy-anomaly-detection/data
 
-Place under `data/raw/`:
+放在 `data/raw/`:
 
-+ `train_features.csv` (LEAD preprocessed train)
-+ `test_features.csv` (LEAD preprocessed test)
-+ `sample_submission.csv`
+- `train_features.csv` (LEAD preprocessed train)
+- `test_features.csv` (LEAD preprocessed test)
+- `sample_submission.csv`
 
 ### M3 (Full ASHRAE GEPIII)
 
-+ **Raw data**: https://www.kaggle.com/competitions/ashrae-energy-prediction/data (M3 只需 train.csv, building_metadata.csv, weather_train.csv, 不需 test)
-+ **Feature engineering reference**: [02_preprocess_data.py](https://github.com/buds-lab/ashrae-great-energy-predictor-3-solution-analysis/blob/master/solutions/rank-1/scripts/02_preprocess_data.py)
-+ **Anomaly labels**: [bad_meter_readings.zip](https://github.com/buds-lab/ashrae-great-energy-predictor-3-solution-analysis/blob/master/solutions/rank-1/input/bad_meter_readings.zip)
+- **Raw data**: https://www.kaggle.com/competitions/ashrae-energy-prediction/data (M3 只需 train.csv, building_metadata.csv, weather_train.csv, 不需 test)
+- **Feature engineering reference**: [02_preprocess_data.py](https://github.com/buds-lab/ashrae-great-energy-predictor-3-solution-analysis/blob/master/solutions/rank-1/scripts/02_preprocess_data.py)
+- **Anomaly labels**: [bad_meter_readings.zip](https://github.com/buds-lab/ashrae-great-energy-predictor-3-solution-analysis/blob/master/solutions/rank-1/input/bad_meter_readings.zip)
 
-Place under `data/raw/m3/`:
+放在 `data/raw/m3/`:
 
-+ `train.csv` (648M, 20.2M rows, 1,449 buildings)
-+ `bad_meter_readings.csv` (39M, positional row-aligned with train.csv)
-+ `building_metadata.csv`
-+ `weather_train.csv`
+- `train.csv` (648M, 20.2M rows, 1,449 buildings)
+- `bad_meter_readings.csv` (39M, positional row-aligned with train.csv)
+- `building_metadata.csv`
+- `weather_train.csv`
 
-## Running
+## 執行
 
-### M2 main pipeline
+### M2 主 pipeline
 
 ```bash
 uv run jupyter notebook notebooks/05-m2-integration.ipynb
 ```
 
-Outputs to `data/processed/submission.csv` (1,800,567 rows).
+輸出到 `data/processed/submission.csv` (1,800,567 rows)。
 
-### M3 in-progress pipeline
+### M3 進行中 pipeline
 
 ```bash
 uv run jupyter notebook notebooks/06-m3-baseline.ipynb
 ```
 
-Cells 1-11: M3.1 baseline. Cells 12-15: M3.2 value-change. Cell 16: leakage check.
+Cells 1-11: M3.1 baseline。Cells 12-15: M3.2 value-change。Cell 16: leakage check。
 
-## Methodology
+## 方法論
 
-This reproduction follows a strict **one-shot inference** discipline — no Kaggle leaderboard probing. All design decisions are documented in `docs/adr/`, `docs/unknowns.md`, and `docs/handoffs/` before submission.
+本復現遵守嚴格的 **one-shot inference** 紀律 — 不做 Kaggle leaderboard probing。所有設計決策在 `docs/adr/`、`docs/unknowns.md`、`docs/handoffs/` 紀錄完才提交。
 
-Final M2 result (Kaggle Private 0.98616) was achieved on the first submission after 6 working days of cumulative paper + code analysis, with gap 0.05% to 原作者 0.98661 (within noise floor ±0.0005).
+M2 最終結果 (Kaggle Private 0.98616) 是 6 個工作天累積 paper + code 分析後第一次提交達成, gap 0.05% to 原作者 0.98661 (在 noise floor ±0.0005 內)。
 
-See [docs/workflow.md](./docs/workflow.md) for full methodology.
-
-## License
-
-MIT (TBD — confirm before publishing externally)
+完整方法論見 [docs/workflow.md](./docs/workflow.md)。
