@@ -6,7 +6,7 @@ Winning solution of the Large-scale Energy Anomaly Detection (LEAD) competition.
 
 **Reproduction period**: 2026-05-22 to 2026-05-28 (6 working days)
 **Repo**: `lead-reproduction`
-**Kaggle Private AUC**: 0.9862 (paper 0.9866; 原作者實際 0.9866; gap **0.05%** ⭐)
+**Kaggle Private AUC**: 0.98616 (paper 0.9866; 原作者實際 0.98661; gap **0.05%** ⭐)
 **Status**: M2.5 complete (3 ablations + Kaggle validation);
 M2 milestone closed; M3 outlook documented (full ASHRAE GEPIII, 2000+ buildings, 自定 split)
 
@@ -45,7 +45,7 @@ Paper 與 buds-lab code 在多處有 paper 未完整描述的設計:
 | ClusterNo | §2.2.4 "K-means... no apparent positive effect" | Train+test 合併 406 棟 joint K-means,仍在最終 pipeline |
 | Downsampling | §2.3.2 "50:50 balance" | 2× seeds (10, 20),先全域 downsample 再 split |
 | Final submission refit | Fig 1 未明確標示 | 雙路徑:val 評估用 split;submission 用 X_all refit |
-| Rule 2a 範圍 | §2.4 "start/end points of time series" | `dayofyear==1 AND (building_id>145 OR <105)` → 0 |
+| Rule 2a (start points) | §2.4 "start points → 0" | `dayofyear==1 AND (building_id>145 OR <105)` → 0 |
 
 這些細節在 `docs/unknowns.md` 各有詳細記錄(#3, #4, #15, #16, 等)。
 
@@ -53,17 +53,18 @@ Paper 與 buds-lab code 在多處有 paper 未完整描述的設計:
 
 重現過程中建立了 17 個 unknowns 的 register,按 milestone 逐一解決:
 
-- **已 resolved (6 個)**:169 features 完整組成(#1)、CV split 機制(#2)、
-  post-processing 邊界定義(#3)、downsampling strategy + seeds(#4)、
-  anomaly rate 差異(#8)、building_id range 非連續(#9)
-- **Partially resolved / documented (8 個)**:target encoding leakage(#5)、
-  baseline gap 原因(#10)、timestamp divergence(#11)、SavGol importance(#12)、
-  cross-model importance(#13)、noise floor(#14)、Rule 2a filter logic(#15)、
+- **已 resolved (9 個)**：169 features 完整組成(#1)、post-processing 邊界定義(#3)、
+  downsampling strategy + seeds(#4)、target encoding 量化(#5，M2.5 Ablation A)、
+  CatBoost iterations(#6)、LEAD 上游 pipeline(#7)、anomaly rate 差異(#8)、
+  building_id range 非連續(#9)、Rule 2a filter 量化(#15，M2.5 Ablation C)
+- **Partially resolved / documented (7 個)**：CV split 機制(#2)、
+  baseline gap 原因(#10，candidate 1 量化 only)、timestamp divergence(#11)、
+  SavGol importance(#12)、cross-model importance(#13)、noise floor(#14)、
   X_all 推斷實作(#16)
-- **已釐清非 issue (1 個)**:Public < Private 是 Kaggle 正常 pattern(#17)
+- **已釐清非 issue (1 個)**：Public < Private 是 Kaggle 正常 pattern(#17)
 
 一次重要的校準:paper §3 報告 AUC 0.9866,我們最初以為是 Kaggle Public Score。
-比對原作者實際分數(Public 0.9734,Private 0.9866)後確認:**paper Table 2 的 0.9866
+比對原作者實際分數(Public 0.9734,Private 0.98661)後確認:**paper Table 2 的 0.9866
 ≈ Private rounded**,不是 Public(差值分別為 0.0005 vs 0.0132)。這影響 reproduction
 gap 的主要指標選擇。
 
@@ -283,8 +284,9 @@ Post-processing 在 val 幾乎沒有效果(ΔAUC = +0.0004,within noise floor ±
 
 Confusion matrix at threshold=0.5:precision **98.7%**,recall **81.2%**。
 Paper §3 text 寫 precision 98.7% / recall 81.9%——我們的 precision 完全對齊。
-同時發現 paper 內部矛盾:§3 text 與 Fig 3 的百分比 back-calculate 出截然不同的
-precision/recall(58.8% / 90.9%);我們的數字支持 §3 text。
+Confusion matrix 數字以 §3 text 為準(precision 98.7% 完全 match，recall 81.2% Δ 0.7%)。
+Paper Fig 3 顯示的百分比是 relative to total prediction(TN 96.3% / FP 1.4% /
+FN 0.2% / TP 2.0%)，代入 standard precision/recall 公式需注意分母口徑差異。
 
 ### Phase 2: Test submission pipeline
 
@@ -305,7 +307,7 @@ Test rules 觸發 vs val 的對比:
 | Metric | Ours | 原作者 | Gap |
 |--------|------|--------|-----|
 | Public AUC | 0.9698 | 0.9734 | 0.36% |
-| **Private AUC** | **0.9862** | **0.9866** | **0.05% ⭐** |
+| **Private AUC** | **0.98616** | **0.98661** | **0.05% ⭐** |
 | Val AUC | 0.9830 | — | — |
 
 Private gap **0.05% / 0.0004** = < noise floor ±0.0005,**statistically
@@ -418,7 +420,7 @@ val 數字不能完全代表 test 表現,特別是涉及 post-processing 跟 imp
 | Ensemble val AUC | 0.9830 | 0.9866 (Table 2) | Gap 0.36% | M2.3 |
 | Precision | **98.7%** ✓ | 98.7% (§3 text) | Exact match | M2.4 Phase 1 |
 | Recall | 81.2% | 81.9% (§3 text) | Δ 0.7% | M2.4 Phase 1 |
-| **Kaggle Private AUC** | **0.9862** | **0.9866** | **Gap 0.05% ⭐** | **M2.4 Phase 2** |
+| **Kaggle Private AUC** | **0.98616** | **0.98661** | **Gap 0.05% ⭐** | **M2.4 Phase 2** |
 
 ## 4.3 Reproduction observations
 
@@ -507,20 +509,20 @@ LightGBM / XGBoost / HistGBT 預設 100 iterations，CatBoost 預設 1000。各 
 | M2.2.e: 169 features | 0.9818 | 0.9849 (Table 2) | 0.31% | ΔAUC +0.0866 vs M2.1 |
 | M2.3: 4-model ensemble | 0.9830 | 0.9866 (Table 2) | 0.36% | noise floor ±0.0005 |
 | M2.4 Phase 1: + post-proc | 0.9834 | — | — | ΔAUC +0.0004 (within noise) |
-| **M2.4 Kaggle Private** | — | **0.9866** | **0.05%** ⭐ | **Primary metric** |
+| **M2.4 Kaggle Private** | — | **0.98661** | **0.05%** ⭐ | **Primary metric** |
 
 ## 5.2 Kaggle 分數 vs 原作者對比
 
 | Metric | Ours | 原作者 | Gap | 說明 |
 |--------|------|--------|-----|------|
 | Public AUC | 0.9698 | 0.9734 | 0.36% | 20% test sample,高 variance |
-| **Private AUC** | **0.9862** | **0.9866** | **0.05%** ⭐ | Primary reproduction metric |
+| **Private AUC** | **0.98616** | **0.98661** | **0.05%** ⭐ | Primary reproduction metric |
 | Val AUC | 0.9830 | — | — | Val < Public < Private (§2.3.1 ✓) |
 
-Val AUC 0.9830 < Public AUC 0.9698 < Private AUC 0.9862 的排列符合 §2.3.1 描述的
+Val AUC 0.9830 < Public AUC 0.9698 < Private AUC 0.98616 的排列符合 §2.3.1 描述的
 「validation 與 leaderboard 差距 < 1%」特性,驗證了 building-based CV split 設計的有效性。
 
-Paper Table 2 寫的 0.9866 與我們 Private 0.9862 差 0.0004,與原作者 Private 0.9866
+Paper Table 2 寫的 0.9866 與我們 Private 0.98616 差 0.0004,與原作者 Private 0.98661
 差 0.0005——兩者都在 ±0.0005 noise floor 範圍內。**Paper Table 2 報告的是 Private
 (rounded),不是 Public**。
 
@@ -547,9 +549,10 @@ pipeline,然後單次提交。
 | M2.1: Baseline | ~1 day | val AUC 0.8952, gap candidates |
 | M2.2: Feature engineering | ~3 days | 169 features, val AUC 0.9818 |
 | M2.3: Ensemble | ~0.5 day | val AUC 0.9830, noise floor |
-| M2.4: Submission | ~0.5 day | Private 0.9862, 17 unknowns 狀態更新 |
+| M2.4: Submission | ~0.5 day | Private 0.98616, 17 unknowns 狀態更新 |
+| M2.5: Ablation + Kaggle validation | ~0.5 day | 3 ablations + 3 Kaggle subs, M2 close |
 
-**6 天累積 → 單次提交 → Private gap 0.05%**。
+**6-7 天累積 → 單次 baseline 提交 + 3 ablation Kaggle 驗證 → Private gap 0.05%（statistically indistinguishable）**。
 
 這個 reproduction 的價值不只在最終數字,也在於每個設計決策都有對應的
 unknown/ADR/commit 記錄,每個 gap candidate 有明確的 ablation 計畫。
@@ -588,7 +591,7 @@ paper 沒覆蓋的 findings。
 | Reproduction methodology purity | ✅ one-shot submission |
 | Unknown #2 (CV split 建築數) | ✅ 38 棟確認 |
 | Unknown #4 (downsampling class ratio) | ✅ 50:50,seeds 10/20 |
-| Unknown #5 (gte leakage ΔAUC) | ✅ +0.001 val, gte_* valid encoding |
+| Unknown #5 (gte leakage ΔAUC) | ✅ -0.001 val (gte_* 提供 +0.001 正向貢獻) |
 | Unknown #10 candidate 1 (impute_nulls) | ✅ Quantified (our pipeline only,不延伸 paper) |
 | Unknown #15 (Rule 2a filter) | ✅ -0.0001 Kaggle Private,精細 design |
 | M2 milestone closed | ✅ M2.5 complete with Kaggle validation |
