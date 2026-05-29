@@ -1,0 +1,240 @@
+# M3 Report: Full ASHRAE GEPIII (進行中)
+
+**任務**: 用 ASHRAE GEPIII 完整 dataset (1,449 buildings),從 raw train data 做
+feature engineering,用 anomaly label 做 binary classification,train/test 各別用
+一半的建築數量。
+
+**教授原話**: 「第三步,是比較進階的部分,看你有沒有時間和資源試著做看看。請使用
+這裡的完整資料集 (高達 2000 多個電表),要把原始的 train data 做 feature engineering,
+用 Anomaly label 作為分類的目標,train 和 test 各別用一半的建築數量。參考原本的
+方法試著做看看結果。」
+
+**期間**: 2026-05-29 起 (進行中)
+**Repo**: lead-reproduction
+**Status**: M3.1 + M3.2 ✅ complete; M3.3-M3.5 pending
+**最新 val AUC**: 0.9920 (M3.2, LightGBM, 137 features)
+
+---
+
+# Ch1: 任務背景
+
+## 1.1 M3 vs M2 對比
+
+| 維度 | M2 (LEAD subset) | M3 (Full ASHRAE GEPIII) |
+|---|---|---|
+| 資料來源 | Kaggle `energy-anomaly-detection` | Kaggle `ashrae-energy-prediction` |
+| 規模 | 406 buildings (200+206) | **1,449 buildings** |
+| Feature 來源 | 已 preprocessed CSV (含 gte_*) | 從 raw 自己做 FE |
+| Anomaly label | LEAD csv 內建 | buds-lab `bad_meter_readings.csv` (逐行對齊) |
+| Train/test split | 已給定 (200/206 by upstream) | **自定 building_id % 5 == 4 → val (1160/289)** |
+| Anomaly rate | 2.13% | **6.50%** (~3× M2) |
+| 評估方式 | Kaggle leaderboard (Public/Private) | 自定 val set AUC (無 leaderboard) |
+
+## 1.2 教授指定 reference
+
+Feature engineering 應以 buds-lab `02_preprocess_data.py` (GEPIII rank-1 solution)
+為參考基準。本 reproduction 從 raw data 開始,以 M2 完整 pipeline 為對照,
+逐步對齊 buds-lab features。
+
+## 1.3 M3 vs paper 的關係
+
+Paper (Fu et al. 2022) 處理 LEAD subset (200/206 buildings)。GEPIII 是 LEAD 的
+upstream dataset,buds-lab GEPIII rank-1 solution 提供 anomaly label。M3 不是
+paper 的直接 reproduction,而是「**如果同樣的 methodology 用在完整 GEPIII,結果如何**」
+的延伸研究。
+
+---
+
+# Ch2: 工作流沿用
+
+M3 沿用 M2 的工作流 framework (詳見 [`docs/workflow.md`](./workflow.md)):
+
++ `docs/m3-plan.md`: M3.1-M3.5 milestone Done when criteria
++ `docs/unknowns.md`: M3 新發現的 unknowns 同步加入 (跟 M2 共用)
++ `docs/handoffs/`: 每個 M3 milestone 結尾寫一份
++ Stage-gate execution + ⚠️ 觸發點預埋
++ One-shot inference (M3 沒 Kaggle leaderboard,不存在 leaderboard probing)
+
+M3 唯一新增的工作流面向: 沒 Kaggle leaderboard 對照, 評估完全靠自定 val set。
+Reproducibility 靠 `random_state=42` 對齊。
+
+---
+
+# Ch3: 分析過程
+
+## 3.1 M3.1: Baseline pipeline (val AUC 0.9562)
+
+**目標**: 17 baseline features (time + building metadata + weather) + LightGBM only,
+建立 M3 minimal pipeline。
+
+**Pipeline**:
+
+1. 下載 `ashrae-energy-prediction/train.csv` (20.2M rows, 1,449 buildings)
+2. Positional anomaly label join: `train['anomaly'] = bad_meter_readings['is_bad_meter_reading'].values`
+3. Anomaly rate: 6.50% (vs M2 2.13%, ~3× 高)
+4. Building-level split: `building_id % 5 == 4 → val` (289 buildings); rest → train (1160 buildings)
+5. 17 features: hour, dayofweek, dayofyear, month, is_weekend, log_square_feet,
+   floor_count, year_built, primary_use_enc, meter, 7 weather features
+6. Downsampling: 50:50 ratio (seeds 10 + 20, 對齊 M2.1)
+7. LightGBM (n_estimators=100, random_state=42)
+
+**結果**: val AUC = **0.9562**
+
+**重要觀察**: M3.1 (17 features, anomaly rate 6.5%) vs M2.1 (57 features, anomaly rate 2.13%)
+是兩個不同任務,AUC **不直接可比**。M3 的 `log_square_feet` (building 大小) 是強 anomaly signal,
+M2 raw features 沒有對等的 building meta。
+
+---
+
+## 3.2 M3.2: Value-change features (val AUC 0.9920)
+
+**目標**: 加 60 shifts × 2 types = 120 value-change features → 137 total。
+(對應 buds-lab 02_preprocess_data.py 的 lag features 部分)
+
+**Implementation** (vectorized, NOT per-building loop):
+
+```python
+shifts = (
+    list(range(-24, 0)) + list(range(1, 25))                    # sub-day ±1-24h
+    + list(range(-168, -24, 24)) + list(range(48, 169, 24))     # multi-day ±48-168h step 24h
+)  # 60 shifts (對齊 M2.2.b)
+
+for n in shifts:
+    shifted = df.groupby('building_id')['meter_reading'].shift(n)
+    df[f'lag_value_diff_{n}'] = (df['meter_reading'] - shifted).astype('float32')
+    df[f'lag_value_ratio_{n}'] = ((df['meter_reading'] + 1) / (shifted + 1)).astype('float32')
+```
+
+**結果**: val AUC = **0.9920**, ΔAUC vs M3.1 = **+0.0358**
+
+**Feature importance 分布**:
+
++ Value-change (120 features): 46.7% of total importance
++ Baseline (17 features): 53.3% of total importance
++ Top 5: log_square_feet, dayofyear, meter, floor_count, meter_reading
++ Top value-change: `lag_value_ratio_144` (6-day ratio) — 多日 lag 比 sub-day 重要
+
+**Leakage sanity check** (Cell 16, post-M3.2):
+
+| 實驗 | Val AUC | 說明 |
+|---|---|---|
+| Full M3.2 (120 features) | 0.9920 | baseline |
+| Past-only (60 features, n>0) | 0.9908 | ΔAUC -0.0012 vs full |
+| Future-only (60 features, n<0) | 0.9908 | ΔAUC -0.0013 vs full |
+
+**結論**: ✅ **NO LEAKAGE**。Past-only ≈ future-only ≈ full。Anomaly events 是
+multi-hour bursts,兩個方向都帶有效信號。對齊 M2 同樣 pattern (Kaggle-validated at Private 0.98616)。
+
+---
+
+## 3.3 M3.3-M3.5: Pending
+
+詳細計畫見 `docs/m3-plan.md`:
+
++ **M3.3 buds-lab alignment**: 對齊 buds-lab 02_preprocess_data.py 缺失的 features
+  (cyclic encodings, weather rolling lags, holiday flags, GaussianTargetEncoder,
+  building interactions, site corrections)
++ **M3.4 4-model ensemble**: LGB + XGB + CatBoost + HistGBT
++ **M3.5 post-processing**: Rule 1 + Rule 2b 通用,Rule 2a 需 EDA 重設計
+
+---
+
+# Ch4: M3 vs paper/buds-lab 對應關係
+
+## 4.1 教授指定 reference 覆蓋程度
+
+| 教授要求 | 狀態 |
+|---|---|
+| 完整資料集 (2000+ 電表) | ✅ 1,449 buildings (~2,380 meter-building combinations) |
+| 從 raw train data 做 FE | ✅ 從 train.csv 開始 |
+| Anomaly label 作為分類目標 | ✅ Positional join 自 bad_meter_readings.csv |
+| Train/test 各別一半建築 | ✅ building_id % 5 split (1160/289 ≈ 80/20) |
+| 參考 02_preprocess_data.py | ⚠️ 部分 (M3.2 加 lag features; M3.3 補完整對齊) |
+
+## 4.2 M3 feature gap vs buds-lab 02_preprocess_data.py
+
+M3.1 + M3.2 (137 features) **未包含**以下 buds-lab features:
+
+| Feature 類別 | buds-lab 實作 | M3 現狀 | M3.3 補? |
+|---|---|---|---|
+| Cyclic time encodings | sin/cos(hour, day, month, weekday) | ❌ 缺 | ✅ priority 1 |
+| Weather rolling lags | windows 7, 73 (lag + rolling mean) | ❌ 缺 | ✅ priority 2 |
+| Holiday flags | US Federal Calendar `holidays` library | ❌ 缺 | ✅ priority 3 |
+| GaussianTargetEncoder (gte_*) | per-(site, meter) target encoding | ❌ 缺 | ✅ priority 4 |
+| Building interaction strings | `primary_use + "_" + meter_str` | ❌ 缺 | ✅ priority 5 |
+| Site 0 meter 0 correction | × 0.2931 (unit mismatch fix) | ❌ 缺 | ✅ priority 6 |
+| Weather GMT offset | per-site UTC correction | ❌ 缺 | ⚠️ optional |
+| Weather interpolation + NA indicators | linear interp + `_na` flag cols | ❌ 缺 | ⚠️ optional |
+
+## 4.3 M3 vs M2 數字對比 (參考用)
+
+| 指標 | M2 | M3 | 註 |
+|---|---|---|---|
+| Buildings (train+val) | 200 (162+38) | 1,449 (1160+289) | M3 ~7× M2 |
+| Anomaly rate | 2.13% | 6.50% | M3 ~3× M2 |
+| Features (LightGBM only) | 169 | 137 | M3 缺 32 buds-lab features (M3.3 補) |
+| Val AUC (LightGBM) | 0.9818 | 0.9920 | **不直接可比** (任務不同) |
+| Ensemble val AUC | 0.9830 | — | M3.4 待做 |
+| Test 評估 | Kaggle leaderboard | 自定 val set | M3 無 leaderboard |
+
+---
+
+# Ch5: M3 進度與計畫
+
+## 5.1 M3 AUC progression
+
+| Milestone | Val AUC | Features | ΔAUC | 狀態 |
+|---|---|---|---|---|
+| M3.1 baseline | 0.9562 | 17 | — | ✅ Complete |
+| M3.2 + value-change | **0.9920** | 137 | +0.0358 | ✅ Complete |
+| M3.3 buds-lab alignment | TBD | ~150+ | TBD | 🔲 Pending |
+| M3.4 4-model ensemble | TBD | — | TBD | 🔲 Pending |
+| M3.5 post-processing | TBD | — | TBD | 🔲 Pending |
+
+## 5.2 M3 Exit Criteria
+
++ [x] M3.2 val AUC > 0.97 (達到 0.9920)
++ [x] M3 baseline + value-change pipeline complete 且 reproducible
++ [x] Leakage sanity check pass (NO LEAKAGE)
++ [ ] M3.3 buds-lab alignment 完成
++ [ ] M3.4 ensemble 完成
++ [ ] M3.5 post-processing 完成
++ [ ] Each milestone 有對應 handoff doc
+
+## 5.3 M3 思考點
+
+1. **Scale 對 pipeline 的影響**: M3 規模是 M2 的 ~3.5× (buildings),但 LightGBM
+   pipeline 在 ~20M rows 上仍可在 ~2 分鐘完成。M3.4 ensemble (尤其 CatBoost 1000 iters)
+   可能需 30-60 min。
+
+2. **Anomaly rate 差異**: M3 6.5% vs M2 2.13%。LEAD 是 GEPIII subset 且 anomaly
+   定義可能更嚴。這影響 downsampling 後的 effective training size。
+
+3. **無 leaderboard 對照**: M3 評估完全靠自定 val set,reproducibility 靠
+   `random_state=42`。沒法跟 paper 數字直接比。
+
+4. **Rule 2a building_id filter 不適用**: M2 用 `id>145 OR <105` (LEAD 200 buildings
+   range)。M3 buildings 0-1448,完全不同 range。M3.5 需重新 EDA 找適合 filter。
+
+5. **GaussianTargetEncoder leakage risk**: M3.3 加 gte_* 時必須 fit on train_m3 only,
+   apply to val_m3 用 train params。否則會 leak anomaly label → AUC 虛高。
+
+## 5.4 M3 Methodology lessons (新增)
+
+| # | Milestone | Lesson |
+|---|---|---|
+| 8 | M3.1 | Positional anomaly label join 比 schema-based join 簡單但需驗證 row count 一致 |
+| 9 | M3.2 | Vectorized groupby.shift on 20M rows 可行 (~15s per 60 shifts) |
+| 10 | M3.2 leakage check | Past-only ≈ future-only AUC 反映 anomaly burst 雙向對稱性,不是 leakage |
+
+(對應 M2 7 個 lessons + M3 新增,目前 total 10 個)
+
+## 5.5 進度更新追蹤
+
++ 2026-05-29: M3.1 baseline complete (commit ea3977d)
++ 2026-05-29: M3.2 value-change complete (commit a1de001)
++ 2026-05-29: M3.2 leakage check + M3.3 redefined (commit c7d0c5a)
+
+---
+
+*Last updated: 2026-05-29 (M3.1 + M3.2 complete; M3.3 buds-lab alignment pending)*

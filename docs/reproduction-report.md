@@ -49,7 +49,7 @@ Paper 與 buds-lab code 在多處有 paper 未完整描述的設計:
 
 這些細節在 `docs/unknowns.md` 各有詳細記錄(#3, #4, #15, #16, 等)。
 
-## 1.3 重現過程中特別處理、校準、質疑的部分
+## 1.3 Unknowns register 進度
 
 重現過程中建立了 17 個 unknowns 的 register,按 milestone 逐一解決:
 
@@ -62,11 +62,6 @@ Paper 與 buds-lab code 在多處有 paper 未完整描述的設計:
   SavGol importance(#12)、cross-model importance(#13)、noise floor(#14)、
   X_all 推斷實作(#16)
 - **已釐清非 issue (1 個)**：Public < Private 是 Kaggle 正常 pattern(#17)
-
-一次重要的校準:paper §3 報告 AUC 0.9866,最初誤判 paper 數字為 Kaggle Public Score。
-比對原作者實際分數(Public 0.9734,Private 0.98661)後確認:**paper Table 2 的 0.9866
-≈ Private rounded**,不是 Public(差值分別為 0.0005 vs 0.0132)。這影響 reproduction
-gap 的主要指標選擇。
 
 ---
 
@@ -339,26 +334,15 @@ indistinguishable**。
 - ensemble vs LightGBM 個別 (paper Table 2 顯示 ensemble = 0.9866 vs LGB = 0.9849, ~0.0017)
 - gte_* 對 LightGBM 的微弱貢獻 (val 量化 ~0.001)
 
-Unknown #5 量化:**gte_* 是 valid target encoding,微弱正向貢獻** (~0.001 on val)。
-原本擔心的「target encoding leakage」不成立 — 16 個 gte_* features 雖然來自 GEPIII
-predecessor,但對 LEAD anomaly detection 仍有正向貢獻,不是 harmful leakage。
+**Unknown #5 量化**: gte_* 是 valid target encoding,val ΔAUC = -0.001 (gte_* 提供 +0.001 貢獻), 不是 harmful leakage。
 
-**Ablation B (per-bldg mean impute, 與 paper §2.1 描述方向一致)**:
-ΔPrivate = -0.0128 vs M2.4 baseline。
+**Ablation B (per-bldg mean impute, paper §2.1 描述方向一致)**: ΔPrivate = -0.0128 vs M2.4 baseline。
 
-**重要解讀**:這個結果**不能 generalize 為「paper 方法不好」**。原因:
+在本 reproduction pipeline 上 swap imputation method (raw NaN → per-bldg mean) 降 0.0128。
+這量化了 component-swap 在本 pipeline 內的 effect,不延伸到 paper 整體設計的 effect
+(原作者完整 pipeline Private 0.98661,比本 reproduction 0.98616 略高)。
 
-- **原作者完整 pipeline (含 mean imputation) Kaggle Private = 0.98661** — 比本 reproduction 0.98616 略高
-- 本 reproduction 的 pipeline 用 raw NaN 拿到 0.98616
-- Ablation B 是「**本 reproduction pipeline + swap imputation = 0.97331**」 — 比本 reproduction 降 0.0128
-
-這顯示 **pipeline component interaction matters** — paper 的整體設計是 well-tuned,
-某個 component 不能孤立看。本 reproduction 的 raw NaN 跟其他選擇搭配 OK,但**不代表 paper
-的 mean imputation 不好** — paper 的整體 pipeline 拿到比本 reproduction 更高的分數。
-
-Unknown #10 candidate 1 量化:**在本 reproduction pipeline 上,raw NaN 比 per-bldg mean 好** —
-但這不延伸到 paper 自己的 pipeline。如果要驗證 paper 整體選擇,需要更完整的對齊 ablation
-(這超出本次 reproduction 範圍)。
+**Unknown #10 candidate 1** 在本 pipeline 內量化。
 
 **Ablation C (Rule 2a blanket, no building_id filter)**:
 ΔPrivate = -0.0001 (noise floor 內)。
@@ -368,8 +352,7 @@ Rule 2a 的 building_id filter (id>145 OR <105) 保護 14 棟 buildings 的 dayo
 這 14 棟在 dataset-level metric 上影響 ~ 0 — Filter 屬精細設計,但 dataset-level
 AUC 不敏感。
 
-Unknown #15 量化:**Rule 2a filter 是 building-level 精細調整,dataset-level Kaggle Private
-effect < noise floor**。Paper §2.4 沒揭露 filter 邏輯,可能因為 dataset-level effect 太小。
+**Unknown #15 量化**: Rule 2a filter 是 building-level 精細調整,dataset-level Kaggle Private ΔAUC = -0.0001 (< noise floor)。
 
 ### Val vs Kaggle 差異模式
 
@@ -382,17 +365,6 @@ effect < noise floor**。Paper §2.4 沒揭露 filter 邏輯,可能因為 datase
 Val pipeline downsampling 對某些 design 選擇的 sensitivity 較低(distribution shift),
 需要 Kaggle 驗證才能完整量化 component 的真實貢獻。這對 reproduction 是重要 lesson:
 val 數字不能完全代表 test 表現,特別是涉及 post-processing 跟 imputation 的 design。
-
-### 重要 Caveat: Ablation 解讀的範圍
-
-這 3 個 ablation 都是「**在本 reproduction pipeline 內 swap 一個 component**」,**不能** generalize
-為「paper 的 component 選擇不好」。原作者完整 pipeline (Private 0.98661) 比本 reproduction (0.98616)
-高 — paper 的整體 design 經過 tuning,各 component 之間有 interaction。
-
-**對 reproducer 的啟示**:
-- 部分 component swap 不一定能改善 reproduction
-- 完整 pipeline 對齊 paper 描述比拆換重要
-- Ablation 揭露的差異是 **本 reproduction pipeline 內部** 的 design space,不是 paper 的 design space
 
 ---
 
@@ -596,77 +568,24 @@ paper 沒覆蓋的 findings。
 | Unknown #15 (Rule 2a filter) | ✅ -0.0001 Kaggle Private,精細 design |
 | M2 milestone closed | ✅ M2.5 complete with Kaggle validation |
 
-## 5.6 M3: Full ASHRAE GEPIII (In Progress)
+## 5.6 M3: Full ASHRAE GEPIII (進行中)
 
-M3 是教授信件提到的「進階部分」,**不是 M2 的 scale up,是完全不同的 dataset 與 workflow**。
+M3 是教授信件提到的「進階部分」,使用完整 ASHRAE GEPIII dataset (1,449 buildings)
+從 raw 開始做 feature engineering。M3 是獨立工作,**詳細記錄請見 [`docs/m3-report.md`](./m3-report.md)**。
 
-### M3 vs M2 對比
+**M3 vs M2 一句話對比**:
 
-| 維度 | M2 (LEAD subset) | M3 (Full ASHRAE GEPIII) |
-|---|---|---|
-| 資料來源 | Kaggle `energy-anomaly-detection` | Kaggle `ashrae-energy-prediction` |
-| 規模 | 406 buildings (200 train + 206 test) | 1,449 buildings (building_id % 5 split) |
-| Feature engineering | 已 preprocessed (LEAD csv 含 gte_*) | 從 raw 自己做(reference: buds-lab `02_preprocess_data.py`) |
-| Anomaly labels | LEAD csv 內建 | buds-lab `bad_meter_readings.csv` 逐行對齊 |
-| Train/test split | 已給定 (200/206 by upstream) | building_id % 5 == 4 → val (1160/289 buildings) |
-| Anomaly rate | 2.13% | 6.50% |
-| 評估方式 | Kaggle leaderboard (Public/Private) | 自定 val set AUC (無 leaderboard) |
+- M2 用 LEAD subset (406 buildings) + 已 preprocessed features → 復現 paper baseline
+- M3 用完整 GEPIII (1,449 buildings) + 從 raw 自己做 FE → 驗證 methodology 是否可擴展
 
-### M3 實際進度 (2026-05-29)
+**目前進度** (2026-05-29):
 
-| Milestone | Val AUC | Features | 狀態 |
-|---|---|---|---|
-| M3.1 baseline (time + metadata + weather) | 0.9562 | 17 | ✅ Complete |
-| M3.2 + value-change (60 shifts × 2) | **0.9920** | 137 | ✅ Complete |
-| M3.3 buds-lab alignment (cyclic, rolling, holiday, gte_*) | TBD | ~150+ | 🔲 Pending |
-| M3.4 4-model ensemble | TBD | — | 🔲 Pending |
-| M3.5 post-processing | TBD | — | 🔲 Pending |
+- M3.1 baseline (17 features) val AUC 0.9562 ✅
+- M3.2 + value-change (137 features) val AUC 0.9920 ✅
+- M3.3-M3.5 pending (buds-lab feature alignment, ensemble, post-processing)
 
-**M3.2 leakage check**: Past-only AUC 0.9908 ≈ future-only 0.9908 ≈ full 0.9920 (ΔAUC +0.0012). ✅ NO LEAKAGE.
-
-### M3 Pipeline (Implemented)
-
-1. 下載 Kaggle `ashrae-energy-prediction` 的 train.csv (all buildings)
-2. Anomaly labels: buds-lab `bad_meter_readings.csv` — **逐行對齊** (`train["anomaly"] = bad["is_bad_meter_reading"].values`)
-3. Building-level split: `building_id % 5 == 4` → val (289 buildings), rest → train (1160 buildings)
-4. M3.1: 17 baseline features (hour, dayofweek, dayofyear, month, is_weekend, log_square_feet, floor_count, year_built, primary_use_enc, meter, air_temperature, dew_temperature, sea_level_pressure, cloud_coverage, precip_depth_1_hr, wind_direction, wind_speed)
-5. M3.2: + 60 shifts × (diff + ratio) = 120 value-change features → 137 total
-6. Downsampling: 50:50 ratio (negs1 seed=10 + pos + negs2 seed=20 + pos)
-7. Model: LightGBM n_estimators=100, num_leaves=31
-
-### M3 設計選擇:沿用 M2 vs 重新優化
-
-| 元件 | M2 一致 OK? | 風險 / 需重新評估 |
-|---|---|---|
-| 60 shifts (sub-day + multi-day) | 可能 | 較大 dataset 可能需更多 shift |
-| 4-model ensemble (等權平均) | 可能 | 規模 5×,個別 model 表現可能變化 |
-| **Rule 2a building_id filter** | **不可能** | M3 building_id 範圍完全不同 → filter 失效,需 EDA 重定 |
-| Rule 2b (dayofyear>366.9583) | 可能 | 一年最後一小時的邏輯通用 |
-| ClusterNo n_clusters=10 | 可能不足 | 2000 棟可能需更多 cluster |
-| Random split seed | 必設 | 結果可重現 |
-
-### M3 風險評估
-
-| 風險 | 影響 | Mitigation |
-|---|---|---|
-| Memory (2000+ × 8784 × 169 features) | 可能 OOM | Streaming / chunk processing |
-| Training time (CatBoost 1000 iters × 5× rows) | ~2 小時 | 接受,或減 iterations |
-| **Rule 2a filter 失效** | Post-processing 失準 | EDA 看 building_id distribution + 重新定義 filter rule |
-| GEPIII raw data 含其他 anomaly 類型 | Label noise | 信任 buds-lab `bad_meter_readings` 的 curation |
-| 無 leaderboard 對照 | 無法 calibrate paper 數字 | 接受,只回報 self-eval AUC |
-
-### Why M3 Matters
-
-M2 證明 reproduction methodology 在 paper 給定 dataset 上有效。
-M3 驗證 methodology 在**從 raw data 自己定 split + 自己做 feature engineering**
-的情境下是否仍能達到接近 paper 的表現——這比 M2 多了三層自由度:
-- Feature engineering script 的執行(unknowns 可能更多)
-- Train/test split 的設計(無 leaderboard 對照)
-- Building-level diversity 5× 擴展
-
-M3 不在本 reproduction 的主要 deadline 範圍,但本 reproduction 的
-unknowns register + ADR framework + Stage-gate workflow 是 M3 的基礎——
-M3 不需要 rebuild infrastructure,只需擴展 pipeline。
+M2 reproduction methodology framework (unknowns register, ADR, Stage-gate) 沿用到 M3。
+詳細結果、思考點、下一步計畫見 m3-report.md。
 
 ---
 
