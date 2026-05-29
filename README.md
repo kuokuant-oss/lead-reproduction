@@ -56,7 +56,7 @@ M1 不產生 notebook 或 model, 但是 M2/M3 的基礎:
 - **`docs/adr/`**: 6 個架構決策 — building-id split (0001), downsampling 50:50 (0002), value-change features 同時取差值跟比值 (0003), post-processing hard rules (0004), imputation method (0005), paper-code 不一致處理紀律 (0006)
 - **`docs/workflow.md`**: 工作方法 framework, M2/M3 都沿用
 
-M1 大約花 1 週時間, 沒有它就無法做 one-shot 提交 — 所有不確定性都靠 M1 累積的 docs 消化。
+M1 大約花 4 天, 累積的 docs 是 M2 設計決策的依據, 也是 M3 沿用的工作 framework。
 
 ## 環境設定
 
