@@ -1,6 +1,6 @@
 # M3 Plan: Full ASHRAE GEPIII Reproduction
 
-**Status**: M3.1 ✅ + M3.2 ✅ complete; M3.2a PI-response complete; M3.3 buds-lab alignment next
+**Status**: M3.1/M3.2/M3.2a/M3.3/M3.4 complete; M3.5 post-processing next
 **Started**: 2026-05-29
 **Reference**:
 
@@ -213,17 +213,23 @@ seeds range `0.3738-0.5700`, so M3.3 did not add a stable leakage signature.
 ### M3.4: 4-model ensemble (Stretch)
 
 **GitHub Issue**: [#16](https://github.com/kuokuant-oss/lead-reproduction/issues/16)
-**Status**: Pending M3.3
+**Status**: Complete (2026-06-22) - positive but modest lift over M3.2
 
 **What**: LGB + XGB + CatBoost + HistGBT equal-weight ensemble
 
 **Done when**:
 
-+ [ ] 4 models trained on M3.2 (137) features (M3.3 was no-lift)
-+ [ ] M3.4 ensemble val AUC > 0.98
-+ [ ] Ranking vs M2 (LGB > Hist > Cat > XGB in M2) documented
++ [x] 4 models trained on M3.2 (137) features (M3.3 was no-lift)
++ [x] M3.4 ensemble val AUC = **0.9928** > 0.98
++ [x] Ranking vs M2 documented: M2 `LGB > Hist > Cat > XGB`; M3.4 seed 42 `LGB > Hist > XGB > Cat`
++ [x] Multi-seed sanity: ensemble AUC `0.9928/0.9932/0.9930`, mean `0.9930`, std `0.00018`
 
 **Risk**: CatBoost 1000 iters on ~4.3M downsampled rows: estimate 30-60 min
+
+**Result**: Seed-42 equal-weight ensemble AUC `0.9928`, P/R/F1
+`0.6779/0.9664/0.7969`. This is a modest positive lift over M3.2 (`+0.00079`)
+and over the best seed-42 single model (`+0.00078`). CatBoost ran all 1000
+trees and took ~3.6 min in the local environment.
 
 **Depends on**: M3.3
 
@@ -271,7 +277,7 @@ seeds range `0.3738-0.5700`, so M3.3 did not add a stable leakage signature.
 | M3.2 value-change | [#14](https://github.com/kuokuant-oss/lead-reproduction/issues/14) | ✅ Closed |
 | M3.2a PI-response split/causality | [#18](https://github.com/kuokuant-oss/lead-reproduction/issues/18) | ✅ Closed |
 | M3.3 buds-lab alignment | [#15](https://github.com/kuokuant-oss/lead-reproduction/issues/15) | ✅ Closed |
-| M3.4 4-model ensemble | [#16](https://github.com/kuokuant-oss/lead-reproduction/issues/16) | 🚧 Open |
+| M3.4 4-model ensemble | [#16](https://github.com/kuokuant-oss/lead-reproduction/issues/16) | ✅ Closed |
 | M3.5 post-processing | [#17](https://github.com/kuokuant-oss/lead-reproduction/issues/17) | 🚧 Open |
 
 ---
@@ -282,9 +288,10 @@ seeds range `0.3738-0.5700`, so M3.3 did not add a stable leakage signature.
 + [x] PI-response 50/50 split + causal/offline design check complete
 + [x] M3.3 buds-lab alignment complete; no robust AUC lift
 + [x] M3 pipeline (baseline + value-change) complete and reproducible
++ [x] M3.4 ensemble complete; seed-42 AUC 0.9928, multi-seed mean 0.9930
 + [ ] Handoff doc for each completed stage
 + [ ] GitHub Issues closed for completed milestones
 
 ---
 
-**Last reviewed**: 2026-06-22 (M3.3 buds-lab alignment complete; no-lift vs M3.2)
+**Last reviewed**: 2026-06-22 (M3.4 4-model ensemble complete; modest positive lift vs M3.2)
