@@ -219,7 +219,7 @@ seeds range `0.3738-0.5700`, so M3.3 did not add a stable leakage signature.
 
 **Done when**:
 
-+ [ ] 4 models trained on M3.3 features
++ [ ] 4 models trained on M3.2 (137) features (M3.3 was no-lift)
 + [ ] M3.4 ensemble val AUC > 0.98
 + [ ] Ranking vs M2 (LGB > Hist > Cat > XGB in M2) documented
 
@@ -281,7 +281,7 @@ seeds range `0.3738-0.5700`, so M3.3 did not add a stable leakage signature.
 + [x] M3.2 val AUC > 0.97 (0.9920 ✅)
 + [x] PI-response 50/50 split + causal/offline design check complete
 + [x] M3.3 buds-lab alignment complete; no robust AUC lift
-+ [ ] M3 pipeline (baseline + value-change) complete and reproducible
++ [x] M3 pipeline (baseline + value-change) complete and reproducible
 + [ ] Handoff doc for each completed stage
 + [ ] GitHub Issues closed for completed milestones
 

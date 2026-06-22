@@ -242,3 +242,6 @@ models/*
 
 # Claude Code personal permission settings — varies per user/agent, not for repo
 .claude/settings.local.json
+
+# Local task prompts
+m32a-m33-prompt.md
