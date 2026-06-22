@@ -10,6 +10,7 @@ dependencies = [
     "lightgbm>=4.0",
     "xgboost>=2.0",
     "catboost>=1.2",
+    "holidays>=0.99",
     "jupyter>=1.0",
     "ipykernel>=6.0",
     "matplotlib>=3.8",

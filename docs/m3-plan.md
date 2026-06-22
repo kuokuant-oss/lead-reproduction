@@ -172,7 +172,7 @@ variant.
 ### M3.3: buds-lab Feature Alignment (Priority)
 
 **GitHub Issue**: [#15](https://github.com/kuokuant-oss/lead-reproduction/issues/15)
-**Status**: Pending M3.2
+**Status**: Complete (2026-06-22) - no robust AUC lift over M3.2
 
 **What**: Add buds-lab 02_preprocess_data.py features not yet in M3 pipeline.
 Priority order: cyclic encodings → weather rolling lags → holiday flags →
@@ -180,24 +180,31 @@ GaussianTargetEncoder → building interactions → site corrections.
 
 **Done when**:
 
-+ [ ] Cyclic time encodings: sin/cos(hour, dayofweek, month) added (6 features)
-+ [ ] Weather rolling lags: windows 7, 73 (lag + rolling mean) → ~12 features
-+ [ ] Holiday flags: US Federal Calendar `holidays` library
-+ [ ] GaussianTargetEncoder: per-(site, meter) target encoding on anomaly label
-+ [ ] Building interaction string: `primary_use + "_" + meter_str`
-+ [ ] Site 0 meter 0 correction: × 0.2931 applied
-+ [ ] M3.3 val AUC > 0.9920 (must exceed M3.2 to justify addition)
-+ [ ] Handoff doc created
-
++ [x] Cyclic time encodings: sin/cos(hour, dayofweek, month) added (6 features)
++ [x] Weather rolling lags: windows 7, 73 (lag + rolling mean) added
++ [x] Holiday flags: US Federal Calendar `holidays` library
++ [x] GaussianTargetEncoder: per-(site, meter) target encoding on anomaly label
++ [x] Building interaction string: `primary_use + "_" + meter_str`
++ [x] Site 0 meter 0 correction: multiply by 0.2931 applied
++ [x] M3.3 val AUC = 0.9913 vs M3.2 0.9920; no-lift/negligible
++ [x] Label-shuffle diagnostics: seed range 0.3738-0.5700, GTE ablation 0.5680
++ [x] Notebook: `notebooks/08-m3-budslab.ipynb`
++ [x] Results: `data/processed/m3_3_results.json`
++ [x] Handoff: `docs/handoffs/2026-06-22-m33-completed.md`
 **Risk**:
 
 + GaussianTargetEncoder needs anomaly label → potential leakage if not done correctly;
   fit on train only, apply to val with train parameters
 + Weather rolling lags: 20M rows × large window — memory and time significant
-+ If AUC ≤ M3.2 + 0.0005 (noise floor): document as negligible, skip to M3.4
++ AUC did not beat M3.2 + 0.0005; document as no-lift/negligible, skip to M3.4
 
 **Note on ClusterNo + SavGol**: Secondary priority. M2 ablation showed SavGol
 had minimal effect (ΔAUC −0.001). Add after buds-lab features if M3.3 AUC improves.
+
+**Result**: Val AUC `0.9913`, precision/recall/F1 `0.6668/0.9583/0.7864`.
+Multi-seed AUC mean `0.9917` wraps around but does not robustly beat M3.2
+`0.9920`. Label-shuffle seed 42 `0.5697` matches M3.2 `0.5669`; five shuffle
+seeds range `0.3738-0.5700`, so M3.3 did not add a stable leakage signature.
 
 **Depends on**: M3.2 ✅
 
@@ -263,7 +270,7 @@ had minimal effect (ΔAUC −0.001). Add after buds-lab features if M3.3 AUC imp
 | M3.1 baseline | [#13](https://github.com/kuokuant-oss/lead-reproduction/issues/13) | ✅ Closed |
 | M3.2 value-change | [#14](https://github.com/kuokuant-oss/lead-reproduction/issues/14) | ✅ Closed |
 | M3.2a PI-response split/causality | [#18](https://github.com/kuokuant-oss/lead-reproduction/issues/18) | ✅ Closed |
-| M3.3 buds-lab alignment | [#15](https://github.com/kuokuant-oss/lead-reproduction/issues/15) | 🚧 Open |
+| M3.3 buds-lab alignment | [#15](https://github.com/kuokuant-oss/lead-reproduction/issues/15) | ✅ Closed |
 | M3.4 4-model ensemble | [#16](https://github.com/kuokuant-oss/lead-reproduction/issues/16) | 🚧 Open |
 | M3.5 post-processing | [#17](https://github.com/kuokuant-oss/lead-reproduction/issues/17) | 🚧 Open |
 
@@ -273,10 +280,11 @@ had minimal effect (ΔAUC −0.001). Add after buds-lab features if M3.3 AUC imp
 
 + [x] M3.2 val AUC > 0.97 (0.9920 ✅)
 + [x] PI-response 50/50 split + causal/offline design check complete
++ [x] M3.3 buds-lab alignment complete; no robust AUC lift
 + [ ] M3 pipeline (baseline + value-change) complete and reproducible
 + [ ] Handoff doc for each completed stage
 + [ ] GitHub Issues closed for completed milestones
 
 ---
 
-**Last reviewed**: 2026-06-22 (M3.2a PI-response complete; M3.3 buds-lab alignment pending)
+**Last reviewed**: 2026-06-22 (M3.3 buds-lab alignment complete; no-lift vs M3.2)

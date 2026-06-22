@@ -14,7 +14,7 @@
 |---|---|---|---|
 | **M1** | Paper + buds-lab code 理解, unknowns register, ADR framework | ✅ Closed | 17 unknowns 整理, 6 ADRs, 169 features 完整解碼 |
 | **M2** | LEAD reproduction (406 buildings) | ✅ Closed | Kaggle Private **0.98616** (vs 原作者 0.98661, gap 0.05%) |
-| **M3** | Full ASHRAE GEPIII (1,449 buildings, 從 raw 做 FE) | 🚧 進行中 | M3.1 ✅ + M3.2 ✅ (val AUC 0.9920, 4 個 sanity check 通過); M3.2a 50/50 split + offline/causal regimes archived; M3.3-M3.5 待續 |
+| **M3** | Full ASHRAE GEPIII (1,449 buildings, 從 raw 做 FE) | 🚧 進行中 | M3.1 ✅ + M3.2 ✅ (val AUC 0.9920); M3.2a archived; M3.3 no-lift (0.9913); M3.4-M3.5 待續 |
 
 issue-level 進度見 [milestones](https://github.com/kuokuant-oss/lead-reproduction/milestones)。
 
@@ -42,8 +42,9 @@ notebooks/
 ├── 03-m2-value-change.ipynb          # M2.2.b
 ├── 04-m2-savgol-dayofyear.ipynb      # M2.2.c + M2.2.d
 ├── 05-m2-integration.ipynb           # M2.2.e → M2.5 (M2 主 notebook, 34 cells)
-├── 06-m3-baseline.ipynb              # M3.1 + M3.2 (進行中)
-└── 07-m3-split-causality.ipynb       # M3.2a PI-response split/causality check
+├── 06-m3-baseline.ipynb              # M3.1 + M3.2
+├── 07-m3-split-causality.ipynb       # M3.2a PI-response split/causality check
+└── 08-m3-budslab.ipynb               # M3.3 buds-lab alignment (no-lift)
 data/
 ├── raw/                     # 下載的資料 (gitignored)
 └── processed/               # 產生的輸出 (gitignored)
@@ -119,6 +120,15 @@ uv run jupyter notebook notebooks/06-m3-baseline.ipynb
 ```
 
 Cells 1-11: M3.1 baseline。Cells 12-15: M3.2 value-change。Cells 16-20: 4 個 sanity check + 完整 metrics。
+
+M3.3 buds-lab alignment:
+
+```bash
+uv run python scripts/run_m3_3_budslab.py
+uv run jupyter notebook notebooks/08-m3-budslab.ipynb
+```
+
+M3.3 result: val AUC `0.9913` vs M3.2 `0.9920`; documented as no-lift/negligible.
 
 ## 方法論
 

@@ -629,6 +629,18 @@ wheels = [
 ]
 
 [[package]]
+name = "holidays"
+version = "0.99"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "python-dateutil" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/37/69/7626f743128513c919ed058530d62a86902099532a86222260b0cfc70d7c/holidays-0.99.tar.gz", hash = "sha256:9ef8278cdfb67dbd93309ec9b30c30609ab35fd57cb207ce4593f80dc91196f5", size = 931630, upload-time = "2026-06-15T20:39:42.38Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3f/f9/263e875ca954c44dbd29000a840b43bf875fbf4fdacf9430cd8fc92ad45e/holidays-0.99-py3-none-any.whl", hash = "sha256:bc47cefa781dbc6415e782767dea013794146cc629845354b393c53cdee90c64", size = 1503023, upload-time = "2026-06-15T20:39:40.575Z" },
+]
+
+[[package]]
 name = "httpcore"
 version = "1.0.9"
 source = { registry = "https://pypi.org/simple" }
@@ -1172,6 +1184,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "catboost" },
+    { name = "holidays" },
     { name = "ipykernel" },
     { name = "jupyter" },
     { name = "lightgbm" },
@@ -1192,6 +1205,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "catboost", specifier = ">=1.2" },
+    { name = "holidays", specifier = ">=0.99" },
     { name = "ipykernel", specifier = ">=6.0" },
     { name = "jupyter", specifier = ">=1.0" },
     { name = "lightgbm", specifier = ">=4.0" },
