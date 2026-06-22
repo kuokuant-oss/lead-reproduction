@@ -14,7 +14,7 @@
 |---|---|---|---|
 | **M1** | Paper + buds-lab code 理解, unknowns register, ADR framework | ✅ Closed | 17 unknowns 整理, 6 ADRs, 169 features 完整解碼 |
 | **M2** | LEAD reproduction (406 buildings) | ✅ Closed | Kaggle Private **0.98616** (vs 原作者 0.98661, gap 0.05%) |
-| **M3** | Full ASHRAE GEPIII (1,449 buildings, 從 raw 做 FE) | 🚧 進行中 | M3.1 ✅ + M3.2 ✅ (val AUC 0.9920, 4 個 sanity check 通過); M3.3-M3.5 待續 |
+| **M3** | Full ASHRAE GEPIII (1,449 buildings, 從 raw 做 FE) | 🚧 進行中 | M3.1 ✅ + M3.2 ✅ (val AUC 0.9920, 4 個 sanity check 通過); M3.2a 50/50 split + offline/causal regimes archived; M3.3-M3.5 待續 |
 
 issue-level 進度見 [milestones](https://github.com/kuokuant-oss/lead-reproduction/milestones)。
 
@@ -42,7 +42,8 @@ notebooks/
 ├── 03-m2-value-change.ipynb          # M2.2.b
 ├── 04-m2-savgol-dayofyear.ipynb      # M2.2.c + M2.2.d
 ├── 05-m2-integration.ipynb           # M2.2.e → M2.5 (M2 主 notebook, 34 cells)
-└── 06-m3-baseline.ipynb              # M3.1 + M3.2 (進行中)
+├── 06-m3-baseline.ipynb              # M3.1 + M3.2 (進行中)
+└── 07-m3-split-causality.ipynb       # M3.2a PI-response split/causality check
 data/
 ├── raw/                     # 下載的資料 (gitignored)
 └── processed/               # 產生的輸出 (gitignored)

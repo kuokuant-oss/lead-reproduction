@@ -203,7 +203,61 @@ Precision 0.64 是當前 trade-off 的 snapshot，不是 ceiling。M3.3-M3.5 預
 
 ---
 
-## 3.3 M3.3-M3.5: Pending
+## 3.3 M3.2a: PI-response split/causality check
+
+**Goal**: respond to the PI instruction that train and test should each use
+half the buildings, and distinguish offline batch labeling from causal real-time
+FDD. This is an experimental-design step before M3.3; no new features were
+added.
+
+**Setup**:
+
++ Model: LightGBM only, `random_state=42`
++ Downsampling: unchanged M3.2 logic, seeds `10/20`
++ Baseline feature set: 17 M3.1 features
++ Offline value-change: all 60 shifts, past + future, 120 value-change features
++ Causal value-change: positive/past shifts only, 60 value-change features
++ Building separation: all splits have train/val building overlap 0
+
+The shift set is the M3.2/LEAD set: `-24..-1`, `1..24`, `-168..-48 step 24`,
+and `48..168 step 24`. In pandas, positive shifts are past-looking; negative
+shifts are future-looking.
+
+| Split | Regime | Features | Train buildings | Val buildings | Train anomaly | Val anomaly | Val AUC | Precision@0.5 | Recall@0.5 | F1@0.5 |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 80/20 mod5 | offline | 137 | 1160 | 289 | 6.65% | 5.93% | 0.9920 | 0.6409 | 0.9665 | 0.7707 |
+| 80/20 mod5 | causal | 77 | 1160 | 289 | 6.65% | 5.93% | 0.9908 | 0.6237 | 0.9603 | 0.7562 |
+| 50/50 mod2 | offline | 137 | 725 | 724 | 6.72% | 6.29% | 0.9914 | 0.6878 | 0.9421 | 0.7951 |
+| 50/50 mod2 | causal | 77 | 725 | 724 | 6.72% | 6.29% | 0.9903 | 0.6646 | 0.9355 | 0.7772 |
+
+**Interpretation**:
+
++ 80/20-offline reproduces M3.2 (`AUC=0.9920`), so the experiment harness is
+  consistent with the completed baseline.
++ The 50/50 AUC dip (`0.9920 -> 0.9914` offline) is the cost of the PI protocol:
+  training uses 725 buildings instead of 1160. This is not a model regression.
++ The causal AUC dip (`0.9914 -> 0.9903` under 50/50) is the cost of real-time
+  deployability: future meter readings are no longer available.
++ The causal setting operationalizes the M3.2 past/future leakage check. M3.2
+  measured that future shifts add only about `+0.0012`; M3.2a removes that
+  future contribution when the FDD interpretation is real-time.
+
+**Robustness and sanity**:
+
++ Seeded-random 50/50 split (`random_state=42`, offline) gives AUC `0.9910`,
+  close to deterministic 50/50 offline AUC `0.9914` (delta `-0.0004`).
++ 50/50-causal label-shuffle sanity check gives AUC `0.4527`, confirming the
+  result is not due to split leakage.
+
+Artifacts:
+
++ `notebooks/07-m3-split-causality.ipynb`
++ `scripts/run_m3_split_causality.py`
++ `data/processed/m3_split_causality_results.json`
++ `docs/handoffs/2026-06-22-m32a-completed.md`
++ `docs/adr/0007-offline-batch-vs-causal-online-feature-regimes.md`
+
+## 3.4 M3.3-M3.5: Pending
 
 詳細計畫見 `docs/m3-plan.md`:
 
@@ -263,6 +317,7 @@ M3.1 + M3.2 (137 features) **未包含**以下 buds-lab features:
 |---|---|---|---|---|
 | M3.1 baseline | 0.9562 | 17 | — | ✅ Complete |
 | M3.2 + value-change | **0.9920** | 137 | +0.0358 | ✅ Complete |
+| M3.2a PI 50/50 + causal/offline | **0.9903-0.9920** | 77/137 | design check | ✅ Complete |
 | M3.3 buds-lab alignment | TBD | ~150+ | TBD | 🔲 Pending |
 | M3.4 4-model ensemble | TBD | — | TBD | 🔲 Pending |
 | M3.5 post-processing | TBD | — | TBD | 🔲 Pending |
@@ -272,6 +327,7 @@ M3.1 + M3.2 (137 features) **未包含**以下 buds-lab features:
 + [x] M3.2 val AUC > 0.97 (達到 0.9920)
 + [x] M3 baseline + value-change pipeline complete 且 reproducible
 + [x] Leakage sanity check pass (NO LEAKAGE)
++ [x] PI-response 50/50 split + offline/causal design grid complete
 + [ ] M3.3 buds-lab alignment 完成
 + [ ] M3.4 ensemble 完成
 + [ ] M3.5 post-processing 完成
@@ -310,7 +366,8 @@ M3.1 + M3.2 (137 features) **未包含**以下 buds-lab features:
 + 2026-05-29: M3.1 baseline complete (commit ea3977d)
 + 2026-05-29: M3.2 value-change complete (commit a1de001)
 + 2026-05-29: M3.2 leakage check + M3.3 redefined (commit c7d0c5a)
++ 2026-06-22: M3.2a PI-response split/causality design check complete
 
 ---
 
-*Last updated: 2026-05-29 (M3.1 + M3.2 complete; M3.3 buds-lab alignment pending)*
+*Last updated: 2026-06-22 (M3.2a PI-response complete; M3.3 buds-lab alignment pending)*
