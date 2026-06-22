@@ -1,6 +1,6 @@
 # M3 Plan: Full ASHRAE GEPIII Reproduction
 
-**Status**: M3.1/M3.2/M3.2a/M3.3/M3.4 complete; M3.5 staged diagnostics pending final review
+**Status**: M3.1/M3.2/M3.2a/M3.3/M3.4/M3.5 complete
 **Started**: 2026-05-29
 **Reference**:
 
@@ -238,7 +238,7 @@ trees and took ~3.6 min in the local environment.
 ### M3.5: Post-processing (Stretch)
 
 **GitHub Issue**: [#17](https://github.com/kuokuant-oss/lead-reproduction/issues/17)
-**Status**: Post-processing null + cross-site/meter diagnostics added; pending final review
+**Status**: Complete (2026-06-22) - post-processing null result; diagnostics documented
 
 **What**: Rule 1 (meter_reading==1.0) + Rule 2b (year-end); Rule 2a needs EDA
 
@@ -256,7 +256,8 @@ trees and took ~3.6 min in the local environment.
 + [x] Rule 2a EDA documented as N/A for M3: Jan-1 has 467 rows, 101 anomalies, 70 anomalous buildings
 + [x] Post-processing Delta AUC recorded as null/negative: combined Delta AUC -0.000054
 + [x] Review-gate diagnostics added: label-shuffle, site-held-out ensemble, per-meter AUC, value-change gap
-+ [ ] Final review decision for issue #17
++ [x] PI-spec 50/50 ensemble follow-up complete: offline AUC 0.9921, causal AUC 0.9911
++ [x] Final review decision for issue #17: close as documented null result
 
 **Depends on**: M3.4
 
@@ -280,7 +281,7 @@ trees and took ~3.6 min in the local environment.
 | M3.2a PI-response split/causality | [#18](https://github.com/kuokuant-oss/lead-reproduction/issues/18) | ✅ Closed |
 | M3.3 buds-lab alignment | [#15](https://github.com/kuokuant-oss/lead-reproduction/issues/15) | ✅ Closed |
 | M3.4 4-model ensemble | [#16](https://github.com/kuokuant-oss/lead-reproduction/issues/16) | ✅ Closed |
-| M3.5 post-processing | [#17](https://github.com/kuokuant-oss/lead-reproduction/issues/17) | 🚧 Open |
+| M3.5 post-processing | [#17](https://github.com/kuokuant-oss/lead-reproduction/issues/17) | ✅ Closed |
 
 ---
 
@@ -291,9 +292,11 @@ trees and took ~3.6 min in the local environment.
 + [x] M3.3 buds-lab alignment complete; no robust AUC lift
 + [x] M3 pipeline (baseline + value-change) complete and reproducible
 + [x] M3.4 ensemble complete; seed-42 AUC 0.9928, multi-seed mean 0.9930
-+ [ ] Handoff doc for each completed stage
-+ [ ] GitHub Issues closed for completed milestones
++ [x] M3.5 post-processing complete; null result and limitations documented
++ [x] PI-spec 50/50 ensemble follow-up complete; offline AUC 0.9921, causal AUC 0.9911
++ [x] Handoff doc for each completed stage
++ [x] GitHub Issues closed for completed milestones
 
 ---
 
-**Last reviewed**: 2026-06-22 (M3.4 4-model ensemble complete; modest positive lift vs M3.2)
+**Last reviewed**: 2026-06-22 (M3 complete; M3.5 null result and PI 50/50 ensemble follow-up finalized)
