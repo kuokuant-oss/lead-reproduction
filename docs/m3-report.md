@@ -11,7 +11,7 @@ feature engineering,用 anomaly label 做 binary classification,train/test 各�
 
 **期間**: 2026-05-29 起 (進行中)
 **Repo**: lead-reproduction
-**Status**: M3.1 + M3.2 + M3.2a + M3.3 + M3.4 complete; M3.5 pending
+**Status**: M3.1 + M3.2 + M3.2a + M3.3 + M3.4 + M3.5 complete
 **最新 val AUC**: 0.9928 (M3.4 4-model ensemble, 137 M3.2 features)
 
 ---
@@ -230,6 +230,20 @@ shifts are future-looking.
 | 50/50 mod2 | offline | 137 | 725 | 724 | 6.72% | 6.29% | 0.9914 | 0.6878 | 0.9421 | 0.7951 |
 | 50/50 mod2 | causal | 77 | 725 | 724 | 6.72% | 6.29% | 0.9903 | 0.6646 | 0.9355 | 0.7772 |
 
+**PI-spec ensemble follow-up**: after M3.4 confirmed the 4-model equal-weight
+ensemble on the canonical 80/20 offline line, the same LGB/XGB/CatBoost/HistGBT
+ensemble was rerun on the PI-requested 50/50 building split (`building_id % 2`,
+725/724 buildings, overlap 0), seed 42:
+
+| Split | Regime | Features | Ensemble AUC | Precision@0.5 | Recall@0.5 | F1@0.5 |
+|---|---|---:|---:|---:|---:|---:|
+| 50/50 mod2 | offline | 137 | 0.9921 | 0.7175 | 0.9387 | 0.8133 |
+| 50/50 mod2 | causal | 77 | 0.9911 | 0.7002 | 0.9311 | 0.7993 |
+
+These two rows directly answer the PI 50/50 spec for the best M3 model family.
+The causal row is the deployable real-time FDD number because it excludes future
+meter readings.
+
 **Interpretation**:
 
 + 80/20-offline reproduces M3.2 (`AUC=0.9920`), so the experiment harness is
@@ -327,6 +341,16 @@ Setup:
 | HistGBT | 0.9915 | 0.6385 | 0.9650 | 0.7685 |
 | **Ensemble** | **0.9928** | **0.6779** | **0.9664** | **0.7969** |
 
+PI 50/50 follow-up (same seed-42 4-model equal-weight ensemble):
+
+| Split | Regime | Features | Ensemble AUC | Precision@0.5 | Recall@0.5 | F1@0.5 |
+|---|---|---:|---:|---:|---:|---:|
+| 50/50 mod2 | offline | 137 | 0.9921 | 0.7175 | 0.9387 | 0.8133 |
+| 50/50 mod2 | causal | 77 | 0.9911 | 0.7002 | 0.9311 | 0.7993 |
+
+The 50/50 offline ensemble is the direct PI-protocol counterpart to the M3.4
+headline; the 50/50 causal ensemble is the real-time FDD deployability variant.
+
 **Interpretation**: M3.4 is a modest but real ensemble lift. The seed-42
 ensemble beats M3.2 by `+0.00079`, above the M2 noise-floor convention
 `0.0005`, and beats the best seed-42 individual model by `+0.00078`.
@@ -347,7 +371,7 @@ Mean ensemble AUC is `0.9930` with std `0.00018`. CatBoost completed all
 
 ## 3.6 M3.5: Post-processing null result + review-gate diagnostics
 
-**Status**: staged result under review; not finalized.
+**Status**: complete; post-processing is a documented null result.
 
 M3.5 reran the M3.4 seed-42 equal-weight ensemble and persisted aligned
 validation predictions with `building_id`, `site_id`, `meter`, `meter_reading`,
@@ -470,7 +494,8 @@ M3.3 added the priority buds-lab feature-alignment set on top of M3.2.
 | M3.2a PI 50/50 + causal/offline | **0.9903-0.9920** | 77/137 | design check | ✅ Complete |
 | M3.3 buds-lab alignment | 0.9913 | 170 | -0.0007 | Complete; no-lift/negligible |
 | M3.4 4-model ensemble | **0.9928** | 137 | +0.0008 vs M3.2 | Complete; modest positive lift |
-| M3.5 post-processing | 0.9927 post / 0.9928 pre | 137 | -0.000054 | Staged null result; pending final review |
+| PI 50/50 ensemble follow-up | 0.9911-0.9921 | 77/137 | PI-spec completion | Complete; causal is deployable FDD variant |
+| M3.5 post-processing | 0.9927 post / 0.9928 pre | 137 | -0.000054 | Complete; null result documented |
 
 ## 5.2 M3 Exit Criteria
 
@@ -480,8 +505,8 @@ M3.3 added the priority buds-lab feature-alignment set on top of M3.2.
 + [x] PI-response 50/50 split + offline/causal design grid complete
 + [x] M3.3 buds-lab alignment complete; no robust AUC lift
 + [x] M3.4 ensemble 完成
-+ [ ] M3.5 post-processing 完成
-+ [ ] Each milestone 有對應 handoff doc
++ [x] M3.5 post-processing 完成
++ [x] Each milestone 有對應 handoff doc
 
 ## 5.3 M3 思考點
 
@@ -518,7 +543,9 @@ M3.3 added the priority buds-lab feature-alignment set on top of M3.2.
 + 2026-05-29: M3.2 leakage check + M3.3 redefined (commit c7d0c5a)
 + 2026-06-22: M3.2a PI-response split/causality design check complete
 + 2026-06-22: M3.3 buds-lab alignment complete; val AUC 0.9913, no-lift vs M3.2
++ 2026-06-22: M3.4 4-model ensemble complete; seed-42 val AUC 0.9928
++ 2026-06-22: M3.5 post-processing null result finalized; PI 50/50 ensemble follow-up complete
 
 ---
 
-*Last updated: 2026-06-22 (M3.4 4-model ensemble complete; modest positive lift vs M3.2)*
+*Last updated: 2026-06-22 (M3 complete; M3.5 null result and PI 50/50 ensemble follow-up finalized)*
