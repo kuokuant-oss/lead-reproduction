@@ -177,6 +177,8 @@ def fit_predict_models(
     x_val: np.ndarray,
     y_val: pd.Series,
     seed: int,
+    *,
+    return_predictions: bool = False,
 ) -> dict[str, object]:
     log(f"Training 4-model ensemble seed={seed}")
     t0 = time.time()
@@ -241,7 +243,7 @@ def fit_predict_models(
     )
 
     catboost_tree_count = getattr(models["catboost"], "tree_count_", None)
-    return {
+    result = {
         "seed": int(seed),
         "models": model_metrics,
         "ensemble": ensemble_metrics,
@@ -258,6 +260,10 @@ def fit_predict_models(
         else None,
         "elapsed_minutes": round((time.time() - t0) / 60, 3),
     }
+    if return_predictions:
+        result["raw_predictions"] = preds
+        result["raw_ensemble_prediction"] = ensemble_pred
+    return result
 
 
 def parse_args() -> argparse.Namespace:
