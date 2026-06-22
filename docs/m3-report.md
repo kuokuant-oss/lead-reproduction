@@ -345,7 +345,74 @@ better threshold-0.5 precision/F1.
 Mean ensemble AUC is `0.9930` with std `0.00018`. CatBoost completed all
 1000 trees in each run.
 
-## 3.6 M3.5: Pending
+## 3.6 M3.5: Post-processing null result + review-gate diagnostics
+
+**Status**: staged result under review; not finalized.
+
+M3.5 reran the M3.4 seed-42 equal-weight ensemble and persisted aligned
+validation predictions with `building_id`, `site_id`, `meter`, `meter_reading`,
+and `dayofyear`. The post-processing base is therefore the same canonical M3.4
+line: 80/20 `building_id % 5 == 4`, offline past+future value-change, M3.2 137
+features, downsampling seeds `10/20`, and `StandardScaler` fit on the
+downsampled train matrix.
+
+Hard-rule post-processing does **not** transfer from M2/LEAD to M3/GEPIII:
+
+| Rule | Trigger rows | Anomalies | Delta AUC vs pre |
+|---|---:|---:|---:|
+| Rule 1: `meter_reading == 1.0 -> 1` | 8 | 0 | -0.000002 |
+| Rule 2a: Jan-1 start-point filter | 0 applied | 0 | 0.000000 |
+| Rule 2b: `dayofyear > 366.9583 -> 0` | 478 | 13 | -0.000052 |
+| Combined | -- | -- | -0.000054 |
+
+Pre post-processing AUC is `0.9927886`; combined post-processing AUC is
+`0.9927347`. The runner records this as `conclusion="rules_do_not_transfer"`
+when run with `--allow-null`. This is a confirmed negative/null result, not an
+alignment bug: M3 uses raw GEPIII meter readings, and the `meter_reading == 1`
+artifact that drove M2's post-processing lift is effectively absent here.
+
+Rule 2a was left N/A. Jan-1 validation rows are not mostly normal: `467` rows
+include `101` anomalies (`21.6%`) across `70` anomalous buildings. The M2
+`building_id 105-145` exception is LEAD-subset-specific and should not be
+translated to M3.
+
+### M3.5 Limitations and Generalization Diagnostics
+
+The local GEPIII papers frame why the M3 result should be treated as a strong
+within-dataset diagnostic, not as a fully general FDD result. Miller et al.
+(2020, GEPIII overview/results) describe GEPIII as a long-term energy
+prediction competition scored by RMSLE, with `2,380` meters, `1,448` buildings,
+and `16` sites; the strongest workflows were large GBDT ensembles such as
+LightGBM, and preprocessing/feature engineering was a key differentiator. That
+matches the M3 pattern: the main lift is M3.2 value-change features, while the
+M3.4 ensemble adds only a modest `+0.00079`.
+
+Miller et al. (2022, GEPIII limitations/error analysis) aggregate top-50
+solution residuals and report `79.1%` good fit, `16.1%` in-range remediable
+error, and `4.8%` out-of-range error. They also highlight meter/site/timeframe
+structure: steam/hot-water systems, multi-building/campus errors, and holiday
+or schedule effects are harder because standard inputs lack site-specific
+schedules. M3.5 therefore adds three diagnostics:
+
+| Diagnostic | Result | Interpretation |
+|---|---:|---|
+| LightGBM label-shuffle AUC, seeds 42/123/999 | 0.5669 / 0.5669 / 0.4232 | Mean `0.5190`; residual structure/base-rate memorization exists but is unstable under shuffle. |
+| Site-held-out ensemble AUC (`site_id % 5 == 4`, sites 4/9/14) | 0.9774 | Lower than canonical `0.9928`; cross-site generalization is materially harder. |
+| Per-meter AUC: electricity / chilled water / steam / hot water | 0.9991 / 0.9888 / 0.9553 / 0.9863 | Steam is the weakest canonical meter slice, consistent with III2's meter-type error discussion. |
+
+Value-change gap diagnostic: `945/1449` buildings (`65.2%`) have missing hours
+inside their observed timestamp range, and `948/1449` (`65.4%`) are not complete
+8784-hour 2016 series. M3 still uses `groupby().shift()` value-change features,
+so shifts are row-offset approximations across timestamp holes rather than
+exact `timestamp + timedelta` merges. This is now a documented limitation, not
+changed in M3.5.
+
+Dataset scope clarification: M3 is the GEPIII/Kaggle train subset used here
+(about `1,449` buildings and the four ASHRAE meter types: electricity, chilled
+water, steam, hot water). It is not full BDG2. BDG2 is larger (`1,636`
+buildings) and includes additional meter domains such as solar, water, and
+irrigation. M3 should be treated as a GEPIII anomaly-label reproduction, not as
+a complete BDG2 FDD benchmark.
 
 詳細計畫見 `docs/m3-plan.md`: post-processing Rule 1 + Rule 2b 通用,Rule 2a
 需 EDA 重設計。
@@ -403,7 +470,7 @@ M3.3 added the priority buds-lab feature-alignment set on top of M3.2.
 | M3.2a PI 50/50 + causal/offline | **0.9903-0.9920** | 77/137 | design check | ✅ Complete |
 | M3.3 buds-lab alignment | 0.9913 | 170 | -0.0007 | Complete; no-lift/negligible |
 | M3.4 4-model ensemble | **0.9928** | 137 | +0.0008 vs M3.2 | Complete; modest positive lift |
-| M3.5 post-processing | TBD | — | TBD | 🔲 Pending |
+| M3.5 post-processing | 0.9927 post / 0.9928 pre | 137 | -0.000054 | Staged null result; pending final review |
 
 ## 5.2 M3 Exit Criteria
 

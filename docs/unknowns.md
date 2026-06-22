@@ -56,6 +56,14 @@
 
 ## 3. Post-processing "start and end points" 的邊界定義
 
+**M3.5 update (2026-06-22)**: On the M3/GEPIII canonical validation split,
+the M2 hard rules do not transfer. Rule 1 (`meter_reading == 1.0 -> 1`)
+triggers only 8 rows and 0 anomalies, Rule 2b triggers 478 rows and 13
+anomalies, and the combined Delta AUC is `-0.000054`. Jan-1 is not a safe
+blanket start-point normal override in M3: 467 rows include 101 anomalies
+across 70 anomalous buildings. Treat the M2 post-processing boundary as
+LEAD-specific unless a future review finds a GEPIII-specific rule.
+
 **術語**: start and end points of time series
 
 **狀態**: resolved
@@ -342,6 +350,15 @@ baseline)。Gap 3.86% 在 m2-plan 的 < 5% pass 範圍,但顯著到值得列候�
 
 ## 11. 200 buildings 中有 104 棟缺時間點(完整 8784 ts 只有 96 棟)
 
+**M3.5 update (2026-06-22)**: The same value-change gap risk exists in M3.
+Across the M3 GEPIII train subset, `945/1449` buildings (`65.2%`) have missing
+hours inside their observed timestamp range, and `948/1449` (`65.4%`) are not
+complete 8784-hour 2016 series. The current M3.2/M3.4/M3.5 value-change
+implementation still uses `groupby("building_id").shift(n)`, so shift features
+are row-offset approximations across timestamp holes rather than exact
+`timestamp + timedelta` joins. This is documented as a known limitation; M3.5
+does not change the feature implementation.
+
 **術語**: missing timestamps, groupby().shift() vs timestamp-based merge
 
 **狀態**: documented — M2.2.b 採 groupby().shift() 為近似;M2.5 量化影響
@@ -551,6 +568,12 @@ discussion section 可以引用。
 ---
 
 ## 15. Post-processing Rule 2a 的 building_id filter:paper §2.4 沒講
+
+**M3.5 update (2026-06-22)**: The M2 Rule 2a `building_id` filter is
+LEAD-subset-specific and is not applicable to M3/GEPIII. M3 validation Jan-1
+rows are not mostly normal: 467 rows contain 101 anomalies (`21.6%`) across 70
+anomalous buildings. The M3.5 runner records Rule 2a as N/A rather than
+translating the `105-145` range to GEPIII building IDs.
 
 **術語**: post-processing, Rule 2a, building_id filter
 

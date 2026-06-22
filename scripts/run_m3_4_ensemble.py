@@ -119,7 +119,13 @@ def load_m3_frame() -> pd.DataFrame:
     ]
     train = train.merge(weather[weather_cols], on=["site_id", "timestamp"], how="left")
 
-    keep_cols = ["building_id", "timestamp", "anomaly", *BASELINE_FEATURE_COLS]
+    keep_cols = [
+        "building_id",
+        "site_id",
+        "timestamp",
+        "anomaly",
+        *BASELINE_FEATURE_COLS,
+    ]
     keep_cols = list(dict.fromkeys(keep_cols))
     log(f"Loaded M3 frame {train.shape} in {(time.time() - t0) / 60:.1f} min")
     return train[keep_cols]
