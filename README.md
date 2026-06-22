@@ -14,14 +14,14 @@
 |---|---|---|---|
 | **M1** | Paper + buds-lab code 理解, unknowns register, ADR framework | ✅ Closed | 17 unknowns 整理, 6 ADRs, 169 features 完整解碼 |
 | **M2** | LEAD reproduction (406 buildings) | ✅ Closed | Kaggle Private **0.98616** (vs 原作者 0.98661, gap 0.05%) |
-| **M3** | Full ASHRAE GEPIII (1,449 buildings, 從 raw 做 FE) | 🚧 進行中 | M3.1 ✅ + M3.2 ✅ (val AUC 0.9920); M3.2a archived; M3.3 no-lift (0.9913); M3.4-M3.5 待續 |
+| **M3** | Full ASHRAE GEPIII (1,449 buildings, 從 raw 做 FE) | ✅ Complete | M3.1-M3.5 done; PI 50/50 ensemble offline **0.9921** / causal **0.9911**; post-processing null result; 6 issues closed |
 
 issue-level 進度見 [milestones](https://github.com/kuokuant-oss/lead-reproduction/milestones)。
 
 ## 報告
 
 - **M2 復現報告**: [docs/reproduction-report.md](./docs/reproduction-report.md) (~5500 字, 完整復現紀錄)
-- **M3 進度報告**: [docs/m3-report.md](./docs/m3-report.md) (~2500 字, 進行中)
+- **M3 完成報告**: [docs/m3-report.md](./docs/m3-report.md) (~2500 字, M3 complete)
 - **工作方法**: [docs/workflow.md](./docs/workflow.md) (文件生態系 + Stage-gate + verification 紀律)
 
 ## 專案結構
@@ -29,10 +29,10 @@ issue-level 進度見 [milestones](https://github.com/kuokuant-oss/lead-reproduc
 ```
 docs/
 ├── reproduction-report.md   # M2 完整報告
-├── m3-report.md             # M3 進度報告 (進行中)
+├── m3-report.md             # M3 完成報告
 ├── workflow.md              # 工作方法
 ├── m2-plan.md               # M2 milestone plan (已關閉)
-├── m3-plan.md               # M3 milestone plan (M3.3+ 待做)
+├── m3-plan.md               # M3 milestone plan (已關閉)
 ├── unknowns.md              # 17 unknowns register (M1 產出, paper 未說清的地方)
 ├── adr/                     # 6 個架構決策紀錄 (M1 產出)
 └── handoffs/                # 跨 session context (每個 milestone 結尾寫一份)
@@ -44,7 +44,15 @@ notebooks/
 ├── 05-m2-integration.ipynb           # M2.2.e → M2.5 (M2 主 notebook, 34 cells)
 ├── 06-m3-baseline.ipynb              # M3.1 + M3.2
 ├── 07-m3-split-causality.ipynb       # M3.2a PI-response split/causality check
-└── 08-m3-budslab.ipynb               # M3.3 buds-lab alignment (no-lift)
+├── 08-m3-budslab.ipynb               # M3.3 buds-lab alignment (no-lift)
+├── 09-m3-ensemble.ipynb              # M3.4 4-model ensemble
+└── 10-m3-postprocessing.ipynb        # M3.5 post-processing null result
+scripts/
+├── run_m3_3_budslab.py               # M3.3 buds-lab alignment runner
+├── run_m3_4_ensemble.py              # M3.4 4-model ensemble runner
+├── run_m3_5_postprocessing.py        # M3.5 post-processing + diagnostics runner
+├── run_m3_50_50_ensemble.py          # PI-spec 50/50 ensemble follow-up
+└── run_m3_split_causality.py         # M3.2a 80/20 vs 50/50, offline vs causal grid
 data/
 ├── raw/                     # 下載的資料 (gitignored)
 └── processed/               # 產生的輸出 (gitignored)
@@ -113,7 +121,7 @@ uv run jupyter notebook notebooks/05-m2-integration.ipynb
 
 輸出到 `data/processed/submission.csv` (1,800,567 rows)。
 
-### M3 進行中 pipeline
+### M3 完成 pipeline
 
 ```bash
 uv run jupyter notebook notebooks/06-m3-baseline.ipynb
@@ -129,6 +137,25 @@ uv run jupyter notebook notebooks/08-m3-budslab.ipynb
 ```
 
 M3.3 result: val AUC `0.9913` vs M3.2 `0.9920`; documented as no-lift/negligible.
+
+M3.4 ensemble + M3.5 post-processing:
+
+```bash
+uv run python scripts/run_m3_4_ensemble.py
+uv run jupyter notebook notebooks/09-m3-ensemble.ipynb
+uv run python scripts/run_m3_5_postprocessing.py --allow-null
+uv run jupyter notebook notebooks/10-m3-postprocessing.ipynb
+```
+
+PI-spec 50/50 ensemble follow-up:
+
+```bash
+uv run python scripts/run_m3_50_50_ensemble.py
+```
+
+M3 final headline: M3.4 ensemble val AUC `0.9928`; PI 50/50 ensemble offline
+`0.9921` / causal `0.9911`; post-processing closes as null result
+(`combined ΔAUC -0.000054`).
 
 ## 方法論
 

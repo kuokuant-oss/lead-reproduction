@@ -573,7 +573,7 @@ paper 沒覆蓋的 findings。
 | Unknown #15 (Rule 2a filter) | ✅ -0.0001 Kaggle Private,精細 design |
 | M2 milestone closed | ✅ M2.5 complete with Kaggle validation |
 
-## 5.6 M3: Full ASHRAE GEPIII (進行中)
+## 5.6 M3: Full ASHRAE GEPIII (完成)
 
 M3 是教授信件提到的「進階部分」,使用完整 ASHRAE GEPIII dataset (1,449 buildings)
 從 raw 開始做 feature engineering。M3 是獨立工作,**詳細記錄請見 [`docs/m3-report.md`](./m3-report.md)**。
@@ -583,16 +583,21 @@ M3 是教授信件提到的「進階部分」,使用完整 ASHRAE GEPIII dataset
 - M2 用 LEAD subset (406 buildings) + 已 preprocessed features → 復現 paper baseline
 - M3 用完整 GEPIII (1,449 buildings；ASHRAE GEPIII 原始資料集,非 LEAD full 的 1,413) + 從 raw 自己做 FE → 驗證 methodology 是否可擴展
 
-**目前進度** (2026-05-29):
+**M3 最終結果** (2026-06-22):
 
 - M3.1 baseline (17 features) val AUC 0.9562 ✅
 - M3.2 + value-change (137 features) val AUC 0.9920 ✅
-- M3.3-M3.5 pending (buds-lab feature alignment, ensemble, post-processing)
+- M3.3 buds-lab feature alignment val AUC 0.9913, no-lift/negligible ✅
+- M3.4 4-model ensemble val AUC 0.9928 ✅
+- PI 50/50 ensemble follow-up: offline AUC 0.9921 / causal AUC 0.9911 ✅
+- M3.5 post-processing documented as null result, combined ΔAUC -0.000054 ✅
+- Limitations carried forward: site-held-out AUC 0.9774, steam AUC 0.9553,
+  label-shuffle mean 0.519, value-change gap 65.2%
 
 M2 reproduction methodology framework (unknowns register, ADR, Stage-gate) 沿用到 M3。
-詳細結果、思考點、下一步計畫見 m3-report.md。
+詳細結果、思考點、PI 50/50 causal/offline framing,以及 downstream FDD 限制見 m3-report.md。
 
 ---
 
-*Last updated: 2026-05-29
-(M2.5 complete: 3 ablations Kaggle-validated, M2 milestone closed)*
+*Last updated: 2026-06-22
+(M3 complete: M3.1-M3.5 done, PI 50/50 ensemble follow-up finalized, M3 milestone closed)*
