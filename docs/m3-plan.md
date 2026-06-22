@@ -1,6 +1,6 @@
 # M3 Plan: Full ASHRAE GEPIII Reproduction
 
-**Status**: M3.1 ✅ + M3.2 ✅ complete; M3.3 buds-lab alignment next
+**Status**: M3.1 ✅ + M3.2 ✅ complete; M3.2a PI-response complete; M3.3 buds-lab alignment next
 **Started**: 2026-05-29
 **Reference**:
 
@@ -123,6 +123,52 @@ for n in shifts:
 
 ---
 
+### M3.2a: PI-response split/causality design check
+
+**GitHub Issue**: [#18](https://github.com/kuokuant-oss/lead-reproduction/issues/18)
+**Status**: Complete (2026-06-22) - run before M3.3 feature work
+
+**What**: Experimental-design check requested by the PI. Reuse the M3.2
+LightGBM pipeline and compare:
+
++ Building split: existing 80/20 `building_id % 5 == 4` vs PI 50/50
+  `building_id % 2` protocol
++ Value-change regime: offline past+future shifts vs causal past-only shifts
+
+**Done when**:
+
++ [x] 2x2 grid run with LightGBM only, `random_state=42`
++ [x] 80/20-offline reproduces M3.2 AUC 0.9920
++ [x] 50/50 split has building-level separation (725/724, overlap 0)
++ [x] Causal setting drops all negative/future shift features (77 total features)
++ [x] Seeded-random 50/50 robustness check run (`random_state=42`)
++ [x] 50/50-causal label-shuffle sanity check run
++ [x] Notebook: `notebooks/07-m3-split-causality.ipynb`
++ [x] Results: `data/processed/m3_split_causality_results.json`
++ [x] ADR: `docs/adr/0007-offline-batch-vs-causal-online-feature-regimes.md`
++ [x] Handoff: `docs/handoffs/2026-06-22-m32a-completed.md`
++ [x] Runner: `scripts/run_m3_split_causality.py`
+
+**Key results**:
+
+| Split | Regime | Features | Train/val buildings | Val AUC | P/R/F1 @ 0.5 |
+|---|---|---:|---:|---:|---:|
+| 80/20 mod5 | offline | 137 | 1160/289 | 0.9920 | 0.6409/0.9665/0.7707 |
+| 80/20 mod5 | causal | 77 | 1160/289 | 0.9908 | 0.6237/0.9603/0.7562 |
+| 50/50 mod2 | offline | 137 | 725/724 | 0.9914 | 0.6878/0.9421/0.7951 |
+| 50/50 mod2 | causal | 77 | 725/724 | 0.9903 | 0.6646/0.9355/0.7772 |
+
+Interpretation: the 50/50 dip is the cost of the PI protocol (fewer train
+buildings), not a regression. The causal dip is the cost of real-time
+deployability and operationalizes the M3.2 past/future leakage check by removing
+future-shift contribution. ADR 0007 records that 80/20 offline remains the
+canonical M3.3+ reproduction line, while causal past-only is the real-time-FDD
+variant.
+
+**Depends on**: M3.2. **Must precede** M3.3 feature work.
+
+---
+
 ### M3.3: buds-lab Feature Alignment (Priority)
 
 **GitHub Issue**: [#15](https://github.com/kuokuant-oss/lead-reproduction/issues/15)
@@ -216,6 +262,7 @@ had minimal effect (ΔAUC −0.001). Add after buds-lab features if M3.3 AUC imp
 |---|---|---|
 | M3.1 baseline | [#13](https://github.com/kuokuant-oss/lead-reproduction/issues/13) | ✅ Closed |
 | M3.2 value-change | [#14](https://github.com/kuokuant-oss/lead-reproduction/issues/14) | ✅ Closed |
+| M3.2a PI-response split/causality | [#18](https://github.com/kuokuant-oss/lead-reproduction/issues/18) | ✅ Closed |
 | M3.3 buds-lab alignment | [#15](https://github.com/kuokuant-oss/lead-reproduction/issues/15) | 🚧 Open |
 | M3.4 4-model ensemble | [#16](https://github.com/kuokuant-oss/lead-reproduction/issues/16) | 🚧 Open |
 | M3.5 post-processing | [#17](https://github.com/kuokuant-oss/lead-reproduction/issues/17) | 🚧 Open |
@@ -225,10 +272,11 @@ had minimal effect (ΔAUC −0.001). Add after buds-lab features if M3.3 AUC imp
 ## M3 Exit Criteria
 
 + [x] M3.2 val AUC > 0.97 (0.9920 ✅)
++ [x] PI-response 50/50 split + causal/offline design check complete
 + [ ] M3 pipeline (baseline + value-change) complete and reproducible
 + [ ] Handoff doc for each completed stage
 + [ ] GitHub Issues closed for completed milestones
 
 ---
 
-**Last reviewed**: 2026-05-29 (M3.1 + M3.2 complete; M3.3 redefined as buds-lab alignment)
+**Last reviewed**: 2026-06-22 (M3.2a PI-response complete; M3.3 buds-lab alignment pending)
