@@ -1,6 +1,6 @@
 # M3 Plan: Full ASHRAE GEPIII Reproduction
 
-**Status**: M3.1/M3.2/M3.2a/M3.3/M3.4 complete; M3.5 post-processing next
+**Status**: M3.1/M3.2/M3.2a/M3.3/M3.4 complete; M3.5 staged diagnostics pending final review
 **Started**: 2026-05-29
 **Reference**:
 
@@ -238,7 +238,7 @@ trees and took ~3.6 min in the local environment.
 ### M3.5: Post-processing (Stretch)
 
 **GitHub Issue**: [#17](https://github.com/kuokuant-oss/lead-reproduction/issues/17)
-**Status**: Pending M3.4
+**Status**: Post-processing null + cross-site/meter diagnostics added; pending final review
 
 **What**: Rule 1 (meter_reading==1.0) + Rule 2b (year-end); Rule 2a needs EDA
 
@@ -251,10 +251,12 @@ trees and took ~3.6 min in the local environment.
 
 **Done when**:
 
-+ [ ] Rule 1 trigger rate quantified
-+ [ ] Rule 2b applied and verified
-+ [ ] Rule 2a EDA: find M3-appropriate filter or document as N/A
-+ [ ] Post-processing ΔAUC recorded
++ [x] Rule 1 trigger rate quantified: 8 rows, 0 anomalies, Delta AUC -0.000002
++ [x] Rule 2b applied and verified: 478 rows, 13 anomalies, Delta AUC -0.000052
++ [x] Rule 2a EDA documented as N/A for M3: Jan-1 has 467 rows, 101 anomalies, 70 anomalous buildings
++ [x] Post-processing Delta AUC recorded as null/negative: combined Delta AUC -0.000054
++ [x] Review-gate diagnostics added: label-shuffle, site-held-out ensemble, per-meter AUC, value-change gap
++ [ ] Final review decision for issue #17
 
 **Depends on**: M3.4
 
