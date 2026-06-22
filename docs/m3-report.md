@@ -205,23 +205,22 @@ Precision 0.64 是當前 trade-off 的 snapshot，不是 ceiling。M3.3-M3.5 預
 
 ## 3.3 M3.2a: PI-response split/causality check
 
-**Goal**: respond to the PI instruction that train and test should each use
-half the buildings, and distinguish offline batch labeling from causal real-time
-FDD. This is an experimental-design step before M3.3; no new features were
-added.
+**Goal**: 回應 PI 要求「train/test 各使用一半 buildings」，並區分 offline
+batch labeling 與 causal real-time FDD。這是 M3.3 前的實驗設計檢查，不新增
+features。
 
 **Setup**:
 
 + Model: LightGBM only, `random_state=42`
-+ Downsampling: unchanged M3.2 logic, seeds `10/20`
-+ Baseline feature set: 17 M3.1 features
-+ Offline value-change: all 60 shifts, past + future, 120 value-change features
-+ Causal value-change: positive/past shifts only, 60 value-change features
-+ Building separation: all splits have train/val building overlap 0
++ Downsampling: 沿用 M3.2 邏輯，seeds `10/20`
++ Baseline feature set: 17 個 M3.1 features
++ Offline value-change: 全部 60 shifts，past + future，共 120 value-change features
++ Causal value-change: 只保留 positive/past shifts，共 60 value-change features
++ Building separation: 所有 split 的 train/val building overlap 都是 0
 
-The shift set is the M3.2/LEAD set: `-24..-1`, `1..24`, `-168..-48 step 24`,
-and `48..168 step 24`. In pandas, positive shifts are past-looking; negative
-shifts are future-looking.
+Shift set 沿用 M3.2/LEAD：`-24..-1`, `1..24`, `-168..-48 step 24`,
+`48..168 step 24`。在 pandas 裡，positive shifts 看 past；negative shifts
+看 future。
 
 | Split | Regime | Features | Train buildings | Val buildings | Train anomaly | Val anomaly | Val AUC | Precision@0.5 | Recall@0.5 | F1@0.5 |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
@@ -230,38 +229,37 @@ shifts are future-looking.
 | 50/50 mod2 | offline | 137 | 725 | 724 | 6.72% | 6.29% | 0.9914 | 0.6878 | 0.9421 | 0.7951 |
 | 50/50 mod2 | causal | 77 | 725 | 724 | 6.72% | 6.29% | 0.9903 | 0.6646 | 0.9355 | 0.7772 |
 
-**PI-spec ensemble follow-up**: after M3.4 confirmed the 4-model equal-weight
-ensemble on the canonical 80/20 offline line, the same LGB/XGB/CatBoost/HistGBT
-ensemble was rerun on the PI-requested 50/50 building split (`building_id % 2`,
-725/724 buildings, overlap 0), seed 42:
+**PI-spec ensemble follow-up**: M3.4 確認 canonical 80/20 offline line 上的
+4-model equal-weight ensemble 後，同一組 LGB/XGB/CatBoost/HistGBT ensemble
+也在 PI 要求的 50/50 building split (`building_id % 2`, 725/724 buildings,
+overlap 0) 上重跑，seed 42：
 
 | Split | Regime | Features | Ensemble AUC | Precision@0.5 | Recall@0.5 | F1@0.5 |
 |---|---|---:|---:|---:|---:|---:|
 | 50/50 mod2 | offline | 137 | 0.9921 | 0.7175 | 0.9387 | 0.8133 |
 | 50/50 mod2 | causal | 77 | 0.9911 | 0.7002 | 0.9311 | 0.7993 |
 
-These two rows directly answer the PI 50/50 spec for the best M3 model family.
-The causal row is the deployable real-time FDD number because it excludes future
-meter readings.
+這兩列直接回答 PI 50/50 spec 在最佳 M3 model family 下的結果。Causal row
+排除 future meter readings，因此是可部署 real-time FDD 時應引用的數字。
 
 **Interpretation**:
 
-+ 80/20-offline reproduces M3.2 (`AUC=0.9920`), so the experiment harness is
-  consistent with the completed baseline.
-+ The 50/50 AUC dip (`0.9920 -> 0.9914` offline) is the cost of the PI protocol:
-  training uses 725 buildings instead of 1160. This is not a model regression.
-+ The causal AUC dip (`0.9914 -> 0.9903` under 50/50) is the cost of real-time
-  deployability: future meter readings are no longer available.
-+ The causal setting operationalizes the M3.2 past/future leakage check. M3.2
-  measured that future shifts add only about `+0.0012`; M3.2a removes that
-  future contribution when the FDD interpretation is real-time.
++ 80/20-offline 重現 M3.2 (`AUC=0.9920`)，表示 experiment harness 與已完成
+  baseline 一致。
++ 50/50 AUC dip (`0.9920 -> 0.9914` offline) 是 PI protocol 的成本：
+  training buildings 從 1160 降到 725。這不是 model regression。
++ Causal AUC dip (`0.9914 -> 0.9903` under 50/50) 是 real-time deployability
+  的成本：future meter readings 不再可用。
++ Causal setting 把 M3.2 past/future leakage check 操作化。M3.2 測得 future
+  shifts 只增加約 `+0.0012`；當 FDD interpretation 是 real-time 時，M3.2a
+  移除這個 future contribution。
 
 **Robustness and sanity**:
 
-+ Seeded-random 50/50 split (`random_state=42`, offline) gives AUC `0.9910`,
-  close to deterministic 50/50 offline AUC `0.9914` (delta `-0.0004`).
-+ 50/50-causal label-shuffle sanity check gives AUC `0.4527`, confirming the
-  result is not due to split leakage.
++ Seeded-random 50/50 split (`random_state=42`, offline) AUC `0.9910`，接近
+  deterministic 50/50 offline AUC `0.9914` (delta `-0.0004`)。
++ 50/50-causal label-shuffle sanity check AUC `0.4527`，確認結果不是 split
+  leakage 造成。
 
 Artifacts:
 
@@ -273,42 +271,41 @@ Artifacts:
 
 ## 3.4 M3.3: buds-lab feature alignment
 
-**Goal**: add the priority buds-lab feature categories missing from M3.2 and
-test whether LightGBM validation AUC robustly beats the M3.2 baseline `0.9920`.
-M3.3 stays on the canonical 80/20 offline line from ADR 0007.
+**Goal**: 補上 M3.2 缺少的 priority buds-lab feature categories，並測試
+LightGBM validation AUC 是否能穩定超過 M3.2 baseline `0.9920`。M3.3 沿用
+ADR 0007 的 canonical 80/20 offline line。
 
 **Features added**:
 
 + Cyclic encodings: `sin/cos(hour, weekday, month)`
-+ Weather trailing lags and trailing rolling means for windows `7` and `73`
-+ US Federal holiday flag via `holidays`
++ Weather trailing lags 與 trailing rolling means，windows `7` 和 `73`
++ 透過 `holidays` 加入 US Federal holiday flag
 + Train-only `gte_site_meter_anomaly`
 + `primary_use + "_" + meter` interaction encoding
-+ Site 0 / meter 0 correction: `meter_reading *= 0.2931` before value-change
++ Site 0 / meter 0 correction: value-change 前先做 `meter_reading *= 0.2931`
 
 | Run | Features | Val AUC | Precision@0.5 | Recall@0.5 | F1@0.5 | Delta AUC vs M3.2 |
 |---|---:|---:|---:|---:|---:|---:|
 | M3.2 reference | 137 | 0.9920 | 0.6409 | 0.9665 | 0.7707 | - |
 | M3.3 buds-lab alignment | 170 | 0.9913 | 0.6668 | 0.9583 | 0.7864 | -0.0007 |
 
-**Interpretation**: M3.3 is no-lift/negligible for AUC. Precision and F1 at
-threshold `0.5` improve, but the ranking metric does not robustly improve.
-Multi-seed real-label AUCs were `0.9913/0.9921/0.9916` (mean `0.9917`, std
-`0.00034`), so one seed wraps above `0.9920` but the mean remains below M3.2.
+**Interpretation**: M3.3 對 AUC 是 no-lift/negligible。Threshold `0.5` 下的
+Precision 與 F1 有改善，但 ranking metric 沒有穩定改善。Multi-seed
+real-label AUC 為 `0.9913/0.9921/0.9916` (mean `0.9917`, std `0.00034`)；
+其中一個 seed 高於 `0.9920`，但平均仍低於 M3.2。
 
 **Sanity checks**:
 
 | Check | Result | Interpretation |
 |---|---|---|
-| Temporal leakage | past-only `0.9906`, future-only `0.9907`, full `0.9913` | Same balanced past/future pattern as M3.2; no new temporal leakage signal. |
-| Label-shuffle seeds | `0.5697`, `0.5700`, `0.3905`, `0.4504`, `0.3738` | Not stable at `~0.57`; mean `0.4709`, std `0.0847`. |
-| Label-shuffle ablation A | remove `gte_site_meter_anomaly`: `0.5680` | GTE is not the source of seed-42 elevated shuffle AUC. |
-| Label-shuffle ablation B | remove GTE + `log_square_feet/year_built/floor_count`: `0.5820` | These building-meta fields are not the single source. |
+| Temporal leakage | past-only `0.9906`, future-only `0.9907`, full `0.9913` | 與 M3.2 一樣呈現 balanced past/future pattern；沒有新增 temporal leakage signal。 |
+| Label-shuffle seeds | `0.5697`, `0.5700`, `0.3905`, `0.4504`, `0.3738` | 不穩定停在 `~0.57`；mean `0.4709`, std `0.0847`。 |
+| Label-shuffle ablation A | remove `gte_site_meter_anomaly`: `0.5680` | GTE 不是 seed-42 elevated shuffle AUC 的來源。 |
+| Label-shuffle ablation B | remove GTE + `log_square_feet/year_built/floor_count`: `0.5820` | 這些 building-meta fields 也不是單一來源。 |
 
-The seed-42 label-shuffle AUC `0.5697` is essentially the same as M3.2's
-`0.5669`, so M3.3 did not introduce a new leakage signature. The target encoder
-is fit on train only and applied to validation; removing it does not reduce the
-shuffle AUC. Building overlap remains `0`.
+Seed-42 label-shuffle AUC `0.5697` 幾乎等同 M3.2 的 `0.5669`，所以 M3.3
+沒有引入新的 leakage signature。Target encoder 只在 train fit，再套用到
+validation；移除它不會降低 shuffle AUC。Building overlap 維持 `0`。
 
 Artifacts:
 
@@ -319,19 +316,19 @@ Artifacts:
 
 ## 3.5 M3.4: 4-model ensemble
 
-**Goal**: reuse the M3.2 137-feature canonical 80/20 offline line and test
-whether the paper-style equal-weight 4-model ensemble improves validation AUC.
-M3.3 was no-lift for AUC, so it is not the headline ensemble feature set.
+**Goal**: 沿用 M3.2 137-feature canonical 80/20 offline line，測試 paper-style
+equal-weight 4-model ensemble 是否改善 validation AUC。M3.3 對 AUC no-lift，
+因此不作為 headline ensemble feature set。
 
 Setup:
 
 + Feature set: M3.2 137 features (17 baseline + 120 value-change)
 + Split/regime: canonical 80/20 `building_id % 5 == 4`, offline past+future shifts
-+ Downsampling: unchanged seeds `10/20`, train downsampled rows `4,285,104`
-+ Scaler: `StandardScaler` fit only on downsampled train, transform validation
-+ Models: LightGBM, XGBoost, CatBoost, HistGradientBoosting, library-default
-  iteration counts with `random_state=42` / `random_seed=42`
-+ Ensemble: arithmetic mean of four validation probabilities
++ Downsampling: 沿用 seeds `10/20`，train downsampled rows `4,285,104`
++ Scaler: `StandardScaler` 只在 downsampled train fit，再 transform validation
++ Models: LightGBM, XGBoost, CatBoost, HistGradientBoosting；iteration counts
+  採 library default，並固定 `random_state=42` / `random_seed=42`
++ Ensemble: 四個 validation probabilities 做 arithmetic mean
 
 | Model | Val AUC | Precision@0.5 | Recall@0.5 | F1@0.5 |
 |---|---:|---:|---:|---:|
@@ -341,22 +338,21 @@ Setup:
 | HistGBT | 0.9915 | 0.6385 | 0.9650 | 0.7685 |
 | **Ensemble** | **0.9928** | **0.6779** | **0.9664** | **0.7969** |
 
-PI 50/50 follow-up (same seed-42 4-model equal-weight ensemble):
+PI 50/50 follow-up（同一組 seed-42 4-model equal-weight ensemble）：
 
 | Split | Regime | Features | Ensemble AUC | Precision@0.5 | Recall@0.5 | F1@0.5 |
 |---|---|---:|---:|---:|---:|---:|
 | 50/50 mod2 | offline | 137 | 0.9921 | 0.7175 | 0.9387 | 0.8133 |
 | 50/50 mod2 | causal | 77 | 0.9911 | 0.7002 | 0.9311 | 0.7993 |
 
-The 50/50 offline ensemble is the direct PI-protocol counterpart to the M3.4
-headline; the 50/50 causal ensemble is the real-time FDD deployability variant.
+50/50 offline ensemble 是 M3.4 headline 對應到 PI protocol 的版本；50/50
+causal ensemble 則是 real-time FDD deployability variant。
 
-**Interpretation**: M3.4 is a modest but real ensemble lift. The seed-42
-ensemble beats M3.2 by `+0.00079`, above the M2 noise-floor convention
-`0.0005`, and beats the best seed-42 individual model by `+0.00078`.
-The lift is not large enough to change the qualitative story: M3.2 value-change
-features remain the main AUC jump, while ensemble adds a small ranking gain and
-better threshold-0.5 precision/F1.
+**Interpretation**: M3.4 是 modest but real ensemble lift。Seed-42 ensemble
+比 M3.2 高 `+0.00079`，高於 M2 noise-floor convention `0.0005`，也比
+seed-42 最佳單模型高 `+0.00078`。這個 lift 不足以改變定性結論：M3.2
+value-change features 仍是主要 AUC jump，ensemble 則增加小幅 ranking gain，
+並改善 threshold-0.5 precision/F1。
 
 **Multi-seed sanity**:
 
@@ -366,77 +362,126 @@ better threshold-0.5 precision/F1.
 | 123 | 0.9932 | +0.00122 | LGB > Hist > Cat > XGB |
 | 999 | 0.9930 | +0.00105 | LGB > Hist > XGB > Cat |
 
-Mean ensemble AUC is `0.9930` with std `0.00018`. CatBoost completed all
-1000 trees in each run.
+Ensemble AUC 平均是 `0.9930`，std `0.00018`。CatBoost 每次都完成
+1000 trees。
 
 ## 3.6 M3.5: Post-processing null result + review-gate diagnostics
 
-**Status**: complete; post-processing is a documented null result.
+**Status**: ✅ Complete；post-processing 是已記錄的 null result。
 
-M3.5 reran the M3.4 seed-42 equal-weight ensemble and persisted aligned
-validation predictions with `building_id`, `site_id`, `meter`, `meter_reading`,
-and `dayofyear`. The post-processing base is therefore the same canonical M3.4
-line: 80/20 `building_id % 5 == 4`, offline past+future value-change, M3.2 137
-features, downsampling seeds `10/20`, and `StandardScaler` fit on the
-downsampled train matrix.
+M3.5 重新執行 M3.4 seed-42 equal-weight ensemble，並保存已對齊的
+validation predictions，欄位包含 `building_id`、`site_id`、`meter`、
+`meter_reading`、`dayofyear`。因此 post-processing 的基準線與 M3.4
+canonical line 相同：80/20 `building_id % 5 == 4`、offline past+future
+value-change、M3.2 137 features、downsampling seeds `10/20`，並在
+downsampled train matrix 上 fit `StandardScaler`。
 
-Hard-rule post-processing does **not** transfer from M2/LEAD to M3/GEPIII:
+Hard-rule post-processing **沒有**從 M2/LEAD 轉移到 M3/GEPIII：
 
-| Rule | Trigger rows | Anomalies | Delta AUC vs pre |
+| Rule | Trigger rows | Anomalies | ΔAUC vs pre |
 |---|---:|---:|---:|
 | Rule 1: `meter_reading == 1.0 -> 1` | 8 | 0 | -0.000002 |
 | Rule 2a: Jan-1 start-point filter | 0 applied | 0 | 0.000000 |
 | Rule 2b: `dayofyear > 366.9583 -> 0` | 478 | 13 | -0.000052 |
-| Combined | -- | -- | -0.000054 |
+| Combined | — | — | -0.000054 |
 
-Pre post-processing AUC is `0.9927886`; combined post-processing AUC is
-`0.9927347`. The runner records this as `conclusion="rules_do_not_transfer"`
-when run with `--allow-null`. This is a confirmed negative/null result, not an
-alignment bug: M3 uses raw GEPIII meter readings, and the `meter_reading == 1`
-artifact that drove M2's post-processing lift is effectively absent here.
+Pre post-processing AUC 是 `0.9927886`；combined post-processing AUC 是
+`0.9927347`。Runner 在 `--allow-null` 下記錄為
+`conclusion="rules_do_not_transfer"`。這是確認過的 negative/null result，
+不是 alignment bug：M3 使用 raw GEPIII meter readings，而 M2 post-processing
+lift 依賴的 `meter_reading == 1` artifact 在這裡幾乎不存在。
 
-Rule 2a was left N/A. Jan-1 validation rows are not mostly normal: `467` rows
-include `101` anomalies (`21.6%`) across `70` anomalous buildings. The M2
-`building_id 105-145` exception is LEAD-subset-specific and should not be
-translated to M3.
+Rule 2a 保留為 N/A。Jan-1 validation rows 並非多數正常：`467` rows 中有
+`101` anomalies (`21.6%`)，分布在 `70` 棟 anomalous buildings。M2 的
+`building_id 105-145` exception 是 LEAD subset 特定規則，不應直接翻譯到 M3。
 
-### M3.5 Limitations and Generalization Diagnostics
+### M3.5 limitations and generalization diagnostics
 
-The local GEPIII papers frame why the M3 result should be treated as a strong
-within-dataset diagnostic, not as a fully general FDD result. Miller et al.
-(2020, GEPIII overview/results) describe GEPIII as a long-term energy
-prediction competition scored by RMSLE, with `2,380` meters, `1,448` buildings,
-and `16` sites; the strongest workflows were large GBDT ensembles such as
-LightGBM, and preprocessing/feature engineering was a key differentiator. That
-matches the M3 pattern: the main lift is M3.2 value-change features, while the
-M3.4 ensemble adds only a modest `+0.00079`.
+本機兩篇 GEPIII 論文說明了為什麼 M3 應被視為強 within-dataset diagnostic，
+而不是已完成的 general FDD benchmark。Miller et al. (2020, GEPIII overview)
+將 GEPIII 定義為 RMSLE energy prediction competition，資料規模約
+`2,380` meters、`1,448` buildings、`16` sites；表現最好的 workflows 是
+以 LightGBM 等 GBDT 為核心的大型 ensembles，且 preprocessing /
+feature engineering 是關鍵差異。這與 M3 的 pattern 對齊：主要跳躍來自
+M3.2 value-change features (`0.9562 -> 0.9920`)，M3.4 ensemble 則只是
+小幅增加 `+0.00079`。
 
-Miller et al. (2022, GEPIII limitations/error analysis) aggregate top-50
-solution residuals and report `79.1%` good fit, `16.1%` in-range remediable
-error, and `4.8%` out-of-range error. They also highlight meter/site/timeframe
-structure: steam/hot-water systems, multi-building/campus errors, and holiday
-or schedule effects are harder because standard inputs lack site-specific
-schedules. M3.5 therefore adds three diagnostics:
+Miller et al. (2022, GEPIII limitations/error analysis) 彙整 top-50
+solution residuals，報告 `79.1%` good fit、`16.1%` in-range remediable
+error、`4.8%` out-of-range error，並把 prediction error 拆成 meter/site/
+timeframe/building reach 等結構。M3.5 因此補上三個 generalization diagnostics：
 
 | Diagnostic | Result | Interpretation |
 |---|---:|---|
-| LightGBM label-shuffle AUC, seeds 42/123/999 | 0.5669 / 0.5669 / 0.4232 | Mean `0.5190`; residual structure/base-rate memorization exists but is unstable under shuffle. |
-| Site-held-out ensemble AUC (`site_id % 5 == 4`, sites 4/9/14) | 0.9774 | Lower than canonical `0.9928`; cross-site generalization is materially harder. |
-| Per-meter AUC: electricity / chilled water / steam / hot water | 0.9991 / 0.9888 / 0.9553 / 0.9863 | Steam is the weakest canonical meter slice, consistent with III2's meter-type error discussion. |
+| LightGBM label-shuffle AUC, seeds 42/123/999 | 0.5669 / 0.5669 / 0.4232 | Mean `0.5190`；仍有 residual structure/base-rate memorization，但 shuffle 下不穩定。 |
+| Site-held-out ensemble AUC (`site_id % 5 == 4`, sites 4/9/14) | 0.9774 | 低於 canonical `0.9928`；cross-site generalization 明顯更難。 |
+| Per-meter AUC: electricity / chilled water / steam / hot water | 0.9991 / 0.9888 / 0.9553 / 0.9863 | Steam 是 M3 anomaly detection 最弱 meter slice。 |
 
-Value-change gap diagnostic: `945/1449` buildings (`65.2%`) have missing hours
-inside their observed timestamp range, and `948/1449` (`65.4%`) are not complete
-8784-hour 2016 series. M3 still uses `groupby().shift()` value-change features,
-so shifts are row-offset approximations across timestamp holes rather than
-exact `timestamp + timedelta` merges. This is now a documented limitation, not
-changed in M3.5.
+Value-change gap diagnostic：`945/1449` buildings (`65.2%`) 在 observed
+timestamp range 內有 missing hours，`948/1449` (`65.4%`) 不是完整 8784-hour
+2016 series。M3 仍使用 `groupby().shift()` value-change features，因此 shifts
+是跨 timestamp holes 的 row-offset approximation，而不是精確的
+`timestamp + timedelta` merge。這是 M3.5 已記錄的 limitation，不在 M3.5
+更動。
 
-Dataset scope clarification: M3 is the GEPIII/Kaggle train subset used here
-(about `1,449` buildings and the four ASHRAE meter types: electricity, chilled
-water, steam, hot water). It is not full BDG2. BDG2 is larger (`1,636`
-buildings) and includes additional meter domains such as solar, water, and
-irrigation. M3 should be treated as a GEPIII anomaly-label reproduction, not as
-a complete BDG2 FDD benchmark.
+Dataset scope clarification：M3 是本 repo 使用的 GEPIII/Kaggle train subset
+（約 `1,449` buildings，四種 ASHRAE meter types：electricity、chilled water、
+steam、hot water），不是完整 BDG2。BDG2 較大（`1,636` buildings），且包含
+solar、water、irrigation 等額外 meter domains。M3 應定位為 GEPIII
+anomaly-label reproduction，不是完整 BDG2 FDD benchmark。
+
+### M3 findings vs GEPIII literature (III1/III2)
+
+**對齊點**：
+
+| GEPIII 文獻論點 | M3 發現 | 解讀 |
+|---|---|---|
+| III1：preprocessing / feature engineering 是關鍵差異 | M3.2 value-change features 是主要 AUC 跳躍：`0.9562 -> 0.9920` | M3 的最大增益不是換模型，而是補上 meter-reading temporal features。 |
+| III1：GBDT ensembles 是 winning workflows 主流 | M3.4 LGB/XGB/CatBoost/HistGBT ensemble AUC `0.9928` | 方向一致，但 ensemble lift 只有 `+0.00079`，小於 feature engineering 主效應。 |
+| III1/III2：electricity prediction 最穩定 | M3 electricity anomaly AUC `0.9991`，四種 meter 中最高 | Electricity 在 prediction 與 anomaly detection 兩個任務中都最容易取得高分。 |
+
+**Per-meter 排序反轉**：III2 的 RMSLE prediction-error 分析指出 hot water
+prediction 最難（good-fit 約四成），electricity 最好；M3 anomaly detection
+卻是 steam 最弱 (`0.9553`)，hot water 尚可 (`0.9863`)。這不是矛盾，而是
+task mismatch：prediction-error difficulty 衡量的是 energy consumption
+數值預測殘差；anomaly-detection difficulty 衡量的是 label ranking ability。
+同一個 meter type 在兩種任務中的困難來源不同，因此排序可以反轉。
+
+**Per-building primary_use AUC**（由 `data/processed/m3_5_val_predictions.csv.gz`
+join `data/raw/m3/building_metadata.csv`；完整 JSON 見 `docs/m3-primary-use-auc.json`）：
+
+| Primary use | AUC | Rows | Anomalies | Buildings |
+|---|---:|---:|---:|---:|
+| Parking | 1.0000 | 26,349 | 7,063 | 3 |
+| Retail | 1.0000 | 26,352 | 6,759 | 3 |
+| Utility | 1.0000 | 14,944 | 62 | 1 |
+| Warehouse/storage | 0.9997 | 34,078 | 1,093 | 4 |
+| Healthcare | 0.9987 | 42,949 | 558 | 2 |
+| Public services | 0.9984 | 317,758 | 9,918 | 32 |
+| Lodging/residential | 0.9979 | 378,930 | 18,047 | 26 |
+| Services | 0.9971 | 17,532 | 494 | 2 |
+| Technology/science | 0.9970 | 22,276 | 279 | 1 |
+| Food sales and service | 0.9969 | 26,343 | 18 | 1 |
+| Entertainment/public assembly | 0.9950 | 520,050 | 20,453 | 41 |
+| Office | 0.9941 | 863,244 | 62,886 | 52 |
+| Other | 0.9932 | 35,134 | 737 | 3 |
+| Education | 0.9894 | 1,766,403 | 113,683 | 117 |
+| Manufacturing/industrial | 0.9876 | 6,677 | 1,148 | 1 |
+
+Primary_use 分組沒有低於 `0.9876` 的 AUC，但有幾個 type 的建築數很少
+（例如 Utility、Technology/science、Food sales and service、Manufacturing/industrial
+都只有 1 棟 validation building），因此這些 high/low AUC 只能作為 slice
+diagnostic，不能解讀成穩定的 building-type 結論。相對可解讀的是 Education
+(`117` buildings, AUC `0.9894`) 和 Office (`52` buildings, AUC `0.9941`)：
+兩者仍高，但 Education 是大型分組裡最低，值得 downstream BDG2/FDD 優先觀察。
+
+**III2 不納入構念**：
+
+| III2 構念 | M3 是否納入 | 原因 |
+|---|---|---|
+| 16-category error taxonomy (A-D × 1-4) | 不納入 | 這套 taxonomy 建立在 RMSLE prediction-error magnitude/reach/timeframe；M3 評估是 AUC anomaly ranking，沒有同一個 residual magnitude。 |
+| Single-building vs multi-building error reach | 不納入 | III2 判斷的是 prediction residual 是否跨 campus/buildings 同時出現；M3 目前只有 anomaly labels 與 validation predictions，沒有定義 residual reach event。 |
+| Temporal behavior Type 1-4 | 不納入 | III2 依 RMSLE error 持續時間分 long/medium/short/irregular；M3 value-change features 使用 row shifts，沒有建立 prediction-error episode taxonomy。 |
 
 詳細計畫見 `docs/m3-plan.md`: post-processing Rule 1 + Rule 2b 通用,Rule 2a
 需 EDA 重設計。
@@ -457,18 +502,18 @@ a complete BDG2 FDD benchmark.
 
 ## 4.2 M3 feature gap vs buds-lab 02_preprocess_data.py
 
-M3.3 added the priority buds-lab feature-alignment set on top of M3.2.
+M3.3 在 M3.2 之上補上 priority buds-lab feature-alignment set。
 
 | Feature 類別 | buds-lab 實作 | M3 現狀 | M3.3 補? |
 |---|---|---|---|
-| Cyclic time encodings | sin/cos(hour, day, month, weekday) | Added | Complete |
-| Weather rolling lags | windows 7, 73 (lag + rolling mean) | Added | Complete |
-| Holiday flags | US Federal Calendar `holidays` library | Added | Complete |
-| GaussianTargetEncoder (gte_*) | per-(site, meter) target encoding | Added as train-only `gte_site_meter_anomaly` | Complete |
-| Building interaction strings | `primary_use + "_" + meter_str` | Added as encoded interaction | Complete |
-| Site 0 meter 0 correction | x 0.2931 (unit mismatch fix) | Added before value-change | Complete |
-| Weather GMT offset | per-site UTC correction | ❌ 缺 | ⚠️ optional |
-| Weather interpolation + NA indicators | linear interp + `_na` flag cols | ❌ 缺 | ⚠️ optional |
+| Cyclic time encodings | sin/cos(hour, day, month, weekday) | 已加入 | ✅ Complete |
+| Weather rolling lags | windows 7, 73 (lag + rolling mean) | 已加入 | ✅ Complete |
+| Holiday flags | US Federal Calendar `holidays` library | 已加入 | ✅ Complete |
+| GaussianTargetEncoder (gte_*) | per-(site, meter) target encoding | 已加入 train-only `gte_site_meter_anomaly` | ✅ Complete |
+| Building interaction strings | `primary_use + "_" + meter_str` | 已加入 encoded interaction | ✅ Complete |
+| Site 0 meter 0 correction | x 0.2931 (unit mismatch fix) | 已在 value-change 前加入 | ✅ Complete |
+| Weather GMT offset | per-site UTC correction | 尚未加入 | ⚠️ Optional |
+| Weather interpolation + NA indicators | linear interp + `_na` flag cols | 尚未加入 | ⚠️ Optional |
 
 ## 4.3 M3 vs M2 數字對比 (參考用)
 
@@ -492,18 +537,18 @@ M3.3 added the priority buds-lab feature-alignment set on top of M3.2.
 | M3.1 baseline | 0.9562 | 17 | — | ✅ Complete |
 | M3.2 + value-change | **0.9920** | 137 | +0.0358 | ✅ Complete |
 | M3.2a PI 50/50 + causal/offline | **0.9903-0.9920** | 77/137 | design check | ✅ Complete |
-| M3.3 buds-lab alignment | 0.9913 | 170 | -0.0007 | Complete; no-lift/negligible |
-| M3.4 4-model ensemble | **0.9928** | 137 | +0.0008 vs M3.2 | Complete; modest positive lift |
-| PI 50/50 ensemble follow-up | 0.9911-0.9921 | 77/137 | PI-spec completion | Complete; causal is deployable FDD variant |
-| M3.5 post-processing | 0.9927 post / 0.9928 pre | 137 | -0.000054 | Complete; null result documented |
+| M3.3 buds-lab alignment | 0.9913 | 170 | -0.0007 | ✅ Complete; no-lift/negligible |
+| M3.4 4-model ensemble | **0.9928** | 137 | +0.0008 vs M3.2 | ✅ Complete; modest positive lift |
+| PI 50/50 ensemble follow-up | 0.9911-0.9921 | 77/137 | PI-spec completion | ✅ Complete; causal is deployable FDD variant |
+| M3.5 post-processing | 0.9927 post / 0.9928 pre | 137 | -0.000054 | ✅ Complete; null result documented |
 
 ## 5.2 M3 Exit Criteria
 
 + [x] M3.2 val AUC > 0.97 (達到 0.9920)
-+ [x] M3 baseline + value-change pipeline complete 且 reproducible
++ [x] M3 baseline + value-change pipeline 完成且 reproducible
 + [x] Leakage sanity check pass (NO LEAKAGE)
-+ [x] PI-response 50/50 split + offline/causal design grid complete
-+ [x] M3.3 buds-lab alignment complete; no robust AUC lift
++ [x] PI-response 50/50 split + offline/causal design grid 完成
++ [x] M3.3 buds-lab alignment 完成; no robust AUC lift
 + [x] M3.4 ensemble 完成
 + [x] M3.5 post-processing 完成
 + [x] Each milestone 有對應 handoff doc
@@ -538,14 +583,14 @@ M3.3 added the priority buds-lab feature-alignment set on top of M3.2.
 
 ## 5.5 進度更新追蹤
 
-+ 2026-05-29: M3.1 baseline complete (commit ea3977d)
-+ 2026-05-29: M3.2 value-change complete (commit a1de001)
++ 2026-05-29: M3.1 baseline 完成 (commit ea3977d)
++ 2026-05-29: M3.2 value-change 完成 (commit a1de001)
 + 2026-05-29: M3.2 leakage check + M3.3 redefined (commit c7d0c5a)
-+ 2026-06-22: M3.2a PI-response split/causality design check complete
-+ 2026-06-22: M3.3 buds-lab alignment complete; val AUC 0.9913, no-lift vs M3.2
-+ 2026-06-22: M3.4 4-model ensemble complete; seed-42 val AUC 0.9928
-+ 2026-06-22: M3.5 post-processing null result finalized; PI 50/50 ensemble follow-up complete
++ 2026-06-22: M3.2a PI-response split/causality design check 完成
++ 2026-06-22: M3.3 buds-lab alignment 完成; val AUC 0.9913, no-lift vs M3.2
++ 2026-06-22: M3.4 4-model ensemble 完成; seed-42 val AUC 0.9928
++ 2026-06-22: M3.5 post-processing null result 定稿; PI 50/50 ensemble follow-up 完成
 
 ---
 
-*Last updated: 2026-06-22 (M3 complete; M3.5 null result and PI 50/50 ensemble follow-up finalized)*
+*Last updated: 2026-06-22 (M3 complete; M3.5 null result 與 PI 50/50 ensemble follow-up 已定稿)*

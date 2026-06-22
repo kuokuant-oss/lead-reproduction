@@ -1,0 +1,160 @@
+{
+  "source_predictions": "data/processed/m3_5_val_predictions.csv.gz",
+  "metadata": "data/raw/m3/building_metadata.csv",
+  "score_column": "pred_ensemble",
+  "target_column": "anomaly",
+  "group_column": "primary_use",
+  "missing_metadata_rows": 0,
+  "groups": [
+    {
+      "primary_use": "Parking",
+      "auc": 1.0,
+      "auc_full_precision": 0.9999789306795719,
+      "rows": 26349,
+      "anomalies": 7063,
+      "normal": 19286,
+      "anomaly_rate": 0.268056,
+      "buildings": 3
+    },
+    {
+      "primary_use": "Retail",
+      "auc": 1.0,
+      "auc_full_precision": 0.9999983764896001,
+      "rows": 26352,
+      "anomalies": 6759,
+      "normal": 19593,
+      "anomaly_rate": 0.256489,
+      "buildings": 3
+    },
+    {
+      "primary_use": "Utility",
+      "auc": 1.0,
+      "auc_full_precision": 1.0,
+      "rows": 14944,
+      "anomalies": 62,
+      "normal": 14882,
+      "anomaly_rate": 0.004149,
+      "buildings": 1
+    },
+    {
+      "primary_use": "Warehouse/storage",
+      "auc": 0.9997,
+      "auc_full_precision": 0.9997077326312482,
+      "rows": 34078,
+      "anomalies": 1093,
+      "normal": 32985,
+      "anomaly_rate": 0.032073,
+      "buildings": 4
+    },
+    {
+      "primary_use": "Healthcare",
+      "auc": 0.9987,
+      "auc_full_precision": 0.9986793453570865,
+      "rows": 42949,
+      "anomalies": 558,
+      "normal": 42391,
+      "anomaly_rate": 0.012992,
+      "buildings": 2
+    },
+    {
+      "primary_use": "Public services",
+      "auc": 0.9984,
+      "auc_full_precision": 0.9984430889688376,
+      "rows": 317758,
+      "anomalies": 9918,
+      "normal": 307840,
+      "anomaly_rate": 0.031212,
+      "buildings": 32
+    },
+    {
+      "primary_use": "Lodging/residential",
+      "auc": 0.9979,
+      "auc_full_precision": 0.9979419710758297,
+      "rows": 378930,
+      "anomalies": 18047,
+      "normal": 360883,
+      "anomaly_rate": 0.047626,
+      "buildings": 26
+    },
+    {
+      "primary_use": "Services",
+      "auc": 0.9971,
+      "auc_full_precision": 0.9971418971548713,
+      "rows": 17532,
+      "anomalies": 494,
+      "normal": 17038,
+      "anomaly_rate": 0.028177,
+      "buildings": 2
+    },
+    {
+      "primary_use": "Technology/science",
+      "auc": 0.997,
+      "auc_full_precision": 0.9970429333553632,
+      "rows": 22276,
+      "anomalies": 279,
+      "normal": 21997,
+      "anomaly_rate": 0.012525,
+      "buildings": 1
+    },
+    {
+      "primary_use": "Food sales and service",
+      "auc": 0.9969,
+      "auc_full_precision": 0.9969104146881925,
+      "rows": 26343,
+      "anomalies": 18,
+      "normal": 26325,
+      "anomaly_rate": 0.000683,
+      "buildings": 1
+    },
+    {
+      "primary_use": "Entertainment/public assembly",
+      "auc": 0.995,
+      "auc_full_precision": 0.9950063200800501,
+      "rows": 520050,
+      "anomalies": 20453,
+      "normal": 499597,
+      "anomaly_rate": 0.039329,
+      "buildings": 41
+    },
+    {
+      "primary_use": "Office",
+      "auc": 0.9941,
+      "auc_full_precision": 0.9941388220311658,
+      "rows": 863244,
+      "anomalies": 62886,
+      "normal": 800358,
+      "anomaly_rate": 0.072848,
+      "buildings": 52
+    },
+    {
+      "primary_use": "Other",
+      "auc": 0.9932,
+      "auc_full_precision": 0.9931899807140576,
+      "rows": 35134,
+      "anomalies": 737,
+      "normal": 34397,
+      "anomaly_rate": 0.020977,
+      "buildings": 3
+    },
+    {
+      "primary_use": "Education",
+      "auc": 0.9894,
+      "auc_full_precision": 0.9894235829774423,
+      "rows": 1766403,
+      "anomalies": 113683,
+      "normal": 1652720,
+      "anomaly_rate": 0.064358,
+      "buildings": 117
+    },
+    {
+      "primary_use": "Manufacturing/industrial",
+      "auc": 0.9876,
+      "auc_full_precision": 0.9875680841530529,
+      "rows": 6677,
+      "anomalies": 1148,
+      "normal": 5529,
+      "anomaly_rate": 0.171934,
+      "buildings": 1
+    }
+  ]
+}
