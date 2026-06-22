@@ -595,7 +595,7 @@ M3 是教授信件提到的「進階部分」,使用完整 ASHRAE GEPIII dataset
   label-shuffle mean 0.519, value-change gap 65.2%
 
 M2 reproduction methodology framework (unknowns register, ADR, Stage-gate) 沿用到 M3。
-詳細結果、思考點、PI 50/50 causal/offline framing,以及 downstream FDD 限制見 m3-report.md。
+詳細結果、思考點、PI 50/50 causal/offline framing,以及 GEPIII 內部限制見 m3-report.md。
 
 ---
 
