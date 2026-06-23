@@ -327,6 +327,14 @@ def main() -> None:
     full_cols = base_m3_3_cols + value_cols
     past_only_cols = base_m3_3_cols + past_cols
     future_only_cols = base_m3_3_cols + future_cols
+    if len(SHIFTS) != 60 or len(PAST_SHIFTS) != 30 or len(FUTURE_SHIFTS) != 30:
+        raise AssertionError("Unexpected value-change shift set")
+    if len(value_cols) != 120:
+        raise AssertionError(
+            f"Expected 120 value-change features, got {len(value_cols)}"
+        )
+    if len(full_cols) != 170:
+        raise AssertionError(f"Expected 170 M3.3 features, got {len(full_cols)}")
 
     results: dict[str, object] = {
         "experiment": "m3_3_budslab_alignment",

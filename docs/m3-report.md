@@ -61,6 +61,8 @@ HistGradientBoosting。Offline run 使用 M3.2 的 137-feature set；causal run
 | 50/50 mod2 | Offline | 137 | **0.9921** | 0.7175 | 0.9387 | 0.8133 |
 | 50/50 mod2 | Causal | 77 | **0.9911** | 0.7002 | 0.9311 | 0.7993 |
 
+Machine-readable provenance: `docs/m3-50-50-ensemble.json`.
+
 Offline score 是 50/50 protocol 下的 retrospective batch-labeling 結果。
 Causal score 低 `0.0010`，量化了從 value-change features 中移除 future meter
 readings 的成本。
@@ -104,7 +106,11 @@ performance jump：
 
 Value-change features 使用與 M2 相同的 shift family：`-24..-1`, `1..24`,
 `-168..-48 step 24`, `48..168 step 24`，並同時使用 difference 與 ratio
-forms。在 pandas 中，positive shifts 使用 past readings，negative shifts 使用
+forms；但 M3 的 diff sign 與 ratio orientation 和 M2 相反。M2 使用
+`shift(n) - meter_reading` 與 `(shift(n)+1)/(meter_reading+1)`；M3 使用
+`meter_reading - shift(n)` 與 `(meter_reading+1)/(shift(n)+1)`。這是 negation
+and reciprocal 的 monotonic orientation difference，對 tree-based AUC 不改變；
+見 ADR 0008。在 pandas 中，positive shifts 使用 past readings，negative shifts 使用
 future readings。
 
 ## 3.3 Buds-lab Alignment
@@ -162,6 +168,10 @@ Pre-rule ensemble AUC 是 `0.9927886`；combined post-processing AUC 是
 ---
 
 # Ch4: Validity Checks 與限制
+
+Note: §4.1 validity checks and §4.2 generalization diagnostics are computed on
+the 80/20 canonical development line (`building_id % 5 == 4`), not the final
+50/50 split; read them as development evidence.
 
 ## 4.1 Leakage 與 split checks
 

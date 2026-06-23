@@ -1,0 +1,28 @@
+{
+  "source_script": "scripts/run_m3_50_50_ensemble.py",
+  "split": {
+    "name": "50/50 mod2",
+    "protocol": "validation buildings are building_id % 2 == 1",
+    "train_buildings": 725,
+    "validation_buildings": 724,
+    "building_overlap": 0
+  },
+  "feature_counts": {
+    "offline": 137,
+    "causal": 77
+  },
+  "metrics": {
+    "offline": {
+      "ensemble_auc": 0.9921,
+      "precision_at_0_5": 0.7175,
+      "recall_at_0_5": 0.9387,
+      "f1_at_0_5": 0.8133
+    },
+    "causal": {
+      "ensemble_auc": 0.9911,
+      "precision_at_0_5": 0.7002,
+      "recall_at_0_5": 0.9311,
+      "f1_at_0_5": 0.7993
+    }
+  }
+}

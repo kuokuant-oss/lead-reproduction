@@ -28,6 +28,14 @@
 
 **ADR**: 見 `docs/feature-engineering-rules.md` 完整 value-change 生成規則。
 
+**2026-06-23 M2/M3 report-code audit note**: M2 and M3 use the same 60-shift
+family, but differ in value-change orientation. M2 uses real columns
+`lag_value_{n}` and `lag_value_ratio_{n}` with `shift(n) - meter_reading` and
+`(shift(n)+1)/(meter_reading+1)`; M3 uses `lag_value_diff_{n}` and
+`lag_value_ratio_{n}` with `meter_reading - shift(n)` and
+`(meter_reading+1)/(shift(n)+1)`. This negation + reciprocal difference is
+tree-invariant for the reported GBDT metrics; see ADR 0008.
+
 ---
 
 ## 2. Validation split 的實作細節
