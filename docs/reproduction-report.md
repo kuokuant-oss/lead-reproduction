@@ -8,7 +8,7 @@ Winning solution of the Large-scale Energy Anomaly Detection (LEAD) competition.
 **Repo**: `lead-reproduction`
 **Kaggle Private AUC**: 0.98616 (paper 0.9866; 原作者實際 0.98661; gap 0.05%)
 **Status**: M2.5 complete (3 ablations + Kaggle validation);
-M2 milestone closed; M3 outlook documented (full ASHRAE GEPIII, 2000+ buildings, 自定 split)
+M2 milestone closed; M3 outlook documented (full ASHRAE GEPIII, 1,449 buildings, 自定 split)
 
 ---
 
