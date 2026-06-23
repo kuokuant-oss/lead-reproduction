@@ -56,3 +56,12 @@ No leaderboard probing was run.
 Tightened only `docs/reproduction-report.md` and `docs/m3-report.md` to remove
 duplicate caveats and repeated framing. Numeric token multisets were unchanged
 for both reports before hooks; report diff before this note was net `-24` lines.
+
+## 2026-06-23 deeper prose-tightening note
+
+Second pass deleted self-justification, duplicate claim restatements, verbose
+cross-reference substitutes, and per-table disclaimer prose. Canonical homes:
+M2 private-score comparison in reproduction §5.2, M2 limitations near §5.2,
+M3 value-change/ensemble interpretation in §3.4, M3 limitations in Ch4, and
+M3/M2 comparability in M3 Ch2. Report-only diff before this note: net `-42`
+lines; gate passed with all distinct numeric tokens and protected anchors intact.

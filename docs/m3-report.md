@@ -26,9 +26,6 @@ building-held-out validation AUC。
 | Label join | positional row-aligned join |
 | Overall anomaly rate | 6.50% |
 
-M3 使用本 repo 中的 GEPIII/Kaggle train subset。此結果應解讀為 GEPIII
-anomaly-label reproduction，不外推到其他資料集或任務。
-
 ## 1.2 最終評估設計
 
 最終報告採用 50/50 building split：
@@ -44,8 +41,8 @@ anomaly-label reproduction，不外推到其他資料集或任務。
 | Offline | Past + future value-change shifts | 137 | Batch labeling / retrospective analysis |
 | Causal | Past-only value-change shifts | 77 | Online scoring with no future meter readings |
 
-早期 80/20 experiments (`building_id % 5 == 4`, 1160/289 buildings; M3.1-M3.5)
-保留為 archived evidence；80/20 archived，50/50 final。
+早期 80/20 experiments (`building_id % 5 == 4`, 1160/289 buildings, M3.1-M3.5)
+保留為 development evidence；最終報告採用 50/50 split。
 
 ---
 
@@ -57,8 +54,8 @@ HistGradientBoosting。Offline run 使用 M3.2 的 137-feature set；causal run
 
 | Split | Regime | Features | Ensemble AUC | Precision@0.5 | Recall@0.5 | F1@0.5 |
 |---|---|---:|---:|---:|---:|---:|
-| 50/50 mod2 | Offline | 137 | **0.9921** | 0.7175 | 0.9387 | 0.8133 |
-| 50/50 mod2 | Causal | 77 | **0.9911** | 0.7002 | 0.9311 | 0.7993 |
+| 50/50 mod2 | Offline | 137 | 0.9921 | 0.7175 | 0.9387 | 0.8133 |
+| 50/50 mod2 | Causal | 77 | 0.9911 | 0.7002 | 0.9311 | 0.7993 |
 
 Machine-readable provenance: `docs/m3-50-50-ensemble.json`.
 
@@ -88,15 +85,14 @@ final protocol。
 | M3.2 value-change | 50/50 | Causal | 77 | 0.9903 | 最終 split，past-only LightGBM |
 | M3.3 buds-lab alignment | 80/20 | Offline | 170 | 0.9913 | 沒有 robust AUC lift |
 | M3.4 ensemble | 80/20 | Offline | 137 | 0.9928 | 小幅 ensemble lift |
-| M3.4 ensemble | 50/50 | Offline | 137 | **0.9921** | 最終 offline result |
-| M3.4 ensemble | 50/50 | Causal | 77 | **0.9911** | 最終 causal result |
+| M3.4 ensemble | 50/50 | Offline | 137 | 0.9921 | 最終 offline result |
+| M3.4 ensemble | 50/50 | Causal | 77 | 0.9911 | 最終 causal result |
 | M3.5 post-processing | 80/20 | Offline | 137 | 0.9927 | Null result；rules 不轉移 |
 
 ## 3.2 Feature Engineering
 
 M3.1 使用 17 個 baseline features：time features、building metadata、meter type、
-meter reading、weather。M3.2 加入 120 個 value-change features，是主要
-performance jump：
+meter reading、weather。M3.2 加入 120 個 value-change features：
 
 | Model | Features | AUC | Delta |
 |---|---:|---:|---:|
@@ -104,13 +100,9 @@ performance jump：
 | M3.2 value-change LightGBM | 137 | 0.9920 | +0.0358 |
 
 Value-change features 使用與 M2 相同的 shift family：`-24..-1`, `1..24`,
-`-168..-48 step 24`, `48..168 step 24`，並同時使用 difference 與 ratio
-forms；但 M3 的 diff sign 與 ratio orientation 和 M2 相反。M2 使用
-`shift(n) - meter_reading` 與 `(shift(n)+1)/(meter_reading+1)`；M3 使用
-`meter_reading - shift(n)` 與 `(meter_reading+1)/(shift(n)+1)`。這是 negation
-and reciprocal 的 monotonic orientation difference，對 tree-based AUC 不改變；
-見 ADR 0008。在 pandas 中，positive shifts 使用 past readings，negative shifts 使用
-future readings。
+`-168..-48 step 24`, `48..168 step 24`；M3 的 diff sign 與 ratio orientation
+和 M2 相反，屬 negation / reciprocal 的 monotonic 轉換，不影響 tree-based AUC；
+ratio 的 +1 smoothing 公式見 ADR 0008。
 
 ## 3.3 Buds-lab Alignment
 
@@ -124,9 +116,8 @@ train-only `(site, meter)` target encoding、primary-use/meter interaction，
 | M3.2 reference | 137 | 0.9920 | 0.6409 | 0.9665 | 0.7707 |
 | M3.3 buds-lab alignment | 170 | 0.9913 | 0.6668 | 0.9583 | 0.7864 |
 
-Full buds-lab alignment 作為 validation/ablation step 有價值，但因為沒有改善
-ranking AUC，所以不納入最終模型。Threshold-0.5 precision 與 F1 有改善，但
-AUC 仍低於 M3.2 reference。
+Full buds-lab alignment 作為 validation/ablation step 有價值；因為沒有改善
+ranking AUC，所以不納入最終模型。Threshold-0.5 metrics are tabulated above.
 
 ## 3.4 Ensemble
 
@@ -138,15 +129,10 @@ Ensemble 使用 M3.2 feature set，因為 M3.3 沒有改善 AUC。
 | XGBoost | 0.9909 | 0.6801 | 0.9559 | 0.7947 |
 | CatBoost | 0.9891 | 0.7178 | 0.9579 | 0.8206 |
 | HistGBT | 0.9915 | 0.6385 | 0.9650 | 0.7685 |
-| Ensemble | **0.9928** | 0.6779 | 0.9664 | 0.7969 |
+| Ensemble | 0.9928 | 0.6779 | 0.9664 | 0.7969 |
 
-Ensemble lift 為正但幅度小：在 80/20 development split 上比 M3.2 LightGBM
-高 `+0.00079`。定性結論仍是 value-change features 是主要貢獻，ensembling
+Ensemble lift 為 `+0.00079`；value-change features 是主要貢獻，ensembling
 是次要增益。
-
-Threshold-0.5 precision 從 M3.2 的 `0.6409` 提升到 80/20 ensemble 的
-`0.6779`。在最終 50/50 protocol 下，ensemble precision 為 offline `0.7175`、
-causal `0.7002`。
 
 ## 3.5 Post-processing
 
@@ -187,8 +173,8 @@ past-shift features 呈現對稱訊號。
 | Remove meter features | AUC drops to 0.8160 | Meter reading 與 value-change features 承載主要 anomaly signal。 |
 | M3.3 target encoder ablation | Removing `gte_site_meter_anomaly` does not reduce shuffle AUC | Target encoding 不是 elevated shuffle result 的來源。 |
 
-較穩妥的結論是：這些 checks 沒有顯示 split leakage，但 label-shuffle 結果顯示
-dataset 中仍存在 metadata/base-rate structure。
+Checks 沒有顯示 split leakage；label-shuffle 結果顯示 dataset 中仍存在
+metadata/base-rate structure。
 
 ## 4.2 Generalization diagnostics
 
@@ -206,7 +192,8 @@ shifts 時的限制。
 
 下表 AUC 由 `data/processed/m3_5_val_predictions.csv.gz` join
 `data/raw/m3/building_metadata.csv` 計算而來。完整 machine-readable table 存在
-`docs/m3-primary-use-auc.json`。
+`docs/m3-primary-use-auc.json`。部分 primary-use categories 的 validation
+buildings 很少，這些 slices 只作診斷用途。
 
 | Primary use | AUC | Rows | Anomalies | Buildings |
 |---|---:|---:|---:|---:|
@@ -226,9 +213,11 @@ shifts 時的限制。
 | Education | 0.9894 | 1,766,403 | 113,683 | 117 |
 | Manufacturing/industrial | 0.9876 | 6,677 | 1,148 | 1 |
 
-部分 primary-use categories 的 validation buildings 很少，因此不能把這些 slices
-解讀成穩定的 building-type 結論。在較大的 slices 中，Education 最低
-(`0.9894`)，Office 為 `0.9941`。
+## 4.4 Limitations
+
+Site-held-out validation 較 building-held-out 困難；steam 是最弱 meter slice；
+label-shuffle 保留 metadata/base-rate residual；row-offset value-change shifts 是
+timestamp gaps 的近似；primary-use slices 受 validation building count 限制。
 
 ---
 
@@ -247,7 +236,7 @@ M3 在 anomaly-label setting 中呈現相同大方向，細節見 Ch3：
 |---|---|
 | Feature engineering 是核心 | 見 §3.2 (`0.9562` → `0.9920`)。 |
 | GBDT ensembles 表現強 | 見 ensemble section (`0.9928`, `0.9921`)。 |
-| Electricity 相對容易 | Electricity anomaly AUC 為 `0.9991`，是最高的 meter slice。 |
+| Electricity 相對容易 | Per-meter detail 見 §4.2。 |
 
 ## 5.2 與 III2 error analysis 的關係
 
