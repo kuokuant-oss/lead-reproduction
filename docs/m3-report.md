@@ -44,9 +44,8 @@ anomaly-label reproduction，不外推到其他資料集或任務。
 | Offline | Past + future value-change shifts | 137 | Batch labeling / retrospective analysis |
 | Causal | Past-only value-change shifts | 77 | Online scoring with no future meter readings |
 
-早期 80/20 experiments (`building_id % 5 == 4`, 1160/289 buildings) 只保留為
-development 與 ablation evidence。它們用來在同一個 validation split 下比較
-M3.1 到 M3.5，但不是最終報告 split。
+早期 80/20 experiments (`building_id % 5 == 4`, 1160/289 buildings; M3.1-M3.5)
+保留為 archived evidence；80/20 archived，50/50 final。
 
 ---
 
@@ -242,18 +241,18 @@ energy-prediction competition，評分指標為 RMSLE。表現最好的 workflow
 LightGBM 等 GBDT large ensembles，而 preprocessing / feature engineering 是
 關鍵差異。
 
-M3 在 anomaly-label setting 中呈現相同大方向：
+M3 在 anomaly-label setting 中呈現相同大方向，細節見 Ch3：
 
 | III1 論點 | M3 發現 |
 |---|---|
-| Feature engineering 是核心 | Value-change features 讓 AUC 從 `0.9562` 提升到 `0.9920`。 |
-| GBDT ensembles 表現強 | Four-model ensemble 在 80/20 development split 達 `0.9928`，在最終 50/50 offline split 達 `0.9921`。 |
+| Feature engineering 是核心 | 見 §3.2 (`0.9562` → `0.9920`)。 |
+| GBDT ensembles 表現強 | 見 ensemble section (`0.9928`, `0.9921`)。 |
 | Electricity 相對容易 | Electricity anomaly AUC 為 `0.9991`，是最高的 meter slice。 |
 
 ## 5.2 與 III2 error analysis 的關係
 
 Miller et al. (2022, GEPIII limitations/error analysis) 分析 top-50 competition
-solutions 的 RMSLE prediction residuals。這與 M3 任務不同：III2 研究的是
+solutions 的 RMSLE prediction residuals。III2 研究的是
 energy-prediction residuals，M3 研究的是 anomaly-label ranking AUC。
 
 這個任務差異解釋了 per-meter ordering 的不同：
@@ -265,22 +264,16 @@ energy-prediction residuals，M3 研究的是 anomaly-label ranking AUC。
 | Steam | 比 electricity 困難 | 0.9553 |
 | Hot water | III2 中最難，good fit 約四成 | 0.9863 |
 
-在 RMSLE prediction-error framing 中，hot water 最難；但在 M3 anomaly-detection
-framing 中，steam 是最弱 slice。這不是矛盾：prediction-error difficulty 與
-anomaly-ranking difficulty 是不同任務。
-
-III2 的 16-category error taxonomy、single-vs-multiple-building reach、以及
-temporal-behavior categories 不直接採用，因為它們定義在 RMSLE prediction
-residuals 上，而不是 binary anomaly-label ranking 上。
+III2 的 RMSLE prediction-error difficulty 與 M3 的 anomaly-ranking difficulty 是
+不同任務；因此只保留 per-meter ordering 對照，不採用 III2 的 16-category error
+taxonomy、single-vs-multiple-building reach、temporal-behavior categories。
 
 ---
 
 # Ch6: Summary
 
 M3 已完成。最終 50/50 building-split ensemble 在 offline regime 達 `0.9921`
-AUC，在 causal regime 達 `0.9911` AUC。主要 performance driver 是 M3.2
-value-change feature engineering；buds-lab alignment 作為 ablation 有價值，
-但不納入最終模型；ensemble 帶來小幅次要增益；hard-rule post-processing
-沒有從 M2/LEAD 轉移到 raw GEPIII。
+AUC，在 causal regime 達 `0.9911` AUC。Ablations, diagnostics, and GEPIII
+literature mapping are summarized above。
 
 *Last updated: 2026-06-22 (M3 complete)*

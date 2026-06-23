@@ -50,3 +50,9 @@ No leaderboard probing was run.
 
 - `handoff` if another agent needs to continue from this state.
 - `diagnose` only if pre-commit or feature-count verification fails.
+
+## 2026-06-23 prose-tightening note
+
+Tightened only `docs/reproduction-report.md` and `docs/m3-report.md` to remove
+duplicate caveats and repeated framing. Numeric token multisets were unchanged
+for both reports before hooks; report diff before this note was net `-24` lines.
