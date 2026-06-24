@@ -724,3 +724,22 @@ Paper Fig 1 沒明確標出這個 dual-path。
 Last reviewed: 2026-05-28 (M2.5 complete: 3 ablations Kaggle-validated,
 unknowns 5/15 resolved, unknown 10 candidate 1 quantified within our pipeline,
 M2 milestone closed, lesson 8 added)
+
+---
+
+## 18. Timestamp-merge value-change effect on M3.2
+
+**Question**: Does replacing M3's current `groupby().shift()` row-offset
+value-change implementation with timestamp-merge semantics move M3.2 AUC beyond
+the +/- `0.0005` regression noise floor?
+
+**Status**: open
+
+**Why it matters**: M3.2 and M3.4 currently use row-offset shifts. That preserves
+the accepted M3 reproduction line but can cross timestamp holes inside a
+building's time series. M2.4 already contains a timestamp-merge implementation
+on the test side, so the repo has evidence that both semantics exist.
+
+**Resolution path**: M4.3. Add timestamp-merge value-change as an explicit
+regime, rerun the M3.2 gate, and compare against golden AUC `0.9920` with the
+M4 noise floor +/- `0.0005`.
