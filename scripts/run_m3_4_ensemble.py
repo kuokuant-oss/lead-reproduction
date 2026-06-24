@@ -13,43 +13,20 @@ import pandas as pd
 import xgboost as xgb
 from catboost import CatBoostClassifier
 from sklearn.ensemble import HistGradientBoostingClassifier
-from sklearn.metrics import precision_recall_fscore_support, roc_auc_score
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.preprocessing import StandardScaler
 
-
-ROOT = Path(__file__).resolve().parents[1]
-M3 = ROOT / "data" / "raw" / "m3"
-PROC = ROOT / "data" / "processed"
-
-RANDOM_STATE = 42
-DOWNSAMPLE_SEEDS = (10, 20)
-DEFAULT_MODEL_SEEDS = (42, 123, 999)
-
-BASELINE_FEATURE_COLS = [
-    "meter",
-    "meter_reading",
-    "hour",
-    "weekday",
-    "month",
-    "dayofyear",
-    "primary_use_enc",
-    "log_square_feet",
-    "year_built",
-    "floor_count",
-    "air_temperature",
-    "cloud_coverage",
-    "dew_temperature",
-    "precip_depth_1_hr",
-    "sea_level_pressure",
-    "wind_direction",
-    "wind_speed",
-]
-
-SHIFTS = (
-    list(range(-24, 0))
-    + list(range(1, 25))
-    + list(range(-168, -24, 24))
-    + list(range(48, 169, 24))
+from lead import (
+    BASELINE_FEATURE_COLS,
+    DOWNSAMPLE_SEEDS,
+    MODEL_SEEDS,
+    PROC,
+    RANDOM_STATE,
+    SHIFTS,
+    add_value_change_features,
+    assert_no_building_overlap,
+    classification_metrics,
+    downsample_indices,
+    load_m3_frame,
 )
 
 M2_MODEL_AUCS = {
@@ -64,109 +41,6 @@ M2_RANKING = ["lightgbm", "hist_gradient_boosting", "catboost", "xgboost"]
 
 def log(message: str) -> None:
     print(message, flush=True)
-
-
-def load_m3_frame() -> pd.DataFrame:
-    t0 = time.time()
-    train = pd.read_csv(
-        M3 / "train.csv",
-        dtype={"building_id": "int16", "meter": "int8", "meter_reading": "float32"},
-    )
-    bad = pd.read_csv(M3 / "bad_meter_readings.csv")
-    if len(bad) != len(train):
-        raise ValueError("bad_meter_readings.csv must align 1:1 with train.csv")
-    train["anomaly"] = bad["is_bad_meter_reading"].values.astype("int8")
-
-    train["timestamp"] = pd.to_datetime(train["timestamp"])
-    train["hour"] = train["timestamp"].dt.hour.astype("int8")
-    train["weekday"] = train["timestamp"].dt.weekday.astype("int8")
-    train["month"] = train["timestamp"].dt.month.astype("int8")
-    train["dayofyear"] = (
-        train["timestamp"].dt.dayofyear + train["timestamp"].dt.hour / 24
-    ).astype("float32")
-
-    meta = pd.read_csv(M3 / "building_metadata.csv")
-    le = LabelEncoder()
-    meta["primary_use_enc"] = le.fit_transform(
-        meta["primary_use"].fillna("Unknown")
-    ).astype("int8")
-    meta["log_square_feet"] = np.log1p(meta["square_feet"]).astype("float32")
-    meta_cols = [
-        "building_id",
-        "site_id",
-        "primary_use_enc",
-        "log_square_feet",
-        "year_built",
-        "floor_count",
-    ]
-    train = train.merge(meta[meta_cols], on="building_id", how="left")
-
-    weather = pd.read_csv(M3 / "weather_train.csv")
-    weather["timestamp"] = pd.to_datetime(weather["timestamp"])
-    weather["cloud_coverage"] = (
-        weather["cloud_coverage"].replace({255: 10}).astype("float32")
-    )
-    weather_cols = [
-        "site_id",
-        "timestamp",
-        "air_temperature",
-        "cloud_coverage",
-        "dew_temperature",
-        "precip_depth_1_hr",
-        "sea_level_pressure",
-        "wind_direction",
-        "wind_speed",
-    ]
-    train = train.merge(weather[weather_cols], on=["site_id", "timestamp"], how="left")
-
-    keep_cols = [
-        "building_id",
-        "site_id",
-        "timestamp",
-        "anomaly",
-        *BASELINE_FEATURE_COLS,
-    ]
-    keep_cols = list(dict.fromkeys(keep_cols))
-    log(f"Loaded M3 frame {train.shape} in {(time.time() - t0) / 60:.1f} min")
-    return train[keep_cols]
-
-
-def add_value_change_features(df: pd.DataFrame) -> pd.DataFrame:
-    out = df.sort_values(["building_id", "timestamp"]).reset_index(drop=True).copy()
-    mr = out["meter_reading"]
-    grouped = out.groupby("building_id", sort=False)["meter_reading"]
-    new_cols = {}
-    for n in SHIFTS:
-        shifted = grouped.shift(n)
-        new_cols[f"lag_value_diff_{n}"] = (mr - shifted).astype("float32")
-        new_cols[f"lag_value_ratio_{n}"] = ((mr + 1) / (shifted + 1)).astype("float32")
-    return pd.concat([out, pd.DataFrame(new_cols)], axis=1)
-
-
-def downsample_indices(y: pd.Series) -> np.ndarray:
-    neg_idx = y.index[y == 0].to_numpy()
-    pos_idx = y.index[y == 1].to_numpy()
-    n_pos = len(pos_idx)
-    negs1 = np.random.RandomState(DOWNSAMPLE_SEEDS[0]).choice(
-        neg_idx, n_pos, replace=False
-    )
-    negs2 = np.random.RandomState(DOWNSAMPLE_SEEDS[1]).choice(
-        neg_idx, n_pos, replace=False
-    )
-    return np.concatenate([negs1, pos_idx, negs2, pos_idx])
-
-
-def classification_metrics(y_true: pd.Series, pred: np.ndarray) -> dict[str, float]:
-    pred_label = (pred >= 0.5).astype("int8")
-    precision, recall, f1, _ = precision_recall_fscore_support(
-        y_true, pred_label, average="binary", pos_label=1, zero_division=0
-    )
-    return {
-        "val_auc": float(roc_auc_score(y_true, pred)),
-        "precision_05": float(precision),
-        "recall_05": float(recall),
-        "f1_05": float(f1),
-    }
 
 
 def model_ranking(model_metrics: dict[str, dict[str, float]]) -> list[str]:
@@ -278,7 +152,7 @@ def parse_args() -> argparse.Namespace:
         "--model-seeds",
         nargs="+",
         type=int,
-        default=list(DEFAULT_MODEL_SEEDS),
+        default=list(MODEL_SEEDS),
         help="Model random seeds for ensemble sanity runs.",
     )
     parser.add_argument(
@@ -302,13 +176,13 @@ def main() -> None:
     mask_val = (df["building_id"] % 5 == 4).to_numpy()
     train_buildings = set(df.loc[~mask_val, "building_id"].unique())
     val_buildings = set(df.loc[mask_val, "building_id"].unique())
-    overlap = train_buildings & val_buildings
-    if overlap:
-        raise AssertionError(f"building overlap: {sorted(overlap)[:5]}")
+    overlap = assert_no_building_overlap(
+        train_buildings, val_buildings, split_name="80_20_mod5"
+    )
 
     log("Adding M3.2 offline value-change features")
-    train_full = add_value_change_features(df.loc[~mask_val])
-    val_full = add_value_change_features(df.loc[mask_val])
+    train_full = add_value_change_features(df.loc[~mask_val], list(SHIFTS))
+    val_full = add_value_change_features(df.loc[mask_val], list(SHIFTS))
     value_cols = [c for c in train_full.columns if c.startswith("lag_value_")]
     feature_cols = BASELINE_FEATURE_COLS + value_cols
     if len(feature_cols) != 137:

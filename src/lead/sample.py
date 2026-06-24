@@ -1,0 +1,22 @@
+"""Sampling helpers."""
+
+from __future__ import annotations
+
+import numpy as np
+import pandas as pd
+
+from .data import DOWNSAMPLE_SEEDS
+
+
+def downsample_indices(y: pd.Series) -> np.ndarray:
+    """Preserve the current [negs1, pos, negs2, pos] downsample pattern."""
+    neg_idx = y.index[y == 0].to_numpy()
+    pos_idx = y.index[y == 1].to_numpy()
+    n_pos = len(pos_idx)
+    negs1 = np.random.RandomState(DOWNSAMPLE_SEEDS[0]).choice(
+        neg_idx, n_pos, replace=False
+    )
+    negs2 = np.random.RandomState(DOWNSAMPLE_SEEDS[1]).choice(
+        neg_idx, n_pos, replace=False
+    )
+    return np.concatenate([negs1, pos_idx, negs2, pos_idx])

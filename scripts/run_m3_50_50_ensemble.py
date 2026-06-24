@@ -10,15 +10,19 @@ from pathlib import Path
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
-from run_m3_4_ensemble import (
+from lead import (
     BASELINE_FEATURE_COLS,
     DOWNSAMPLE_SEEDS,
     PROC,
     RANDOM_STATE,
     SHIFTS,
+    add_value_change_features,
+    assert_no_building_overlap,
     downsample_indices,
-    fit_predict_models,
     load_m3_frame,
+)
+from run_m3_4_ensemble import (
+    fit_predict_models,
     log,
 )
 
@@ -26,18 +30,6 @@ from run_m3_4_ensemble import (
 PAST_SHIFTS = [n for n in SHIFTS if n > 0]
 FUTURE_SHIFTS = [n for n in SHIFTS if n < 0]
 M3_4_80_20_OFFLINE_ENSEMBLE_AUC = 0.9928
-
-
-def add_value_change_features(df: pd.DataFrame, shifts: list[int]) -> pd.DataFrame:
-    out = df.sort_values(["building_id", "timestamp"]).reset_index(drop=True).copy()
-    mr = out["meter_reading"]
-    grouped = out.groupby("building_id", sort=False)["meter_reading"]
-    new_cols = {}
-    for n in shifts:
-        shifted = grouped.shift(n)
-        new_cols[f"lag_value_diff_{n}"] = (mr - shifted).astype("float32")
-        new_cols[f"lag_value_ratio_{n}"] = ((mr + 1) / (shifted + 1)).astype("float32")
-    return pd.concat([out, pd.DataFrame(new_cols)], axis=1)
 
 
 def run_regime(
@@ -106,9 +98,9 @@ def main() -> None:
     mask_val = (df["building_id"] % 2 == 1).to_numpy()
     train_buildings = set(df.loc[~mask_val, "building_id"].unique())
     val_buildings = set(df.loc[mask_val, "building_id"].unique())
-    overlap = train_buildings & val_buildings
-    if overlap:
-        raise AssertionError(f"building overlap: {sorted(overlap)[:5]}")
+    overlap = assert_no_building_overlap(
+        train_buildings, val_buildings, split_name="50_50_mod2"
+    )
 
     log(
         "50/50 mod2 split: "
