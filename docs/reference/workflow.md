@@ -1,6 +1,6 @@
-# docs/workflow.md — LEAD Reproduction 工作流全記錄
+# docs/reference/workflow.md — LEAD Reproduction 工作流全記錄
 
-（本文是完整版工作流說明；reproduction report [Ch2](reproduction-report.md#ch2-工作流概覽) 是摘要版，並連結至此文各節。）
+（本文是完整版工作流說明；reproduction report [Ch2](../reports/reproduction-report.md#ch2-工作流概覽) 是摘要版，並連結至此文各節。）
 
 ---
 

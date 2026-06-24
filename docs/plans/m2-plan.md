@@ -1,6 +1,6 @@
 # M2 Plan: Reproduce Competition Results
 
-**Status (2026-05-29)**: ✅ M2 milestone closed. All 5 sub-milestones complete. See docs/handoffs/2026-05-29-m2-milestone-closed.md for final state. Active development: M3 (see docs/m3-plan.md).
+**Status (2026-05-29)**: ✅ M2 milestone closed. All 5 sub-milestones complete. See docs/handoffs/2026-05-29-m2-milestone-closed.md for final state. Active development: M3 (see docs/plans/m3-plan.md).
 
 ---
 
@@ -531,7 +531,7 @@ in-notebook val ablation 量化三個 pipeline 設計決策的影響。
 1. **Ablation A**: gte_* feature leakage(unknown #5,原 plan 保留)
    + 從 169 features 移除 16 個 `gte_*` 欄,重跑 LightGBM
    + 量化 target encoding leakage 對 val AUC 的貢獻
-   + 在 `docs/unknowns.md` #5 標記 resolved,附 AUC 數字
+   + 在 `docs/reference/unknowns.md` #5 標記 resolved,附 AUC 數字
 
 2. **Ablation B**: impute_nulls effect(unknown #10 主要 suspect)
    + 比較 fillna(0) vs fillna(mean) vs raw NaN 三種 null handling
@@ -545,7 +545,7 @@ in-notebook val ablation 量化三個 pipeline 設計決策的影響。
 
 4. **M2 closure**:
    + Handoff doc 最終版 + 跟教授對話 cheat sheet
-   + `docs/unknowns.md` Unknown #2, #4, #5 全部標記 resolved
+   + `docs/reference/unknowns.md` Unknown #2, #4, #5 全部標記 resolved
    + Close GitHub Issue #5
    + Close M2 milestone
 
@@ -647,8 +647,8 @@ Last reviewed: 2026-05-29 (M2 milestone fully closed; report finalized; M3 begin
 
 ### Deliverables
 
-+ docs/reproduction-report.md (~5500 words, neutral framing)
-+ docs/workflow.md (~2500 words)
++ docs/reports/reproduction-report.md (~5500 words, neutral framing)
++ docs/reference/workflow.md (~2500 words)
 + notebooks/05-m2-integration.ipynb (34 annotated cells)
 + docs/handoffs/2026-05-29-m2-milestone-closed.md
 

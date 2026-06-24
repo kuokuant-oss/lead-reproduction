@@ -26,7 +26,7 @@ GEPIII raw data (Kaggle)
   2. 解 169 vs ~175 特徵數差距時,必須同時參照 `02_preprocess_data.py`
   3. M3 不只是「換更大的資料」,而是「從頭跑完整 feature engineering pipeline(GEPIII raw → 57 欄 → value-change → 模型)」
 
-驗證方式:比對 `02_preprocess_data.py` 的輸出欄位名稱與 `train_features.csv` 的 57 欄是否完全一致(見 `docs/unknowns.md` #7)。
+驗證方式:比對 `02_preprocess_data.py` 的輸出欄位名稱與 `train_features.csv` 的 57 欄是否完全一致(見 `docs/reference/unknowns.md` #7)。
 
 ## Glossary
 
@@ -84,7 +84,7 @@ _Avoid_: "value-changing feature"(語法不正確)。
 - \`data/processed/\`:餵給模型的最終格式
 - \`notebooks/\`:探索用,檔名前綴編號(01-, 02-, ...)
 - \`src/lead/\`:穩定的可重用程式碼
-- \`docs/\`:筆記、決策紀錄
+- \`docs/\`:plans、reports、reference、metrics、ADR、handoffs、agent notes、assets
 - \`reports/\`:圖表、結果輸出
 
 ---

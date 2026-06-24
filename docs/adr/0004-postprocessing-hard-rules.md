@@ -7,7 +7,7 @@ Ensemble 輸出後套用兩條 hard rule 覆蓋模型預測(§2.4):
 
 這兩條規則來自資料特性的人工觀察,不是模型學到的,且效果不可逆(覆蓋掉模型原本的機率輸出)。若重現時省略:Rule 1 會讓 `meter_reading = 1` 的那些行被模型以較低信心評分,直接損失 precision;Rule 2 的影響較小但仍可能引入邊界噪音。
 
-注意:Rule 2 的「start/end points」定義論文未說明,需看 GitHub 確認邊界定義(見 docs/unknowns.md #3)。
+注意:Rule 2 的「start/end points」定義論文未說明,需看 GitHub 確認邊界定義(見 docs/reference/unknowns.md #3)。
 
 ---
 

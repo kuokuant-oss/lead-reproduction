@@ -7,7 +7,7 @@
 + 教授原話: 「用 ASHRAE GEPIII 完整 dataset (2000+ 電表), 從 raw 做 feature
   engineering, 用 anomaly label 做 binary classification, train 和 test 各別用一半
   的建築數量」
-+ M2 baseline: docs/reproduction-report.md Ch5.6 (M3 outlook)
++ M2 baseline: docs/reports/reproduction-report.md Ch5.6 (M3 outlook)
 + buds-lab reference: 02_preprocess_data.py (GEPIII rank-1 solution)
 + M3 baseline handoff: docs/handoffs/2026-05-29-m3-baseline.md
 

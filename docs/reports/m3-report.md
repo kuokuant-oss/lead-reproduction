@@ -57,7 +57,7 @@ HistGradientBoosting。Offline run 使用 M3.2 的 137-feature set；causal run
 | 50/50 mod2 | Offline | 137 | 0.9921 | 0.7175 | 0.9387 | 0.8133 |
 | 50/50 mod2 | Causal | 77 | 0.9911 | 0.7002 | 0.9311 | 0.7993 |
 
-Machine-readable provenance: `docs/m3-50-50-ensemble.json`.
+Machine-readable provenance: `docs/metrics/m3-50-50-ensemble.json`.
 
 Offline score 是 50/50 protocol 下的 retrospective batch-labeling 結果。
 Causal score 低 `0.0010`，量化了從 value-change features 中移除 future meter
@@ -192,7 +192,7 @@ shifts 時的限制。
 
 下表 AUC 由 `data/processed/m3_5_val_predictions.csv.gz` join
 `data/raw/m3/building_metadata.csv` 計算而來。完整 machine-readable table 存在
-`docs/m3-primary-use-auc.json`。部分 primary-use categories 的 validation
+`docs/metrics/m3-primary-use-auc.json`。部分 primary-use categories 的 validation
 buildings 很少，這些 slices 只作診斷用途。
 
 | Primary use | AUC | Rows | Anomalies | Buildings |

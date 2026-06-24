@@ -49,7 +49,7 @@ Paper 與 buds-lab code 在多處有 paper 未完整描述的設計:
 | Final submission refit | Fig 1 未明確標示 | 雙路徑:val 評估用 split;submission 用 X_all refit |
 | Rule 2a (start points) | §2.4 "start points → 0" | `dayofyear==1 AND (building_id>145 OR <105)` → 0 |
 
-這些細節在 `docs/unknowns.md` 各有詳細記錄(#3, #4, #15, #16, 等)。
+這些細節在 `docs/reference/unknowns.md` 各有詳細記錄(#3, #4, #15, #16, 等)。
 
 ## 1.3 Unknowns register 進度
 
@@ -75,18 +75,18 @@ one-shot inference 哲學構成。每個 milestone 都有量化的 Done when cri
 
 最關鍵的設計是 **repo 本身就是 deliverable** — 任何 reproducer 透過讀 `docs/` +
 `git log` 能完整重建決策路徑，不需對話歷史。完整工作流說明請見
-[`docs/workflow.md`](workflow.md)。
+[`docs/reference/workflow.md`](../reference/workflow.md)。
 
 ## 2.1 文件生態系
 
-Reproduction repo 的文件生態系由四個互補系統組成（完整說明：[workflow.md §2](workflow.md#2-文件生態系)）：
+Reproduction repo 的文件生態系由四個互補系統組成（完整說明：[workflow.md §2](../reference/workflow.md#2-文件生態系)）：
 
 | 文件 | 數量 | 用途 |
 |------|------|------|
 | `docs/adr/` | 6 份 | 架構決策紀錄；每個重要決策都有 Status / Decision / Rationale |
-| `docs/unknowns.md` | 17 個問題 | paper 未說清楚的地方的 living register；每次 milestone 更新 |
+| `docs/reference/unknowns.md` | 17 個問題 | paper 未說清楚的地方的 living register；每次 milestone 更新 |
 | `docs/handoffs/` | 4 份 | 跨 session context；每個 milestone 結束時寫一份 |
-| `docs/m2-plan.md` | — | 量化「Done when」criteria；防止 scope creep 和主觀判斷 |
+| `docs/plans/m2-plan.md` | — | 量化「Done when」criteria；防止 scope creep 和主觀判斷 |
 
 ADR 涵蓋的決策：building-id split（0001）、downsampling 50:50（0002）、
 value-change features 同時取差值和比值（0003）、post-processing hard rules（0004）、
@@ -95,22 +95,22 @@ imputation method（0005）、paper-code 不一致處理紀律（0006）。
 
 ## 2.2 Verification 紀律與執行模式
 
-**ADR 0006**（[workflow.md §3](workflow.md#3-verification-紀律--adr-0006)）定義
+**ADR 0006**（[workflow.md §3](../reference/workflow.md#3-verification-紀律--adr-0006)）定義
 paper-code 不一致的四層分類框架：True contradiction / Imprecise description /
 Over-interpretation / File inconsistency。M2 共遇到 3 次疑似矛盾，自我 verification
 後全部屬於後三類（無 true contradiction）。這個分類流程用來降低 paper-code
 interpretation error。
 
-**Stage-gate 模式**（[workflow.md §4](workflow.md#4-stage-gate-執行模式)）：
+**Stage-gate 模式**（[workflow.md §4](../reference/workflow.md#4-stage-gate-執行模式)）：
 讀 handoff → 確認 Done when → pre-flight check → 執行 → commit（帶量化指標）→
 寫 handoff。Checkpoint 讓我能 catch 數字異常和 framing 偏移，不讓 AI 一次
 跑完整個 milestone。
 
-**One-shot inference**（[workflow.md §5](workflow.md#5-one-shot-inference-哲學)）：
+**One-shot inference**（[workflow.md §5](../reference/workflow.md#5-one-shot-inference-哲學)）：
 不做 leaderboard probing，把不確定性記錄在 unknowns.md 和 ADRs，確定後一次提交。
 結果：6 天累積 → 單次提交。
 
-**雙 AI 工作流**（[workflow.md §6](workflow.md#6-雙-ai-工作流)）：Claude Code
+**雙 AI 工作流**（[workflow.md §6](../reference/workflow.md#6-雙-ai-工作流)）：Claude Code
 負責 repo 操作；網頁版 Claude 負責 paper 解讀；paper-code 不一致時先暫停並以
 ADR / unknowns 記錄，再決定採用 paper 描述或 buds-lab code 作為 ground truth。
 
@@ -489,7 +489,7 @@ Paper Table 2 寫的 0.9866 與復現 Private 0.98616 差 0.0004,與原作者 Pr
 
 **Kaggle leaderboard screenshot** (M2.4 submission + M2.5 ablations):
 
-![Kaggle Final Score](./assets/kaggle-final-score.png)
+![Kaggle Final Score](../assets/kaggle-final-score.png)
 
 截圖顯示 4 個 submission 的 Public + Private Score:
 - M2.4 baseline (4-model + 3 rules): Public 0.96982 / Private 0.98616
@@ -553,7 +553,7 @@ Reproduction timeline (6-7 天):
 ## 5.6 M3: Full ASHRAE GEPIII (完成)
 
 M3 從 raw GEPIII 開始做 feature engineering；資料範圍對比見 Ch1.1，完整結果見
-[`docs/m3-report.md`](./m3-report.md)。截至 2026-06-22:M3.1 `0.9562`,
+[`docs/reports/m3-report.md`](./m3-report.md)。截至 2026-06-22:M3.1 `0.9562`,
 M3.2 `0.9920`(137 features),M3.3 `0.9913`,M3.4 `0.9928`,50/50 offline
 `0.9921`,causal `0.9911`,M3.5 ΔAUC `-0.000054`; carried limitations:
 site-held-out `0.9774`,steam `0.9553`,label-shuffle mean `0.519`,

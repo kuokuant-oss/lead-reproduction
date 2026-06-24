@@ -7,7 +7,7 @@ LEAD-1st-solution 的特徵生成規則,由 Feature generator notebook 原始碼
 ## 輸入
 
 `train_features.csv` — 57 欄,由 GEPIII `02_preprocess_data.py` 產出。
-見 `docs/unknowns.md` #7 確認此上游關係。
+見 `docs/reference/unknowns.md` #7 確認此上游關係。
 
 ---
 

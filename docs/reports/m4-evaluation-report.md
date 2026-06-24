@@ -31,8 +31,8 @@ Golden metrics to preserve during M4.1:
 |---|---:|---|
 | M3.2 LightGBM 80/20 offline | 0.9920 | `data/processed/m3_2_results.json` |
 | M3.4 4-model ensemble 80/20 offline | 0.9928 | `data/processed/m3_4_results.json` |
-| 50/50 offline ensemble | 0.9921 | `docs/m3-50-50-ensemble.json` |
-| 50/50 causal ensemble | 0.9911 | `docs/m3-50-50-ensemble.json` |
+| 50/50 offline ensemble | 0.9921 | `docs/metrics/m3-50-50-ensemble.json` |
+| 50/50 causal ensemble | 0.9911 | `docs/metrics/m3-50-50-ensemble.json` |
 | Site-held-out ensemble | 0.9774 | `data/processed/m3_5_results.json` |
 | Steam meter | 0.9553 | `data/processed/m3_5_results.json` |
 

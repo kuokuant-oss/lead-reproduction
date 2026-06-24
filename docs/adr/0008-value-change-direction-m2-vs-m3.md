@@ -56,4 +56,4 @@ not that the exact diff/ratio orientation is identical.
 - `scripts/run_m3_50_50_ensemble.py`
 - `scripts/run_m3_split_causality.py`
 - `notebooks/06-m3-baseline.ipynb`
-- M2 Lesson #1 in `docs/reproduction-report.md`
+- M2 Lesson #1 in `docs/reports/reproduction-report.md`

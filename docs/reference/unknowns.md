@@ -26,7 +26,7 @@
 
 **論文 §2.2.2 描述不精確**:以 "i.e." 列舉 sub-day shifts {1,2,3,23} 和 multi-day shifts {24,48,72,168},但同段也說 "shifts within one day were fully accounted for",暗示完整 1-day 涵蓋是設計意圖。代碼實際實作 60 個 shifts(sub-day {1..24} + multi-day {48,72,96,120,144,168})× 2 types = 120 value-change features。論文舉例不完整,但設計方向與代碼一致;以代碼為 ground truth。
 
-**ADR**: 見 `docs/feature-engineering-rules.md` 完整 value-change 生成規則。
+**ADR**: 見 `docs/reference/feature-engineering-rules.md` 完整 value-change 生成規則。
 
 **2026-06-23 M2/M3 report-code audit note**: M2 and M3 use the same 60-shift
 family, but differ in value-change orientation. M2 uses real columns
@@ -192,7 +192,7 @@ M2.5 ablation(移除全部 gte 欄)會直接量化影響。
 
 **其他訓練設計**:無 early stopping;等權平均 ensemble(1/4 each);HistGBT 以 `np.nan_to_num()` 處理 NaN。
 
-**ADR**: 見 `docs/feature-engineering-rules.md` "Model hyperparameters" 章節。
+**ADR**: 見 `docs/reference/feature-engineering-rules.md` "Model hyperparameters" 章節。
 
 **M2.3 設計觀察 (2026-05-26)**:
 

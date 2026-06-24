@@ -4,10 +4,10 @@
 **Started**: 2026-06-24
 **Reference**:
 
-+ M3 exit line: `docs/m3-plan.md`
++ M3 exit line: `docs/plans/m3-plan.md`
 + Current foundation review: duplicated M3 logic in `scripts/` and empty
   `src/lead/`
-+ Golden metrics: `data/processed/*.json`, `docs/*.json`
++ Golden metrics: `data/processed/*.json`, `docs/metrics/*.json`
 + Design rule: when paper, docs, and executable code disagree, executable code
   is the reproduction authority unless an ADR explicitly changes it.
 
