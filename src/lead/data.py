@@ -83,17 +83,59 @@ M3_3_EXTRA_FEATURE_COLS = [
     "primary_use_meter_enc",
 ]
 
+BAD_METER_LABEL_COLUMNS = ("is_bad_meter_reading",)
+M3_ROW_ID_COLUMNS = ("building_id", "meter", "timestamp")
+
 
 def _log(message: str, *, verbose: bool) -> None:
     if verbose:
         print(message, flush=True)
 
 
-def _assign_positional_labels(train: pd.DataFrame) -> pd.DataFrame:
-    """Preserve the current M3 positional label assignment until M4.2."""
-    bad = pd.read_csv(M3 / "bad_meter_readings.csv")
+def _assert_default_row_index(train: pd.DataFrame) -> None:
+    expected = pd.RangeIndex(len(train))
+    if not train.index.equals(expected):
+        raise ValueError(
+            "M3 positional labels require train rows to retain the raw "
+            "train.csv row order and default RangeIndex"
+        )
+
+
+def _assert_unique_train_row_keys(train: pd.DataFrame) -> None:
+    missing = [col for col in M3_ROW_ID_COLUMNS if col not in train.columns]
+    if missing:
+        raise ValueError(
+            "M3 label integrity guard requires train row identity columns: "
+            + ", ".join(missing)
+        )
+    duplicate_count = int(train.duplicated(list(M3_ROW_ID_COLUMNS)).sum())
+    if duplicate_count:
+        raise ValueError(
+            "M3 train row identity is undefined: "
+            f"{duplicate_count} duplicate (building_id, meter, timestamp) keys"
+        )
+
+
+def _assert_bad_meter_label_schema(bad: pd.DataFrame) -> None:
+    columns = tuple(bad.columns)
+    if columns != BAD_METER_LABEL_COLUMNS:
+        raise ValueError(
+            "bad_meter_readings.csv must contain exactly one column: "
+            f"{BAD_METER_LABEL_COLUMNS[0]}"
+        )
+
+
+def _assign_positional_labels(
+    train: pd.DataFrame, bad: pd.DataFrame | None = None
+) -> pd.DataFrame:
+    """Assign M3 labels positionally after proving the available invariants."""
+    if bad is None:
+        bad = pd.read_csv(M3 / "bad_meter_readings.csv")
+    _assert_bad_meter_label_schema(bad)
     if len(bad) != len(train):
         raise ValueError("bad_meter_readings.csv must align 1:1 with train.csv")
+    _assert_default_row_index(train)
+    _assert_unique_train_row_keys(train)
     train["anomaly"] = bad["is_bad_meter_reading"].values.astype("int8")
     return train
 

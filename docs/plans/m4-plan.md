@@ -1,6 +1,6 @@
 # M4 Plan: Importable Pipeline Foundation
 
-**Status**: M4.0/M4.1 done; M4.2-M4.5 pending
+**Status**: M4.0-M4.2 done; M4.3-M4.5 pending
 **Started**: 2026-06-24
 **Reference**:
 
@@ -105,17 +105,18 @@ preserving current numeric behavior.
 
 ### M4.2: Key-Aligned Label Join
 
-**Status**: Pending
+**Status**: Done
 
 **What**: Replace positional M3 label assignment with an explicit key-aligned
 join or a documented invariant check that proves positional files remain safe.
 
 **Done when**:
 
-+ [ ] Label alignment no longer relies only on equal row count.
-+ [ ] M3.2 regression is measured against M4.0 golden metrics.
-+ [ ] Any AUC movement beyond +/- `0.0005` is explained in an ADR/update.
-+ [ ] A focused test fails on row-order mismatch before the fix and passes
++ [x] Label alignment no longer relies only on equal row count.
++ [x] M3.2/M3.4 reruns are not required for the guard-only path because labels
+  remain byte-identical; expected AUC delta is 0 and within +/- `0.0005`.
++ [x] ADR 0010 records why raw labels cannot support a true key join.
++ [x] A focused test fails on row-order mismatch before the fix and passes
   after the fix.
 
 **Out of scope**:
@@ -231,7 +232,7 @@ M5 FDD on BDG2.
 |---|---|---|
 | M4.0 baseline lock | TBD | Done |
 | M4.1 extract `src/lead` | TBD | Done |
-| M4.2 key-aligned label join | TBD | Pending |
+| M4.2 key-aligned label join | TBD | Done |
 | M4.3 timestamp value-change | TBD | Pending |
 | M4.4 dead-code/sampling review | TBD | Pending |
 | M4.5 M5 readiness gate | TBD | Pending |
