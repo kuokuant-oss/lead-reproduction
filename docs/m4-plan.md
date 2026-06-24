@@ -1,6 +1,6 @@
 # M4 Plan: Importable Pipeline Foundation
 
-**Status**: M4.0/M4.1 in progress
+**Status**: M4.0/M4.1 done; M4.2-M4.5 pending
 **Started**: 2026-06-24
 **Reference**:
 
@@ -42,16 +42,18 @@ Golden regression targets:
 
 ### M4.0: Baseline Lock
 
+**Status**: Done
+
 **What**: Archive the current golden metrics in a tracked test fixture with
 source filenames and commit provenance.
 
 **Done when**:
 
-+ [ ] `tests/golden_metrics.json` exists and records M3.2, M3.4, 50/50,
++ [x] `tests/golden_metrics.json` exists and records M3.2, M3.4, 50/50,
   site-held-out, and steam AUC targets.
-+ [ ] Each metric has `value`, `source_file`, and `source_commit`.
-+ [ ] The fixture records the regression noise floor `0.0005`.
-+ [ ] No pipeline code is changed in this slice.
++ [x] Each metric has `value`, `source_file`, and `source_commit`.
++ [x] The fixture records the regression noise floor `0.0005`.
++ [x] No pipeline code is changed in this slice.
 
 **Out of scope**:
 
@@ -67,23 +69,25 @@ source filenames and commit provenance.
 
 ### M4.1: Extract Importable `src/lead` Package
 
+**Status**: Done
+
 **What**: Move duplicated M3 helper logic into importable modules while
 preserving current numeric behavior.
 
 **Done when**:
 
-+ [ ] `src/lead/data.py`, `features.py`, `split.py`, `sample.py`,
++ [x] `src/lead/data.py`, `features.py`, `split.py`, `sample.py`,
   `evaluate.py`, and `io.py` exist.
-+ [ ] `src/lead/__init__.py` exports the public API used by scripts.
-+ [ ] `scripts/run_m3_4_ensemble.py`, `scripts/run_m3_split_causality.py`,
++ [x] `src/lead/__init__.py` exports the public API used by scripts.
++ [x] `scripts/run_m3_4_ensemble.py`, `scripts/run_m3_split_causality.py`,
   `scripts/run_m3_50_50_ensemble.py`, and `scripts/run_m3_3_budslab.py` import
   helpers from `lead` instead of carrying local copies.
-+ [ ] `add_value_change_features(df, shifts)` is the single public signature.
-+ [ ] M3.2 and M3.4 reruns differ from `tests/golden_metrics.json` by less
++ [x] `add_value_change_features(df, shifts)` is the single public signature.
++ [x] M3.2 and M3.4 reruns differ from `tests/golden_metrics.json` by less
   than +/- `0.0005`.
-+ [ ] `data/processed/m4_1_refactor_check.json` records the regression
++ [x] `data/processed/m4_1_refactor_check.json` records the regression
   comparison and provenance.
-+ [ ] `tests/test_refactor_regression.py` asserts golden metric compatibility.
++ [x] `tests/test_refactor_regression.py` asserts golden metric compatibility.
 
 **Out of scope**:
 
@@ -100,6 +104,8 @@ preserving current numeric behavior.
 ---
 
 ### M4.2: Key-Aligned Label Join
+
+**Status**: Pending
 
 **What**: Replace positional M3 label assignment with an explicit key-aligned
 join or a documented invariant check that proves positional files remain safe.
@@ -125,6 +131,8 @@ join or a documented invariant check that proves positional files remain safe.
 ---
 
 ### M4.3: Timestamp-Based Value-Change Regime
+
+**Status**: Pending
 
 **What**: Add timestamp-merge value-change features as an explicit regime and
 evaluate whether the current row-offset approximation moves M3.2 beyond the
@@ -153,6 +161,8 @@ noise floor.
 
 ### M4.4: Dead-Code and Sampling Semantics Review
 
+**Status**: Pending
+
 **What**: Decide whether to remove or preserve StandardScaler and the current
 positive-duplication downsample pattern.
 
@@ -177,6 +187,8 @@ positive-duplication downsample pattern.
 ---
 
 ### M4.5: M5 Readiness Gate
+
+**Status**: Pending
 
 **What**: Freeze the importable API and document the extension points needed by
 M5 FDD on BDG2.
@@ -217,12 +229,12 @@ M5 FDD on BDG2.
 
 | Slice | Proposed issue | Status |
 |---|---|---|
-| M4.0 baseline lock | TBD | In progress |
-| M4.1 extract `src/lead` | TBD | In progress |
-| M4.2 key-aligned label join | TBD | Planned |
-| M4.3 timestamp value-change | TBD | Planned |
-| M4.4 dead-code/sampling review | TBD | Planned |
-| M4.5 M5 readiness gate | TBD | Planned |
+| M4.0 baseline lock | TBD | Done |
+| M4.1 extract `src/lead` | TBD | Done |
+| M4.2 key-aligned label join | TBD | Pending |
+| M4.3 timestamp value-change | TBD | Pending |
+| M4.4 dead-code/sampling review | TBD | Pending |
+| M4.5 M5 readiness gate | TBD | Pending |
 
 ---
 
