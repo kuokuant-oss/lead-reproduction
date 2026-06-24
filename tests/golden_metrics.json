@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "milestone": "M4.0",
+  "purpose": "Golden regression fixture for behavior-preserving M4 refactors.",
+  "source_commit": "60cefbd60eef0067ae05c41b00b541608d1c184e",
+  "created_at": "2026-06-24",
+  "noise_floor_auc": 0.0005,
+  "metrics": {
+    "m3_2_lightgbm_80_20_offline_auc": {
+      "value": 0.992,
+      "display_value": 0.9920,
+      "source_file": "data/processed/m3_2_results.json",
+      "source_json_path": "val_auc_m32",
+      "source_commit": "60cefbd60eef0067ae05c41b00b541608d1c184e"
+    },
+    "m3_4_ensemble_80_20_offline_auc": {
+      "value": 0.9927886432126508,
+      "display_value": 0.9928,
+      "source_file": "data/processed/m3_4_results.json",
+      "source_json_path": "main.ensemble.val_auc",
+      "source_commit": "60cefbd60eef0067ae05c41b00b541608d1c184e"
+    },
+    "m3_50_50_offline_ensemble_auc": {
+      "value": 0.9921214897674221,
+      "display_value": 0.9921,
+      "source_file": "data/processed/m3_50_50_ensemble_results.json",
+      "source_json_path": "regimes.offline.run.ensemble.val_auc",
+      "source_commit": "60cefbd60eef0067ae05c41b00b541608d1c184e",
+      "reported_source_file": "docs/m3-50-50-ensemble.json",
+      "reported_json_path": "metrics.offline.ensemble_auc"
+    },
+    "m3_50_50_causal_ensemble_auc": {
+      "value": 0.9911191288873626,
+      "display_value": 0.9911,
+      "source_file": "data/processed/m3_50_50_ensemble_results.json",
+      "source_json_path": "regimes.causal.run.ensemble.val_auc",
+      "source_commit": "60cefbd60eef0067ae05c41b00b541608d1c184e",
+      "reported_source_file": "docs/m3-50-50-ensemble.json",
+      "reported_json_path": "metrics.causal.ensemble_auc"
+    },
+    "m3_site_heldout_ensemble_auc": {
+      "value": 0.9774130303789359,
+      "display_value": 0.9774,
+      "source_file": "data/processed/m3_5_results.json",
+      "source_json_path": "diagnostics.site_heldout_ensemble.run.ensemble.val_auc",
+      "source_commit": "60cefbd60eef0067ae05c41b00b541608d1c184e"
+    },
+    "m3_steam_meter_auc": {
+      "value": 0.955316374480766,
+      "display_value": 0.9553,
+      "source_file": "data/processed/m3_5_results.json",
+      "source_json_path": "diagnostics.per_meter_type_auc.steam.val_auc",
+      "source_commit": "60cefbd60eef0067ae05c41b00b541608d1c184e"
+    }
+  }
+}
