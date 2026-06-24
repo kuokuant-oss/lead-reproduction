@@ -13,7 +13,7 @@ import lightgbm as lgb
 from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import StandardScaler
 
-from run_m3_4_ensemble import (
+from lead import (
     BASELINE_FEATURE_COLS,
     DOWNSAMPLE_SEEDS,
     PROC,
@@ -22,8 +22,10 @@ from run_m3_4_ensemble import (
     add_value_change_features,
     classification_metrics,
     downsample_indices,
-    fit_predict_models,
     load_m3_frame,
+)
+from run_m3_4_ensemble import (
+    fit_predict_models,
     log,
 )
 
@@ -186,8 +188,8 @@ def run_site_heldout_ensemble(
     if building_overlap:
         raise AssertionError(f"building overlap: {sorted(building_overlap)[:5]}")
 
-    train_full = add_value_change_features(df.loc[~mask_val])
-    val_full = add_value_change_features(df.loc[mask_val])
+    train_full = add_value_change_features(df.loc[~mask_val], list(SHIFTS))
+    val_full = add_value_change_features(df.loc[mask_val], list(SHIFTS))
     if any(col not in train_full.columns for col in feature_cols):
         raise AssertionError("Site-held-out features do not match canonical features")
     y_train = train_full["anomaly"]
@@ -387,8 +389,8 @@ def main() -> None:
         raise AssertionError(f"building overlap: {sorted(overlap)[:5]}")
 
     log("Adding M3.2 offline value-change features")
-    train_full = add_value_change_features(df.loc[~mask_val])
-    val_full = add_value_change_features(df.loc[mask_val])
+    train_full = add_value_change_features(df.loc[~mask_val], list(SHIFTS))
+    val_full = add_value_change_features(df.loc[mask_val], list(SHIFTS))
     value_cols = [c for c in train_full.columns if c.startswith("lag_value_")]
     feature_cols = BASELINE_FEATURE_COLS + value_cols
     if len(feature_cols) != 137:
