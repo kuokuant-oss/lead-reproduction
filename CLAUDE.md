@@ -24,6 +24,7 @@ Agents working on this repo can assume:
 - Pre-commit will block bad commits → it's OK to attempt commit, see what fails
 - GitHub Actions runs same checks on push → push only after local pre-commit passes
 - See `.pre-commit-config.yaml` for the full hook list
+- Every slice must satisfy `docs/reference/change-checklist.md` before commit
 
 Permission philosophy (see `.claude/settings.local.json`):
 

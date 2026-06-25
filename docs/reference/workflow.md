@@ -354,3 +354,13 @@ M3 exploration 和 baseline 建立是後續工作的起點，預計沿用 M2 pip
 ---
 
 *最後更新：2026-05-29（M2 issues closed，M3 plan 建立，M3.2 value-change 啟動）*
+
+---
+
+## Mandatory close-out checklist
+
+Before any slice is committed, apply
+[`docs/reference/change-checklist.md`](./change-checklist.md). This checklist is
+the authoritative close-out gate for README freshness, plan tracker updates,
+ADR status, issue closure, handoff writing, provenance placement, CJK UTF-8 diff
+inspection, and local verification.

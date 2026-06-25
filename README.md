@@ -16,7 +16,7 @@
 | **M1** | 閱讀 paper 與 buds-lab code，建立 unknowns register 與 ADR framework | Closed | 17 個 unknowns、ADR 0001-0006、169-feature 組成釐清 |
 | **M2** | LEAD competition subset reproduction | Closed | Kaggle Private AUC `0.98616`，與原始解法 `0.98661` 的差距為 `0.05%` |
 | **M3** | Full ASHRAE GEPIII reproduction | Complete | M3.4 ensemble AUC `0.9928`；PI 50/50 ensemble offline `0.9921` / causal `0.9911`；post-processing 為 null result |
-| **M4** | Importable pipeline foundation | M4.1 complete | `src/lead` package 已抽出；M3.2/M3.4 regression gates 通過；M4.2 key-aligned label join 與 M4.3 timestamp value-change 尚未執行 |
+| **M4** | Importable pipeline foundation | M4.0-M4.3 complete | `src/lead` package 已抽出；M3.2/M3.4 regression gates 通過；M4.2 guarded positional label alignment 與 M4.3 timestamp value-change regime 已完成 |
 
 Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-reproduction/milestones)。
 
@@ -71,7 +71,7 @@ M3 從 ASHRAE GEPIII raw CSV 重建 feature engineering pipeline，使用 buildi
 
 M4 把 notebook 與 script 中重複的 M3 helper 抽到 `src/lead`，先保留既有行為，再為後續語意修正建立 regression gates。
 
-M4.1 已完成：
+M4.0-M4.3 complete：
 
 - `src/lead/data.py`：M3 data loading 與目前 positional label assignment。
 - `src/lead/features.py`：value-change feature generation。
@@ -80,7 +80,7 @@ M4.1 已完成：
 - `src/lead/evaluate.py`：AUC / precision / recall / F1 metrics。
 - `src/lead/io.py`：JSON provenance helper。
 
-M4.2 與 M4.3 尚未執行。ADR 0010 仍為 Proposed，記錄 key-aligned label join；ADR 0011 仍為 Proposed，記錄 timestamp-merge value-change semantics。
+M4.2 完成 guarded positional label alignment；ADR 0010 為 Accepted。M4.3 完成 timestamp-merge value-change regime 評估；ADR 0011 為 Accepted。
 
 ## 專案結構
 
@@ -97,6 +97,7 @@ docs/
 │   └── m4-evaluation-report.md
 ├── reference/
 │   ├── workflow.md
+│   ├── change-checklist.md
 │   ├── unknowns.md
 │   ├── paper-notes.md
 │   ├── feature-engineering-rules.md
@@ -143,7 +144,10 @@ src/lead/
 tests/
 ├── golden_metrics.json
 ├── test_refactor_regression.py
-└── test_call_arity.py
+├── test_call_arity.py
+├── test_label_join_integrity.py
+├── test_value_change_regimes.py
+└── test_readme_freshness.py
 
 data/
 ├── raw/        # gitignored
@@ -221,6 +225,7 @@ M4 regression fixtures：
 ```bash
 uv run python -m unittest tests.test_refactor_regression
 uv run python -m unittest tests.test_call_arity
+uv run python -m unittest tests.test_readme_freshness
 ```
 
 Golden regression values are tracked in [tests/golden_metrics.json](./tests/golden_metrics.json).
@@ -229,4 +234,4 @@ Golden regression values are tracked in [tests/golden_metrics.json](./tests/gold
 
 本復現遵守 one-shot inference：不做 Kaggle leaderboard probing，不用反覆提交測試集結果調參。設計決策記錄在 `docs/adr/`，未決問題記錄在 `docs/reference/unknowns.md`，歷史 handoff 記錄在 `docs/handoffs/`。
 
-完整工作方法見 [docs/reference/workflow.md](./docs/reference/workflow.md)。
+完整工作方法見 [docs/reference/workflow.md](./docs/reference/workflow.md)；每個 slice commit 前需套用 [docs/reference/change-checklist.md](./docs/reference/change-checklist.md)。

@@ -180,6 +180,9 @@ positive-duplication downsample pattern.
 + [ ] The downsample pattern `[negs1, pos, negs2, pos]` is documented as
   current behavior or replaced behind a regression gate.
 + [ ] Any behavior change has M3.2 and M3.4 regression evidence.
++ [ ] Close-out: apply `docs/reference/change-checklist.md`, update README/
+  tracker/ADR state as needed, write a handoff, run the verification gate, and
+  commit with `Closes #25`.
 
 **Out of scope**:
 
@@ -207,6 +210,9 @@ M5 FDD on BDG2.
 + [ ] Remaining M4 unknowns are either resolved or explicitly out of M5 scope.
 + [ ] M5 entry criteria name the expected data, label, split, and evaluation
   interfaces.
++ [ ] Close-out: apply `docs/reference/change-checklist.md`, update README/
+  tracker/ADR state as needed, write a handoff, run the verification gate, and
+  commit with `Closes #26`.
 
 **Out of scope**:
 
@@ -236,12 +242,13 @@ M5 FDD on BDG2.
 
 | Slice | Proposed issue | Status |
 |---|---|---|
-| M4.0 baseline lock | TBD | Done |
-| M4.1 extract `src/lead` | TBD | Done |
-| M4.2 key-aligned label join | TBD | Done |
-| M4.3 timestamp value-change | TBD | Done |
-| M4.4 dead-code/sampling review | TBD | Pending |
-| M4.5 M5 readiness gate | TBD | Pending |
+| M4 governance hardening | [#24](https://github.com/kuokuant-oss/lead-reproduction/issues/24) | In progress |
+| M4.0 baseline lock | Done before issue policy restored (see `docs/reference/change-checklist.md`) | Done |
+| M4.1 extract `src/lead` | Done before issue policy restored (see `docs/reference/change-checklist.md`) | Done |
+| M4.2 key-aligned label join | Done before issue policy restored (see `docs/reference/change-checklist.md`) | Done |
+| M4.3 timestamp value-change | Done before issue policy restored (see `docs/reference/change-checklist.md`) | Done |
+| M4.4 dead-code/sampling review | [#25](https://github.com/kuokuant-oss/lead-reproduction/issues/25) | Pending |
+| M4.5 M5 readiness gate | [#26](https://github.com/kuokuant-oss/lead-reproduction/issues/26) | Pending |
 
 ---
 
