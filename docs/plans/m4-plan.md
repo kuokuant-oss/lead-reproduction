@@ -1,6 +1,6 @@
 # M4 Plan: Importable Pipeline Foundation
 
-**Status**: M4.0-M4.2 done; M4.3-M4.5 pending
+**Status**: M4.0-M4.3 done; M4.4-M4.5 pending
 **Started**: 2026-06-24
 **Reference**:
 
@@ -133,7 +133,7 @@ join or a documented invariant check that proves positional files remain safe.
 
 ### M4.3: Timestamp-Based Value-Change Regime
 
-**Status**: Pending
+**Status**: Done
 
 **What**: Add timestamp-merge value-change features as an explicit regime and
 evaluate whether the current row-offset approximation moves M3.2 beyond the
@@ -141,12 +141,18 @@ noise floor.
 
 **Done when**:
 
-+ [ ] `add_value_change_features` supports the current row-offset regime and a
++ [x] `add_value_change_features` supports the current row-offset regime and a
   timestamp-merge regime.
-+ [ ] M3.2 AUC change is measured against `0.9920` with +/- `0.0005` gate.
-+ [ ] The M4 unknown about timestamp merge is resolved or carried with
++ [x] M3.2 AUC change is measured against `0.9920` with +/- `0.0005` gate.
++ [x] The M4 unknown about timestamp merge is resolved or carried with
   evidence.
-+ [ ] Offline and causal regime naming remains compatible with ADR 0007.
++ [x] Offline and causal regime naming remains compatible with ADR 0007.
+
+**Evidence**: `data/processed/m4_3_timestamp_value_change.json` measured both
+regimes in one M3.2 LightGBM 80/20 offline harness. Row-offset AUC was
+`0.9920119520500562` (`+0.000011952050056218688` vs golden `0.9920`);
+timestamp-merge AUC was `0.9924831086743003`; same-run regime Delta was
+`+0.00047115662424412896`, within the +/- `0.0005` noise floor.
 
 **Out of scope**:
 
@@ -233,7 +239,7 @@ M5 FDD on BDG2.
 | M4.0 baseline lock | TBD | Done |
 | M4.1 extract `src/lead` | TBD | Done |
 | M4.2 key-aligned label join | TBD | Done |
-| M4.3 timestamp value-change | TBD | Pending |
+| M4.3 timestamp value-change | TBD | Done |
 | M4.4 dead-code/sampling review | TBD | Pending |
 | M4.5 M5 readiness gate | TBD | Pending |
 

@@ -733,13 +733,23 @@ M2 milestone closed, lesson 8 added)
 value-change implementation with timestamp-merge semantics move M3.2 AUC beyond
 the +/- `0.0005` regression noise floor?
 
-**Status**: open
+**Status**: resolved-with-evidence (2026-06-25)
 
 **Why it matters**: M3.2 and M3.4 currently use row-offset shifts. That preserves
 the accepted M3 reproduction line but can cross timestamp holes inside a
 building's time series. M2.4 already contains a timestamp-merge implementation
 on the test side, so the repo has evidence that both semantics exist.
 
-**Resolution path**: M4.3. Add timestamp-merge value-change as an explicit
-regime, rerun the M3.2 gate, and compare against golden AUC `0.9920` with the
-M4 noise floor +/- `0.0005`.
+**M4.3 evidence**: `scripts/run_m4_3_timestamp_value_change.py` measured both
+regimes in one M3.2 LightGBM 80/20 offline harness with the same split, seeds,
+downsampling, model, and NaN treatment. The row-offset rerun produced AUC
+`0.9920119520500562`, Delta `+0.000011952050056218688` versus golden `0.9920`,
+so the environment sanity anchor passed. The timestamp-merge run produced AUC
+`0.9924831086743003`, with same-run regime Delta
+`+0.00047115662424412896` versus row-offset.
+
+**Resolution**: timestamp-merge improved this M3.2 run but stayed inside the
+M4 noise floor of +/- `0.0005`. Keep `row_offset` as the default reproduction
+regime and keep `timestamp_merge` as an explicit opt-in regime for cleaner
+hour-offset semantics. Result archive:
+`data/processed/m4_3_timestamp_value_change.json`.
