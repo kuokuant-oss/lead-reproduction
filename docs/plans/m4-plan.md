@@ -242,7 +242,7 @@ M5 FDD on BDG2.
 
 | Slice | Proposed issue | Status |
 |---|---|---|
-| M4 governance hardening | [#24](https://github.com/kuokuant-oss/lead-reproduction/issues/24) | In progress |
+| M4 governance hardening | [#24](https://github.com/kuokuant-oss/lead-reproduction/issues/24) | Done |
 | M4.0 baseline lock | Done before issue policy restored (see `docs/reference/change-checklist.md`) | Done |
 | M4.1 extract `src/lead` | Done before issue policy restored (see `docs/reference/change-checklist.md`) | Done |
 | M4.2 key-aligned label join | Done before issue policy restored (see `docs/reference/change-checklist.md`) | Done |
