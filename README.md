@@ -17,6 +17,7 @@
 | **M2** | LEAD competition subset reproduction | Closed | Kaggle Private AUC `0.98616`，與原始解法 `0.98661` 的差距為 `0.05%` |
 | **M3** | Full ASHRAE GEPIII reproduction | Complete | M3.4 ensemble AUC `0.9928`；PI 50/50 ensemble offline `0.9921` / causal `0.9911`；post-processing 為 null result |
 | **M4** | Importable pipeline foundation | M4.0-M4.3 complete | `src/lead` package 已抽出；M3.2/M3.4 regression gates 通過；M4.2 guarded positional label alignment 與 M4.3 timestamp value-change regime 已完成 |
+| **M5** | FDD on BDG2 planning | Planned | 新增 TabPFN foundation-model benchmark track；ADR 0015 為 Proposed，成功標準是 rigorous benchmark + transfer evaluation |
 
 Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-reproduction/milestones)。
 
@@ -27,6 +28,7 @@ Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-r
 - **M4 評估報告**：[docs/reports/m4-evaluation-report.md](./docs/reports/m4-evaluation-report.md)
 - **工作方法**：[docs/reference/workflow.md](./docs/reference/workflow.md)
 - **M4 計畫**：[docs/plans/m4-plan.md](./docs/plans/m4-plan.md)
+- **M5 計畫**：[docs/plans/m5-plan.md](./docs/plans/m5-plan.md)
 
 ## Milestone 摘要
 
@@ -90,7 +92,8 @@ docs/
 │   ├── m1-plan.md
 │   ├── m2-plan.md
 │   ├── m3-plan.md
-│   └── m4-plan.md
+│   ├── m4-plan.md
+│   └── m5-plan.md
 ├── reports/
 │   ├── reproduction-report.md
 │   ├── m3-report.md
@@ -106,7 +109,7 @@ docs/
 │   ├── m3-50-50-ensemble.json
 │   └── m3-primary-use-auc.json
 ├── adr/
-│   └── 0001-0013 decision records
+│   └── 0001-0015 decision records
 ├── handoffs/
 │   └── historical session handoffs
 ├── agents/

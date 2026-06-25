@@ -753,3 +753,57 @@ M4 noise floor of +/- `0.0005`. Keep `row_offset` as the default reproduction
 regime and keep `timestamp_merge` as an explicit opt-in regime for cleaner
 hour-offset semantics. Result archive:
 `data/processed/m4_3_timestamp_value_change.json`.
+
+---
+
+## 19. TabPFN-3 fit for downsampled GEPIII scale
+
+**Question**: Does the downsampled GEPIII feature table expected for M5 fit
+TabPFN-3's documented row/feature limits?
+
+**Status**: open
+
+**Why it matters**: Prior Labs documents TabPFN-3 limits as `1,000,000 x 200`,
+`100,000 x 2,000`, or `1,000 x 20,000` rows x features. The TabPFN-3 report
+describes 1M-row scaling on H100-class hardware, not on a laptop GPU. M5 must
+measure the actual downsampled GEPIII row count and feature count before
+claiming feasibility.
+
+**Next evidence needed**: Record downsampled train rows, feature count, and
+intended device class before any M5 TabPFN benchmark.
+
+---
+
+## 20. GPU, VRAM, and local-vs-cloud execution for TabPFN
+
+**Question**: What hardware and access path can support a local TabPFN
+feasibility spike without changing the core reproduction environment?
+
+**Status**: open
+
+**Why it matters**: TabPFN documentation recommends GPU execution and says CPU is
+only feasible for small datasets around 1,000 samples. TabPFN-3 weights require
+license acceptance/token setup. Any TabPFN Client or cloud path could send data
+off-machine and therefore requires explicit consent.
+
+**Next evidence needed**: For Phase C or later, record torch version, CUDA
+availability, GPU name, VRAM, `TABPFN_TOKEN`/license access path, and whether
+execution is local or cloud.
+
+---
+
+## 21. Real-time FDD latency for in-context TabPFN inference
+
+**Question**: Can TabPFN support causal or real-time FDD latency when each
+prediction batch recomputes against the in-context training set?
+
+**Status**: open
+
+**Why it matters**: M3 separated offline and causal value-change regimes in ADR
+0007. A TabPFN model-stage comparison must preserve upstream `PAST_SHIFTS`
+discipline, but model latency may still prevent real-time use even if features
+are causal.
+
+**Next evidence needed**: Measure fit+predict wall-clock, train rows, feature
+count, batch size, and device during the LEAD feasibility spike before making
+any real-time claim.
