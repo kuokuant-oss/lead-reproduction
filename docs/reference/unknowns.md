@@ -846,4 +846,57 @@ any real-time FDD use, independent of accuracy. See
 GPU and remains far too slow for real-time FDD as configured. It is not a
 real-time FDD claim: any real-time FDD result still requires `PAST_SHIFTS`-only
 causal features per ADR 0007 and ADR 0011, and would require an
-order-of-magnitude inference-latency reduction (deferred to the BDG2 milestone).
+order-of-magnitude inference-latency reduction (deferred to Phase E, BDG2).
+
+---
+
+## 22. BDG2 Fox per-row anomaly/fault labels
+
+**Question**: Does the BDG2 (Building Data Genome 2) Fox subset provide a per-row
+anomaly/fault label, or only raw meter readings?
+
+**Status**: open (M5 Phase E gate; 2026-06-26)
+
+**Why it matters**: This is the highest-priority Phase E gate. The label answer
+decides the entire evaluation paradigm (see #23) and whether supervised AUC is
+even available on BDG2. Phase D used GEPIII `bad_meter_readings.csv` per-row
+labels; BDG2 may not offer an equivalent. No BDG2 ingestion may start until this
+is resolved.
+
+**Next**: confirm from the BDG2 source documentation before any ingestion work.
+
+---
+
+## 23. BDG2 evaluation paradigm
+
+**Question**: Which evaluation paradigm applies to BDG2 — (a) supervised AUC with
+per-row labels, (b) forecasting-residual scoring from readings only, or (c)
+unsupervised / apply a GEPIII-trained detector with no BDG2 ground truth?
+
+**Status**: open (M5 Phase E gate; depends on #22; 2026-06-26)
+
+**Why it matters**: The paradigm choice determines metrics, the transfer-evaluation
+contract, and what a "result" means. It must be recorded as an ADR at Phase E
+start, chosen from the three options above according to the #22 label result.
+
+**Next**: record the decision as an ADR once #22 is known.
+
+---
+
+## 24. BDG2 ingestion source and schema
+
+**Question**: What is the approved BDG2 data source, and how does its schema align
+to `load_m3_frame` (site/building keys, weather, meter, optional label merge,
+site-held-out split)?
+
+**Status**: open (M5 Phase E gate; 2026-06-26)
+
+**Why it matters**: Phase E rebuilds the retired `lead.bdg2` skeleton (issue #34)
+but on real data, owned by a single named owner. The ingestion contract must name
+the source and schema mapping explicitly before code is written, so the loader is
+not built against a guessed schema. The M3 site-held-out anchor `0.9774` and the
+Phase D cross-site `0.9833` are internal references only — `site_id % 5 == 4` is a
+GEPIII-internal hold-out, not cross-dataset transfer; BDG2 is the first true
+cross-dataset test.
+
+**Next**: define and approve the ingestion contract at Phase E start.

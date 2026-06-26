@@ -30,6 +30,14 @@ candidate for label-scarce and cross-site settings, not a GBDT replacement. The
 deferred BDG2 ingestion skeleton (Phase D slice 1) was retired as premature
 (issue #34) before this comparison.
 
+Framing note (2026-06-26, issue #36): this milestone is **FDD on BDG2**. The
+GEPIII TabPFN-vs-GBDT comparison is M5's FDD *model-selection stage* (the model
+track, Phase A–D), now complete — TabPFN is one compared FDD model, not the
+milestone's goal or an independent track. The BDG2 transfer is M5's **next stage,
+Phase E**, not a separate milestone. The real-time deployment candidate remains
+GBDT; TabPFN is positioned as an offline / label-scarce bootstrapper, bounded by
+its inference latency and the TabPFN-3.0 research/internal-use license.
+
 ## Context
 
 M5 is expected to move from reproduction toward FDD on BDG2. The M4 foundation

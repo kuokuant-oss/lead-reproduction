@@ -156,7 +156,7 @@ it is much slower at inference, and it does not lower the feature-engineering
 burden in this task. That is the intended use of this comparison: a rigorous,
 multi-axis read, not a headline claim.
 
-## Deferred to the later BDG2 scale-out milestone
+## Deferred to Phase E (BDG2), M5's next stage
 
 + Real cross-**dataset** transfer to BDG2 (different buildings, sites, meters),
   with real BDG2 data, schema, and labels — not the retired synthetic skeleton.
