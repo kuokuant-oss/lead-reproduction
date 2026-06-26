@@ -761,7 +761,7 @@ hour-offset semantics. Result archive:
 **Question**: Does the downsampled GEPIII feature table expected for M5 fit
 TabPFN-3's documented row/feature limits?
 
-**Status**: partially-resolved-with-evidence (M5 Phase C; 2026-06-26)
+**Status**: resolved-with-evidence (M5 Phase C; 2026-06-26)
 
 **Why it matters**: Prior Labs documents TabPFN-3 limits as `1,000,000 x 200`,
 `100,000 x 2,000`, or `1,000 x 20,000` rows x features. The TabPFN-3 report
@@ -773,13 +773,13 @@ claiming feasibility.
 feature table through the frozen `src/lead` helpers with the 80/20 mod5 split,
 row-offset value-change regime, and M3 downsampling seeds. The measured
 downsampled training table is `4,285,104 x 137`, so it does **not** fit the
-documented TabPFN-3 `1,000,000 x 200` limit. The local CPU feasibility table was
-therefore reduced to `1,000 x 137`, which fits the documented small-table limit.
-Result archive: `data/processed/m5_phaseC_tabpfn_spike.json`.
+documented TabPFN-3 `1,000,000 x 200` limit. The local feasibility table was
+therefore reduced to `1,000 x 137`, which fits the documented small-table limit
+and produced a real local TabPFN metric. Result archive:
+`data/processed/m5_phaseC_tabpfn_spike.json`.
 
-**Remaining evidence needed**: A completed TabPFN metric still requires accepted
-license/token access and local weights. The row/feature fit question is answered
-for the full M3 downsample and for the reduced local spike table.
+**Resolution**: The full M3 downsample does not fit documented TabPFN-3 limits;
+the bounded Phase C table fits and is the defensible local feasibility table.
 
 ---
 
@@ -788,25 +788,22 @@ for the full M3 downsample and for the reduced local spike table.
 **Question**: What hardware and access path can support a local TabPFN
 feasibility spike without changing the core reproduction environment?
 
-**Status**: partially-resolved-with-evidence (M5 Phase C; 2026-06-26)
+**Status**: resolved-with-evidence (M5 Phase C; 2026-06-26)
 
 **Why it matters**: TabPFN documentation recommends GPU execution and says CPU is
 only feasible for small datasets around 1,000 samples. TabPFN-3 weights require
 license acceptance/token setup. Any TabPFN Client or cloud path could send data
 off-machine and therefore requires explicit consent.
 
-**M5 Phase C evidence**: Optional dependencies were isolated in the `m5` uv
-group and installed with `uv sync --group m5`, resolving `tabpfn==8.0.8` and
-`torch==2.12.1+cpu`. `nvidia-smi` sees `NVIDIA GeForce RTX 4070 Laptop GPU,
-8188 MiB`, but the installed PyTorch wheel is CPU-only (`cuda_available=false`,
-`cuda_device_count=0`). `TABPFN_TOKEN` was not set. The first attempted TabPFN
-fit opened Prior Labs' browser license flow and failed in noninteractive
-PowerShell before any local weights were downloaded. No TabPFN Client/cloud path
-was used.
+**M5 Phase C evidence**: Optional dependencies remain isolated in the `m5` uv
+group. The local run used accepted local weights copied to `.tabpfn-cache/`,
+with `TABPFN_NO_BROWSER=1`, `TABPFN_DISABLE_TELEMETRY=1`, and no `TABPFN_TOKEN`.
+No TabPFN Client/cloud path was used. The environment recorded
+`tabpfn==8.0.8`, `torch==2.7.1+cu128`, `cuda_available=true`, and
+`NVIDIA GeForce RTX 4070 Laptop GPU` with `8187` MiB VRAM.
 
-**Remaining evidence needed**: Accept the TabPFN license and provide a local
-`TABPFN_TOKEN` or cached local weights, then rerun the spike. If GPU execution is
-required, install a CUDA-enabled torch build in the optional M5 environment.
+**Resolution**: Local-weights GPU execution is available for the bounded Phase C
+table without data egress. Checkpoints stay gitignored under `.tabpfn-cache/`.
 
 ---
 
@@ -815,7 +812,7 @@ required, install a CUDA-enabled torch build in the optional M5 environment.
 **Question**: Can TabPFN support causal or real-time FDD latency when each
 prediction batch recomputes against the in-context training set?
 
-**Status**: blocked-on-license-token (M5 Phase C; 2026-06-26)
+**Status**: resolved-with-gpu-latency-caveat (M5 Phase C; 2026-06-26)
 
 **Why it matters**: M3 separated offline and causal value-change regimes in ADR
 0007. A TabPFN model-stage comparison must preserve upstream `PAST_SHIFTS`
@@ -824,14 +821,14 @@ are causal.
 
 **M5 Phase C evidence**: The reduced local comparison table is `1,000 x 137`
 with `1,000` validation rows, batch size recorded as `256`, device recorded as
-CPU, and value-change regime recorded as offline `row_offset`. The paired GBDT
-anchor completed on the same local table with AUC `0.986955266955267`,
-precision `0.5196078431372549`, recall `0.9636363636363636`, F1
-`0.6751592356687898`, and fit+predict wall-clock `0.7817001000512391` seconds.
-TabPFN fit+predict latency is not measured because the run stopped at missing
-license/token access before local weights loaded.
+CUDA, and value-change regime recorded as offline `row_offset`. The paired GBDT
+anchor completed on the same table with AUC `0.986955266955267`, precision
+`0.5196078431372549`, recall `0.9636363636363636`, F1 `0.6751592356687898`,
+and fit+predict wall-clock `0.8137212998699397` seconds. TabPFN completed on the
+same table with AUC `0.9904377104377105`, precision `0.5196078431372549`,
+recall `0.9636363636363636`, F1 `0.6751592356687898`, and fit+predict
+wall-clock `8.195373600116` seconds.
 
-**Remaining evidence needed**: After local TabPFN license/token setup, rerun the
-same script and record TabPFN fit+predict seconds on the same reduced table.
-Any real-time FDD claim still requires `PAST_SHIFTS`-only causal features per
-ADR 0007 and ADR 0011; this Phase C evidence is an offline feasibility probe.
+**Resolution**: The bounded offline TabPFN latency signal is measured on local
+GPU. It is not a real-time FDD claim: any real-time FDD result still requires
+`PAST_SHIFTS`-only causal features per ADR 0007 and ADR 0011.

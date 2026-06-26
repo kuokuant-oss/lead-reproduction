@@ -134,8 +134,33 @@ settings.
   limit.
 + [x] Archived local feasibility evidence to
   `data/processed/m5_phaseC_tabpfn_spike.json`.
-+ [ ] Complete TabPFN metric and latency: blocked on Prior Labs
-  license/token setup (`TABPFN_TOKEN` or cached local weights).
++ [x] Completed local-weights TabPFN metric on the same reduced `1,000 x 137`
+  table as the GBDT anchor: TabPFN AUC `0.9904`, GBDT AUC `0.9870`, TabPFN
+  fit+predict `8.1954` seconds on RTX 4070 Laptop GPU.
+
+---
+
+## Phase D plan slice
+
+**Status**: Ready to implement, not started
+**GitHub Issue**: [#31](https://github.com/kuokuant-oss/lead-reproduction/issues/31)
+
+Phase D is docs-only in this commit. It defines the next M5 contribution beyond
+the LEAD/M3 feasibility spike and does not download BDG2 data, install
+BDG2-specific dependencies, or run new experiments.
+
+Phase D implementation should cover:
+
++ BDG2 ingestion design: a `load_m3_frame`-style loader for BDG2 tabular frames
+  that explicitly allows unlabeled and transfer evaluation. BDG2 must not be
+  assumed to provide a 1:1 per-row anomaly label column.
++ Primary contribution: few-shot transfer to held-out or unlabeled sites,
+  comparing TabPFN in-context adaptation against GBDT retrain and GBDT transfer.
+  The motivating anchor remains the M3 site-held-out ensemble AUC `0.9774`.
++ Minimal-feature-engineering comparison: evaluate TabPFN with a smaller feature
+  set against the tuned GBDT line without overclaiming headline AUC.
++ Causal discipline: any real-time FDD claim must use `PAST_SHIFTS`-only
+  features per ADR 0007 and ADR 0011.
 
 ---
 
@@ -144,4 +169,5 @@ settings.
 | Slice | GitHub issue | Status |
 | --- | --- | --- |
 | Phase B foundation-model planning | [#27](https://github.com/kuokuant-oss/lead-reproduction/issues/27) | Done |
-| Phase C LEAD TabPFN feasibility spike | [#30](https://github.com/kuokuant-oss/lead-reproduction/issues/30) | Blocked on local TabPFN license/token |
+| Phase C LEAD TabPFN feasibility spike | [#30](https://github.com/kuokuant-oss/lead-reproduction/issues/30) | Done |
+| Phase D BDG2 transfer and minimal-feature plan | [#31](https://github.com/kuokuant-oss/lead-reproduction/issues/31) | Ready to implement, not started |

@@ -17,7 +17,7 @@
 | **M2** | LEAD competition subset reproduction | Closed | Kaggle Private AUC `0.98616`，與原始解法 `0.98661` 的差距為 `0.05%` |
 | **M3** | Full ASHRAE GEPIII reproduction | Complete | M3.4 ensemble AUC `0.9928`；PI 50/50 ensemble offline `0.9921` / causal `0.9911`；post-processing 為 null result |
 | **M4** | Importable pipeline foundation | M4.0-M4.5 complete | `src/lead` public API frozen; M3.2/M3.4 regression gates pass; M4.2-M4.5 closed |
-| **M5** | FDD on BDG2 / TabPFN model track | Phase C blocked on token | M5 Phase C measured the M3 TabPFN fit shape; local TabPFN metrics require Prior Labs license/token setup |
+| **M5** | FDD on BDG2 / TabPFN model track | Phase C complete | Local GPU spike on the same `1,000 x 137` table: TabPFN AUC `0.9904` vs GBDT `0.9870`; Phase D ready to plan |
 
 Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-reproduction/milestones)。
 

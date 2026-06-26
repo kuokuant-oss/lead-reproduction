@@ -38,6 +38,16 @@ class TestM5TabPFNSpike(unittest.TestCase):
         self.assertIn('VALUE_CHANGE_REGIME = "row_offset"', source)
         self.assertIn("list(SHIFTS)", source)
 
+    def test_runner_supports_local_checkpoint_without_token(self) -> None:
+        source = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn("--model-path", source)
+        self.assertIn("TABPFN_MODEL_CACHE_DIR", source)
+        self.assertIn("local_checkpoint_available", source)
+        self.assertIn("not_run_missing_weights_and_token", source)
+        self.assertIn(
+            "model_path=model_path if local_checkpoint_available else None", source
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

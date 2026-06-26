@@ -2,13 +2,14 @@
 
 ## Status
 
-Proposed
+Accepted
 
-Phase C note (2026-06-26): this ADR remains Proposed. The LEAD/M3 feasibility
-spike measured row/feature fit and local environment constraints, but did not
-produce a completed TabPFN metric because local inference requires Prior Labs
-license/token acceptance before weights can be downloaded. Keep the model-track
-decision provisional until a local TabPFN run completes.
+Phase C note (2026-06-26): accepted after a completed LEAD/M3 local spike on
+the same reduced `1,000 x 137` table as the paired GBDT anchor. The run used
+local weights only, no TabPFN Client or cloud path. TabPFN AUC was `0.9904`
+versus GBDT AUC `0.9870`; TabPFN fit+predict wall-clock was `8.1954` seconds on
+an RTX 4070 Laptop GPU. This is an offline feasibility result, not a real-time
+FDD claim.
 
 ## Context
 
@@ -75,8 +76,8 @@ visible instead of hiding them inside a model comparison.
   egress consent must be tracked before implementation.
 + Phase C found that the full M3 downsampled table is `4,285,104 x 137`, which
   exceeds the documented TabPFN-3 `1,000,000 x 200` limit. The reduced
-  `1,000 x 137` CPU table fits, but local TabPFN metrics remain blocked on
-  license/token setup.
+  `1,000 x 137` local table fits and produced a completed local GPU TabPFN
+  metric.
 
 ## References
 

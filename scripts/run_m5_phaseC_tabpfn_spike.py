@@ -46,6 +46,12 @@ def log(message: str) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
+    default_model_path = (
+        Path(os.environ["TABPFN_MODEL_CACHE_DIR"])
+        / "tabpfn-v3-classifier-v3_default.ckpt"
+        if os.environ.get("TABPFN_MODEL_CACHE_DIR")
+        else None
+    )
     parser.add_argument(
         "--out",
         type=Path,
@@ -91,6 +97,15 @@ def parse_args() -> argparse.Namespace:
         "--allow-tabpfn-failure",
         action="store_true",
         help="Archive TabPFN failure evidence instead of exiting non-zero.",
+    )
+    parser.add_argument(
+        "--model-path",
+        type=Path,
+        default=default_model_path,
+        help=(
+            "Local TabPFN checkpoint path. Defaults to "
+            "$TABPFN_MODEL_CACHE_DIR/tabpfn-v3-classifier-v3_default.ckpt."
+        ),
     )
     return parser.parse_args()
 
@@ -144,6 +159,8 @@ def torch_environment() -> dict[str, Any]:
         "tabpfn_token_present": bool(os.environ.get("TABPFN_TOKEN")),
         "execution_path": "local",
         "cloud_client_used": False,
+        "tabpfn_no_browser": bool(os.environ.get("TABPFN_NO_BROWSER")),
+        "tabpfn_disable_telemetry": bool(os.environ.get("TABPFN_DISABLE_TELEMETRY")),
     }
     try:
         smi = subprocess.run(
@@ -208,18 +225,25 @@ def fit_gbdt(x_train, y_train, x_val, y_val) -> dict[str, Any]:
     }
 
 
-def tabpfn_classifier(device: str):
+def tabpfn_classifier(device: str, model_path: Path | None):
     from tabpfn import TabPFNClassifier
 
+    kwargs: dict[str, Any] = {"device": device}
+    if model_path is not None:
+        kwargs["model_path"] = model_path
     try:
-        return TabPFNClassifier(device=device)
+        return TabPFNClassifier(**kwargs)
     except TypeError:
+        if model_path is not None:
+            raise
         return TabPFNClassifier()
 
 
-def fit_tabpfn(x_train, y_train, x_val, y_val, *, device: str) -> dict[str, Any]:
+def fit_tabpfn(
+    x_train, y_train, x_val, y_val, *, device: str, model_path: Path | None
+) -> dict[str, Any]:
     t0 = time.perf_counter()
-    model = tabpfn_classifier(device)
+    model = tabpfn_classifier(device, model_path)
     model.fit(x_train, y_train)
     pred = model.predict_proba(x_val)[:, 1]
     elapsed = time.perf_counter() - t0
@@ -276,6 +300,8 @@ def build_feature_table() -> dict[str, Any]:
 def main() -> None:
     args = parse_args()
     t0 = time.perf_counter()
+    model_path = args.model_path.resolve() if args.model_path is not None else None
+    local_checkpoint_available = bool(model_path is not None and model_path.is_file())
     table = build_feature_table()
     train_full = table["train_full"]
     val_full = table["val_full"]
@@ -334,6 +360,12 @@ def main() -> None:
     )
 
     env = torch_environment()
+    env.update(
+        {
+            "tabpfn_model_path": str(model_path) if model_path is not None else None,
+            "tabpfn_model_path_exists": local_checkpoint_available,
+        }
+    )
     tabpfn: dict[str, Any]
     if args.skip_tabpfn:
         tabpfn = {"status": "skipped_by_flag"}
@@ -344,12 +376,13 @@ def main() -> None:
                 name for name in ("torch", "tabpfn") if not env[f"{name}_installed"]
             ],
         }
-    elif not env["tabpfn_token_present"]:
+    elif not env["tabpfn_token_present"] and not local_checkpoint_available:
         tabpfn = {
-            "status": "not_run_missing_license_token",
+            "status": "not_run_missing_weights_and_token",
             "reason": (
-                "TABPFN_TOKEN is not set. The noninteractive runner does not "
-                "launch the browser-based license flow."
+                "TABPFN_TOKEN is not set and no readable local checkpoint was "
+                "provided. The noninteractive runner does not launch the "
+                "browser-based license flow."
             ),
         }
     else:
@@ -359,7 +392,15 @@ def main() -> None:
                 "status": "completed",
                 "batch_size": int(args.tabpfn_batch_size),
                 "device": device,
-                **fit_tabpfn(x_train, y_train, x_val, y_val, device=device),
+                "model_path": str(model_path) if model_path is not None else None,
+                **fit_tabpfn(
+                    x_train,
+                    y_train,
+                    x_val,
+                    y_val,
+                    device=device,
+                    model_path=model_path if local_checkpoint_available else None,
+                ),
             }
             log(
                 "TabPFN: "
@@ -375,6 +416,7 @@ def main() -> None:
                 "traceback": traceback.format_exc(limit=8),
                 "batch_size": int(args.tabpfn_batch_size),
                 "device": device,
+                "model_path": str(model_path) if model_path is not None else None,
             }
 
     results = {
@@ -434,6 +476,8 @@ def main() -> None:
                 "python scripts/run_m5_phaseC_tabpfn_spike.py "
                 f"--max-fit-rows {args.max_fit_rows} "
                 f"--max-val-rows {args.max_val_rows}"
+                f" --tabpfn-batch-size {args.tabpfn_batch_size}"
+                + (f" --model-path {model_path}" if model_path is not None else "")
             ),
         },
     )

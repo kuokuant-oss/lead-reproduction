@@ -245,3 +245,7 @@ models/*
 
 # Local task prompts
 m32a-m33-prompt.md
+
+# Local TabPFN checkpoints
+.tabpfn-cache/
+*.ckpt
