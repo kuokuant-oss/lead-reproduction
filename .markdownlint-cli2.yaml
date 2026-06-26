@@ -12,7 +12,12 @@ config:
   MD041: false   # first-line-h1: 允許檔案不以 # 開頭(例如 ADR)
   MD058: false   # blanks-around-tables: table 前後空行選擇性
 
+  MD060: false   # table-column-style: repo docs use compact and spaced tables
 ignores:
   - ".scratch/**"
   - ".agents/**"
+  - ".cache/**" # repo-local tool caches are generated, not documentation
+  - ".venv/**" # repo-local virtualenv is generated, not documentation
+  - ".uv-cache/**" # repo-local package caches are generated, not documentation
+  - "m32a-m33-prompt.md" # local ignored task prompt, not documentation
   - "node_modules/**"
