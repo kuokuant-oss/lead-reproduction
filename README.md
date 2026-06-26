@@ -17,7 +17,7 @@
 | **M2** | LEAD competition subset reproduction | Closed | Kaggle Private AUC `0.98616`，與原始解法 `0.98661` 的差距為 `0.05%` |
 | **M3** | Full ASHRAE GEPIII reproduction | Complete | M3.4 ensemble AUC `0.9928`；PI 50/50 ensemble offline `0.9921` / causal `0.9911`；post-processing 為 null result |
 | **M4** | Importable pipeline foundation | M4.0-M4.5 complete | `src/lead` public API frozen; M3.2/M3.4 regression gates pass; M4.2-M4.5 closed |
-| **M5** | FDD on BDG2 / TabPFN model track | Phase C complete | Local GPU spike on the same `1,000 x 137` table: TabPFN AUC `0.9904` vs GBDT `0.9870`; Phase D ready to plan |
+| **M5** | FDD on BDG2 / TabPFN model track | Phase D slice 1 complete | Phase C local GPU spike: TabPFN AUC `0.9904` vs GBDT `0.9870`; Phase D BDG2 ingestion skeleton added without full download |
 
 Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-reproduction/milestones)。
 
@@ -76,6 +76,7 @@ M4 把 notebook 與 script 中重複的 M3 helper 抽到 `src/lead`，先保留�
 M4.0-M4.5 complete:
 
 - `src/lead/data.py`：M3 data loading 與目前 positional label assignment。
+- `src/lead/bdg2.py`：BDG2 bounded single-site ingestion skeleton。
 - `src/lead/features.py`：value-change feature generation。
 - `src/lead/split.py`：building-level split helpers。
 - `src/lead/sample.py`：downsample index helper。
@@ -168,6 +169,7 @@ scripts/
 
 src/lead/
 ├── data.py
+├── bdg2.py
 ├── features.py
 ├── split.py
 ├── sample.py
@@ -176,6 +178,7 @@ src/lead/
 
 tests/
 ├── golden_metrics.json
+├── test_bdg2_loader.py
 ├── test_refactor_regression.py
 ├── test_call_arity.py
 ├── test_label_join_integrity.py

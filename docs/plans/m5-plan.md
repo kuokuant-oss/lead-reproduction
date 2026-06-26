@@ -146,7 +146,7 @@ settings.
 
 ## Phase D plan slice
 
-**Status**: Ready to implement, not started
+**Status**: Slice 1 complete; next implementation slice pending
 **GitHub Issue**: [#31](https://github.com/kuokuant-oss/lead-reproduction/issues/31)
 
 Phase D is docs-only in this commit. It defines the next M5 contribution beyond
@@ -166,6 +166,26 @@ Phase D implementation should cover:
 + Causal discipline: any real-time FDD claim must use `PAST_SHIFTS`-only
   features per ADR 0007 and ADR 0011.
 
+### Phase D slice 1: BDG2 ingestion skeleton
+
+**Status**: Complete
+**GitHub Issue**: [#33](https://github.com/kuokuant-oss/lead-reproduction/issues/33)
+
+Slice 1 adds a bounded `lead.bdg2.load_bdg2_frame` ingestion skeleton without
+changing the frozen `lead.__all__` public API. The loader accepts a local
+single-site CSV or fixture, supports unlabeled frames by default, can merge
+optional labels by `(building_id, meter, timestamp)`, and keeps full BDG2
+download behind an explicit unsupported `allow_download=True` gate.
+
+The smoke fixture mirrors the planned Fox/ASU-style single-site slice without
+pulling the full BDG2 corpus. Tests cover the unlabeled path, optional label
+alignment, building-level split compatibility, and site-held-out mask plumbing.
+
+Slice 2 should replace or supplement the fixture with an explicitly approved
+bounded real Fox/ASU data pull, then define the transfer-evaluation contract for
+held-out or unlabeled sites. It should keep offline and causal feature regimes
+explicit and reserve any real-time FDD claim for `PAST_SHIFTS`-only features.
+
 ---
 
 ## Issue Tracker Map (M5)
@@ -175,4 +195,5 @@ Phase D implementation should cover:
 | Phase B foundation-model planning | [#27](https://github.com/kuokuant-oss/lead-reproduction/issues/27) | Done |
 | Phase C LEAD TabPFN feasibility spike | [#30](https://github.com/kuokuant-oss/lead-reproduction/issues/30) | Done |
 | Phase C metric audit fix | [#32](https://github.com/kuokuant-oss/lead-reproduction/issues/32) | Done |
-| Phase D BDG2 transfer and minimal-feature plan | [#31](https://github.com/kuokuant-oss/lead-reproduction/issues/31) | Ready to implement, not started |
+| Phase D BDG2 transfer and minimal-feature plan | [#31](https://github.com/kuokuant-oss/lead-reproduction/issues/31) | In progress |
+| Phase D slice 1 BDG2 ingestion skeleton | [#33](https://github.com/kuokuant-oss/lead-reproduction/issues/33) | Done |
