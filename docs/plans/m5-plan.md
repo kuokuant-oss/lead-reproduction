@@ -146,45 +146,42 @@ settings.
 
 ## Phase D plan slice
 
-**Status**: Slice 1 complete; next implementation slice pending
-**GitHub Issue**: [#31](https://github.com/kuokuant-oss/lead-reproduction/issues/31)
+**Status**: In progress — foundation-vs-tree comparison on existing GEPIII data
+**GitHub Issue**: [#35](https://github.com/kuokuant-oss/lead-reproduction/issues/35)
 
-Phase D is docs-only in this commit. It defines the next M5 contribution beyond
-the LEAD/M3 feasibility spike and does not download BDG2 data, install
-BDG2-specific dependencies, or run new experiments.
+Phase D is the rigorous foundation-model (TabPFN) vs tree-model (GBDT) comparison
+on the existing M3 GEPIII data. It is **not** docs-only and it does **not** add a
+new dataset. It runs real paired experiments through the frozen `src/lead`
+pipeline: `load_m3_frame`, `add_value_change_features`, the building-level
+`80_20_mod5` split and the site-held-out `site_id % 5 == 4` split,
+`downsample_indices`, and `classification_metrics` (PR-AUC computed additively in
+the harness). Every paired cell reuses the same split, seed, downsample, and
+feature table so the only variable is the model.
 
-Phase D implementation should cover:
+The data-scaling path is LEAD subset → full ASHRAE GEPIII (M3, done) → BDG2
+(later). BDG2 ingestion is **deferred to a later milestone** with real data, a
+real schema, and real labels; the premature `lead.bdg2` ingestion skeleton and
+its invented fixtures were retired under issue
+[#34](https://github.com/kuokuant-oss/lead-reproduction/issues/34).
 
-+ BDG2 ingestion design: a `load_m3_frame`-style loader for BDG2 tabular frames
-  that explicitly allows unlabeled and transfer evaluation. BDG2 must not be
-  assumed to provide a 1:1 per-row anomaly label column.
-+ Primary contribution: few-shot transfer to held-out or unlabeled sites,
-  comparing TabPFN in-context adaptation against GBDT retrain and GBDT transfer.
-  The motivating anchor remains the M3 site-held-out ensemble AUC `0.9774`.
-+ Minimal-feature-engineering comparison: evaluate TabPFN with a smaller feature
-  set against the tuned GBDT line without overclaiming headline AUC.
-+ Causal discipline: any real-time FDD claim must use `PAST_SHIFTS`-only
-  features per ADR 0007 and ADR 0011.
+Phase D comparison axes (each reports AUC, precision, recall, F1, PR-AUC, and
+fit+predict latency, with mean ± std across multiple seeds):
 
-### Phase D slice 1: BDG2 ingestion skeleton
+1. In-domain: TabPFN vs GBDT on the `80_20_mod5` split. The TabPFN fit set is
+   pushed well beyond the 1,000-row spike, within documented TabPFN-3 limits
+   (`1,000,000 × 200`); the subsample budget is recorded in the result JSON.
+2. Primary axis — site transfer: the site-held-out `site_id % 5 == 4` split
+   (M3 ensemble anchor AUC `0.9774`). TabPFN in-context adaptation vs GBDT
+   retrain vs GBDT transfer-without-retrain.
+3. Label scarcity / few-shot: shrink the labeled support set across several
+   sizes and report how each model degrades as labels get scarce.
+4. Minimal feature engineering: TabPFN on a reduced raw feature set vs the tuned
+   GBDT 137-feature line, quantifying the feature-engineering-burden difference.
 
-**Status**: Complete
-**GitHub Issue**: [#33](https://github.com/kuokuant-oss/lead-reproduction/issues/33)
-
-Slice 1 adds a bounded `lead.bdg2.load_bdg2_frame` ingestion skeleton without
-changing the frozen `lead.__all__` public API. The loader accepts a local
-single-site CSV or fixture, supports unlabeled frames by default, can merge
-optional labels by `(building_id, meter, timestamp)`, and keeps full BDG2
-download behind an explicit unsupported `allow_download=True` gate.
-
-The smoke fixture mirrors the planned Fox/ASU-style single-site slice without
-pulling the full BDG2 corpus. Tests cover the unlabeled path, optional label
-alignment, building-level split compatibility, and site-held-out mask plumbing.
-
-Slice 2 should replace or supplement the fixture with an explicitly approved
-bounded real Fox/ASU data pull, then define the transfer-evaluation contract for
-held-out or unlabeled sites. It should keep offline and causal feature regimes
-explicit and reserve any real-time FDD claim for `PAST_SHIFTS`-only features.
+Per ADR 0015, TabPFN is judged on transfer, label scarcity, and minimal feature
+engineering, not on a single headline AUC; tuned GBDT may still win raw AUC and
+the report says so honestly. Any real-time FDD claim must use `PAST_SHIFTS`-only
+features per ADR 0007 and ADR 0011, so offline and causal regimes stay explicit.
 
 ---
 
@@ -195,5 +192,7 @@ explicit and reserve any real-time FDD claim for `PAST_SHIFTS`-only features.
 | Phase B foundation-model planning | [#27](https://github.com/kuokuant-oss/lead-reproduction/issues/27) | Done |
 | Phase C LEAD TabPFN feasibility spike | [#30](https://github.com/kuokuant-oss/lead-reproduction/issues/30) | Done |
 | Phase C metric audit fix | [#32](https://github.com/kuokuant-oss/lead-reproduction/issues/32) | Done |
-| Phase D BDG2 transfer and minimal-feature plan | [#31](https://github.com/kuokuant-oss/lead-reproduction/issues/31) | In progress |
-| Phase D slice 1 BDG2 ingestion skeleton | [#33](https://github.com/kuokuant-oss/lead-reproduction/issues/33) | Done |
+| Phase D BDG2 transfer and minimal-feature plan | [#31](https://github.com/kuokuant-oss/lead-reproduction/issues/31) | Superseded by #35 |
+| Phase D slice 1 BDG2 ingestion skeleton | [#33](https://github.com/kuokuant-oss/lead-reproduction/issues/33) | Retired by #34 |
+| Phase D retire premature BDG2 skeleton | [#34](https://github.com/kuokuant-oss/lead-reproduction/issues/34) | Done |
+| Phase D TabPFN-vs-GBDT GEPIII comparison | [#35](https://github.com/kuokuant-oss/lead-reproduction/issues/35) | In progress |
