@@ -4,6 +4,12 @@
 
 Proposed
 
+Phase C note (2026-06-26): this ADR remains Proposed. The LEAD/M3 feasibility
+spike measured row/feature fit and local environment constraints, but did not
+produce a completed TabPFN metric because local inference requires Prior Labs
+license/token acceptance before weights can be downloaded. Keep the model-track
+decision provisional until a local TabPFN run completes.
+
 ## Context
 
 M5 is expected to move from reproduction toward FDD on BDG2. The M4 foundation
@@ -67,6 +73,10 @@ visible instead of hiding them inside a model comparison.
   spike result.
 + Unknowns for GEPIII row count fit, GPU/VRAM, inference latency, and data
   egress consent must be tracked before implementation.
++ Phase C found that the full M3 downsampled table is `4,285,104 x 137`, which
+  exceeds the documented TabPFN-3 `1,000,000 x 200` limit. The reduced
+  `1,000 x 137` CPU table fits, but local TabPFN metrics remain blocked on
+  license/token setup.
 
 ## References
 

@@ -124,9 +124,24 @@ settings.
 
 ---
 
+## Phase C status
+
++ [x] Opened issue [#30](https://github.com/kuokuant-oss/lead-reproduction/issues/30).
++ [x] Added optional `m5` dependency group for `torch` and `tabpfn`; install
+  with `uv sync --group m5`.
++ [x] Measured the M3.2 frozen-helper feature path: full downsample is
+  `4,285,104 x 137`, exceeding the documented TabPFN-3 `1,000,000 x 200`
+  limit.
++ [x] Archived local feasibility evidence to
+  `data/processed/m5_phaseC_tabpfn_spike.json`.
++ [ ] Complete TabPFN metric and latency: blocked on Prior Labs
+  license/token setup (`TABPFN_TOKEN` or cached local weights).
+
+---
+
 ## Issue Tracker Map (M5)
 
 | Slice | GitHub issue | Status |
 | --- | --- | --- |
 | Phase B foundation-model planning | [#27](https://github.com/kuokuant-oss/lead-reproduction/issues/27) | Done |
-| Phase C LEAD TabPFN feasibility spike | TBD | Pending after Phase B |
+| Phase C LEAD TabPFN feasibility spike | [#30](https://github.com/kuokuant-oss/lead-reproduction/issues/30) | Blocked on local TabPFN license/token |
