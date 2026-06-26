@@ -193,6 +193,7 @@ def main() -> None:
     ds_idx = downsample_indices(y_train)
     log(f"Downsampled train rows: {len(ds_idx):,}")
 
+    # Preserved for M3 numeric parity with the original script path.
     scaler = StandardScaler()
     x_train = scaler.fit_transform(train_full.loc[ds_idx, feature_cols])
     x_val = scaler.transform(val_full[feature_cols])

@@ -1,4 +1,10 @@
-"""Importable LEAD reproduction pipeline helpers."""
+"""Importable LEAD reproduction pipeline helpers.
+
+The exported helpers preserve M3 reproduction semantics by default. In
+particular, ``downsample_indices`` keeps the original positive-duplication
+sampling shape, and the M3 scripts keep ``StandardScaler`` in their fit path for
+numeric parity even though tree boosters such as LightGBM are scale-invariant.
+"""
 
 from .data import (
     BASELINE_FEATURE_COLS,

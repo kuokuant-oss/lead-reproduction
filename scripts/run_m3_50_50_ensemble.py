@@ -57,6 +57,7 @@ def run_regime(
     ds_idx = downsample_indices(y_train)
     log(f"{regime}: downsampled train rows: {len(ds_idx):,}")
 
+    # Preserved for M3 numeric parity with the original script path.
     scaler = StandardScaler()
     x_train = scaler.fit_transform(train_split.loc[ds_idx, feature_cols])
     x_val = scaler.transform(val_split[feature_cols])

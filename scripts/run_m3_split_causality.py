@@ -47,6 +47,7 @@ def fit_eval(
         y_fit = y_train
 
     ds_idx = downsample_indices(y_fit)
+    # Preserved for M3 numeric parity with the original script path.
     scaler = StandardScaler()
     x_train = scaler.fit_transform(train_df.loc[ds_idx, feature_cols])
     x_val = scaler.transform(val_df[feature_cols])

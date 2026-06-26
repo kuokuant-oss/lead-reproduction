@@ -1,0 +1,29 @@
+{
+  "slice": "M4.4",
+  "issue": 25,
+  "decision": "keep",
+  "behaviors": {
+    "standard_scaler": {
+      "decision": "preserve",
+      "reason": "M3 numeric parity with the accepted script path; tree boosters do not require scaling for split semantics, but removing the scaler would be a behavior change."
+    },
+    "downsample_indices": {
+      "decision": "preserve",
+      "pattern": "[negs1, pos, negs2, pos]",
+      "positive_rows_per_fit_set": 2,
+      "effective_positive_ratio": 0.5,
+      "reason": "Reproduction compatibility with the current M3 fit set."
+    }
+  },
+  "regression": {
+    "rerun_required": false,
+    "expected_m3_2_auc_delta": 0.0,
+    "expected_m3_4_auc_delta": 0.0,
+    "noise_floor_auc": 0.0005,
+    "reason": "No executable sampling, feature, label, or preprocessing behavior changed."
+  },
+  "source": {
+    "source_file": "tests/golden_metrics.json",
+    "source_commit": "53346cddad25feaf0b1e0e70f40d81de198568ac"
+  }
+}

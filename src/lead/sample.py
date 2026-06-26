@@ -9,7 +9,12 @@ from .data import DOWNSAMPLE_SEEDS
 
 
 def downsample_indices(y: pd.Series) -> np.ndarray:
-    """Preserve the current [negs1, pos, negs2, pos] downsample pattern."""
+    """Return the M3-compatible ``[negs1, pos, negs2, pos]`` fit index.
+
+    Positive rows are intentionally duplicated in both positive blocks. This is
+    a reproduction-compatibility choice that preserves the original solution's
+    effective 50:50 fit set without changing the accepted M3 numeric line.
+    """
     neg_idx = y.index[y == 0].to_numpy()
     pos_idx = y.index[y == 1].to_numpy()
     n_pos = len(pos_idx)

@@ -12,11 +12,11 @@
 ## 目前狀態
 
 | Milestone | 範圍 | 狀態 | 主要結果 |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **M1** | 閱讀 paper 與 buds-lab code，建立 unknowns register 與 ADR framework | Closed | 17 個 unknowns、ADR 0001-0006、169-feature 組成釐清 |
 | **M2** | LEAD competition subset reproduction | Closed | Kaggle Private AUC `0.98616`，與原始解法 `0.98661` 的差距為 `0.05%` |
 | **M3** | Full ASHRAE GEPIII reproduction | Complete | M3.4 ensemble AUC `0.9928`；PI 50/50 ensemble offline `0.9921` / causal `0.9911`；post-processing 為 null result |
-| **M4** | Importable pipeline foundation | M4.0-M4.3 complete | `src/lead` package 已抽出；M3.2/M3.4 regression gates 通過；M4.2 guarded positional label alignment 與 M4.3 timestamp value-change regime 已完成 |
+| **M4** | Importable pipeline foundation | M4.0-M4.4 complete | `src/lead` package 已抽出；M3.2/M3.4 regression gates 通過；M4.2 guarded positional label alignment、M4.3 timestamp value-change regime 與 M4.4 sampling/scaler compatibility review 已完成 |
 | **M5** | FDD on BDG2 planning | Planned | 新增 TabPFN foundation-model benchmark track；ADR 0015 為 Proposed，成功標準是 rigorous benchmark + transfer evaluation |
 
 Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-reproduction/milestones)。
@@ -73,7 +73,7 @@ M3 從 ASHRAE GEPIII raw CSV 重建 feature engineering pipeline，使用 buildi
 
 M4 把 notebook 與 script 中重複的 M3 helper 抽到 `src/lead`，先保留既有行為，再為後續語意修正建立 regression gates。
 
-M4.0-M4.3 complete：
+M4.0-M4.4 complete：
 
 - `src/lead/data.py`：M3 data loading 與目前 positional label assignment。
 - `src/lead/features.py`：value-change feature generation。
@@ -82,7 +82,7 @@ M4.0-M4.3 complete：
 - `src/lead/evaluate.py`：AUC / precision / recall / F1 metrics。
 - `src/lead/io.py`：JSON provenance helper。
 
-M4.2 完成 guarded positional label alignment；ADR 0010 為 Accepted。M4.3 完成 timestamp-merge value-change regime 評估；ADR 0011 為 Accepted。
+M4.2 完成 guarded positional label alignment；ADR 0010 為 Accepted。M4.3 完成 timestamp-merge value-change regime 評估；ADR 0011 為 Accepted。M4.4 保留 StandardScaler 與 positive-duplication sampling 相容行為；ADR 0016 為 Accepted。
 
 ## 專案結構
 

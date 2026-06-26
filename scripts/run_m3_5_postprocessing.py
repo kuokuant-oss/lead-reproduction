@@ -126,6 +126,7 @@ def fit_lightgbm_metrics(
         y_fit = y_train.sample(frac=1, random_state=label_shuffle_seed)
         y_fit.index = y_train.index
     ds_idx = downsample_indices(y_fit)
+    # Preserved for M3 numeric parity with the original script path.
     scaler = StandardScaler()
     x_train = scaler.fit_transform(train_full.loc[ds_idx, feature_cols])
     x_val = scaler.transform(val_full[feature_cols])
@@ -195,6 +196,7 @@ def run_site_heldout_ensemble(
     y_train = train_full["anomaly"]
     y_val = val_full["anomaly"]
     ds_idx = downsample_indices(y_train)
+    # Preserved for M3 numeric parity with the original script path.
     scaler = StandardScaler()
     x_train = scaler.fit_transform(train_full.loc[ds_idx, feature_cols])
     x_val = scaler.transform(val_full[feature_cols])
@@ -405,6 +407,7 @@ def main() -> None:
     ds_idx = downsample_indices(y_train)
     log(f"Downsampled train rows: {len(ds_idx):,}")
 
+    # Preserved for M3 numeric parity with the original script path.
     scaler = StandardScaler()
     x_train = scaler.fit_transform(train_full.loc[ds_idx, feature_cols])
     x_val = scaler.transform(val_full[feature_cols])

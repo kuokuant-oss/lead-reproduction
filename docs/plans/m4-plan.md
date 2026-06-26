@@ -1,6 +1,6 @@
 # M4 Plan: Importable Pipeline Foundation
 
-**Status**: M4.0-M4.3 done; M4.4-M4.5 pending
+**Status**: M4.0-M4.4 done; M4.5 pending
 **Started**: 2026-06-24
 **Reference**:
 
@@ -27,7 +27,7 @@ regression gates.
 Golden regression targets:
 
 | Metric | Target |
-|---|---:|
+| --- | ---: |
 | M3.2 LightGBM 80/20 offline AUC | 0.9920 |
 | M3.4 4-model ensemble 80/20 offline AUC | 0.9928 |
 | 50/50 offline ensemble AUC | 0.9921 |
@@ -168,21 +168,28 @@ timestamp-merge AUC was `0.9924831086743003`; same-run regime Delta was
 
 ### M4.4: Dead-Code and Sampling Semantics Review
 
-**Status**: Pending
+**Status**: Done
 
 **What**: Decide whether to remove or preserve StandardScaler and the current
 positive-duplication downsample pattern.
 
 **Done when**:
 
-+ [ ] The current `StandardScaler` behavior is either removed with regression
++ [x] The current `StandardScaler` behavior is either removed with regression
   proof or documented as intentionally preserved compatibility code.
-+ [ ] The downsample pattern `[negs1, pos, negs2, pos]` is documented as
++ [x] The downsample pattern `[negs1, pos, negs2, pos]` is documented as
   current behavior or replaced behind a regression gate.
-+ [ ] Any behavior change has M3.2 and M3.4 regression evidence.
-+ [ ] Close-out: apply `docs/reference/change-checklist.md`, update README/
++ [x] Any behavior change has M3.2 and M3.4 regression evidence.
++ [x] Close-out: apply `docs/reference/change-checklist.md`, update README/
   tracker/ADR state as needed, write a handoff, run the verification gate, and
   commit with `Closes #25`.
+
+**Evidence**: ADR 0016 records the keep/no-behavior-change decision.
+`tests/test_sampling_semantics.py` asserts the positive-duplication and 50:50
+fit-set semantics. `data/processed/m4_4_sampling_scaler_decision.json` records
+the decision and provenance. M3.2/M3.4 reruns were not required because the
+executable fit path remains unchanged; expected AUC delta is `0` within the
++/- `0.0005` noise floor.
 
 **Out of scope**:
 
@@ -241,13 +248,13 @@ M5 FDD on BDG2.
 ## Issue Tracker Map (M4)
 
 | Slice | Proposed issue | Status |
-|---|---|---|
+| --- | --- | --- |
 | M4 governance hardening | [#24](https://github.com/kuokuant-oss/lead-reproduction/issues/24) | Done |
 | M4.0 baseline lock | Done before issue policy restored (see `docs/reference/change-checklist.md`) | Done |
 | M4.1 extract `src/lead` | Done before issue policy restored (see `docs/reference/change-checklist.md`) | Done |
 | M4.2 key-aligned label join | Done before issue policy restored (see `docs/reference/change-checklist.md`) | Done |
 | M4.3 timestamp value-change | Done before issue policy restored (see `docs/reference/change-checklist.md`) | Done |
-| M4.4 dead-code/sampling review | [#25](https://github.com/kuokuant-oss/lead-reproduction/issues/25) | Pending |
+| M4.4 dead-code/sampling review | [#25](https://github.com/kuokuant-oss/lead-reproduction/issues/25) | Done |
 | M4.5 M5 readiness gate | [#26](https://github.com/kuokuant-oss/lead-reproduction/issues/26) | Pending |
 
 ---
