@@ -17,7 +17,7 @@
 | **M2** | LEAD competition subset reproduction | Closed | Kaggle Private AUC `0.98616`，與原始解法 `0.98661` 的差距為 `0.05%` |
 | **M3** | Full ASHRAE GEPIII reproduction | Complete | M3.4 ensemble AUC `0.9928`；PI 50/50 ensemble offline `0.9921` / causal `0.9911`；post-processing 為 null result |
 | **M4** | Importable pipeline foundation | M4.0-M4.5 complete | `src/lead` public API frozen; M3.2/M3.4 regression gates pass; M4.2-M4.5 closed |
-| **M5** | TabPFN foundation-model vs GBDT model track on GEPIII | Phase D in progress | Phase C local GPU spike: TabPFN AUC `0.9904` vs GBDT `0.9870`; Phase D refocused on a rigorous GEPIII foundation-vs-tree comparison; BDG2 scale-out deferred to a later milestone |
+| **M5** | TabPFN foundation-model vs GBDT model track on GEPIII | Phase D complete | Rigorous 4-axis TabPFN-vs-GBDT comparison on GEPIII (`docs/reports/m5-foundation-vs-gbdt.md`): TabPFN wins label scarcity (+0.100 PR-AUC at 200 labels) and true cross-site ROC-AUC (0.9833 vs 0.9797); GBDT keeps the latency and minimal-FE edge; BDG2 scale-out deferred |
 
 Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-reproduction/milestones)。
 
@@ -127,7 +127,8 @@ docs/
 ├── reports/
 │   ├── reproduction-report.md
 │   ├── m3-report.md
-│   └── m4-evaluation-report.md
+│   ├── m4-evaluation-report.md
+│   └── m5-foundation-vs-gbdt.md
 ├── reference/
 │   ├── workflow.md
 │   ├── change-checklist.md

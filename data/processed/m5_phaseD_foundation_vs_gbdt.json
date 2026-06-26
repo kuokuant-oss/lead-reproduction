@@ -1,0 +1,1499 @@
+{
+  "experiment": "m5_phaseD_foundation_vs_gbdt",
+  "issue": 35,
+  "scope": "Existing M3 GEPIII data only; no BDG2, no cloud; TabPFN local weights.",
+  "value_change_regime": "row_offset",
+  "budgets": {
+    "tabpfn_fit_rows": 10000,
+    "val_rows": 4000,
+    "scarcity_sizes": [
+      200,
+      500,
+      1000,
+      2000,
+      5000,
+      10000
+    ],
+    "seeds": [
+      42,
+      123,
+      999
+    ],
+    "val_seed": 42,
+    "downsampling_seeds": [
+      10,
+      20
+    ],
+    "tabpfn_fit_rows_rationale": "Balanced budget bounded by 8 GB laptop VRAM. 137 features <= 200 and the budget << 1,000,000 rows, so the run stays within the documented TabPFN-3 1,000,000 x 200 limit without ignore_pretraining_limits."
+  },
+  "in_domain_split": {
+    "name": "80_20_mod5",
+    "n_train_buildings": 1160,
+    "n_val_buildings": 289,
+    "n_train_rows": 16117081,
+    "n_val_rows": 4099019,
+    "train_anomaly_rate": 0.06646836359511998,
+    "val_anomaly_rate": 0.05933078134060857,
+    "building_overlap": 0
+  },
+  "full_downsample_shape": {
+    "downsampled_train_rows": 4285104,
+    "feature_count": 137,
+    "fits_documented_tabpfn3_limit": false,
+    "matching_limits": [],
+    "documented_limits": [
+      {
+        "max_rows": 1000000,
+        "max_features": 200
+      },
+      {
+        "max_rows": 100000,
+        "max_features": 2000
+      },
+      {
+        "max_rows": 1000,
+        "max_features": 20000
+      }
+    ]
+  },
+  "environment": {
+    "torch_installed": true,
+    "tabpfn_installed": true,
+    "tabpfn_token_present": false,
+    "execution_path": "local",
+    "cloud_client_used": false,
+    "tabpfn_no_browser": true,
+    "tabpfn_disable_telemetry": true,
+    "nvidia_smi_gpus": [
+      "NVIDIA GeForce RTX 4070 Laptop GPU, 8188 MiB"
+    ],
+    "tabpfn_version": "8.0.8",
+    "torch_version": "2.7.1+cu128",
+    "cuda_available": true,
+    "cuda_device_count": 1,
+    "device": "cuda",
+    "gpu_name": "NVIDIA GeForce RTX 4070 Laptop GPU",
+    "gpu_total_vram_mib": 8187,
+    "tabpfn_model_path": "C:\\Users\\tonykuo\\projects\\lead-reproduction\\.tabpfn-cache\\tabpfn-v3-classifier-v3_default.ckpt",
+    "tabpfn_model_path_exists": true
+  },
+  "axes": {
+    "in_domain": {
+      "description": "TabPFN vs GBDT, identical 80/20 table, balanced fit budget.",
+      "fit_rows_budget": 10000,
+      "val_rows": 4000,
+      "gbdt": {
+        "n_runs": 3,
+        "n_completed": 3,
+        "raw": [
+          {
+            "val_auc": 0.9870356603437198,
+            "precision_05": 0.6189189189189189,
+            "recall_05": 0.9662447257383966,
+            "f1_05": 0.7545304777594728,
+            "pr_auc": 0.9098191655565123,
+            "fit_predict_seconds": 2.9739256999455392,
+            "status": "completed",
+            "seed": 42,
+            "fit_rows": 10000
+          },
+          {
+            "val_auc": 0.9867239420921676,
+            "precision_05": 0.6432584269662921,
+            "recall_05": 0.9662447257383966,
+            "f1_05": 0.7723440134907251,
+            "pr_auc": 0.9114246735949686,
+            "fit_predict_seconds": 0.22650580015033484,
+            "status": "completed",
+            "seed": 123,
+            "fit_rows": 10000
+          },
+          {
+            "val_auc": 0.9894542800149355,
+            "precision_05": 0.6031746031746031,
+            "recall_05": 0.9620253164556962,
+            "f1_05": 0.7414634146341463,
+            "pr_auc": 0.9249709786211556,
+            "fit_predict_seconds": 0.23753080004826188,
+            "status": "completed",
+            "seed": 999,
+            "fit_rows": 10000
+          }
+        ],
+        "mean": {
+          "val_auc": 0.987737960816941,
+          "pr_auc": 0.9154049392575455,
+          "precision_05": 0.6217839830199381,
+          "recall_05": 0.9648382559774965,
+          "f1_05": 0.7561126352947815,
+          "fit_predict_seconds": 1.1459874333813787
+        },
+        "std": {
+          "val_auc": 0.0012202747666382712,
+          "pr_auc": 0.006795893164011657,
+          "precision_05": 0.0164890807641098,
+          "recall_05": 0.001989048610932599,
+          "f1_05": 0.01265649407182295,
+          "fit_predict_seconds": 1.2925553804854626
+        }
+      },
+      "tabpfn": {
+        "n_runs": 3,
+        "n_completed": 3,
+        "raw": [
+          {
+            "val_auc": 0.9930581018152542,
+            "precision_05": 0.6122994652406417,
+            "recall_05": 0.9662447257383966,
+            "f1_05": 0.7495908346972177,
+            "pr_auc": 0.9322309627455904,
+            "model_init_seconds": 1.8386776999104768,
+            "fit_seconds": 1.4153559999540448,
+            "predict_proba_seconds": 26.401235499884933,
+            "fit_predict_seconds": 29.655270899878815,
+            "status": "completed",
+            "seed": 42,
+            "fit_rows": 10000,
+            "device": "cuda",
+            "batch_size": 256
+          },
+          {
+            "val_auc": 0.9926936829959936,
+            "precision_05": 0.6172506738544474,
+            "recall_05": 0.9662447257383966,
+            "f1_05": 0.7532894736842105,
+            "pr_auc": 0.9219607575157588,
+            "model_init_seconds": 0.0017411999870091677,
+            "fit_seconds": 0.5188196999952197,
+            "predict_proba_seconds": 24.801503000082448,
+            "fit_predict_seconds": 25.322064999956638,
+            "status": "completed",
+            "seed": 123,
+            "fit_rows": 10000,
+            "device": "cuda",
+            "batch_size": 256
+          },
+          {
+            "val_auc": 0.9917534824423013,
+            "precision_05": 0.5968586387434555,
+            "recall_05": 0.9620253164556962,
+            "f1_05": 0.7366720516962844,
+            "pr_auc": 0.9217983393123814,
+            "model_init_seconds": 0.0015774001367390156,
+            "fit_seconds": 0.6588868999388069,
+            "predict_proba_seconds": 24.808104099938646,
+            "fit_predict_seconds": 25.46856930013746,
+            "status": "completed",
+            "seed": 999,
+            "fit_rows": 10000,
+            "device": "cuda",
+            "batch_size": 256
+          }
+        ],
+        "mean": {
+          "val_auc": 0.992501755751183,
+          "pr_auc": 0.9253300198579102,
+          "precision_05": 0.6088029259461816,
+          "recall_05": 0.9648382559774965,
+          "f1_05": 0.7465174533592375,
+          "fit_predict_seconds": 26.815301733324304,
+          "model_init_seconds": 0.613998766678075,
+          "fit_seconds": 0.8643541999626905,
+          "predict_proba_seconds": 25.33694753330201
+        },
+        "std": {
+          "val_auc": 0.0005496271327281355,
+          "pr_auc": 0.004880153991591164,
+          "precision_05": 0.008684396515984301,
+          "recall_05": 0.001989048610932599,
+          "f1_05": 0.007123619539610762,
+          "fit_predict_seconds": 2.0090519368976185,
+          "model_init_seconds": 0.865978781046833,
+          "fit_seconds": 0.39379092830273404,
+          "predict_proba_seconds": 0.7525700634004072
+        }
+      }
+    },
+    "label_scarcity": {
+      "description": "Degradation vs labeled support size; fixed val subsample.",
+      "val_rows": 4000,
+      "sizes": [
+        {
+          "support_size": 200,
+          "gbdt": {
+            "n_runs": 3,
+            "n_completed": 3,
+            "raw": [
+              {
+                "val_auc": 0.9640503638021104,
+                "precision_05": 0.4567404426559356,
+                "recall_05": 0.9578059071729957,
+                "f1_05": 0.6185286103542235,
+                "pr_auc": 0.645294065274376,
+                "fit_predict_seconds": 0.046200199984014034,
+                "status": "completed",
+                "seed": 42,
+                "fit_rows": 200
+              },
+              {
+                "val_auc": 0.9673615292583461,
+                "precision_05": 0.43564356435643564,
+                "recall_05": 0.9282700421940928,
+                "f1_05": 0.5929919137466307,
+                "pr_auc": 0.7125937491393264,
+                "fit_predict_seconds": 0.027462999802082777,
+                "status": "completed",
+                "seed": 123,
+                "fit_rows": 200
+              },
+              {
+                "val_auc": 0.9661740845518938,
+                "precision_05": 0.3892857142857143,
+                "recall_05": 0.919831223628692,
+                "f1_05": 0.5470514429109159,
+                "pr_auc": 0.7281827886444288,
+                "fit_predict_seconds": 0.02754200017079711,
+                "status": "completed",
+                "seed": 999,
+                "fit_rows": 200
+              }
+            ],
+            "mean": {
+              "val_auc": 0.9658619925374501,
+              "pr_auc": 0.6953568676860438,
+              "precision_05": 0.42722324043269516,
+              "recall_05": 0.9353023909985935,
+              "f1_05": 0.58619065567059,
+              "fit_predict_seconds": 0.033735066652297974
+            },
+            "std": {
+              "val_auc": 0.0013696727684016925,
+              "pr_auc": 0.03596727843614869,
+              "precision_05": 0.02817459240888999,
+              "recall_05": 0.016281064560886384,
+              "f1_05": 0.0295740787401438,
+              "fit_predict_seconds": 0.00881423931290191
+            }
+          },
+          "tabpfn": {
+            "n_runs": 3,
+            "n_completed": 3,
+            "raw": [
+              {
+                "val_auc": 0.9791563648269683,
+                "precision_05": 0.5066666666666667,
+                "recall_05": 0.9620253164556962,
+                "f1_05": 0.6637554585152838,
+                "pr_auc": 0.7659880262469201,
+                "model_init_seconds": 0.0011370000429451466,
+                "fit_seconds": 0.3411877998150885,
+                "predict_proba_seconds": 4.648025600006804,
+                "fit_predict_seconds": 4.990351000102237,
+                "status": "completed",
+                "seed": 42,
+                "fit_rows": 200,
+                "device": "cuda",
+                "batch_size": 256
+              },
+              {
+                "val_auc": 0.9808764216538784,
+                "precision_05": 0.5710659898477157,
+                "recall_05": 0.9493670886075949,
+                "f1_05": 0.7131537242472267,
+                "pr_auc": 0.8290228977672228,
+                "model_init_seconds": 0.001448499970138073,
+                "fit_seconds": 0.34095480013638735,
+                "predict_proba_seconds": 4.635084600187838,
+                "fit_predict_seconds": 4.9774887000676244,
+                "status": "completed",
+                "seed": 123,
+                "fit_rows": 200,
+                "device": "cuda",
+                "batch_size": 256
+              },
+              {
+                "val_auc": 0.9818283957386545,
+                "precision_05": 0.5136363636363637,
+                "recall_05": 0.9535864978902954,
+                "f1_05": 0.6676514032496307,
+                "pr_auc": 0.7910192911299639,
+                "model_init_seconds": 0.0014828999992460012,
+                "fit_seconds": 0.34915539994835854,
+                "predict_proba_seconds": 4.65647940011695,
+                "fit_predict_seconds": 5.00711839995347,
+                "status": "completed",
+                "seed": 999,
+                "fit_rows": 200,
+                "device": "cuda",
+                "batch_size": 256
+              }
+            ],
+            "mean": {
+              "val_auc": 0.9806203940731671,
+              "pr_auc": 0.7953434050480356,
+              "precision_05": 0.5304563400502487,
+              "recall_05": 0.9549929676511955,
+              "f1_05": 0.6815201953373804,
+              "fit_predict_seconds": 4.991652700041111,
+              "model_init_seconds": 0.0013561333374430735,
+              "fit_seconds": 0.34376599996661145,
+              "predict_proba_seconds": 4.646529866770531
+            },
+            "std": {
+              "val_auc": 0.0011057726981061246,
+              "pr_auc": 0.025914889256662396,
+              "precision_05": 0.02885598622431789,
+              "recall_05": 0.0052625279701462154,
+              "f1_05": 0.022424758784445244,
+              "fit_predict_seconds": 0.012131243296531506,
+              "model_init_seconds": 0.00015558575570789033,
+              "fit_seconds": 0.0038120682343499752,
+              "predict_proba_seconds": 0.008798192217240004
+            }
+          }
+        },
+        {
+          "support_size": 500,
+          "gbdt": {
+            "n_runs": 3,
+            "n_completed": 3,
+            "raw": [
+              {
+                "val_auc": 0.975194851939437,
+                "precision_05": 0.5219399538106235,
+                "recall_05": 0.9535864978902954,
+                "f1_05": 0.6746268656716418,
+                "pr_auc": 0.6959056539271344,
+                "fit_predict_seconds": 0.0733988001011312,
+                "status": "completed",
+                "seed": 42,
+                "fit_rows": 500
+              },
+              {
+                "val_auc": 0.9826413300277743,
+                "precision_05": 0.530373831775701,
+                "recall_05": 0.9578059071729957,
+                "f1_05": 0.6827067669172933,
+                "pr_auc": 0.7937927582477451,
+                "fit_predict_seconds": 0.07942349999211729,
+                "status": "completed",
+                "seed": 123,
+                "fit_rows": 500
+              },
+              {
+                "val_auc": 0.978074321255933,
+                "precision_05": 0.47761194029850745,
+                "recall_05": 0.9451476793248945,
+                "f1_05": 0.6345609065155807,
+                "pr_auc": 0.8108843229270724,
+                "fit_predict_seconds": 0.06758649996481836,
+                "status": "completed",
+                "seed": 999,
+                "fit_rows": 500
+              }
+            ],
+            "mean": {
+              "val_auc": 0.9786368344077148,
+              "pr_auc": 0.7668609117006506,
+              "precision_05": 0.5099752419616106,
+              "recall_05": 0.9521800281293952,
+              "f1_05": 0.6639648463681719,
+              "fit_predict_seconds": 0.07346960001935561
+            },
+            "std": {
+              "val_auc": 0.003065922891449116,
+              "pr_auc": 0.050655811447299276,
+              "precision_05": 0.023141881878032566,
+              "recall_05": 0.0052625279701461756,
+              "f1_05": 0.021051760974258513,
+              "fit_predict_seconds": 0.004832694340488484
+            }
+          },
+          "tabpfn": {
+            "n_runs": 3,
+            "n_completed": 3,
+            "raw": [
+              {
+                "val_auc": 0.9777794223345007,
+                "precision_05": 0.5498783454987834,
+                "recall_05": 0.9535864978902954,
+                "f1_05": 0.6975308641975309,
+                "pr_auc": 0.7928255810241368,
+                "model_init_seconds": 0.0015857000835239887,
+                "fit_seconds": 0.34250959986820817,
+                "predict_proba_seconds": 5.308220200007781,
+                "fit_predict_seconds": 5.652316800085828,
+                "status": "completed",
+                "seed": 42,
+                "fit_rows": 500,
+                "device": "cuda",
+                "batch_size": 256
+              },
+              {
+                "val_auc": 0.9874068068950284,
+                "precision_05": 0.5798969072164949,
+                "recall_05": 0.9493670886075949,
+                "f1_05": 0.72,
+                "pr_auc": 0.8595514079825859,
+                "model_init_seconds": 0.0017685999628156424,
+                "fit_seconds": 0.3296497000847012,
+                "predict_proba_seconds": 5.282405300065875,
+                "fit_predict_seconds": 5.61382450000383,
+                "status": "completed",
+                "seed": 123,
+                "fit_rows": 500,
+                "device": "cuda",
+                "batch_size": 256
+              },
+              {
+                "val_auc": 0.9834890242658082,
+                "precision_05": 0.5160550458715596,
+                "recall_05": 0.9493670886075949,
+                "f1_05": 0.6686478454680534,
+                "pr_auc": 0.8383592786986924,
+                "model_init_seconds": 0.0011777000036090612,
+                "fit_seconds": 0.3380540001671761,
+                "predict_proba_seconds": 5.313575599808246,
+                "fit_predict_seconds": 5.652807800099254,
+                "status": "completed",
+                "seed": 999,
+                "fit_rows": 500,
+                "device": "cuda",
+                "batch_size": 256
+              }
+            ],
+            "mean": {
+              "val_auc": 0.9828917511651124,
+              "pr_auc": 0.8302454225684717,
+              "precision_05": 0.548610099528946,
+              "recall_05": 0.9507735583684951,
+              "f1_05": 0.6953929032218614,
+              "fit_predict_seconds": 5.639649700062971,
+              "model_init_seconds": 0.0015106666833162308,
+              "fit_seconds": 0.33673776670669514,
+              "predict_proba_seconds": 5.301400366627301
+            },
+            "std": {
+              "val_auc": 0.003952989142128847,
+              "pr_auc": 0.027838342764356056,
+              "precision_05": 0.026078754454874984,
+              "recall_05": 0.001989048610932651,
+              "f1_05": 0.021018866154296448,
+              "fit_predict_seconds": 0.01826227420712396,
+              "model_init_seconds": 0.0002469995935322404,
+              "fit_seconds": 0.0053318920033028966,
+              "predict_proba_seconds": 0.013608318338684105
+            }
+          }
+        },
+        {
+          "support_size": 1000,
+          "gbdt": {
+            "n_runs": 3,
+            "n_completed": 3,
+            "raw": [
+              {
+                "val_auc": 0.9783950098168824,
+                "precision_05": 0.5366430260047281,
+                "recall_05": 0.9578059071729957,
+                "f1_05": 0.6878787878787879,
+                "pr_auc": 0.7435573571174369,
+                "fit_predict_seconds": 0.15768800000660121,
+                "status": "completed",
+                "seed": 42,
+                "fit_rows": 1000
+              },
+              {
+                "val_auc": 0.9833129819438885,
+                "precision_05": 0.5586034912718204,
+                "recall_05": 0.9451476793248945,
+                "f1_05": 0.7021943573667712,
+                "pr_auc": 0.7812910936994993,
+                "fit_predict_seconds": 0.13112520007416606,
+                "status": "completed",
+                "seed": 123,
+                "fit_rows": 1000
+              },
+              {
+                "val_auc": 0.9810154614495348,
+                "precision_05": 0.4978165938864629,
+                "recall_05": 0.9620253164556962,
+                "f1_05": 0.6561151079136691,
+                "pr_auc": 0.8195192980360209,
+                "fit_predict_seconds": 0.14076099987141788,
+                "status": "completed",
+                "seed": 999,
+                "fit_rows": 1000
+              }
+            ],
+            "mean": {
+              "val_auc": 0.9809078177367686,
+              "pr_auc": 0.781455916284319,
+              "precision_05": 0.5310210370543371,
+              "recall_05": 0.9549929676511955,
+              "f1_05": 0.682062751053076,
+              "fit_predict_seconds": 0.14319139998406172
+            },
+            "std": {
+              "val_auc": 0.002009195997934781,
+              "pr_auc": 0.031011551524047307,
+              "precision_05": 0.025132539243687458,
+              "recall_05": 0.007171616756107995,
+              "f1_05": 0.01925606434016443,
+              "fit_predict_seconds": 0.010979548217581592
+            }
+          },
+          "tabpfn": {
+            "n_runs": 3,
+            "n_completed": 3,
+            "raw": [
+              {
+                "val_auc": 0.9808450255709882,
+                "precision_05": 0.5498783454987834,
+                "recall_05": 0.9535864978902954,
+                "f1_05": 0.6975308641975309,
+                "pr_auc": 0.8334520154625609,
+                "model_init_seconds": 0.0015531000681221485,
+                "fit_seconds": 0.4906444000080228,
+                "predict_proba_seconds": 6.200942799914628,
+                "fit_predict_seconds": 6.693141099996865,
+                "status": "completed",
+                "seed": 42,
+                "fit_rows": 1000,
+                "device": "cuda",
+                "batch_size": 256
+              },
+              {
+                "val_auc": 0.9856452623871562,
+                "precision_05": 0.6136986301369863,
+                "recall_05": 0.9451476793248945,
+                "f1_05": 0.7441860465116279,
+                "pr_auc": 0.861072704613596,
+                "model_init_seconds": 0.0016195999924093485,
+                "fit_seconds": 0.3836662999819964,
+                "predict_proba_seconds": 6.238667899975553,
+                "fit_predict_seconds": 6.6239545999560505,
+                "status": "completed",
+                "seed": 123,
+                "fit_rows": 1000,
+                "device": "cuda",
+                "batch_size": 256
+              },
+              {
+                "val_auc": 0.9838254108682026,
+                "precision_05": 0.5369928400954654,
+                "recall_05": 0.9493670886075949,
+                "f1_05": 0.6859756097560976,
+                "pr_auc": 0.8574559002866894,
+                "model_init_seconds": 0.0012283001560717821,
+                "fit_seconds": 0.37007659999653697,
+                "predict_proba_seconds": 6.1901636000256985,
+                "fit_predict_seconds": 6.561469400068745,
+                "status": "completed",
+                "seed": 999,
+                "fit_rows": 1000,
+                "device": "cuda",
+                "batch_size": 256
+              }
+            ],
+            "mean": {
+              "val_auc": 0.983438566275449,
+              "pr_auc": 0.8506602067876154,
+              "precision_05": 0.566856605243745,
+              "recall_05": 0.9493670886075949,
+              "f1_05": 0.7092308401550854,
+              "fit_predict_seconds": 6.626188366673887,
+              "model_init_seconds": 0.001467000072201093,
+              "fit_seconds": 0.4147957666621854,
+              "predict_proba_seconds": 6.209924766638626
+            },
+            "std": {
+              "val_auc": 0.0019786872629819997,
+              "pr_auc": 0.012257289121023574,
+              "precision_05": 0.033537447074864536,
+              "recall_05": 0.003445133252859607,
+              "f1_05": 0.025163211438830227,
+              "fit_predict_seconds": 0.05377794731301725,
+              "model_init_seconds": 0.00017095573979377602,
+              "fit_seconds": 0.053919269108221146,
+              "predict_proba_seconds": 0.020795409318398895
+            }
+          }
+        },
+        {
+          "support_size": 2000,
+          "gbdt": {
+            "n_runs": 3,
+            "n_completed": 3,
+            "raw": [
+              {
+                "val_auc": 0.9864985630685634,
+                "precision_05": 0.5714285714285714,
+                "recall_05": 0.9620253164556962,
+                "f1_05": 0.7169811320754716,
+                "pr_auc": 0.8732700545103892,
+                "fit_predict_seconds": 0.1622856999747455,
+                "status": "completed",
+                "seed": 42,
+                "fit_rows": 2000
+              },
+              {
+                "val_auc": 0.9829642611660729,
+                "precision_05": 0.6097560975609756,
+                "recall_05": 0.9493670886075949,
+                "f1_05": 0.7425742574257426,
+                "pr_auc": 0.8491248877730011,
+                "fit_predict_seconds": 0.16332559986039996,
+                "status": "completed",
+                "seed": 123,
+                "fit_rows": 2000
+              },
+              {
+                "val_auc": 0.9857943937808845,
+                "precision_05": 0.5541871921182266,
+                "recall_05": 0.9493670886075949,
+                "f1_05": 0.6998444790046656,
+                "pr_auc": 0.8679896378583022,
+                "fit_predict_seconds": 0.15055759996175766,
+                "status": "completed",
+                "seed": 999,
+                "fit_rows": 2000
+              }
+            ],
+            "mean": {
+              "val_auc": 0.985085739338507,
+              "pr_auc": 0.8634615267138975,
+              "precision_05": 0.5784572870359246,
+              "recall_05": 0.9535864978902954,
+              "f1_05": 0.7197999561686266,
+              "fit_predict_seconds": 0.1587229665989677
+            },
+            "std": {
+              "val_auc": 0.0015274086603379493,
+              "pr_auc": 0.010364204812595113,
+              "precision_05": 0.023223952367373946,
+              "recall_05": 0.005967145832797901,
+              "f1_05": 0.01755786277672953,
+              "fit_predict_seconds": 0.005789372860859989
+            }
+          },
+          "tabpfn": {
+            "n_runs": 3,
+            "n_completed": 3,
+            "raw": [
+              {
+                "val_auc": 0.9862339389413464,
+                "precision_05": 0.5703517587939698,
+                "recall_05": 0.9578059071729957,
+                "f1_05": 0.7149606299212599,
+                "pr_auc": 0.8888677286644426,
+                "model_init_seconds": 0.0016186998691409826,
+                "fit_seconds": 0.38169230008497834,
+                "predict_proba_seconds": 8.092414099955931,
+                "fit_predict_seconds": 8.475725899916142,
+                "status": "completed",
+                "seed": 42,
+                "fit_rows": 2000,
+                "device": "cuda",
+                "batch_size": 256
+              },
+              {
+                "val_auc": 0.9850083704199563,
+                "precision_05": 0.5973684210526315,
+                "recall_05": 0.9578059071729957,
+                "f1_05": 0.7358184764991896,
+                "pr_auc": 0.8701036605111587,
+                "model_init_seconds": 0.001623000018298626,
+                "fit_seconds": 0.4694191999733448,
+                "predict_proba_seconds": 7.974853500025347,
+                "fit_predict_seconds": 8.445896700024605,
+                "status": "completed",
+                "seed": 123,
+                "fit_rows": 2000,
+                "device": "cuda",
+                "batch_size": 256
+              },
+              {
+                "val_auc": 0.9876176091658622,
+                "precision_05": 0.5583126550868487,
+                "recall_05": 0.9493670886075949,
+                "f1_05": 0.703125,
+                "pr_auc": 0.8863503134823894,
+                "model_init_seconds": 0.001584900077432394,
+                "fit_seconds": 0.3814936999697238,
+                "predict_proba_seconds": 7.932248099939898,
+                "fit_predict_seconds": 8.315327699994668,
+                "status": "completed",
+                "seed": 999,
+                "fit_rows": 2000,
+                "device": "cuda",
+                "batch_size": 256
+              }
+            ],
+            "mean": {
+              "val_auc": 0.9862866395090549,
+              "pr_auc": 0.8817739008859969,
+              "precision_05": 0.57534427831115,
+              "recall_05": 0.9549929676511955,
+              "f1_05": 0.7179680354734832,
+              "fit_predict_seconds": 8.412316766645139,
+              "model_init_seconds": 0.0016088666549573343,
+              "fit_seconds": 0.410868400009349,
+              "predict_proba_seconds": 7.999838566640392
+            },
+            "std": {
+              "val_auc": 0.0010658688852017277,
+              "pr_auc": 0.008315857446452747,
+              "precision_05": 0.016330587908187703,
+              "recall_05": 0.00397809722186525,
+              "f1_05": 0.013515403989952202,
+              "fit_predict_seconds": 0.06965440679449421,
+              "model_init_seconds": 1.7037614257650054e-05,
+              "fit_seconds": 0.04140174708728553,
+              "predict_proba_seconds": 0.06773220334819915
+            }
+          }
+        },
+        {
+          "support_size": 5000,
+          "gbdt": {
+            "n_runs": 3,
+            "n_completed": 3,
+            "raw": [
+              {
+                "val_auc": 0.9876366710733311,
+                "precision_05": 0.6185286103542235,
+                "recall_05": 0.9578059071729957,
+                "f1_05": 0.7516556291390728,
+                "pr_auc": 0.9060917504157586,
+                "fit_predict_seconds": 0.1740453999955207,
+                "status": "completed",
+                "seed": 42,
+                "fit_rows": 5000
+              },
+              {
+                "val_auc": 0.9875133293191198,
+                "precision_05": 0.6053333333333333,
+                "recall_05": 0.9578059071729957,
+                "f1_05": 0.7418300653594772,
+                "pr_auc": 0.9018504840400109,
+                "fit_predict_seconds": 0.18138840002939105,
+                "status": "completed",
+                "seed": 123,
+                "fit_rows": 5000
+              },
+              {
+                "val_auc": 0.9902851549228497,
+                "precision_05": 0.583547557840617,
+                "recall_05": 0.9578059071729957,
+                "f1_05": 0.7252396166134185,
+                "pr_auc": 0.9178006188320167,
+                "fit_predict_seconds": 0.17282570013776422,
+                "status": "completed",
+                "seed": 999,
+                "fit_rows": 5000
+              }
+            ],
+            "mean": {
+              "val_auc": 0.9884783851051002,
+              "pr_auc": 0.9085809510959287,
+              "precision_05": 0.6024698338427246,
+              "recall_05": 0.9578059071729957,
+              "f1_05": 0.7395751037039895,
+              "fit_predict_seconds": 0.17608650005422533
+            },
+            "std": {
+              "val_auc": 0.001278571123776057,
+              "pr_auc": 0.006745308986765443,
+              "precision_05": 0.01442378199917209,
+              "recall_05": 0.0,
+              "f1_05": 0.010901531038946496,
+              "fit_predict_seconds": 0.0037819328784586275
+            }
+          },
+          "tabpfn": {
+            "n_runs": 3,
+            "n_completed": 3,
+            "raw": [
+              {
+                "val_auc": 0.9880952781412622,
+                "precision_05": 0.6162162162162163,
+                "recall_05": 0.9620253164556962,
+                "f1_05": 0.7512355848434926,
+                "pr_auc": 0.9171964226771433,
+                "model_init_seconds": 0.0015897001139819622,
+                "fit_seconds": 0.4192665999289602,
+                "predict_proba_seconds": 13.424573400057852,
+                "fit_predict_seconds": 13.845430500106886,
+                "status": "completed",
+                "seed": 42,
+                "fit_rows": 5000,
+                "device": "cuda",
+                "batch_size": 256
+              },
+              {
+                "val_auc": 0.9913492578750907,
+                "precision_05": 0.58656330749354,
+                "recall_05": 0.9578059071729957,
+                "f1_05": 0.7275641025641025,
+                "pr_auc": 0.9072714350769764,
+                "model_init_seconds": 0.001314900116994977,
+                "fit_seconds": 0.422406799858436,
+                "predict_proba_seconds": 13.372745900182053,
+                "fit_predict_seconds": 13.796468400163576,
+                "status": "completed",
+                "seed": 123,
+                "fit_rows": 5000,
+                "device": "cuda",
+                "batch_size": 256
+              },
+              {
+                "val_auc": 0.9901819963647822,
+                "precision_05": 0.6015831134564644,
+                "recall_05": 0.9620253164556962,
+                "f1_05": 0.7402597402597403,
+                "pr_auc": 0.9118291951040335,
+                "model_init_seconds": 0.0012145999353379011,
+                "fit_seconds": 0.39720800006762147,
+                "predict_proba_seconds": 13.417062300024554,
+                "fit_predict_seconds": 13.815485900035128,
+                "status": "completed",
+                "seed": 999,
+                "fit_rows": 5000,
+                "device": "cuda",
+                "batch_size": 256
+              }
+            ],
+            "mean": {
+              "val_auc": 0.9898755107937117,
+              "pr_auc": 0.9120990176193844,
+              "precision_05": 0.6014542123887402,
+              "recall_05": 0.960618846694796,
+              "f1_05": 0.7396864758891118,
+              "fit_predict_seconds": 13.81912826676853,
+              "model_init_seconds": 0.0013730667221049468,
+              "fit_seconds": 0.41296046661833924,
+              "predict_proba_seconds": 13.40479386675482
+            },
+            "std": {
+              "val_auc": 0.00134599308591523,
+              "pr_auc": 0.004056348757048179,
+              "precision_05": 0.012106092420562119,
+              "recall_05": 0.001989048610932651,
+              "f1_05": 0.00967234002555203,
+              "fit_predict_seconds": 0.020153939801440233,
+              "model_init_seconds": 0.00015856134768014557,
+              "fit_seconds": 0.011212206613712906,
+              "predict_proba_seconds": 0.022867856290937027
+            }
+          }
+        },
+        {
+          "support_size": 10000,
+          "gbdt": {
+            "n_runs": 3,
+            "n_completed": 3,
+            "raw": [
+              {
+                "val_auc": 0.9870356603437198,
+                "precision_05": 0.6189189189189189,
+                "recall_05": 0.9662447257383966,
+                "f1_05": 0.7545304777594728,
+                "pr_auc": 0.9098191655565123,
+                "fit_predict_seconds": 0.21271689981222153,
+                "status": "completed",
+                "seed": 42,
+                "fit_rows": 10000
+              },
+              {
+                "val_auc": 0.9867239420921676,
+                "precision_05": 0.6432584269662921,
+                "recall_05": 0.9662447257383966,
+                "f1_05": 0.7723440134907251,
+                "pr_auc": 0.9114246735949686,
+                "fit_predict_seconds": 0.21596780000254512,
+                "status": "completed",
+                "seed": 123,
+                "fit_rows": 10000
+              },
+              {
+                "val_auc": 0.9894542800149355,
+                "precision_05": 0.6031746031746031,
+                "recall_05": 0.9620253164556962,
+                "f1_05": 0.7414634146341463,
+                "pr_auc": 0.9249709786211556,
+                "fit_predict_seconds": 0.21462330012582242,
+                "status": "completed",
+                "seed": 999,
+                "fit_rows": 10000
+              }
+            ],
+            "mean": {
+              "val_auc": 0.987737960816941,
+              "pr_auc": 0.9154049392575455,
+              "precision_05": 0.6217839830199381,
+              "recall_05": 0.9648382559774965,
+              "f1_05": 0.7561126352947815,
+              "fit_predict_seconds": 0.21443599998019636
+            },
+            "std": {
+              "val_auc": 0.0012202747666382712,
+              "pr_auc": 0.006795893164011657,
+              "precision_05": 0.0164890807641098,
+              "recall_05": 0.001989048610932599,
+              "f1_05": 0.01265649407182295,
+              "fit_predict_seconds": 0.001333766351421205
+            }
+          },
+          "tabpfn": {
+            "n_runs": 3,
+            "n_completed": 3,
+            "raw": [
+              {
+                "val_auc": 0.9928663614518896,
+                "precision_05": 0.6162162162162163,
+                "recall_05": 0.9620253164556962,
+                "f1_05": 0.7512355848434926,
+                "pr_auc": 0.9299859522221969,
+                "model_init_seconds": 0.0015535999555140734,
+                "fit_seconds": 0.496324900072068,
+                "predict_proba_seconds": 24.793428599834442,
+                "fit_predict_seconds": 25.291307899868116,
+                "status": "completed",
+                "seed": 42,
+                "fit_rows": 10000,
+                "device": "cuda",
+                "batch_size": 256
+              },
+              {
+                "val_auc": 0.9926858339752711,
+                "precision_05": 0.6178861788617886,
+                "recall_05": 0.9620253164556962,
+                "f1_05": 0.7524752475247525,
+                "pr_auc": 0.919428531398793,
+                "model_init_seconds": 0.0015708999708294868,
+                "fit_seconds": 0.5071686999872327,
+                "predict_proba_seconds": 24.726426899898797,
+                "fit_predict_seconds": 25.235167399980128,
+                "status": "completed",
+                "seed": 123,
+                "fit_rows": 10000,
+                "device": "cuda",
+                "batch_size": 256
+              },
+              {
+                "val_auc": 0.9918560803560316,
+                "precision_05": 0.604221635883905,
+                "recall_05": 0.9662447257383966,
+                "f1_05": 0.7435064935064936,
+                "pr_auc": 0.9207717963031319,
+                "model_init_seconds": 0.0015651998110115528,
+                "fit_seconds": 0.5040085001382977,
+                "predict_proba_seconds": 24.744021099992096,
+                "fit_predict_seconds": 25.249595899833366,
+                "status": "completed",
+                "seed": 999,
+                "fit_rows": 10000,
+                "device": "cuda",
+                "batch_size": 256
+              }
+            ],
+            "mean": {
+              "val_auc": 0.9924694252610641,
+              "pr_auc": 0.923395426641374,
+              "precision_05": 0.6127746769873033,
+              "recall_05": 0.9634317862165963,
+              "f1_05": 0.7490724419582462,
+              "fit_predict_seconds": 25.25869039989387,
+              "model_init_seconds": 0.0015632332457850377,
+              "fit_seconds": 0.5025007000658661,
+              "predict_proba_seconds": 24.75462553324178
+            },
+            "std": {
+              "val_auc": 0.00043991781190775447,
+              "pr_auc": 0.0046923597989653254,
+              "precision_05": 0.006086218196149808,
+              "recall_05": 0.001989048610932599,
+              "f1_05": 0.003968125293427024,
+              "fit_predict_seconds": 0.0238043606709803,
+              "model_init_seconds": 7.198294546672801e-06,
+              "fit_seconds": 0.0045535403767361805,
+              "predict_proba_seconds": 0.028362504026463908
+            }
+          }
+        }
+      ]
+    },
+    "minimal_fe": {
+      "description": "Feature-engineering burden: each model on raw 17 baseline features vs the full 137-feature value-change line. Smaller AUC drop = lower FE need.",
+      "val_rows": 4000,
+      "feature_sets": [
+        {
+          "name": "raw_baseline",
+          "n_features": 17,
+          "gbdt": {
+            "n_runs": 3,
+            "n_completed": 3,
+            "raw": [
+              {
+                "val_auc": 0.9636657617867063,
+                "precision_05": 0.5623342175066313,
+                "recall_05": 0.8945147679324894,
+                "f1_05": 0.6905537459283387,
+                "pr_auc": 0.8358771979851407,
+                "fit_predict_seconds": 0.082884700037539,
+                "status": "completed",
+                "seed": 42,
+                "fit_rows": 10000
+              },
+              {
+                "val_auc": 0.9533891510835575,
+                "precision_05": 0.5443037974683544,
+                "recall_05": 0.9071729957805907,
+                "f1_05": 0.680379746835443,
+                "pr_auc": 0.8397453735687107,
+                "fit_predict_seconds": 0.08200739999301732,
+                "status": "completed",
+                "seed": 123,
+                "fit_rows": 10000
+              },
+              {
+                "val_auc": 0.9591738793560664,
+                "precision_05": 0.5376884422110553,
+                "recall_05": 0.9029535864978903,
+                "f1_05": 0.6740157480314961,
+                "pr_auc": 0.8157752923291219,
+                "fit_predict_seconds": 0.08577459980733693,
+                "status": "completed",
+                "seed": 999,
+                "fit_rows": 10000
+              }
+            ],
+            "mean": {
+              "val_auc": 0.95874293074211,
+              "pr_auc": 0.8304659546276578,
+              "precision_05": 0.5481088190620137,
+              "recall_05": 0.9015471167369902,
+              "f1_05": 0.6816497469317593,
+              "fit_predict_seconds": 0.08355556661263108
+            },
+            "std": {
+              "val_auc": 0.004206460857373347,
+              "pr_auc": 0.010507215446652162,
+              "precision_05": 0.010415123682292195,
+              "recall_05": 0.0052625279701462154,
+              "f1_05": 0.006811070341362181,
+              "fit_predict_seconds": 0.0016094502335547705
+            }
+          },
+          "tabpfn": {
+            "n_runs": 3,
+            "n_completed": 3,
+            "raw": [
+              {
+                "val_auc": 0.9479766906510315,
+                "precision_05": 0.5190217391304348,
+                "recall_05": 0.8059071729957806,
+                "f1_05": 0.631404958677686,
+                "pr_auc": 0.78756070366415,
+                "model_init_seconds": 0.0015453998930752277,
+                "fit_seconds": 0.45712419995106757,
+                "predict_proba_seconds": 14.167423099977896,
+                "fit_predict_seconds": 14.62609349982813,
+                "status": "completed",
+                "seed": 42,
+                "fit_rows": 10000,
+                "device": "cuda",
+                "batch_size": 256
+              },
+              {
+                "val_auc": 0.9519673570441036,
+                "precision_05": 0.5770392749244713,
+                "recall_05": 0.8059071729957806,
+                "f1_05": 0.6725352112676056,
+                "pr_auc": 0.7966870256630024,
+                "model_init_seconds": 0.0011730999685823917,
+                "fit_seconds": 0.37513890000991523,
+                "predict_proba_seconds": 14.085210300050676,
+                "fit_predict_seconds": 14.461523000150919,
+                "status": "completed",
+                "seed": 123,
+                "fit_rows": 10000,
+                "device": "cuda",
+                "batch_size": 256
+              },
+              {
+                "val_auc": 0.9498806388205838,
+                "precision_05": 0.504950495049505,
+                "recall_05": 0.8607594936708861,
+                "f1_05": 0.6365054602184087,
+                "pr_auc": 0.7986282132432959,
+                "model_init_seconds": 0.0015759000089019537,
+                "fit_seconds": 0.3694873999338597,
+                "predict_proba_seconds": 14.329358899965882,
+                "fit_predict_seconds": 14.700423300033435,
+                "status": "completed",
+                "seed": 999,
+                "fit_rows": 10000,
+                "device": "cuda",
+                "batch_size": 256
+              }
+            ],
+            "mean": {
+              "val_auc": 0.9499415621719063,
+              "pr_auc": 0.7942919808568161,
+              "precision_05": 0.5336705030348037,
+              "recall_05": 0.8241912798874824,
+              "f1_05": 0.6468152100545668,
+              "fit_predict_seconds": 14.596013266670829,
+              "model_init_seconds": 0.0014314666235198577,
+              "fit_seconds": 0.4005834999649475,
+              "predict_proba_seconds": 14.193997433331484
+            },
+            "std": {
+              "val_auc": 0.0016297521910300877,
+              "pr_auc": 0.004825254521014186,
+              "precision_05": 0.031199762380610018,
+              "recall_05": 0.0258576319421241,
+              "f1_05": 0.01830560252656308,
+              "fit_predict_seconds": 0.09982302219791213,
+              "model_init_seconds": 0.0001831166487134046,
+              "fit_seconds": 0.0400468303320645,
+              "predict_proba_seconds": 0.10142905929771684
+            }
+          }
+        },
+        {
+          "name": "full_137",
+          "n_features": 137,
+          "gbdt": {
+            "n_runs": 3,
+            "n_completed": 3,
+            "raw": [
+              {
+                "val_auc": 0.9870356603437198,
+                "precision_05": 0.6189189189189189,
+                "recall_05": 0.9662447257383966,
+                "f1_05": 0.7545304777594728,
+                "pr_auc": 0.9098191655565123,
+                "fit_predict_seconds": 0.24117140006273985,
+                "status": "completed",
+                "seed": 42,
+                "fit_rows": 10000
+              },
+              {
+                "val_auc": 0.9867239420921676,
+                "precision_05": 0.6432584269662921,
+                "recall_05": 0.9662447257383966,
+                "f1_05": 0.7723440134907251,
+                "pr_auc": 0.9114246735949686,
+                "fit_predict_seconds": 0.254117300035432,
+                "status": "completed",
+                "seed": 123,
+                "fit_rows": 10000
+              },
+              {
+                "val_auc": 0.9894542800149355,
+                "precision_05": 0.6031746031746031,
+                "recall_05": 0.9620253164556962,
+                "f1_05": 0.7414634146341463,
+                "pr_auc": 0.9249709786211556,
+                "fit_predict_seconds": 0.25150680006481707,
+                "status": "completed",
+                "seed": 999,
+                "fit_rows": 10000
+              }
+            ],
+            "mean": {
+              "val_auc": 0.987737960816941,
+              "pr_auc": 0.9154049392575455,
+              "precision_05": 0.6217839830199381,
+              "recall_05": 0.9648382559774965,
+              "f1_05": 0.7561126352947815,
+              "fit_predict_seconds": 0.24893183338766298
+            },
+            "std": {
+              "val_auc": 0.0012202747666382712,
+              "pr_auc": 0.006795893164011657,
+              "precision_05": 0.0164890807641098,
+              "recall_05": 0.001989048610932599,
+              "f1_05": 0.01265649407182295,
+              "fit_predict_seconds": 0.005589986378461523
+            }
+          },
+          "tabpfn": {
+            "n_runs": 3,
+            "n_completed": 3,
+            "raw": [
+              {
+                "val_auc": 0.9929807328967035,
+                "precision_05": 0.6112600536193029,
+                "recall_05": 0.9620253164556962,
+                "f1_05": 0.7475409836065574,
+                "pr_auc": 0.9320077860760089,
+                "model_init_seconds": 0.0015473999083042145,
+                "fit_seconds": 0.5553458000067621,
+                "predict_proba_seconds": 24.812273599905893,
+                "fit_predict_seconds": 25.369167699944228,
+                "status": "completed",
+                "seed": 42,
+                "fit_rows": 10000,
+                "device": "cuda",
+                "batch_size": 256
+              },
+              {
+                "val_auc": 0.9926488314490077,
+                "precision_05": 0.6129032258064516,
+                "recall_05": 0.9620253164556962,
+                "f1_05": 0.7487684729064039,
+                "pr_auc": 0.9222237216386876,
+                "model_init_seconds": 0.0015912000089883804,
+                "fit_seconds": 0.5669318998698145,
+                "predict_proba_seconds": 24.739300600020215,
+                "fit_predict_seconds": 25.30782449990511,
+                "status": "completed",
+                "seed": 123,
+                "fit_rows": 10000,
+                "device": "cuda",
+                "batch_size": 256
+              },
+              {
+                "val_auc": 0.9915578175685752,
+                "precision_05": 0.6063829787234043,
+                "recall_05": 0.9620253164556962,
+                "f1_05": 0.7438825448613376,
+                "pr_auc": 0.9203161398350265,
+                "model_init_seconds": 0.001700500026345253,
+                "fit_seconds": 0.5356127999257296,
+                "predict_proba_seconds": 24.795219900086522,
+                "fit_predict_seconds": 25.332534299930558,
+                "status": "completed",
+                "seed": 999,
+                "fit_rows": 10000,
+                "device": "cuda",
+                "batch_size": 256
+              }
+            ],
+            "mean": {
+              "val_auc": 0.9923957939714289,
+              "pr_auc": 0.9248492158499076,
+              "precision_05": 0.6101820860497196,
+              "recall_05": 0.9620253164556962,
+              "f1_05": 0.7467306671247663,
+              "fit_predict_seconds": 25.336508833259966,
+              "model_init_seconds": 0.0016130333145459492,
+              "fit_seconds": 0.5526301666007688,
+              "predict_proba_seconds": 24.78226470000421
+            },
+            "std": {
+              "val_auc": 0.0006078338487614635,
+              "pr_auc": 0.005121429673176033,
+              "precision_05": 0.0027688645165845857,
+              "recall_05": 0.0,
+              "f1_05": 0.002075336569633623,
+              "fit_predict_seconds": 0.0252004594422371,
+              "model_init_seconds": 6.438131954598118e-05,
+              "fit_seconds": 0.012929359456258324,
+              "predict_proba_seconds": 0.031167745987995925
+            }
+          }
+        }
+      ]
+    },
+    "site_transfer": {
+      "description": "Site-held-out transfer. GBDT-retrain and TabPFN-in-context train on source-site rows; GBDT-transfer reuses the in-domain 80/20 GBDT without retraining. All score the same held-out-site subsample.",
+      "split_rule": "site_id % 5 == 4",
+      "m3_ensemble_anchor_auc": 0.9774,
+      "anchor_note": "0.9774 is the M3 4-model ensemble site-held-out diagnostic; the single-GBDT numbers here are not the ensemble and are expected to differ.",
+      "fit_rows_budget": 10000,
+      "val_rows": 4000,
+      "gbdt_retrain": {
+        "n_runs": 3,
+        "n_completed": 3,
+        "raw": [
+          {
+            "val_auc": 0.9809280666955928,
+            "precision_05": 0.7019607843137254,
+            "recall_05": 0.8774509803921569,
+            "f1_05": 0.7799564270152506,
+            "pr_auc": 0.8187153010335958,
+            "fit_predict_seconds": 0.25147389993071556,
+            "status": "completed",
+            "seed": 42,
+            "fit_rows": 10000
+          },
+          {
+            "val_auc": 0.9790711068410504,
+            "precision_05": 0.6932270916334662,
+            "recall_05": 0.8529411764705882,
+            "f1_05": 0.7648351648351648,
+            "pr_auc": 0.8206612004986968,
+            "fit_predict_seconds": 0.2293358000461012,
+            "status": "completed",
+            "seed": 123,
+            "fit_rows": 10000
+          },
+          {
+            "val_auc": 0.9791963676935473,
+            "precision_05": 0.7394957983193278,
+            "recall_05": 0.8627450980392157,
+            "f1_05": 0.7963800904977375,
+            "pr_auc": 0.826961250755196,
+            "fit_predict_seconds": 0.22929219994693995,
+            "status": "completed",
+            "seed": 999,
+            "fit_rows": 10000
+          }
+        ],
+        "mean": {
+          "val_auc": 0.9797318470767302,
+          "pr_auc": 0.8221125840958295,
+          "precision_05": 0.7115612247555064,
+          "recall_05": 0.8643790849673203,
+          "f1_05": 0.7803905607827176,
+          "fit_predict_seconds": 0.2367006333079189
+        },
+        "std": {
+          "val_auc": 0.000847399395289698,
+          "pr_auc": 0.003519356708482295,
+          "precision_05": 0.02007194803870502,
+          "recall_05": 0.010072571900276111,
+          "f1_05": 0.012881820209384259,
+          "fit_predict_seconds": 0.010446292173887664
+        }
+      },
+      "tabpfn_in_context": {
+        "n_runs": 3,
+        "n_completed": 3,
+        "raw": [
+          {
+            "val_auc": 0.9831788879935537,
+            "precision_05": 0.6851851851851852,
+            "recall_05": 0.9068627450980392,
+            "f1_05": 0.7805907172995781,
+            "pr_auc": 0.8099622318803319,
+            "model_init_seconds": 0.0016713999211788177,
+            "fit_seconds": 0.6853874998632818,
+            "predict_proba_seconds": 26.14958480000496,
+            "fit_predict_seconds": 26.83664479991421,
+            "status": "completed",
+            "seed": 42,
+            "fit_rows": 10000,
+            "device": "cuda",
+            "batch_size": 256
+          },
+          {
+            "val_auc": 0.982169053079609,
+            "precision_05": 0.6838235294117647,
+            "recall_05": 0.9117647058823529,
+            "f1_05": 0.7815126050420168,
+            "pr_auc": 0.8067500655344696,
+            "model_init_seconds": 0.001798700075596571,
+            "fit_seconds": 0.5288642002269626,
+            "predict_proba_seconds": 25.88321359991096,
+            "fit_predict_seconds": 26.413877699989825,
+            "status": "completed",
+            "seed": 123,
+            "fit_rows": 10000,
+            "device": "cuda",
+            "batch_size": 256
+          },
+          {
+            "val_auc": 0.984404378189632,
+            "precision_05": 0.6996197718631179,
+            "recall_05": 0.9019607843137255,
+            "f1_05": 0.7880085653104925,
+            "pr_auc": 0.8189814995188195,
+            "model_init_seconds": 0.0013309000059962273,
+            "fit_seconds": 0.5314346998929977,
+            "predict_proba_seconds": 25.85175919998437,
+            "fit_predict_seconds": 26.384525600122288,
+            "status": "completed",
+            "seed": 999,
+            "fit_rows": 10000,
+            "device": "cuda",
+            "batch_size": 256
+          }
+        ],
+        "mean": {
+          "val_auc": 0.9832507730875982,
+          "pr_auc": 0.811897932311207,
+          "precision_05": 0.6895428288200226,
+          "recall_05": 0.9068627450980392,
+          "f1_05": 0.7833706292173624,
+          "fit_predict_seconds": 26.545016033342108,
+          "model_init_seconds": 0.0016003333342572053,
+          "fit_seconds": 0.5818954666610807,
+          "predict_proba_seconds": 25.961519199966762
+        },
+        "std": {
+          "val_auc": 0.000913982197833262,
+          "pr_auc": 0.005177656899083787,
+          "precision_05": 0.007147125876026984,
+          "recall_05": 0.004002434220233937,
+          "f1_05": 0.003301041013113213,
+          "fit_predict_seconds": 0.20656054731552367,
+          "model_init_seconds": 0.00019747923285253215,
+          "fit_seconds": 0.07318744231709608,
+          "predict_proba_seconds": 0.1336010161063664
+        }
+      },
+      "gbdt_transfer_no_retrain": {
+        "n_runs": 1,
+        "n_completed": 1,
+        "raw": [
+          {
+            "val_auc": 0.9881725345564992,
+            "precision_05": 0.636963696369637,
+            "recall_05": 0.946078431372549,
+            "f1_05": 0.7613412228796844,
+            "pr_auc": 0.9022759470712884,
+            "fit_predict_seconds": 0.0026956000365316868,
+            "status": "completed",
+            "seed": 42,
+            "source": "in_domain_80_20_gbdt",
+            "note": "no site-aware retrain"
+          }
+        ],
+        "mean": {
+          "val_auc": 0.9881725345564992,
+          "pr_auc": 0.9022759470712884,
+          "precision_05": 0.636963696369637,
+          "recall_05": 0.946078431372549,
+          "f1_05": 0.7613412228796844,
+          "fit_predict_seconds": 0.0026956000365316868
+        },
+        "std": {
+          "val_auc": 0.0,
+          "pr_auc": 0.0,
+          "precision_05": 0.0,
+          "recall_05": 0.0,
+          "f1_05": 0.0,
+          "fit_predict_seconds": 0.0
+        }
+      },
+      "split": {
+        "name": "site_id % 5 == 4",
+        "n_train_buildings": 1132,
+        "n_val_buildings": 317,
+        "n_train_rows": 14288525,
+        "n_val_rows": 5927575,
+        "train_anomaly_rate": 0.06791036863497107,
+        "val_anomaly_rate": 0.05805662517977419,
+        "building_overlap": 0
+      }
+    }
+  },
+  "one_shot_discipline": {
+    "leaderboard_probing": false,
+    "cloud_client_used": false,
+    "bdg2_used": false,
+    "ignore_pretraining_limits": false
+  },
+  "elapsed_seconds": 559.8181518001948,
+  "provenance": {
+    "commit": "8f4373b851e0f2a21da2fb6605097c90a684db3c",
+    "generated_at_utc": "2026-06-26T09:26:46.190561+00:00",
+    "command": "python scripts/run_m5_phaseD_foundation_vs_gbdt.py --tabpfn-fit-rows 10000 --val-rows 4000 --seeds 42 123 999"
+  }
+}

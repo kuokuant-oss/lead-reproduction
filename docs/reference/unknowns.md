@@ -834,6 +834,16 @@ TabPFN timing is a cold in-process run that includes `1.5884365998208523`
 seconds of model initialization, `1.0767969998996705` seconds of fit time, and
 `3.8418111000210047` seconds of `predict_proba` time.
 
+**M5 Phase D evidence (2026-06-26)**: the four-axis comparison scaled the fit set
+to `10,000` rows and scored `4,000` validation rows on the RTX 4070 Laptop GPU.
+TabPFN `predict_proba` took ~`25.3` seconds for 4,000 rows (~`6.3` ms/row) versus
+sub-second GBDT scoring — roughly two orders of magnitude slower at inference.
+This confirms TabPFN's in-context inference latency is the binding constraint for
+any real-time FDD use, independent of accuracy. See
+`docs/reports/m5-foundation-vs-gbdt.md`.
+
 **Resolution**: The bounded offline TabPFN latency signal is measured on local
-GPU. It is not a real-time FDD claim: any real-time FDD result still requires
-`PAST_SHIFTS`-only causal features per ADR 0007 and ADR 0011.
+GPU and remains far too slow for real-time FDD as configured. It is not a
+real-time FDD claim: any real-time FDD result still requires `PAST_SHIFTS`-only
+causal features per ADR 0007 and ADR 0011, and would require an
+order-of-magnitude inference-latency reduction (deferred to the BDG2 milestone).

@@ -14,6 +14,22 @@ fit+predict wall-clock was `6.5070` seconds on an RTX 4070 Laptop GPU, including
 `1.5884` seconds of model initialization. This is an offline feasibility result,
 not a real-time FDD claim.
 
+Phase D note (2026-06-26): the rigorous four-axis comparison ran on the existing
+GEPIII data through the frozen pipeline (10k balanced fit rows, 4k fixed val
+rows, seeds `{42, 123, 999}`, within the documented TabPFN-3 `1,000,000 × 200`
+limit). Results in `docs/reports/m5-foundation-vs-gbdt.md` and
+`data/processed/m5_phaseD_foundation_vs_gbdt.json`. Judged on this ADR's rubric
+(transfer, label scarcity, minimal feature engineering, not headline AUC): TabPFN
+wins **label scarcity** (`+0.100` PR-AUC at 200 labels) and **true cross-site
+ROC-AUC** (`0.9833` vs GBDT-retrain `0.9797`), and matches the tuned M3.4 ensemble
+(`0.9928`) in-domain at a 10k context. GBDT keeps the **inference-latency** edge
+(~100× faster) and the **minimal-feature-engineering** edge (GBDT > TabPFN on raw
+17 features; TabPFN degrades more without the engineered lags). Tuned GBDT is not
+dethroned on headline AUC. The decision stands: TabPFN is an M5 model-track
+candidate for label-scarce and cross-site settings, not a GBDT replacement. The
+deferred BDG2 ingestion skeleton (Phase D slice 1) was retired as premature
+(issue #34) before this comparison.
+
 ## Context
 
 M5 is expected to move from reproduction toward FDD on BDG2. The M4 foundation

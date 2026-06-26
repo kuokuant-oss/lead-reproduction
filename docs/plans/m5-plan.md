@@ -146,7 +146,7 @@ settings.
 
 ## Phase D plan slice
 
-**Status**: In progress — foundation-vs-tree comparison on existing GEPIII data
+**Status**: Complete — foundation-vs-tree comparison on existing GEPIII data
 **GitHub Issue**: [#35](https://github.com/kuokuant-oss/lead-reproduction/issues/35)
 
 Phase D is the rigorous foundation-model (TabPFN) vs tree-model (GBDT) comparison
@@ -183,6 +183,32 @@ engineering, not on a single headline AUC; tuned GBDT may still win raw AUC and
 the report says so honestly. Any real-time FDD claim must use `PAST_SHIFTS`-only
 features per ADR 0007 and ADR 0011, so offline and causal regimes stay explicit.
 
+### Phase D results
+
+Harness `scripts/run_m5_phaseD_foundation_vs_gbdt.py`; full numbers in
+`data/processed/m5_phaseD_foundation_vs_gbdt.json`; analysis in
+`docs/reports/m5-foundation-vs-gbdt.md`. Budget: 10,000 balanced fit rows, 4,000
+fixed val rows, seeds `{42, 123, 999}` (mean ± std), RTX 4070 Laptop GPU,
+`tabpfn==8.0.8` local weights, within the documented TabPFN-3 `1,000,000 × 200`
+limit (no `ignore_pretraining_limits`).
+
++ **In-domain (80/20)**: TabPFN ROC-AUC `0.9925`, GBDT `0.9877`; TabPFN matches
+  the tuned M3.4 ensemble `0.9928` at a 10k context but is ~100× slower at
+  inference.
++ **Site transfer (PRIMARY, `site_id % 5 == 4`)**: among true cross-site models
+  TabPFN-in-context ROC-AUC `0.9833` > GBDT-retrain `0.9797` (GBDT keeps PR-AUC).
+  GBDT-transfer-without-retrain scores higher (`0.9882`) but is an easier setting
+  (all-sites training), documented as such.
++ **Label scarcity**: TabPFN's clearest win — `+0.100` PR-AUC at 200 labels,
+  narrowing as labels grow.
++ **Minimal FE**: hypothesis not supported — GBDT beats TabPFN on raw 17 features
+  and TabPFN loses more without the engineered value-change lags.
+
+Honest verdict: TabPFN adds real value in label-scarce and cross-site settings,
+but does not dethrone the tuned GBDT headline, is far slower at inference, and
+does not lower the feature-engineering burden. Real BDG2 cross-dataset transfer
+and real-time FDD latency work are deferred to the later BDG2 scale-out milestone.
+
 ---
 
 ## Issue Tracker Map (M5)
@@ -195,4 +221,4 @@ features per ADR 0007 and ADR 0011, so offline and causal regimes stay explicit.
 | Phase D BDG2 transfer and minimal-feature plan | [#31](https://github.com/kuokuant-oss/lead-reproduction/issues/31) | Superseded by #35 |
 | Phase D slice 1 BDG2 ingestion skeleton | [#33](https://github.com/kuokuant-oss/lead-reproduction/issues/33) | Retired by #34 |
 | Phase D retire premature BDG2 skeleton | [#34](https://github.com/kuokuant-oss/lead-reproduction/issues/34) | Done |
-| Phase D TabPFN-vs-GBDT GEPIII comparison | [#35](https://github.com/kuokuant-oss/lead-reproduction/issues/35) | In progress |
+| Phase D TabPFN-vs-GBDT GEPIII comparison | [#35](https://github.com/kuokuant-oss/lead-reproduction/issues/35) | Done |
