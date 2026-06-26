@@ -1,0 +1,69 @@
+{
+  "experiment": "m4_3_timestamp_value_change",
+  "canonical_line": "80_20_mod5_offline",
+  "random_state": 42,
+  "downsampling_seeds": [
+    10,
+    20
+  ],
+  "split": {
+    "name": "80_20_mod5",
+    "n_train_buildings": 1160,
+    "n_val_buildings": 289,
+    "n_train_rows": 16117081,
+    "n_val_rows": 4099019,
+    "train_anomaly_rate": 0.06646836359511998,
+    "val_anomaly_rate": 0.05933078134060857,
+    "building_overlap": 0
+  },
+  "feature_counts": {
+    "baseline": 17,
+    "value_change": 120,
+    "total": 137
+  },
+  "regimes": {
+    "row_offset": {
+      "value_change_regime": "row_offset",
+      "val_auc": 0.9920119520500562,
+      "precision_05": 0.6408527508002377,
+      "recall_05": 0.9664676518721371,
+      "f1_05": 0.7706782695372186,
+      "n_features": 137,
+      "n_value_change_features": 120,
+      "n_train_downsampled": 4285104,
+      "elapsed_minutes": 1.943
+    },
+    "timestamp_merge": {
+      "value_change_regime": "timestamp_merge",
+      "val_auc": 0.9924831086743003,
+      "precision_05": 0.6648118310669914,
+      "recall_05": 0.9687661905114351,
+      "f1_05": 0.7885111289234873,
+      "n_features": 137,
+      "n_value_change_features": 120,
+      "n_train_downsampled": 4285104,
+      "elapsed_minutes": 12.077
+    }
+  },
+  "comparison": {
+    "m3_2_golden_auc": 0.992,
+    "noise_floor_auc": 0.0005,
+    "row_offset_auc": 0.9920119520500562,
+    "timestamp_merge_auc": 0.9924831086743003,
+    "delta_regime_timestamp_minus_row": 0.00047115662424412896,
+    "row_offset_delta_vs_golden": 1.1952050056218688e-05,
+    "timestamp_merge_delta_vs_golden": 0.00048310867430034765,
+    "gate_status": "within_noise_floor"
+  },
+  "interpretation": {
+    "only_intended_difference": "row_offset_vs_timestamp_hour_offset",
+    "nan_treatment": "No regime-specific fill is applied; LightGBM sees NaN natively.",
+    "chosen_default_regime": "row_offset"
+  },
+  "elapsed_minutes": 14.287,
+  "provenance": {
+    "commit": "78ac0aa069baffdfeb01c9de8de345f57d40e79f",
+    "generated_at_utc": "2026-06-26T03:29:52.489388+00:00",
+    "command": "python scripts/run_m4_3_timestamp_value_change.py"
+  }
+}

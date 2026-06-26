@@ -1,6 +1,6 @@
 # M5 Plan: FDD on BDG2
 
-**Status**: Planning
+**Status**: Ready to implement
 **Started**: 2026-06-25
 **GitHub Issue**: [#27](https://github.com/kuokuant-oss/lead-reproduction/issues/27)
 **References**:
@@ -27,6 +27,25 @@ discipline for any real-time inference claim.
 
 M5 planning does not download BDG2, run GPU jobs, or install foundation-model
 dependencies. Those belong to later implementation slices.
+
+---
+
+## Entry Criteria
+
+M5 starts from the frozen `src/lead` API recorded in the M4.5 handoff and
+README.
+
++ Data interface: reuse `load_m3_frame`-style loaders for tabular frames. BDG2
+  ingestion is M5's job, not M4's.
++ Label interface: BDG2 may have no per-row anomaly labels, so M5 interfaces
+  must allow unlabeled or transfer evaluation and must not assume a 1:1 label
+  column.
++ Split interface: use building-level and site-held-out splits through
+  `split_mask` and `assert_no_building_overlap`. Site-held-out transfer is the
+  motivating test, anchored by M3 site-held-out ensemble AUC `0.9774`.
++ Evaluation interface: use `classification_metrics` for AUC, precision,
+  recall, and F1. Any real-time FDD claim must use `PAST_SHIFTS`-only causal
+  features per ADR 0007 and ADR 0011.
 
 ---
 
@@ -108,6 +127,6 @@ settings.
 ## Issue Tracker Map (M5)
 
 | Slice | GitHub issue | Status |
-|---|---|---|
+| --- | --- | --- |
 | Phase B foundation-model planning | [#27](https://github.com/kuokuant-oss/lead-reproduction/issues/27) | Done |
 | Phase C LEAD TabPFN feasibility spike | TBD | Pending after Phase B |

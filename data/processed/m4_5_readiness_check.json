@@ -1,0 +1,38 @@
+{
+  "slice": "M4.5",
+  "issue": 26,
+  "purpose": "M5 readiness golden-gate confirmation before freezing M4.",
+  "noise_floor_auc": 0.0005,
+  "checks": {
+    "m3_2_lightgbm_80_20_offline_auc": {
+      "value": 0.9920119520500562,
+      "golden_value": 0.992,
+      "delta": 1.1952050056218688e-05,
+      "within_noise_floor": true,
+      "source_file": "data/processed/m4_5_m3_2_rerun.json",
+      "source_commit": "78ac0aa069baffdfeb01c9de8de345f57d40e79f",
+      "golden_source_file": "data/processed/m3_2_results.json",
+      "golden_source_commit": "60cefbd60eef0067ae05c41b00b541608d1c184e"
+    },
+    "m3_4_ensemble_80_20_offline_auc": {
+      "value": 0.9927886432126508,
+      "golden_value": 0.9927886432126508,
+      "delta": 0.0,
+      "within_noise_floor": true,
+      "source_file": "data/processed/m4_5_m3_4_rerun.json",
+      "source_commit": "78ac0aa069baffdfeb01c9de8de345f57d40e79f",
+      "golden_source_file": "data/processed/m3_4_results.json",
+      "golden_source_commit": "60cefbd60eef0067ae05c41b00b541608d1c184e"
+    }
+  },
+  "gate_status": "passed",
+  "commands": [
+    ".venv\\Scripts\\python.exe scripts\\run_m4_3_timestamp_value_change.py --out data\\processed\\m4_5_m3_2_rerun.json",
+    ".venv\\Scripts\\python.exe scripts\\run_m3_4_ensemble.py --model-seeds 42 --out data\\processed\\m4_5_m3_4_rerun.json"
+  ],
+  "provenance": {
+    "generated_at_utc": "2026-06-26T03:37:54.146337+00:00",
+    "source_file": "tests/golden_metrics.json",
+    "source_commit": "78ac0aa069baffdfeb01c9de8de345f57d40e79f"
+  }
+}

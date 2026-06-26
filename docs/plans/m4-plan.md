@@ -1,6 +1,6 @@
 # M4 Plan: Importable Pipeline Foundation
 
-**Status**: M4.0-M4.4 done; M4.5 pending
+**Status**: M4 complete
 **Started**: 2026-06-24
 **Reference**:
 
@@ -205,21 +205,29 @@ executable fit path remains unchanged; expected AUC delta is `0` within the
 
 ### M4.5: M5 Readiness Gate
 
-**Status**: Pending
+**Status**: Done
 
 **What**: Freeze the importable API and document the extension points needed by
 M5 FDD on BDG2.
 
 **Done when**:
 
-+ [ ] `src/lead` public API is listed in a handoff or README section.
-+ [ ] M3.2/M3.4 golden gates still pass.
-+ [ ] Remaining M4 unknowns are either resolved or explicitly out of M5 scope.
-+ [ ] M5 entry criteria name the expected data, label, split, and evaluation
++ [x] `src/lead` public API is listed in a handoff or README section.
++ [x] M3.2/M3.4 golden gates still pass.
++ [x] Remaining M4 unknowns are either resolved or explicitly deferred to M5
+  and out of M4 scope.
++ [x] M5 entry criteria name the expected data, label, split, and evaluation
   interfaces.
-+ [ ] Close-out: apply `docs/reference/change-checklist.md`, update README/
++ [x] Close-out: apply `docs/reference/change-checklist.md`, update README/
   tracker/ADR state as needed, write a handoff, run the verification gate, and
   commit with `Closes #26`.
+
+**Evidence**: `tests/test_public_api.py` freezes `lead.__all__`.
+`data/processed/m4_5_readiness_check.json` records M3.2 row-offset AUC
+`0.9920119520500562` (`+0.000011952050056218688` vs golden `0.9920`) and M3.4
+canonical ensemble AUC `0.9927886432126508` (`+0.0` vs golden
+`0.9927886432126508`), both within the +/- `0.0005` noise floor. M5 entry
+criteria are recorded in `docs/plans/m5-plan.md` and the M4.5 handoff.
 
 **Out of scope**:
 
@@ -255,16 +263,16 @@ M5 FDD on BDG2.
 | M4.2 key-aligned label join | Done before issue policy restored (see `docs/reference/change-checklist.md`) | Done |
 | M4.3 timestamp value-change | Done before issue policy restored (see `docs/reference/change-checklist.md`) | Done |
 | M4.4 dead-code/sampling review | [#25](https://github.com/kuokuant-oss/lead-reproduction/issues/25) | Done |
-| M4.5 M5 readiness gate | [#26](https://github.com/kuokuant-oss/lead-reproduction/issues/26) | Pending |
+| M4.5 M5 readiness gate | [#26](https://github.com/kuokuant-oss/lead-reproduction/issues/26) | Done |
 
 ---
 
 ## M4 Exit Criteria
 
-+ [ ] All duplicated M3 foundation helpers are removed from tracked scripts.
-+ [ ] At least one tracked test asserts golden metric compatibility.
-+ [ ] Known P1-P4 issues are either fixed with evidence or explicitly deferred
++ [x] All duplicated M3 foundation helpers are removed from tracked scripts.
++ [x] At least one tracked test asserts golden metric compatibility.
++ [x] Known P1-P4 issues are either fixed with evidence or explicitly deferred
   with ADR/unknown coverage.
-+ [ ] `src/lead` is importable without path hacks from the project root.
-+ [ ] M5 can import data, feature, split, sample, and evaluation helpers without
++ [x] `src/lead` is importable without path hacks from the project root.
++ [x] M5 can import data, feature, split, sample, and evaluation helpers without
   reading notebook cells.
