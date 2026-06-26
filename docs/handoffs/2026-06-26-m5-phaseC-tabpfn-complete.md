@@ -52,10 +52,18 @@ out, but the environment did land on `torch==2.7.1+cu128` and verified
   `torch==2.7.1+cu128`, `cuda_available=true`.
 + GBDT anchor: AUC `0.986955266955267`, precision `0.5196078431372549`, recall
   `0.9636363636363636`, F1 `0.6751592356687898`, fit+predict
-  `0.8137212998699397` seconds.
+  `0.8529972999822348` seconds.
 + TabPFN: AUC `0.9904377104377105`, precision `0.5196078431372549`, recall
   `0.9636363636363636`, F1 `0.6751592356687898`, fit+predict
-  `8.195373600116` seconds.
+  `6.507047699997202` seconds.
++ Metric audit: issue #32 confirmed the TabPFN precision/recall/F1 are computed
+  from TabPFN probabilities. The `0.5`-threshold confusion matrix is identical
+  to the GBDT anchor on this bounded validation slice (`TP=53`, `FP=49`,
+  `TN=896`, `FN=2`), while AUC differs.
++ Latency audit: TabPFN `fit_predict_seconds` is a cold in-process number that
+  includes local checkpoint initialization (`1.5884365998208523` seconds), fit
+  (`1.0767969998996705` seconds), and `predict_proba`
+  (`3.8418111000210047` seconds).
 + Result archive: `data/processed/m5_phaseC_tabpfn_spike.json`.
 
 The run emitted a nonfatal Windows background `UnicodeDecodeError` from a

@@ -824,10 +824,15 @@ with `1,000` validation rows, batch size recorded as `256`, device recorded as
 CUDA, and value-change regime recorded as offline `row_offset`. The paired GBDT
 anchor completed on the same table with AUC `0.986955266955267`, precision
 `0.5196078431372549`, recall `0.9636363636363636`, F1 `0.6751592356687898`,
-and fit+predict wall-clock `0.8137212998699397` seconds. TabPFN completed on the
+and fit+predict wall-clock `0.8529972999822348` seconds. TabPFN completed on the
 same table with AUC `0.9904377104377105`, precision `0.5196078431372549`,
 recall `0.9636363636363636`, F1 `0.6751592356687898`, and fit+predict
-wall-clock `8.195373600116` seconds.
+wall-clock `6.507047699997202` seconds. The `0.5`-threshold confusion matrix is
+identical for both models on this bounded slice (`TP=53`, `FP=49`, `TN=896`,
+`FN=2`), but the AUC differs because the probability rankings differ. The
+TabPFN timing is a cold in-process run that includes `1.5884365998208523`
+seconds of model initialization, `1.0767969998996705` seconds of fit time, and
+`3.8418111000210047` seconds of `predict_proba` time.
 
 **Resolution**: The bounded offline TabPFN latency signal is measured on local
 GPU. It is not a real-time FDD claim: any real-time FDD result still requires

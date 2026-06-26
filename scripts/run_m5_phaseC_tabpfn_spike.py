@@ -209,6 +209,19 @@ def torch_environment() -> dict[str, Any]:
     return env
 
 
+def threshold_05_counts(y_true, pred: np.ndarray) -> dict[str, int]:
+    y = np.asarray(y_true)
+    pred_label = (pred >= 0.5).astype("int8")
+    return {
+        "threshold_05_true_positive": int(((pred_label == 1) & (y == 1)).sum()),
+        "threshold_05_false_positive": int(((pred_label == 1) & (y == 0)).sum()),
+        "threshold_05_true_negative": int(((pred_label == 0) & (y == 0)).sum()),
+        "threshold_05_false_negative": int(((pred_label == 0) & (y == 1)).sum()),
+        "threshold_05_predicted_positive": int((pred_label == 1).sum()),
+        "threshold_05_predicted_negative": int((pred_label == 0).sum()),
+    }
+
+
 def fit_gbdt(x_train, y_train, x_val, y_val) -> dict[str, Any]:
     t0 = time.perf_counter()
     model = lgb.LGBMClassifier(
@@ -221,6 +234,7 @@ def fit_gbdt(x_train, y_train, x_val, y_val) -> dict[str, Any]:
     elapsed = time.perf_counter() - t0
     return {
         **classification_metrics(y_val, pred),
+        **threshold_05_counts(y_val, pred),
         "fit_predict_seconds": float(elapsed),
     }
 
@@ -243,12 +257,27 @@ def fit_tabpfn(
     x_train, y_train, x_val, y_val, *, device: str, model_path: Path | None
 ) -> dict[str, Any]:
     t0 = time.perf_counter()
+    t_init0 = time.perf_counter()
     model = tabpfn_classifier(device, model_path)
+    init_elapsed = time.perf_counter() - t_init0
+    t_fit0 = time.perf_counter()
     model.fit(x_train, y_train)
+    fit_elapsed = time.perf_counter() - t_fit0
+    t_predict0 = time.perf_counter()
     pred = model.predict_proba(x_val)[:, 1]
+    predict_elapsed = time.perf_counter() - t_predict0
     elapsed = time.perf_counter() - t0
     return {
         **classification_metrics(y_val, pred),
+        **threshold_05_counts(y_val, pred),
+        "cold_start": True,
+        "timing_note": (
+            "fit_predict_seconds includes local checkpoint model initialization, "
+            "fit, and predict_proba in this process."
+        ),
+        "model_init_seconds": float(init_elapsed),
+        "fit_seconds": float(fit_elapsed),
+        "predict_proba_seconds": float(predict_elapsed),
         "fit_predict_seconds": float(elapsed),
     }
 
@@ -455,6 +484,10 @@ def main() -> None:
         },
         "latency_signal": {
             "tabpfn_fit_predict_seconds": tabpfn.get("fit_predict_seconds"),
+            "tabpfn_cold_start": tabpfn.get("cold_start"),
+            "tabpfn_model_init_seconds": tabpfn.get("model_init_seconds"),
+            "tabpfn_fit_seconds": tabpfn.get("fit_seconds"),
+            "tabpfn_predict_proba_seconds": tabpfn.get("predict_proba_seconds"),
             "train_rows": int(len(fit_idx)),
             "feature_count": int(len(feature_cols)),
             "batch_size": int(args.tabpfn_batch_size),

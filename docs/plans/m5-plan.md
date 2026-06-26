@@ -136,7 +136,11 @@ settings.
   `data/processed/m5_phaseC_tabpfn_spike.json`.
 + [x] Completed local-weights TabPFN metric on the same reduced `1,000 x 137`
   table as the GBDT anchor: TabPFN AUC `0.9904`, GBDT AUC `0.9870`, TabPFN
-  fit+predict `8.1954` seconds on RTX 4070 Laptop GPU.
+  cold fit+predict `6.5070` seconds on RTX 4070 Laptop GPU.
++ [x] Phase C metric audit [#32](https://github.com/kuokuant-oss/lead-reproduction/issues/32)
+  confirmed TabPFN threshold metrics are computed from TabPFN probabilities.
+  The `0.5`-threshold confusion matrix matches the GBDT anchor on this slice,
+  while AUC differs.
 
 ---
 
@@ -170,4 +174,5 @@ Phase D implementation should cover:
 | --- | --- | --- |
 | Phase B foundation-model planning | [#27](https://github.com/kuokuant-oss/lead-reproduction/issues/27) | Done |
 | Phase C LEAD TabPFN feasibility spike | [#30](https://github.com/kuokuant-oss/lead-reproduction/issues/30) | Done |
+| Phase C metric audit fix | [#32](https://github.com/kuokuant-oss/lead-reproduction/issues/32) | Done |
 | Phase D BDG2 transfer and minimal-feature plan | [#31](https://github.com/kuokuant-oss/lead-reproduction/issues/31) | Ready to implement, not started |

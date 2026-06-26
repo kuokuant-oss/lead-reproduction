@@ -7,9 +7,12 @@ Accepted
 Phase C note (2026-06-26): accepted after a completed LEAD/M3 local spike on
 the same reduced `1,000 x 137` table as the paired GBDT anchor. The run used
 local weights only, no TabPFN Client or cloud path. TabPFN AUC was `0.9904`
-versus GBDT AUC `0.9870`; TabPFN fit+predict wall-clock was `8.1954` seconds on
-an RTX 4070 Laptop GPU. This is an offline feasibility result, not a real-time
-FDD claim.
+versus GBDT AUC `0.9870`; both models produced the same `0.5`-threshold
+confusion matrix on this bounded validation slice, so precision/recall/F1 are
+identical despite different probability ranking. The regenerated cold
+fit+predict wall-clock was `6.5070` seconds on an RTX 4070 Laptop GPU, including
+`1.5884` seconds of model initialization. This is an offline feasibility result,
+not a real-time FDD claim.
 
 ## Context
 
