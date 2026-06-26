@@ -279,5 +279,6 @@ ingestion does not start on an unverified schema or an unknown label situation.
 | Phase D slice 1 BDG2 ingestion skeleton | [#33](https://github.com/kuokuant-oss/lead-reproduction/issues/33) | Retired by #34 |
 | Phase D retire premature BDG2 skeleton | [#34](https://github.com/kuokuant-oss/lead-reproduction/issues/34) | Done |
 | Phase D TabPFN-vs-GBDT GEPIII comparison | [#35](https://github.com/kuokuant-oss/lead-reproduction/issues/35) | Done |
-| M5 framing fix + model-track close-out + zh-TW report + Phase E plan | [#36](https://github.com/kuokuant-oss/lead-reproduction/issues/36) | Done |
+| M5 framing fix + model-track close-out + 中文報告 + Phase E plan | [#36](https://github.com/kuokuant-oss/lead-reproduction/issues/36) | Done |
+| M5 report Chinese-only canonical + README M5 + report language convergence | [#37](https://github.com/kuokuant-oss/lead-reproduction/issues/37) | Done |
 | Phase E FDD transfer to BDG2 | _to be opened_ | Planned |

@@ -1,65 +1,64 @@
-# M5 Phase D — TabPFN (foundation model) vs GBDT (tree model) on GEPIII
+# M5 Phase D — TabPFN（基礎模型）vs GBDT（樹模型）於 GEPIII
 
 **Issue**: [#35](https://github.com/kuokuant-oss/lead-reproduction/issues/35)
-**Data**: existing M3 ASHRAE GEPIII frame (`20,216,100 × 21`), labels included.
-No BDG2, no cloud, no data egress. TabPFN runs from local weights only.
-**Provenance**: `data/processed/m5_phaseD_foundation_vs_gbdt.json`
-(commit `8f4373b`, generated 2026-06-26 UTC).
+**資料**: 現有 M3 ASHRAE GEPIII frame（`20,216,100 × 21`），含標籤。
+無 BDG2、無雲端、無資料外傳。TabPFN 僅以本地權重執行。
+**Provenance**: 以 `data/processed/m5_phaseD_foundation_vs_gbdt.json`
+（commit `8f4373b`，產生於 2026-06-26 UTC）為準。
 
-## Setup
+## 設定
 
-Every paired cell reuses the **same split, downsample, feature table, and fixed
-validation subsample**, through the frozen `src/lead` pipeline (`load_m3_frame`,
-`add_value_change_features`, `split_mask`-style masks, `downsample_indices`,
-`classification_metrics`). The only variable in a paired cell is the model.
+每個配對 cell 都重用**相同的 split、downsample、feature table 與固定的驗證
+子樣本**，皆透過 frozen `src/lead` pipeline（`load_m3_frame`、
+`add_value_change_features`、`split_mask` 式的 mask、`downsample_indices`、
+`classification_metrics`）。一個配對 cell 中唯一的變因是模型本身。
 
-+ **Models**: TabPFN-3 local checkpoint (`tabpfn==8.0.8`, RTX 4070 Laptop GPU,
-  8 GB) vs LightGBM `LGBMClassifier(n_estimators=100)`. Both consume the same
-  `StandardScaler`-transformed table.
-+ **Feature table**: 137 features (17 baseline + 120 row-offset value-change),
-  the M3.2 line.
-+ **Fit budget**: 10,000 balanced rows (well beyond the 1,000-row Phase C spike).
-  137 features ≤ 200 and 10,000 ≪ 1,000,000, so the run stays **within the
-  documented TabPFN-3 `1,000,000 × 200` limit** — `ignore_pretraining_limits`
-  was never set. The budget is bounded by 8 GB laptop VRAM, not the documented
-  limit. (The full M3 downsample is `4,285,104 × 137`, which exceeds the
-  `1,000,000 × 200` row limit, so the full table cannot be fed to TabPFN-3.)
-+ **Validation**: a fixed 4,000-row natural-prevalence subsample per axis
-  (anomaly rate ≈ 6%), scored identically by both models.
-+ **Seeds**: fit-subsample + model `random_state` over `{42, 123, 999}`;
-  reported as mean ± std. Metrics: ROC-AUC, PR-AUC (average precision),
-  precision/recall/F1 at 0.5, and fit+predict latency.
++ **模型**：TabPFN-3 本地 checkpoint（`tabpfn==8.0.8`、RTX 4070 Laptop GPU、
+  8 GB）vs LightGBM `LGBMClassifier(n_estimators=100)`。兩者吃同一份
+  `StandardScaler` 轉換後的 table。
++ **Feature table**：137 features（17 baseline + 120 row-offset value-change），
+  即 M3.2 line。
++ **Fit budget**：10,000 balanced rows（遠超 1,000-row 的 Phase C spike）。
+  137 features ≤ 200 且 10,000 ≪ 1,000,000，因此整個執行**落在已記載的
+  TabPFN-3 `1,000,000 × 200` 限制內** —— `ignore_pretraining_limits` 從未被設定。
+  此 budget 受限於 8 GB laptop VRAM，而非那個已記載的上限。（完整 M3 downsample
+  為 `4,285,104 × 137`，超過 `1,000,000 × 200` 的 row 上限，因此完整 table 無法
+  餵給 TabPFN-3。）
++ **驗證（Validation）**：每軸固定 4,000-row 的自然盛行率（natural-prevalence）
+  子樣本（anomaly rate ≈ 6%），由兩個模型以相同方式評分。
++ **Seeds**：fit-subsample 與模型 `random_state` 取 `{42, 123, 999}`；以
+  mean ± std 回報。指標：ROC-AUC、PR-AUC（average precision）、0.5 門檻下的
+  precision/recall/F1，以及 fit+predict 延遲。
 
-All metrics below are **mean ± std over 3 seeds** unless noted. Latency is cold
-in-process fit+predict (TabPFN includes model init + fit + `predict_proba`);
-TabPFN `predict_proba` recomputes against the in-context training set every call.
+以下所有指標除另註明外皆為 **3 個 seeds 的 mean ± std**。延遲為冷啟動的
+in-process fit+predict（TabPFN 含 model init + fit + `predict_proba`）；TabPFN 的
+`predict_proba` 每次呼叫都會對 in-context 訓練集重新計算。
 
 ---
 
-## Axis 1 — In-domain (`80_20_mod5` building split)
+## Axis 1 — In-domain（`80_20_mod5` building split）
 
 | Model | ROC-AUC | PR-AUC | F1@0.5 | fit+predict (s) |
 | --- | --- | --- | --- | --- |
 | GBDT (LightGBM, 10k fit) | 0.9877 ± 0.0012 | 0.9154 ± 0.0068 | 0.756 ± 0.013 | ~0.23 (warm) |
 | TabPFN-3 (10k context) | **0.9925 ± 0.0005** | **0.9253 ± 0.0049** | 0.747 ± 0.007 | 26.8 ± 2.0 |
 
-TabPFN edges the single-GBDT-at-10k baseline (+0.0048 ROC, +0.010 PR-AUC) but
-its `predict_proba` is ~25.3 s for 4,000 rows (~6.3 ms/row) versus GBDT's
-sub-second scoring — roughly **two orders of magnitude slower at inference**.
+TabPFN 略勝 single-GBDT-at-10k 的 baseline（+0.0048 ROC、+0.010 PR-AUC），
+但其 `predict_proba` 對 4,000 rows 需約 25.3 s（~6.3 ms/row），相對於 GBDT
+的次秒級評分 —— 在推論上大約**慢兩個數量級**。
 
-**Context**: the accepted M3.4 line is a *4-model ensemble on the full data*
-with ROC-AUC `0.9928`. TabPFN at a 10k context **matches that tuned ensemble**,
-while the single-GBDT-at-10k baseline sits below it. So TabPFN is not beating a
-weak model here — it reaches the tuned-ensemble headline — but it does so at a
-large inference-latency cost, and the tuned GBDT line is not dethroned.
+**脈絡**：已被接受的 M3.4 line 是*在完整資料上的 4-model ensemble*，ROC-AUC
+為 `0.9928`，而 single-GBDT-at-10k 的 baseline 略低於它。在 10k context 下，
+TabPFN 的 in-domain ROC-AUC 接近已接受的 M3.4 ensemble，顯示其 accuracy 已達
+強基準水準；主要限制是推論成本仍遠高於 GBDT。
 
 ---
 
-## Axis 2 — Site transfer (PRIMARY, `site_id % 5 == 4` held out)
+## Axis 2 — Site transfer（PRIMARY，`site_id % 5 == 4` held out）
 
-Held-out sites are never seen in training for the two *true cross-site* models.
-M3 ensemble site-held-out anchor: ROC-AUC `0.9774` (full-data 4-model ensemble;
-not directly comparable to these single-model 10k cells).
+對兩個*真正跨站（true cross-site）*的模型而言，held-out sites 在訓練時從未被看過。
+M3 ensemble site-held-out anchor：ROC-AUC `0.9774`（完整資料的 4-model ensemble；
+與這些 single-model 10k cells 不直接可比）。
 
 | Condition | ROC-AUC | PR-AUC | F1@0.5 | fit+predict (s) |
 | --- | --- | --- | --- | --- |
@@ -67,23 +66,22 @@ not directly comparable to these single-model 10k cells).
 | TabPFN-in-context (source sites only) | **0.9833 ± 0.0009** | 0.8119 ± 0.0052 | **0.783 ± 0.003** | 26.5 ± 0.2 |
 | GBDT-transfer, no retrain (in-domain model) | 0.9882 | 0.9023 | 0.761 | ~0.003 |
 
-**Honest reading.** Among the **true cross-site** models (trained only on source
-sites), TabPFN-in-context beats GBDT-retrain on ROC-AUC (+0.0035) and F1, but
-GBDT-retrain wins PR-AUC (+0.010) — a genuine split decision, not a clean TabPFN
-sweep. The **GBDT-transfer-without-retrain** row has the highest ROC-AUC
-(0.9882) and PR-AUC (0.9023), **but it is an easier setting**: that model was
-trained on the `80_20_mod5` building split, whose source buildings span *all*
-sites — including other buildings in the held-out sites. It therefore carries
-site familiarity (weather regime, site mix) that the true cross-site models lack.
-It answers "does a deployed all-sites model generalize to new *buildings* in
-*known* sites?", not "does a model transfer to *unseen sites*?" Read that way, it
-is not evidence against TabPFN's transfer.
+**解讀。** 在**真正跨站**的模型中（只用 source sites 訓練），TabPFN-in-context
+在 ROC-AUC（+0.0035）與 F1 上勝過 GBDT-retrain，GBDT-retrain 則在 PR-AUC
+上勝出（+0.010）—— 兩者勝負互見。**GBDT-transfer-without-retrain** 那一列有最高
+的 ROC-AUC（0.9882）與 PR-AUC（0.9023），但它是較容易的設定：該模型是在
+`80_20_mod5` building split 上訓練的，其 source buildings 橫跨*所有* sites ——
+包含 held-out sites 裡的其他 buildings。因此該設定包含 site-level familiarity
+（weather regime、site mix），與 true cross-site setting 不同。該設定衡量的是
+已部署 all-sites 模型對*已知* sites 中新 *buildings* 的泛化；因此這一列應作為
+known-site building generalization 的參考，而不應直接用來評估 cross-site
+transfer。
 
 ---
 
-## Axis 3 — Label scarcity (`80_20_mod5`, fixed 4k val)
+## Axis 3 — Label scarcity（`80_20_mod5`，固定 4k val）
 
-ROC-AUC and PR-AUC (mean over 3 seeds) as the labeled support set shrinks:
+ROC-AUC 與 PR-AUC（3 個 seeds 的 mean），隨著有標註的 support set 縮小：
 
 | Support | GBDT ROC | TabPFN ROC | ΔROC | GBDT PR | TabPFN PR | ΔPR |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -94,15 +92,14 @@ ROC-AUC and PR-AUC (mean over 3 seeds) as the labeled support set shrinks:
 | 5,000 | 0.9885 | 0.9899 | +0.0014 | 0.9086 | 0.9121 | +0.0035 |
 | 10,000 | 0.9877 | 0.9925 | +0.0048 | 0.9154 | 0.9234 | +0.0080 |
 
-**This is the clearest TabPFN win.** At 200 labels TabPFN leads by +0.015 ROC and
-**+0.100 PR-AUC**; the gap shrinks monotonically (on PR-AUC) as labels grow. The
-PR-AUC view — the right lens for a ~6%-prevalence anomaly task — shows the
-foundation model is markedly better when labels are scarce, exactly where it is
-expected to help.
+**這是 TabPFN 最明確的勝場。** 在 200 labels 時，TabPFN 領先 +0.015 ROC 與
+**+0.100 PR-AUC**；隨著標註增加，差距（在 PR-AUC 上）單調縮小。PR-AUC 視角
+—— 對一個 ~6% 盛行率的 anomaly 任務而言是正確的觀察角度 —— 顯示這個基礎模型
+在標註稀少時明顯更好，正是它被期待能幫上忙的地方。
 
 ---
 
-## Axis 4 — Minimal feature engineering (`80_20_mod5`, 10k fit, 4k val)
+## Axis 4 — Minimal feature engineering（`80_20_mod5`，10k fit、4k val）
 
 | Feature set | GBDT ROC | TabPFN ROC | GBDT PR | TabPFN PR |
 | --- | --- | --- | --- | --- |
@@ -110,56 +107,51 @@ expected to help.
 | Full value-change (137 feats) | 0.9877 | **0.9924** | 0.9154 | **0.9248** |
 | **ROC drop 137 → 17** | **−0.0290** | −0.0424 | — | — |
 
-**The feature-engineering-burden hypothesis is NOT supported here.** On the raw
-17-feature set GBDT actually *beats* TabPFN (0.9587 vs 0.9499 ROC; 0.831 vs 0.794
-PR-AUC), and TabPFN loses *more* when the engineered value-change lags are removed
-(−0.042 vs GBDT's −0.029). The row-offset value-change features encode temporal
-context that a single raw row cannot express, and TabPFN's in-context learning
-does not recover that time-series structure from raw tabular rows — it depends on
-the engineered features at least as much as GBDT does. In this anomaly-detection
-setup, TabPFN does **not** reduce the feature-engineering burden.
+**「降低特徵工程負擔」的假設在此並不成立。** 在 raw 17-feature 集上，GBDT 其實
+*勝過* TabPFN（0.9587 vs 0.9499 ROC；0.831 vs 0.794 PR-AUC），而當移除工程化的
+value-change lags 後，TabPFN 掉得*更多*（−0.042 vs GBDT 的 −0.029）。row-offset
+value-change features 編碼了單一 raw row 無法表達的時間脈絡，而 TabPFN 的
+in-context learning 並未從 raw tabular rows 還原那種時間序列結構 —— 它至少和
+GBDT 一樣仰賴這些工程化特徵。在此 anomaly-detection 設定中，TabPFN **並未**
+降低特徵工程負擔。
 
 ---
 
-## Verdict (honest, per ADR 0015)
+## 結論（依 ADR 0015）
 
-ADR 0015 says to judge TabPFN on transfer, label scarcity, and minimal feature
-engineering — not a single headline AUC. On that rubric:
+ADR 0015 指出，要以 transfer、label scarcity、minimal feature engineering 來
+評判 TabPFN —— 而非單一頭條 AUC。依此準則：
 
-**Where TabPFN beats GBDT**
+**TabPFN 勝過 GBDT 之處**
 
-+ **Label scarcity (strongest result)**: large PR-AUC advantage at small support
-  (+0.100 PR-AUC at 200 labels), narrowing as labels grow.
-+ **True cross-site transfer ROC-AUC**: TabPFN-in-context 0.9833 vs GBDT-retrain
-  0.9797 (+0.0035) and higher F1 — though GBDT-retrain wins PR-AUC.
-+ **In-domain at a matched 10k budget**: 0.9925 vs 0.9877, matching the tuned
-  M3.4 ensemble (0.9928).
++ **Label scarcity（最強結果）**：在小 support 時有顯著的 PR-AUC 優勢
+  （200 labels 時 +0.100 PR-AUC），並隨標註增加而縮小。
++ **真正跨站 transfer 的 ROC-AUC**：TabPFN-in-context 0.9833 vs GBDT-retrain
+  0.9797（+0.0035）且 F1 較高 —— 不過 GBDT-retrain 在 PR-AUC 勝出。
++ **在對齊的 10k budget 下的 in-domain**：0.9925 vs 0.9877，追平調校後的
+  M3.4 ensemble（0.9928）。
 
-**Where GBDT wins / TabPFN does not help**
+**GBDT 勝出 / TabPFN 幫不上忙之處**
 
-+ **Inference latency**: GBDT scores in sub-second; TabPFN `predict_proba` is
-  ~25 s for 4,000 rows (~6.3 ms/row). Not viable for low-latency real-time FDD
-  as-is. This is an offline benchmark, **not** a real-time FDD guarantee; any
-  real-time claim still requires `PAST_SHIFTS`-only causal features per ADR 0007
-  and ADR 0011.
-+ **Minimal feature engineering**: GBDT > TabPFN on raw features, and TabPFN
-  degrades more without the engineered lags — the opposite of the FE-saving
-  hypothesis.
-+ **Site-transfer PR-AUC**: GBDT-retrain edges TabPFN-in-context.
-+ **Tuned headline**: the accepted full-data M3.4 GBDT ensemble (0.9928) is not
-  dethroned; TabPFN matches it only at far higher inference cost.
++ **推論延遲**：主要阻礙是推論成本，而非 accuracy；TabPFN 的 in-context 推論
+  遠慢於 GBDT 的次秒級評分（完整延遲數字見 Axis 1），就現況不適用於低延遲的
+  real-time FDD。這是離線 benchmark，非 real-time FDD 保證；任何 real-time 宣稱
+  仍需依 ADR 0007 與 ADR 0011 使用 `PAST_SHIFTS`-only 的 causal features。
++ **Minimal feature engineering**：在 raw features 上 GBDT > TabPFN，且 TabPFN
+  在缺少工程化 lags 時掉得更多 —— 與「省特徵工程」的假設相反。
++ **Site-transfer 的 PR-AUC**：GBDT-retrain 略勝 TabPFN-in-context。
++ **調校後的頭條**：已被接受的完整資料 M3.4 GBDT ensemble（0.9928）並未被
+  取而代之；TabPFN 只在遠高的推論成本下才追平它。
 
-**Net**: TabPFN is a credible foundation-model candidate specifically for
-**label-scarce and cross-site** settings, where it adds real value (especially in
-PR-AUC). It is not a drop-in replacement for the tuned GBDT line on headline AUC,
-it is much slower at inference, and it does not lower the feature-engineering
-burden in this task. That is the intended use of this comparison: a rigorous,
-multi-axis read, not a headline claim.
+**總結**：TabPFN 是一個可信的基礎模型候選，**特別適用於 label-scarce 與
+cross-site** 的情境，在那裡它帶來真實價值（尤其是 PR-AUC）。它目前尚不能取代
+調校後的 GBDT line：accuracy 接近，但推論成本高，且仍依賴工程化的 value-change
+features。
 
-## Deferred to Phase E (BDG2), M5's next stage
+## 延後至 Phase E（BDG2）—— M5 的下一階段
 
-+ Real cross-**dataset** transfer to BDG2 (different buildings, sites, meters),
-  with real BDG2 data, schema, and labels — not the retired synthetic skeleton.
-+ Unlabeled / few-shot target-site adaptation on BDG2.
-+ Any real-time FDD latency engineering: TabPFN inference latency must drop by
-  orders of magnitude, and features must be `PAST_SHIFTS`-only (ADR 0007/0011).
++ 真正跨**資料集（cross-dataset）**轉移至 BDG2（不同 buildings、sites、meters），
+  使用真實的 BDG2 資料、schema 與標籤 —— 而非已退役的合成 skeleton。
++ 對 BDG2 的無標註 / few-shot target-site 適應。
++ 任何 real-time FDD 延遲工程：TabPFN 的推論延遲必須降低數個數量級，且特徵必須
+  是 `PAST_SHIFTS`-only（ADR 0007/0011）。

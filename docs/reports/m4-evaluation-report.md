@@ -6,10 +6,10 @@
 整理成可匯入的 `src/lead` package，並在不移動 M3 numeric line 的前提下，補上
 M5 所需的資料、特徵、切分、抽樣、評估介面。
 
-M4 是 foundation milestone，不是新的 modeling milestone。本階段不下載、不處理
-BDG2，也不啟動 M5 FDD experiments。所有變更以 executable code 為 reproduction
-authority；若 paper、docs、code 不一致，除非 ADR 明確覆寫，否則以目前可執行路徑
-為準。
+M4 是 foundation milestone：範圍是把 M3 reproduction pipeline 整理成可匯入的
+`src/lead` package，並補上 M5 所需介面；BDG2 ingestion 與 FDD experiments 於 M5
+展開。所有變更以 executable code 為 reproduction authority；若 paper、docs、code
+不一致，除非 ADR 明確覆寫，否則以目前可執行路徑為準。
 
 ---
 
@@ -149,7 +149,7 @@ surface 如下：
 M4 完成後，M5 的 entry interfaces 已明確化：
 
 + Data interface: 以 `load_m3_frame` 風格 loader 產出 tabular frame。BDG2
-  ingestion 是 M5 工作，不屬於 M4。
+  ingestion 於 M5 展開。
 + Label interface: BDG2 可能沒有 per-row anomaly labels，因此 M5 不能假設
   一定存在 1:1 label column；介面需允許 unlabeled 或 transfer evaluation。
 + Split interface: 以 `split_mask` 與 `assert_no_building_overlap` 支援
@@ -159,19 +159,19 @@ M4 完成後，M5 的 entry interfaces 已明確化：
   recall、F1；任何 real-time FDD claim 必須遵守 ADR 0007/0011 的 causal
   feature discipline。
 
-Remaining unknowns 19-21 已標示為 deferred-to-M5 / out of M4 scope：TabPFN
+Remaining unknowns 19-21 屬於 M5 的 feasibility/experiment 範圍：TabPFN
 row-feature fit、GPU/VRAM/license/local-vs-cloud execution path、以及 in-context
-TabPFN real-time latency。這些是 M5 feasibility/experiment 問題，不是 M4
-readiness blocker。
+TabPFN real-time latency。M4 readiness gate 已獨立於這些項目完成，並將它們交給 M5
+逐項驗證。
 
 ---
 
 # Ch6: Conclusion
 
-M4 已完成 importable pipeline foundation。M3 numeric line 維持不變，已知語意
-差異以 ADR、tests、unknowns register 明確記錄；`src/lead` public API 已凍結，
-M5 可在不讀 notebook cells 的前提下重用 data、feature、split、sample、evaluation
-helpers。下一階段可進入 M5 implementation，但 BDG2 ingestion、TabPFN feasibility、
-unlabeled/transfer evaluation 與 real-time latency 仍需在 M5 內逐項驗證。
+M4 已完成 importable pipeline foundation。M3 numeric line 維持在 regression gate
+內，label alignment、value-change regime、sampling/scaler semantics 與 public API
+surface 均已由 ADR 與 tests 鎖定。M5 可直接重用 data、feature、split、sample 與
+evaluation helpers；BDG2 ingestion、TabPFN feasibility、unlabeled / transfer
+evaluation 與 real-time latency engineering 將在 M5 展開。
 
 *Last updated: 2026-06-26 (M4 complete)*

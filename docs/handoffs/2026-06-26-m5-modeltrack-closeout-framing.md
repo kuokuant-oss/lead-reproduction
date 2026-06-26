@@ -19,7 +19,7 @@ M5's **next stage, Phase E**, not a separate milestone. Aligned across:
 + ADR 0015: added a framing note (FDD model-selection stage; Phase E next; GBDT is
   the real-time deployment candidate; TabPFN is a license/latency-bounded offline
   bootstrapper).
-+ Report English heading and unknown #21 wording → "Phase E (BDG2)".
++ Report heading and unknown #21 wording → "Phase E (BDG2)".
 
 Old session handoffs were left unchanged as historical record. `test_readme_freshness`
 checks only M4 / ADR rows and stays green.
@@ -30,11 +30,14 @@ README and m5-plan mark the FDD model-selection stage (Phase A–D) complete, wi
 a close-out section summarising the outcome: GBDT is the real-time deployment
 candidate; TabPFN is retained as an offline / label-scarce bootstrapper.
 
-### 3. zh-TW report
+### 3. Report
 
-`docs/reports/m5-foundation-vs-gbdt.zh-TW.md` is a faithful translation of the
-English report; all numbers, model names, identifiers, paths, links, and issue
-numbers are copied verbatim, English kept as provenance, both linked from README.
+`docs/reports/m5-foundation-vs-gbdt.md` is the single canonical M5 report, written
+in Traditional Chinese. Its provenance is the result JSON
+(`data/processed/m5_phaseD_foundation_vs_gbdt.json`, commit `8f4373b`). It is
+linked once from README (milestone table and 主要文件). (Issue #37 later made the
+report Chinese-only by removing the earlier English copy and promoting it to this
+canonical filename.)
 
 ### 4. Phase E plan (docs-only)
 

@@ -17,7 +17,7 @@
 | **M2** | LEAD competition subset reproduction | Closed | Kaggle Private AUC `0.98616`，與原始解法 `0.98661` 的差距為 `0.05%` |
 | **M3** | Full ASHRAE GEPIII reproduction | Complete | M3.4 ensemble AUC `0.9928`；PI 50/50 ensemble offline `0.9921` / causal `0.9911`；post-processing 為 null result |
 | **M4** | Importable pipeline foundation | M4.0-M4.5 complete | `src/lead` public API frozen; M3.2/M3.4 regression gates pass; M4.2-M4.5 closed |
-| **M5** | FDD on BDG2 | Model track (Phase A–D) complete；Phase E (BDG2) 規劃中 | FDD 選模階段完成：GEPIII 上 TabPFN-vs-GBDT 四軸比較（[en](./docs/reports/m5-foundation-vs-gbdt.md) ｜ [中文](./docs/reports/m5-foundation-vs-gbdt.zh-TW.md)）— TabPFN 於 label scarcity（+0.100 PR-AUC @200 labels）與 true cross-site ROC-AUC（0.9833 vs 0.9797）勝出，GBDT 保有 inference 延遲與 minimal-FE 優勢，real-time 部署候選仍為 GBDT。下一階段 = Phase E：FDD transfer to BDG2 |
+| **M5** | FDD on BDG2 | Model track (Phase A–D) complete；Phase E (BDG2) 規劃中 | FDD 選模階段完成：GEPIII 上 TabPFN-vs-GBDT 四軸比較（[報告](./docs/reports/m5-foundation-vs-gbdt.md)）— TabPFN 於 label scarcity（+0.100 PR-AUC @200 labels）與 true cross-site ROC-AUC（0.9833 vs 0.9797）勝出，GBDT 保有 inference 延遲與 minimal-FE 優勢，real-time 部署候選仍為 GBDT。下一階段 = Phase E：FDD transfer to BDG2 |
 
 Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-reproduction/milestones)。
 
@@ -26,7 +26,7 @@ Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-r
 - **M2 復現報告**：[docs/reports/reproduction-report.md](./docs/reports/reproduction-report.md)
 - **M3 完成報告**：[docs/reports/m3-report.md](./docs/reports/m3-report.md)
 - **M4 評估報告**：[docs/reports/m4-evaluation-report.md](./docs/reports/m4-evaluation-report.md)
-- **M5 FDD 選模報告**：[英文](./docs/reports/m5-foundation-vs-gbdt.md) ｜ [中文](./docs/reports/m5-foundation-vs-gbdt.zh-TW.md)
+- **M5 FDD 選模報告**：[docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)
 - **工作方法**：[docs/reference/workflow.md](./docs/reference/workflow.md)
 - **M4 計畫**：[docs/plans/m4-plan.md](./docs/plans/m4-plan.md)
 - **M5 計畫**：[docs/plans/m5-plan.md](./docs/plans/m5-plan.md)
@@ -84,6 +84,18 @@ M4.0-M4.5 complete:
 - `src/lead/io.py`：JSON provenance helper。
 
 M4.2 completed guarded positional label alignment; ADR 0010 is Accepted. M4.3 completed timestamp-merge value-change evaluation; ADR 0011 is Accepted. M4.4 preserved StandardScaler and positive-duplication sampling compatibility; ADR 0016 is Accepted. M4.5 completed the M5 readiness gate and froze the `src/lead` public API.
+
+### M5 FDD on BDG2
+
+M5 把工作從 reproduction 推進到 fault detection and diagnosis（FDD），最終目標是 BDG2。其 model track（Phase A–D）是 FDD 的選模階段：在現有 GEPIII 資料上以相同 split、downsample、feature table 與 seeds，對 TabPFN（tabular foundation model）與 GBDT 做四軸比較（in-domain、site transfer、label scarcity、minimal feature engineering），此階段已完成。
+
+主要結果：
+
+- TabPFN 在 label scarcity（200 labels 時 +0.100 PR-AUC）與 true cross-site ROC-AUC（`0.9833` vs GBDT-retrain `0.9797`）勝出。
+- TabPFN 在 10k context 的 in-domain ROC-AUC（`0.9925`）接近 M3.4 ensemble（`0.9928`）。
+- GBDT 保有推論延遲與 minimal feature engineering 的優勢，real-time 部署候選仍為 GBDT。
+
+下一階段為 Phase E（BDG2）：把選定的 FDD 模型轉移到 BDG2 corpus。詳細結果見 [docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)，規劃見 [docs/plans/m5-plan.md](./docs/plans/m5-plan.md)。
 
 ## src/lead public API
 
