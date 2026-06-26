@@ -87,6 +87,10 @@ def readme_lines_with(token: str) -> list[str]:
     return [line for line in read_text(README).splitlines() if token in line]
 
 
+def actual_adr_count() -> int:
+    return len(list(ADR_DIR.glob("*.md")))
+
+
 class TestReadmeFreshness(unittest.TestCase):
     def test_readme_m4_status_matches_plan(self) -> None:
         latest_done = latest_done_m4_slice()
@@ -119,6 +123,18 @@ class TestReadmeFreshness(unittest.TestCase):
                 any(actual_status.split()[0] in line for line in lines),
                 f"README should mention ADR {adr_number} status {actual_status}",
             )
+
+    def test_readme_adr_count_matches_adr_directory(self) -> None:
+        readme = read_text(README)
+        match = re.search(r"目前共有 (?P<count>\d+) 份 ADR", readme)
+        if not match:
+            raise AssertionError("README does not state the current ADR count")
+
+        self.assertEqual(
+            int(match.group("count")),
+            actual_adr_count(),
+            "README ADR count is stale",
+        )
 
     def test_m4_tracker_closed_governance_issue_is_done(self) -> None:
         row = m4_tracker_rows().get("M4 governance hardening")
