@@ -15,7 +15,7 @@ pilot/full/4b before validating unknown #26.
     `is_gepiii_overlap` and completeness:
     `gepiii_overlap__sufficient_obs`, `gepiii_overlap__high_missing`,
     `bdg2_only__sufficient_obs`, and `bdg2_only__high_missing`.
-  + Added strict powered-stratum helper with defaults of at least 2 buildings and
+  + Added strict powered-stratum helper with defaults of at least 5 buildings and
     at least 17,544 rows.
 + `scripts/run_phaseE_step4a_bdg2_transfer.py`
   + Pilot gate no longer passes on plumbing alone.
@@ -78,7 +78,8 @@ evidence:
 
 They were produced before the corrected gate and are retained only as local
 diagnostic artifacts. Do not cite them as full-transfer success, readiness, or a
-green Step 4b result.
+green Step 4b result. Both JSON files now carry `quarantined=true`,
+`quarantine_reason`, and `metric_contract.headline_metric=false`.
 
 ## Next Step
 

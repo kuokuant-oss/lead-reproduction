@@ -14,7 +14,8 @@
 The full and Step 4b artifacts above were produced before the corrected pilot
 gate. They are retained as local diagnostic artifacts only. They are not accepted
 Phase E results, not a passed full transfer, and not a basis for a readiness
-claim.
+claim. Both JSON files now carry `quarantined=true`,
+`quarantine_reason`, and `metric_contract.headline_metric=false`.
 
 ## Contract
 
@@ -37,10 +38,14 @@ completeness:
 + `sufficient_obs`: building/meter `meter_reading` missing rate is at most 50%.
 + `high_missing`: building/meter `meter_reading` missing rate is above 50%.
 
-The gate requires a powered `bdg2_only__sufficient_obs` stratum before full
-transfer can proceed. The current minimum is at least 2 buildings and at least
-17,544 rows. If that stratum is absent, the verdict is `underpowered` and the
-next step is `stop_and_report`.
+The gate requires a powered `bdg2_only__sufficient_obs` stratum and a powered
+`gepiii_overlap__sufficient_obs` baseline before any next-stage scoring can be
+accepted. The current minimum is at least 5 buildings and at least 17,544 rows;
+row count does not substitute for building diversity. If the BDG2-only powered
+stratum is absent, the verdict is `underpowered` and the next step is
+`stop_and_report`. If the BDG2-only stratum is powered but the overlap baseline
+is not, the verdict is `indeterminate_no_overlap_baseline` and the next step is
+also `stop_and_report`.
 
 ## Pilot Rerun
 

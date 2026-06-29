@@ -211,10 +211,57 @@ data/
 
 ## 環境設定
 
-建議使用 Python 3.13 與 [uv](https://docs.astral.sh/uv/)。
+需要 Python >= 3.11；本地驗證環境使用 Python 3.13 與 [uv](https://docs.astral.sh/uv/)。
 
 Python version note: `pyproject.toml` requires `>=3.11`; Python 3.13 is the
 local verified environment, not the minimum requirement.
+
+Tracked code tree (`git ls-files src scripts tests`, summarized):
+
+```text
+scripts/
+  diagnose_bdg2_timezone_alignment.py
+  diagnose_phaseE_step3_smoke_attribution.py
+  explore_bdg2.py
+  phaseE_transfer.py
+  run_m3_3_budslab.py
+  run_m3_4_ensemble.py
+  run_m3_5_postprocessing.py
+  run_m3_50_50_ensemble.py
+  run_m3_split_causality.py
+  run_m4_3_timestamp_value_change.py
+  run_m5_phaseC_tabpfn_spike.py
+  run_m5_phaseD_foundation_vs_gbdt.py
+  run_phaseE_step3_bdg2_transfer_smoke.py
+  run_phaseE_step4a_bdg2_transfer.py
+  run_phaseE_step4b_tabpfn_vs_gbdt_bdg2.py
+
+src/lead/
+  __init__.py
+  bdg2.py
+  data.py
+  evaluate.py
+  features.py
+  io.py
+  sample.py
+  split.py
+
+tests/
+  golden_metrics.json
+  test_bdg2_loader.py
+  test_call_arity.py
+  test_label_join_integrity.py
+  test_m5_phaseD_comparison.py
+  test_m5_tabpfn_spike.py
+  test_phaseE_step4_transfer.py
+  test_public_api.py
+  test_readme_freshness.py
+  test_refactor_regression.py
+  test_sampling_semantics.py
+  test_split_helpers.py
+  test_time_and_postprocessing_semantics.py
+  test_value_change_regimes.py
+```
 
 ```bash
 git clone https://github.com/kuokuant-oss/lead-reproduction.git
