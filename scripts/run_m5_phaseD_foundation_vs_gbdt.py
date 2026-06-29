@@ -49,6 +49,7 @@ from lead import (
     assert_no_building_overlap,
     classification_metrics,
     downsample_indices,
+    leave_site_out_mask,
     load_m3_frame,
     write_json_with_provenance,
 )
@@ -696,7 +697,8 @@ def main() -> None:
         del table
 
     if "site_transfer" in args.axes:
-        mask_site = (df["site_id"] % 5 == 4).to_numpy()
+        val_site_ids = sorted(site for site in df["site_id"].unique() if site % 5 == 4)
+        mask_site = leave_site_out_mask(df, val_site_ids)
         site_table = build_split_table(df, mask_site, split_label=SITE_TRANSFER_RULE)
         if transfer_model is None and not needs_8020:
             # Build an in-domain transfer model from the 80/20 split on demand.

@@ -233,34 +233,40 @@ research/internal-use license. The next stage is Phase E (FDD transfer to BDG2).
 
 ## Phase E: FDD transfer to BDG2
 
-**Status**: Planned (docs-only); no data download, no implementation
-**GitHub Issue**: to be opened at Phase E start
+**Status**: Stage 0/1 complete; Stage 2 GEPIII-only assumptions isolated
+**GitHub Issue**: [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39)
 
 Phase E carries the selected FDD models from GEPIII to the BDG2 (Building Data
 Genome 2) corpus. It is gated: each step below must clear before the next, so
 ingestion does not start on an unverified schema or an unknown label situation.
 
-1. **Labels (highest priority; registered as an unknown).** Confirm whether the
-   BDG2 Fox subset carries a per-row anomaly/fault label. No ingestion begins
-   until this is resolved — it decides the entire evaluation paradigm. See
-   unknown #22.
-2. **Evaluation-paradigm decision (record an ADR; one of three, per the label
-   result).** (a) supervised AUC if per-row labels exist; (b)
-   forecasting-residual scoring if only readings exist; (c) unsupervised /
-   apply-a-GEPIII-trained detector with no BDG2 ground truth. See unknown #23.
-3. **BDG2 ingestion contract.** Approve the data source, align the schema to
-   `load_m3_frame` (site/building keys, weather, meter), define the site/building
-   and site-held-out splits, and an optional label merge. This **rebuilds the
-   retired skeleton but on real data**, owned by a single named owner. See
-   unknown #24.
-4. **Transfer-evaluation contract.** Treat the M3 site-held-out ensemble AUC
+1. **Real-data inventory.** Completed in
+   [docs/reports/bdg2-data-reality.md](../reports/bdg2-data-reality.md): the
+   local BDG2 archive has 18 real CSVs, 1,636 buildings, 19 sites, 8 raw meter
+   files, 8 cleaned meter files, site-level weather, and no per-row anomaly
+   labels.
+2. **Evaluation-paradigm decision (record a follow-up ADR).** Because Stage 0
+   found no per-row BDG2 anomaly labels, Phase E must choose between
+   forecasting-residual scoring, unsupervised detection, or applying a
+   GEPIII-trained detector with no BDG2 ground truth. See unknown #23.
+3. **BDG2 ingestion contract.** ADR 0017 accepts the real-schema contract and
+   `load_bdg2_frame` rebuilds the retired skeleton on real data: wide meter CSVs
+   melt to `(building_id, meter, timestamp, meter_reading)`, metadata joins use
+   measured BDG2 columns, weather joins on `(site_id, timestamp)`, and labels
+   remain absent. See unknown #24.
+4. **GEPIII-only assumption isolation.** ADR 0018 records the Stage 2 code
+   boundary: dynamic holiday years/timezone country mapping, GEPIII-only unit
+   correction, meter-aware BDG2 value-change path, dynamic year-end
+   post-processing boundaries, BDG2 string meter names, and the exported
+   `leave_site_out_mask` helper.
+5. **Transfer-evaluation contract.** Treat the M3 site-held-out ensemble AUC
    `0.9774` and the Phase D cross-site TabPFN-in-context `0.9833` as **internal
    references only**, not BDG2 readiness claims. `site_id % 5 == 4` is a
    GEPIII-internal hold-out and is **not** cross-dataset transfer; BDG2 is the
    first true cross-dataset test.
-5. **Causal discipline.** Any online / real-time FDD claim uses `PAST_SHIFTS`-only
+6. **Causal discipline.** Any online / real-time FDD claim uses `PAST_SHIFTS`-only
    features per ADR 0007 and ADR 0011; offline and causal regimes stay explicit.
-6. **Roles and limits.** TabPFN is bounded by the TabPFN-3.0 License
+7. **Roles and limits.** TabPFN is bounded by the TabPFN-3.0 License
    (research / internal use only) and by inference latency (~6.3 ms/row, ~100×
    slower than GBDT); it is positioned as an offline / label-scarce bootstrapper.
    The real-time deployment candidate remains GBDT. These constraints are part of
@@ -281,4 +287,7 @@ ingestion does not start on an unverified schema or an unknown label situation.
 | Phase D TabPFN-vs-GBDT GEPIII comparison | [#35](https://github.com/kuokuant-oss/lead-reproduction/issues/35) | Done |
 | M5 framing fix + model-track close-out + 中文報告 + Phase E plan | [#36](https://github.com/kuokuant-oss/lead-reproduction/issues/36) | Done |
 | M5 report Chinese-only canonical + README M5 + report language convergence | [#37](https://github.com/kuokuant-oss/lead-reproduction/issues/37) | Done |
-| Phase E FDD transfer to BDG2 | _to be opened_ | Planned |
+| Phase E Stage 0 real BDG2 inventory | _local gate_ | Done |
+| Phase E Stage 1 BDG2 ingestion contract | _local gate_ | Done |
+| Phase E Stage 2 GEPIII-only assumption isolation | _local gate_ | Done |
+| Phase E FDD transfer to BDG2 | [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39) | Planned |

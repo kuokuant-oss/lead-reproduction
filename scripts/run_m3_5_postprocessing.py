@@ -22,6 +22,7 @@ from lead import (
     add_value_change_features,
     classification_metrics,
     downsample_indices,
+    leave_site_out_mask,
     load_m3_frame,
 )
 from run_m3_4_ensemble import (
@@ -32,13 +33,23 @@ from run_m3_4_ensemble import (
 
 M3_2_REFERENCE_AUC = 0.9920
 M3_4_REFERENCE_AUC = 0.9928
-RULE_2B_DAYOFYEAR_THRESHOLD = 366.9583
+LEGACY_RULE_2B_DAYOFYEAR_THRESHOLD = 366.9583
 SHUFFLE_SEEDS = (42, 123, 999)
-METER_NAMES = {
+GEPIII_METER_NAMES = {
     0: "electricity",
     1: "chilled_water",
     2: "steam",
     3: "hot_water",
+}
+BDG2_METER_NAMES = {
+    "electricity": "electricity",
+    "chilledwater": "chilled_water",
+    "steam": "steam",
+    "hotwater": "hot_water",
+    "gas": "gas",
+    "water": "water",
+    "irrigation": "irrigation",
+    "solar": "solar",
 }
 
 
@@ -47,6 +58,7 @@ def apply_rules(
     *,
     meter_reading: pd.Series,
     dayofyear: pd.Series,
+    timestamp: pd.Series | None = None,
     rule_2a_mask: np.ndarray | None,
     include_rule_1: bool = True,
     include_rule_2a: bool = True,
@@ -58,8 +70,20 @@ def apply_rules(
     if include_rule_2a and rule_2a_mask is not None:
         pred[rule_2a_mask] = 0.0
     if include_rule_2b:
-        pred[dayofyear.to_numpy() > RULE_2B_DAYOFYEAR_THRESHOLD] = 0.0
+        pred[rule_2b_end_of_year_mask(dayofyear, timestamp)] = 0.0
     return pred
+
+
+def rule_2b_end_of_year_mask(
+    dayofyear: pd.Series,
+    timestamp: pd.Series | None = None,
+) -> np.ndarray:
+    if timestamp is None:
+        return dayofyear.to_numpy() > LEGACY_RULE_2B_DAYOFYEAR_THRESHOLD
+    ts = pd.to_datetime(timestamp)
+    days_in_year = np.where(ts.dt.is_leap_year.to_numpy(), 366.0, 365.0)
+    threshold = days_in_year + 23.0 / 24.0
+    return dayofyear.to_numpy() > threshold
 
 
 def auc_delta(y_true: pd.Series, pred: np.ndarray, base_auc: float) -> dict[str, float]:
@@ -177,7 +201,8 @@ def run_site_heldout_ensemble(
     feature_cols: list[str],
 ) -> dict[str, object]:
     log("Running site-held-out 4-model ensemble")
-    mask_val = (df["site_id"] % 5 == 4).to_numpy()
+    val_site_ids = sorted(site for site in df["site_id"].unique() if site % 5 == 4)
+    mask_val = leave_site_out_mask(df, val_site_ids)
     train_sites = set(df.loc[~mask_val, "site_id"].unique())
     val_sites = set(df.loc[mask_val, "site_id"].unique())
     site_overlap = train_sites & val_sites
@@ -225,9 +250,15 @@ def run_site_heldout_ensemble(
     }
 
 
-def meter_auc_breakdown(y_true: pd.Series, pred: np.ndarray, meter: pd.Series) -> dict:
+def meter_auc_breakdown(
+    y_true: pd.Series,
+    pred: np.ndarray,
+    meter: pd.Series,
+    *,
+    meter_names: dict[object, str] = GEPIII_METER_NAMES,
+) -> dict:
     out = {}
-    for meter_id, name in METER_NAMES.items():
+    for meter_id, name in meter_names.items():
         mask = meter.to_numpy() == meter_id
         y_meter = y_true.to_numpy()[mask]
         if len(np.unique(y_meter)) < 2:
@@ -235,7 +266,7 @@ def meter_auc_breakdown(y_true: pd.Series, pred: np.ndarray, meter: pd.Series) -
         else:
             auc = float(roc_auc_score(y_meter, pred[mask]))
         out[name] = {
-            "meter": int(meter_id),
+            "meter": meter_id,
             "n_rows": int(mask.sum()),
             "n_anomalies": int(y_meter.sum()),
             "anomaly_rate": float(y_meter.mean()) if len(y_meter) else 0.0,
@@ -458,7 +489,9 @@ def main() -> None:
 
     eda = jan1_eda(val_full, y_val)
     rule_2a_mask = eda.pop("rule_2a_mask")
-    rule_2b_mask = val_full["dayofyear"].to_numpy() > RULE_2B_DAYOFYEAR_THRESHOLD
+    rule_2b_mask = rule_2b_end_of_year_mask(
+        val_full["dayofyear"], val_full["timestamp"]
+    )
     alignment = validate_alignment(
         val_full=val_full,
         x_val=x_val,
@@ -479,6 +512,7 @@ def main() -> None:
                 ensemble_pred,
                 meter_reading=val_full["meter_reading"],
                 dayofyear=val_full["dayofyear"],
+                timestamp=val_full["timestamp"],
                 rule_2a_mask=rule_2a_mask,
                 include_rule_2a=False,
                 include_rule_2b=False,
@@ -491,6 +525,7 @@ def main() -> None:
                 ensemble_pred,
                 meter_reading=val_full["meter_reading"],
                 dayofyear=val_full["dayofyear"],
+                timestamp=val_full["timestamp"],
                 rule_2a_mask=rule_2a_mask,
                 include_rule_1=False,
                 include_rule_2b=False,
@@ -505,6 +540,7 @@ def main() -> None:
                 ensemble_pred,
                 meter_reading=val_full["meter_reading"],
                 dayofyear=val_full["dayofyear"],
+                timestamp=val_full["timestamp"],
                 rule_2a_mask=rule_2a_mask,
                 include_rule_1=False,
                 include_rule_2a=False,
@@ -517,6 +553,7 @@ def main() -> None:
         ensemble_pred,
         meter_reading=val_full["meter_reading"],
         dayofyear=val_full["dayofyear"],
+        timestamp=val_full["timestamp"],
         rule_2a_mask=rule_2a_mask,
     )
     combined_metrics = classification_metrics(y_val, combined_pred)
@@ -604,11 +641,11 @@ def main() -> None:
                 **rule_2a_trigger,
                 "eda": eda,
             },
-            "rule_2b_dayofyear_gt_366_9583_to_0": trigger_summary(rule_2b_mask, y_val),
+            "rule_2b_dynamic_end_of_year_to_0": trigger_summary(rule_2b_mask, y_val),
             "application_order": [
                 "rule_1_meter_reading_eq_1_to_1",
                 "rule_2a_dayofyear_eq_1_to_0",
-                "rule_2b_dayofyear_gt_366_9583_to_0",
+                "rule_2b_dynamic_end_of_year_to_0",
             ],
             "rule_2_overrides_rule_1": True,
         },

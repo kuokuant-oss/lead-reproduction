@@ -40,6 +40,6 @@ def assert_no_building_overlap(
     return overlap
 
 
-def leave_site_out_mask(df: pd.DataFrame, site_ids: list[int]) -> np.ndarray:
+def leave_site_out_mask(df: pd.DataFrame, site_ids: list[object]) -> np.ndarray:
     """Reserved for M5/FDD site-held-out evaluation."""
     return df["site_id"].isin(site_ids).to_numpy()

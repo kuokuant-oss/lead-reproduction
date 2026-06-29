@@ -7,11 +7,20 @@ from typing import Literal
 import pandas as pd
 
 
-ValueChangeRegime = Literal["row_offset", "timestamp_merge"]
+ValueChangeRegime = Literal["row_offset", "row_offset_meter_aware", "timestamp_merge"]
 
 
-def _row_offset_shifted(out: pd.DataFrame, shift_hours: int) -> pd.Series:
-    grouped = out.groupby("building_id", sort=False)["meter_reading"]
+def _row_offset_shifted(
+    out: pd.DataFrame, shift_hours: int, *, meter_aware: bool
+) -> pd.Series:
+    group_keys = ["building_id", "meter"] if meter_aware else ["building_id"]
+    missing = [key for key in group_keys if key not in out.columns]
+    if missing:
+        raise ValueError(
+            "meter-aware row-offset value-change requires columns: "
+            + ", ".join(missing)
+        )
+    grouped = out.groupby(group_keys, sort=False)["meter_reading"]
     return grouped.shift(shift_hours)
 
 
@@ -44,18 +53,34 @@ def add_value_change_features(
     `timestamp_merge` uses exact timestamp + n-hour joins and leaves merge
     misses as NaN for LightGBM's native missing-value handling.
     """
-    if value_change_regime not in ("row_offset", "timestamp_merge"):
+    if value_change_regime not in (
+        "row_offset",
+        "row_offset_meter_aware",
+        "timestamp_merge",
+    ):
         raise ValueError(
-            "value_change_regime must be one of: row_offset, timestamp_merge"
+            "value_change_regime must be one of: row_offset, "
+            "row_offset_meter_aware, timestamp_merge"
         )
-    out = df.sort_values(["building_id", "timestamp"]).reset_index(drop=True).copy()
+    sort_keys = ["building_id", "timestamp"]
+    if value_change_regime == "row_offset_meter_aware":
+        if "meter" not in df.columns:
+            raise ValueError(
+                "meter-aware row-offset value-change requires columns: meter"
+            )
+        sort_keys = ["building_id", "meter", "timestamp"]
+    out = df.sort_values(sort_keys).reset_index(drop=True).copy()
     mr = out["meter_reading"]
     new_cols = {}
     for n in shifts:
-        if value_change_regime == "row_offset":
-            shifted = _row_offset_shifted(out, n)
-        else:
+        if value_change_regime == "timestamp_merge":
             shifted = _timestamp_merge_shifted(out, n)
+        else:
+            shifted = _row_offset_shifted(
+                out,
+                n,
+                meter_aware=value_change_regime == "row_offset_meter_aware",
+            )
         new_cols[f"lag_value_diff_{n}"] = (mr - shifted).astype("float32")
         new_cols[f"lag_value_ratio_{n}"] = ((mr + 1) / (shifted + 1)).astype("float32")
     return pd.concat([out, pd.DataFrame(new_cols)], axis=1)

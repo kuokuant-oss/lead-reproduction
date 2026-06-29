@@ -855,7 +855,7 @@ order-of-magnitude inference-latency reduction (deferred to Phase E, BDG2).
 **Question**: Does the BDG2 (Building Data Genome 2) Fox subset provide a per-row
 anomaly/fault label, or only raw meter readings?
 
-**Status**: open (M5 Phase E gate; 2026-06-26)
+**Status**: resolved by Stage 0 inventory (2026-06-29)
 
 **Why it matters**: This is the highest-priority Phase E gate. The label answer
 decides the entire evaluation paradigm (see #23) and whether supervised AUC is
@@ -863,23 +863,35 @@ even available on BDG2. Phase D used GEPIII `bad_meter_readings.csv` per-row
 labels; BDG2 may not offer an equivalent. No BDG2 ingestion may start until this
 is resolved.
 
-**Next**: confirm from the BDG2 source documentation before any ingestion work.
+**Stage 0 finding**: `docs/reports/bdg2-data-reality.md` found meter,
+metadata, and weather files only. No per-row anomaly/fault label or label-like
+schema field is present in the local BDG2 archive.
+
+**Next**: choose the evaluation paradigm in #23; do not claim supervised BDG2
+AUC without a documented pseudo-label or external label source.
 
 ---
 
 ## 23. BDG2 evaluation paradigm
 
-**Question**: Which evaluation paradigm applies to BDG2 — (a) supervised AUC with
-per-row labels, (b) forecasting-residual scoring from readings only, or (c)
-unsupervised / apply a GEPIII-trained detector with no BDG2 ground truth?
+**Question**: Which evaluation paradigm applies to BDG2 — (a)
+forecasting-residual scoring from readings only, (b) unsupervised / apply a
+GEPIII-trained detector with no BDG2 ground truth, or (c) pseudo-labels derived
+from raw/cleaned differences?
 
-**Status**: open (M5 Phase E gate; depends on #22; 2026-06-26)
+**Status**: open (M5 Phase E gate; #22 resolved as no native per-row labels;
+2026-06-29)
 
-**Why it matters**: The paradigm choice determines metrics, the transfer-evaluation
-contract, and what a "result" means. It must be recorded as an ADR at Phase E
-start, chosen from the three options above according to the #22 label result.
+**Why it matters**: The paradigm choice determines metrics, the
+transfer-evaluation contract, and what a "result" means. Stage 0 eliminated
+native supervised labels, but left four viable strategies: forecasting residuals,
+unsupervised scoring, GEPIII-trained detector transfer, and raw/cleaned
+difference pseudo-labels. The last option treats cells that are present in raw
+meter files but become `NaN` in cleaned files as BDG2-cleaning-identified bad
+readings, the closest measured analogue to GEPIII `bad_meter_readings`.
 
-**Next**: record the decision as an ADR once #22 is known.
+**Next**: record the evaluation-paradigm decision as a follow-up ADR before any
+BDG2 headline metric.
 
 ---
 
@@ -889,7 +901,7 @@ start, chosen from the three options above according to the #22 label result.
 to `load_m3_frame` (site/building keys, weather, meter, optional label merge,
 site-held-out split)?
 
-**Status**: open (M5 Phase E gate; 2026-06-26)
+**Status**: resolved for Stage 1 by ADR 0017 (2026-06-29)
 
 **Why it matters**: Phase E rebuilds the retired `lead.bdg2` skeleton (issue #34)
 but on real data, owned by a single named owner. The ingestion contract must name
@@ -899,4 +911,9 @@ Phase D cross-site `0.9833` are internal references only — `site_id % 5 == 4` 
 GEPIII-internal hold-out, not cross-dataset transfer; BDG2 is the first true
 cross-dataset test.
 
-**Next**: define and approve the ingestion contract at Phase E start.
+**Stage 1 finding**: ADR 0017 defines the real-schema ingestion contract and
+`load_bdg2_frame` implements it while preserving `building_id_kaggle`,
+`site_id_kaggle`, and `is_gepiii_overlap`.
+
+**Next**: keep #23 open for evaluation semantics and use ADR 0017 as the loader
+contract until a later ADR supersedes it.

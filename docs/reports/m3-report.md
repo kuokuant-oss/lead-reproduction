@@ -185,8 +185,9 @@ metadata/base-rate structure。
 | Buildings with missing hours inside observed range | 945/1449 (65.2%) | Row-offset value-change shifts 是跨 timestamp gaps 的近似。 |
 
 Value-change implementation 使用 `groupby().shift()`，因此 shifts 是 row-offset
-features，而不是精確的 `timestamp + timedelta` joins。這是解讀 long-range
-shifts 時的限制。
+features，而不是精確的 `timestamp + timedelta` joins。此 GEPIII default 也只以
+`building_id` 分組；多 meter frame 可能發生 meter-crossing。BDG2 path 必須使用
+meter-aware value-change regime。這是解讀 long-range shifts 時的限制。
 
 ## 4.3 Primary-use slices
 

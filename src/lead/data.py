@@ -86,6 +86,12 @@ M3_3_EXTRA_FEATURE_COLS = [
 BAD_METER_LABEL_COLUMNS = ("is_bad_meter_reading",)
 M3_ROW_ID_COLUMNS = ("building_id", "meter", "timestamp")
 
+HOLIDAY_COUNTRY_BY_TIMEZONE_PREFIX = {
+    "US/": "US",
+    "Europe/Dublin": "IE",
+    "Europe/London": "GB",
+}
+
 
 def _log(message: str, *, verbose: bool) -> None:
     if verbose:
@@ -158,9 +164,46 @@ def _add_cyclic_and_holiday_features(train: pd.DataFrame) -> pd.DataFrame:
     train["weekday_cos"] = np.cos(2 * np.pi * train["weekday"] / 7).astype("float32")
     train["month_sin"] = np.sin(2 * np.pi * (train["month"] - 1) / 12).astype("float32")
     train["month_cos"] = np.cos(2 * np.pi * (train["month"] - 1) / 12).astype("float32")
-    us_holidays = holidays.country_holidays("US", years=[2016])
-    train["is_holiday"] = train["timestamp"].dt.date.isin(us_holidays).astype("int8")
+    train["is_holiday"] = _holiday_mask_for_frame(train).astype("int8")
     return train
+
+
+def _years_in_frame(frame: pd.DataFrame) -> list[int]:
+    years = pd.to_datetime(frame["timestamp"]).dt.year.dropna().unique()
+    return sorted(int(year) for year in years)
+
+
+def _holiday_country_for_timezone(timezone: str | None) -> str:
+    if timezone is None or pd.isna(timezone):
+        return "US"
+    tz = str(timezone)
+    for prefix, country in HOLIDAY_COUNTRY_BY_TIMEZONE_PREFIX.items():
+        if tz.startswith(prefix):
+            return country
+    return "US"
+
+
+def _holiday_mask_for_frame(frame: pd.DataFrame) -> pd.Series:
+    timestamps = pd.to_datetime(frame["timestamp"])
+    years = _years_in_frame(frame)
+    if "timezone" not in frame.columns:
+        holiday_dates = holidays.country_holidays("US", years=years)
+        return timestamps.dt.date.isin(holiday_dates)
+
+    mask = pd.Series(False, index=frame.index)
+    country_by_timezone = {
+        timezone: _holiday_country_for_timezone(timezone)
+        for timezone in frame["timezone"].dropna().unique()
+    }
+    for timezone, country in country_by_timezone.items():
+        rows = frame["timezone"] == timezone
+        holiday_dates = holidays.country_holidays(country, years=years)
+        mask.loc[rows] = timestamps.loc[rows].dt.date.isin(holiday_dates)
+    if frame["timezone"].isna().any():
+        holiday_dates = holidays.country_holidays("US", years=years)
+        rows = frame["timezone"].isna()
+        mask.loc[rows] = timestamps.loc[rows].dt.date.isin(holiday_dates)
+    return mask
 
 
 def _building_metadata() -> pd.DataFrame:
@@ -237,9 +280,7 @@ def load_m3_frame(
     train = train.merge(meta[meta_cols], on="building_id", how="left")
 
     if include_budslab_features:
-        train.loc[(train["site_id"] == 0) & (train["meter"] == 0), "meter_reading"] *= (
-            0.2931
-        )
+        train = _apply_gepiii_kaggle_site0_meter0_correction(train)
         train["primary_use_meter"] = (
             train["primary_use"].fillna("Unknown") + "_" + train["meter"].astype(str)
         )
@@ -286,3 +327,13 @@ def load_m3_frame(
         verbose=verbose,
     )
     return train[keep_cols]
+
+
+def _apply_gepiii_kaggle_site0_meter0_correction(
+    train: pd.DataFrame,
+) -> pd.DataFrame:
+    """Apply the GEPIII/Kaggle-only electricity unit correction."""
+    train.loc[(train["site_id"] == 0) & (train["meter"] == 0), "meter_reading"] *= (
+        0.2931
+    )
+    return train

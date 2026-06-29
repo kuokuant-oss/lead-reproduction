@@ -93,6 +93,36 @@ class TestValueChangeRegimes(unittest.TestCase):
         self.assertEqual(out.loc[meter_0_hour_1, "lag_value_diff_1"].iloc[0], 2.0)
         self.assertEqual(out.loc[meter_1_hour_1, "lag_value_diff_1"].iloc[0], 5.0)
 
+    def test_row_offset_meter_aware_does_not_cross_meter_series(self) -> None:
+        df = multi_meter_frame()
+
+        row_offset = add_value_change_features(
+            df, [1], value_change_regime="row_offset"
+        )
+        meter_aware = add_value_change_features(
+            df, [1], value_change_regime="row_offset_meter_aware"
+        )
+
+        crossed = (row_offset["meter"] == 1) & (
+            row_offset["timestamp"] == pd.Timestamp("2016-01-01 00:00:00")
+        )
+        meter_1_hour_1 = (meter_aware["meter"] == 1) & (
+            meter_aware["timestamp"] == pd.Timestamp("2016-01-01 01:00:00")
+        )
+        self.assertEqual(row_offset.loc[crossed, "lag_value_diff_1"].iloc[0], 90.0)
+        self.assertEqual(
+            meter_aware.loc[meter_1_hour_1, "lag_value_diff_1"].iloc[0],
+            5.0,
+        )
+
+    def test_row_offset_meter_aware_requires_meter_column(self) -> None:
+        with self.assertRaisesRegex(ValueError, "meter-aware"):
+            add_value_change_features(
+                gapped_frame(),
+                [1],
+                value_change_regime="row_offset_meter_aware",
+            )
+
     def test_unknown_regime_fails_loudly(self) -> None:
         with self.assertRaisesRegex(ValueError, "value_change_regime"):
             add_value_change_features(

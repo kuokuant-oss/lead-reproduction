@@ -38,7 +38,7 @@ Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-r
 M1 不訓練模型，目標是把論文與原始碼中的關鍵決策變成可追蹤文件。
 
 - `docs/reference/unknowns.md`：17 個 paper 或 code 未說清楚的地方。
-- `docs/adr/`：目前共有 16 份 ADR；M1 產出 ADR 0001-0006。
+- `docs/adr/`：目前共有 18 份 ADR；M1 產出 ADR 0001-0006。
 - `docs/reference/paper-notes.md`：paper structured summary。
 - `docs/reference/feature-engineering-rules.md`：feature 與 model 規則整理。
 
@@ -118,12 +118,14 @@ M4.5 freezes `lead.__all__` as:
 15. `PAST_SHIFTS`
 16. `FUTURE_SHIFTS`
 17. `load_m3_frame`
-18. `add_value_change_features`
-19. `split_mask`
-20. `assert_no_building_overlap`
-21. `downsample_indices`
-22. `classification_metrics`
-23. `write_json_with_provenance`
+18. `load_bdg2_frame`
+19. `add_value_change_features`
+20. `split_mask`
+21. `assert_no_building_overlap`
+22. `leave_site_out_mask`
+23. `downsample_indices`
+24. `classification_metrics`
+25. `write_json_with_provenance`
 
 `add_value_change_features(df, shifts, value_change_regime=...)` supports `row_offset` and `timestamp_merge`. `row_offset` remains the M3 reproduction default.
 
@@ -153,7 +155,7 @@ docs/
 │   ├── m3-50-50-ensemble.json
 │   └── m3-primary-use-auc.json
 ├── adr/
-│   └── 0001-0015 decision records
+│   └── 0001-0018 decision records
 ├── handoffs/
 │   └── historical session handoffs
 ├── agents/
