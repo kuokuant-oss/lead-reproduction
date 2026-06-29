@@ -26,9 +26,16 @@ pilot/full/4b before validating unknown #26.
   + Rank agreement now also reports by overlap/completeness stratum.
   + The Step 4b runner remains present but should not be accepted until the
     corrected pilot gate allows the next stage.
++ `scripts/run_phaseE_step4c_pooled_powered_fallback.py`
+  + Added a raw chilledwater pooled fallback that scores sites independently and
+    aggregates only the unlabeled score/OOD stratum evidence.
+  + The pooled gate maps an unpowered pooled BDG2-only sufficient-observation
+    stratum to `underpowered_even_pooled` and `stop_and_report`.
 + `tests/test_phaseE_step4_transfer.py`
   + Added regression coverage proving plumbing-only BDG2 rows fail the gate.
   + Added completeness and rank-by-stratum tests.
+  + Added pooled fallback tests for the four cross strata, underpowered pooled
+    verdict, and powered OOD stop without full-transfer permission.
 + `docs/reports/phaseE-step4-bdg2-transfer.md`, README, and
   `docs/plans/m5-plan.md` now describe the corrected gate stop.
 
@@ -68,6 +75,48 @@ Control anchor:
 + Fox cleaned M3.2 LightGBM control anchor GEPIII-overlap median:
   `0.007009272301667491`.
 
+## Pooled Raw Fallback Evidence
+
+Accepted diagnostic artifact:
+
++ `.scratch/phaseE-step4c-pooled-powered-fallback.json`
+
+Command:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_phaseE_step4c_pooled_powered_fallback.py --out .scratch\phaseE-step4c-pooled-powered-fallback.json
+```
+
+Pooled gate result:
+
++ `status`: `failed`
++ `verdict`: `underpowered_even_pooled`
++ `allowed_next_step`: `stop_and_report`
++ failure: `pooled chilledwater has no powered bdg2_only__sufficient_obs stratum`
+
+Pooled raw strata:
+
++ GEPIII-overlap sufficient-observation: 516 buildings, 9,052,704 rows, median
+  score `0.007638401990504516`.
++ GEPIII-overlap high-missing: 13 buildings, 228,072 rows, median score
+  `0.2211491656241341`.
++ BDG2-only sufficient-observation: 3 buildings, 52,632 rows, median score
+  `0.9911189331269352`.
++ BDG2-only high-missing: 23 buildings, 403,512 rows, median score
+  `0.10770437155813975`.
+
+The pooled BDG2-only sufficient-observation stratum has enough rows but only 3
+buildings, so it still fails the 5-building minimum. The sufficient-observation
+median ratio is `129.75474901151046`, with `ood_signal=true`, but the BDG2-only
+side is not powered; treat that contrast as diagnostic context only.
+
+Step 4c control anchor:
+
++ Fox cleaned M3.2 LightGBM control anchor BDG2-only median:
+  `0.15755569665583008`.
++ Fox cleaned M3.2 LightGBM control anchor GEPIII-overlap median:
+  `0.007009272301667491`.
+
 ## Quarantined Artifacts
 
 These files exist from the previous overrun and should not be treated as passed
@@ -83,16 +132,22 @@ green Step 4b result. Both JSON files now carry `quarantined=true`,
 
 ## Next Step
 
-Stop after the corrected pilot. Do not run full or Step 4b again until a new
-pilot has a powered `bdg2_only__sufficient_obs` stratum, or until the project
-explicitly chooses to report the current chilledwater pilot as underpowered and
-redesigns the Phase E transfer evidence.
+Stop after the corrected pilot and pooled fallback. Do not run full or Step 4b
+again until a new pilot or scope has a powered `bdg2_only__sufficient_obs`
+stratum, or until the project explicitly chooses a held-out-BDG2-site scope
+under ADR 0019. The current chilledwater pooled fallback is
+`underpowered_even_pooled`, not permission to proceed.
 
 ## Validation
 
 + `.\.venv\Scripts\python.exe -m ruff check scripts\phaseE_transfer.py scripts\run_phaseE_step4a_bdg2_transfer.py scripts\run_phaseE_step4b_tabpfn_vs_gbdt_bdg2.py tests\test_phaseE_step4_transfer.py`
 + `.\.venv\Scripts\python.exe -m unittest tests.test_phaseE_step4_transfer -v`
++ `.\.venv\Scripts\python.exe scripts\run_phaseE_step4c_pooled_powered_fallback.py --out .scratch\phaseE-step4c-pooled-powered-fallback.json`
 
 Both passed before the pilot rerun. The pilot command exited `0` and saved
 strict JSON; Windows emitted the same non-fatal `cp950` reader-thread warning
 after the successful write.
+
+The Step 4c pooled fallback command exited `0` and saved strict JSON. Windows
+again emitted the same non-fatal `cp950` reader-thread warning after the
+successful write, plus sklearn feature-name warnings during scoring.

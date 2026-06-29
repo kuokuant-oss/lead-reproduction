@@ -5,6 +5,7 @@
 **Accepted evidence**:
 
 + `.scratch/phaseE-step4a-bdg2-transfer-pilot.json`
++ `.scratch/phaseE-step4c-pooled-powered-fallback.json`
 
 **Quarantined evidence from the prior overrun**:
 
@@ -85,6 +86,54 @@ Step 4 pilot pass, because the corrected gate is about powered
 sufficient-observation BDG2-only evidence, not merely reproducing the plumbing
 or the earlier score split.
 
+## Pooled Raw Fallback
+
+After the corrected pilot remained underpowered, Step 4c pooled raw
+chilledwater scoring across the available BDG2 sites as a diagnostic
+stratum-power fallback. This pooled artifact is still ADR 0019 unlabeled
+score-transfer evidence. It is not a full-transfer headline, not Step 4b, not a
+BDG2 ground-truth metric, and not a readiness claim.
+
+Command:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_phaseE_step4c_pooled_powered_fallback.py --out .scratch\phaseE-step4c-pooled-powered-fallback.json
+```
+
+Pooled gate result:
+
++ `status`: `failed`
++ `verdict`: `underpowered_even_pooled`
++ `allowed_next_step`: `stop_and_report`
++ `failure`: `pooled chilledwater has no powered bdg2_only__sufficient_obs stratum`
+
+Pooled raw completeness strata:
+
+| Stratum | Buildings | Rows | Median score | p05 | p95 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| GEPIII-overlap sufficient_obs | 516 | 9,052,704 | 0.0076 | 0.0017 | 0.9912 |
+| GEPIII-overlap high_missing | 13 | 228,072 | 0.2211 | 0.0062 | 0.4819 |
+| BDG2-only sufficient_obs | 3 | 52,632 | 0.9911 | 0.0052 | 0.9952 |
+| BDG2-only high_missing | 23 | 403,512 | 0.1077 | 0.0021 | 0.5613 |
+
+The pooled BDG2-only sufficient-observation stratum has enough rows but only 3
+buildings, below the 5-building minimum. Rows still do not substitute for
+building diversity, so the pooled fallback remains a stop point.
+
+The pooled sufficient-observation median contrast is large but not powered for
+BDG2-only: BDG2-only median `0.9911189331269352`, GEPIII-overlap median
+`0.007638401990504516`, median ratio `129.75474901151046`. The attached OOD
+evidence flags `ood_signal=true`, including meter-reading median ratio `0.0`
+and model-feature missing-rate delta `0.1427258502998009`; because the BDG2-only
+side is not powered, this remains diagnostic context rather than an accepted
+transfer conclusion.
+
+The Step 4c Fox cleaned M3.2 LightGBM control anchor matches the earlier pilot
+anchor shape:
+
++ BDG2-only median score: `0.15755569665583008`
++ GEPIII-overlap median score: `0.007009272301667491`
+
 ## Decision
 
 Do not run or accept full chilledwater transfer yet. Do not run or accept Step
@@ -99,10 +148,16 @@ Next work should either:
   frame.
 
 Until that happens, Phase E Step 4 is a corrected pilot-gate stop, not a full
-transfer result.
+transfer result. The pooled fallback does not change that decision; it confirms
+the chilledwater BDG2-only sufficient-observation evidence is still
+underpowered after cross-site pooling.
 
 ## Validation Notes
 
 The runner command exited `0` and saved strict JSON. Windows emitted a
 non-fatal `cp950` reader-thread warning after the successful write, plus sklearn
 feature-name warnings during scoring.
+
+The Step 4c pooled fallback command also exited `0` and saved strict JSON.
+Windows again emitted the non-fatal `cp950` reader-thread warning after the
+successful write, plus sklearn feature-name warnings during scoring.

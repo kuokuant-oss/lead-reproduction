@@ -17,6 +17,7 @@ SCRIPTS = ROOT / "scripts"
 HELPER = ROOT / "scripts" / "phaseE_transfer.py"
 STEP4A = ROOT / "scripts" / "run_phaseE_step4a_bdg2_transfer.py"
 STEP4B = ROOT / "scripts" / "run_phaseE_step4b_tabpfn_vs_gbdt_bdg2.py"
+STEP4C = ROOT / "scripts" / "run_phaseE_step4c_pooled_powered_fallback.py"
 
 
 def load_module(path: Path, name: str):
@@ -26,6 +27,7 @@ def load_module(path: Path, name: str):
     if spec is None or spec.loader is None:
         raise RuntimeError(f"Could not load {path}")
     module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
     spec.loader.exec_module(module)
     return module
 
@@ -36,6 +38,7 @@ class TestPhaseEStep4Transfer(unittest.TestCase):
         cls.helper = load_module(HELPER, "phaseE_transfer")
         cls.step4a = load_module(STEP4A, "phaseE_step4a")
         cls.step4b = load_module(STEP4B, "phaseE_step4b")
+        cls.step4c = load_module(STEP4C, "phaseE_step4c")
 
     def test_pilot_sites_include_fox_and_bdg2_only_rich_site(self) -> None:
         summary = pd.DataFrame(
@@ -294,6 +297,96 @@ class TestPhaseEStep4Transfer(unittest.TestCase):
         )
         self.assertIn("bdg2_only__sufficient_obs", out)
         self.assertIn("gepiii_overlap__high_missing", out)
+
+    def test_pooled_fallback_reports_four_cross_strata(self) -> None:
+        cells = self.step4c.empty_cells()
+        featured = pd.DataFrame(
+            {
+                "building_id": ["a", "b", "c", "d", "d"],
+                "meter": [1, 1, 1, 1, 1],
+                "meter_reading": [1.0, None, 3.0, None, None],
+                "square_feet": [10.0, 20.0, 30.0, 40.0, 40.0],
+                "log_square_feet": [1.0, 2.0, 3.0, 4.0, 4.0],
+                "primary_use_enc": [0, 0, -1, 0, 0],
+                "is_gepiii_overlap": [True, True, False, False, False],
+            }
+        )
+        self.step4c.add_site_to_pool(
+            cells,
+            featured=featured,
+            scores=np.array([0.1, 0.2, 0.3, 0.4, 0.5]),
+            feature_cols=["meter_reading", "log_square_feet"],
+        )
+        report = self.step4c.pooled_stratified_report(cells)
+
+        self.assertEqual(
+            set(report["completeness_strata"]),
+            {
+                "gepiii_overlap__sufficient_obs",
+                "gepiii_overlap__high_missing",
+                "bdg2_only__sufficient_obs",
+                "bdg2_only__high_missing",
+            },
+        )
+        self.assertEqual(report["gepiii_overlap__sufficient_obs"]["buildings"], 1)
+        self.assertEqual(report["gepiii_overlap__high_missing"]["buildings"], 1)
+        self.assertEqual(report["bdg2_only__sufficient_obs"]["buildings"], 1)
+        self.assertEqual(report["bdg2_only__high_missing"]["buildings"], 1)
+
+    def test_pooled_gate_underpowered_even_after_pooling(self) -> None:
+        def stratum(rows, buildings, median=0.1):
+            return {
+                "rows": rows,
+                "buildings": buildings,
+                "score_summary": {"rows": rows, "score_median": median},
+                "ood_summary": {
+                    "square_feet_distribution": {"median": 1.0},
+                    "meter_reading_distribution": {"median": 1.0},
+                    "model_feature_missing_rate": 0.0,
+                    "primary_use_unseen_rate": 0.0,
+                },
+            }
+
+        pooled = {
+            "all": {"score_summary": {"score_coverage": 1.0}},
+            "completeness_strata": {
+                "bdg2_only__sufficient_obs": stratum(100_000, 4),
+                "gepiii_overlap__sufficient_obs": stratum(100_000, 10),
+            },
+        }
+        gate = self.step4c.pooled_gate(pooled)
+        self.assertEqual(gate["status"], "failed")
+        self.assertEqual(gate["verdict"], "underpowered_even_pooled")
+        self.assertEqual(gate["allowed_next_step"], "stop_and_report")
+
+    def test_pooled_gate_detects_powered_ood_without_full_permission(self) -> None:
+        def stratum(rows, buildings, median, square_feet, reading):
+            return {
+                "rows": rows,
+                "buildings": buildings,
+                "score_summary": {"rows": rows, "score_median": median},
+                "ood_summary": {
+                    "square_feet_distribution": {"median": square_feet},
+                    "meter_reading_distribution": {"median": reading},
+                    "model_feature_missing_rate": 0.0,
+                    "primary_use_unseen_rate": 0.0,
+                },
+            }
+
+        pooled = {
+            "all": {"score_summary": {"score_coverage": 1.0}},
+            "completeness_strata": {
+                "bdg2_only__sufficient_obs": stratum(100_000, 5, 0.50, 300_000, 500),
+                "gepiii_overlap__sufficient_obs": stratum(
+                    100_000, 20, 0.05, 80_000, 450
+                ),
+            },
+        }
+        gate = self.step4c.pooled_gate(pooled)
+        self.assertEqual(gate["status"], "failed")
+        self.assertEqual(gate["verdict"], "ood_not_missingness")
+        self.assertEqual(gate["allowed_next_step"], "stop_and_redesign")
+        self.assertNotEqual(gate["allowed_next_step"], "full")
 
 
 if __name__ == "__main__":

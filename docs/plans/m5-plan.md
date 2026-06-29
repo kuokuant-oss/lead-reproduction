@@ -234,8 +234,8 @@ research/internal-use license. The next stage is Phase E (FDD transfer to BDG2).
 ## Phase E: FDD transfer to BDG2
 
 **Status**: Stage 0/1 complete; Stage 2 GEPIII-only assumptions isolated;
-evaluation paradigm accepted in ADR 0019; Step 4 corrected pilot gate stopped
-full transfer
+evaluation paradigm accepted in ADR 0019; Step 4 corrected pilot and pooled
+fallback gates stopped full transfer
 **GitHub Issue**: [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39)
 
 Phase E carries the selected FDD models from GEPIII to the BDG2 (Building Data
@@ -286,10 +286,14 @@ ingestion does not start on an unverified schema or an unknown label situation.
 9. **Chilledwater pilot gate.** Phase E Step 4 corrected the pilot gate after an
    overrun executed full/4b too early. The accepted pilot now splits score
    summaries by GEPIII-overlap/BDG2-only and by building/meter completeness.
-   The gate verdict is `underpowered`: Fox has only 1 BDG2-only
+   The pilot verdict is `underpowered`: Fox has only 1 BDG2-only
    sufficient-observation building, and Swan's BDG2-only buildings are
-   high-missing. Full transfer and Step 4b are therefore stopped until a powered
-   `bdg2_only__sufficient_obs` pilot exists or the evidence frame is redesigned.
+   high-missing. Step 4c then pooled raw chilledwater scoring across sites as a
+   diagnostic fallback; the pooled verdict is also a stop point,
+   `underpowered_even_pooled`, because BDG2-only sufficient-observation rows
+   span only 3 buildings versus the 5-building minimum. Full transfer and Step
+   4b are therefore stopped until a powered `bdg2_only__sufficient_obs` pilot or
+   held-out-BDG2-site scope exists, or the evidence frame is redesigned.
    See
    [docs/reports/phaseE-step4-bdg2-transfer.md](../reports/phaseE-step4-bdg2-transfer.md).
 

@@ -99,8 +99,10 @@ M5 把工作從 reproduction 推進到 fault detection and diagnosis（FDD），
 
 Phase E Step 4 corrected the chilledwater BDG2 pilot gate and stopped before
 full transfer: the pilot is underpowered because it has no powered
-`bdg2_only__sufficient_obs` stratum. Prior full/4b artifacts are quarantined as
-diagnostics only, not accepted results. See
+`bdg2_only__sufficient_obs` stratum. A pooled cross-site raw fallback was also
+underpowered (`underpowered_even_pooled`, 3 BDG2-only sufficient-observation
+buildings vs the 5-building minimum). Prior full/4b artifacts are quarantined
+as diagnostics only, not accepted results. See
 [docs/reports/phaseE-step4-bdg2-transfer.md](./docs/reports/phaseE-step4-bdg2-transfer.md).
 
 ## src/lead public API
@@ -235,6 +237,7 @@ scripts/
   run_phaseE_step3_bdg2_transfer_smoke.py
   run_phaseE_step4a_bdg2_transfer.py
   run_phaseE_step4b_tabpfn_vs_gbdt_bdg2.py
+  run_phaseE_step4c_pooled_powered_fallback.py
 
 src/lead/
   __init__.py
