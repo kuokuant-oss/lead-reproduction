@@ -138,6 +138,9 @@ BDG2-only site distribution:
 - Timezone column present: False. Site timezone must therefore be joined from metadata if local-time interpretation is needed.
 - Columns: `timestamp, site_id, airTemperature, cloudCoverage, dewTemperature, precipDepth1HR, precipDepth6HR, seaLvlPressure, windDirection, windSpeed`
 - Null rate: 0.197133.
+- Stage 1 timezone diagnostic note: the `0.197133` null rate is the whole
+  weather-table null rate across all weather fields. The `airTemperature`
+  column used for the meter/weather phase diagnostic has null rate `0.000387`.
 
 ## Label Reality
 

@@ -115,6 +115,37 @@ class TestValueChangeRegimes(unittest.TestCase):
             5.0,
         )
 
+    def test_row_offset_meter_aware_matches_per_meter_row_offset(self) -> None:
+        df = multi_meter_frame()
+
+        meter_aware = add_value_change_features(
+            df, [1], value_change_regime="row_offset_meter_aware"
+        )
+
+        for meter, meter_df in df.groupby("meter", sort=False):
+            per_meter = add_value_change_features(
+                meter_df, [1], value_change_regime="row_offset"
+            )
+            actual = (
+                meter_aware.loc[meter_aware["meter"] == meter]
+                .sort_values(["building_id", "timestamp"])
+                .reset_index(drop=True)
+            )
+            expected = per_meter.sort_values(["building_id", "timestamp"]).reset_index(
+                drop=True
+            )
+
+            pd.testing.assert_series_equal(
+                actual["lag_value_diff_1"],
+                expected["lag_value_diff_1"],
+                check_names=False,
+            )
+            pd.testing.assert_series_equal(
+                actual["lag_value_ratio_1"],
+                expected["lag_value_ratio_1"],
+                check_names=False,
+            )
+
     def test_row_offset_meter_aware_requires_meter_column(self) -> None:
         with self.assertRaisesRegex(ValueError, "meter-aware"):
             add_value_change_features(

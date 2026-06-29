@@ -917,3 +917,25 @@ cross-dataset test.
 
 **Next**: keep #23 open for evaluation semantics and use ADR 0017 as the loader
 contract until a later ADR supersedes it.
+
+---
+
+## 25. BDG2 electricity weather-load time-basis follow-up
+
+**Question**: If electricity enters the BDG2 anomaly-scoring pipeline, does its
+weather-load timing need a per-site clock-basis review beyond the Stage 1 median
+diagnostic?
+
+**Status**: open follow-up; not a Phase E gate (2026-06-29)
+
+**Why it matters**: The Phase E Step 1 timezone diagnostic found strong
+chilledwater evidence against a timezone-sized meter/weather offset: median
+absolute best lag `1.0` hour and median absolute correlation about `0.73`.
+Electricity was weaker: median absolute best lag `5.5` hours and median absolute
+correlation about `0.28`. The current interpretation is that electricity is more
+occupancy-driven and therefore less temperature-synchronous, not that BDG2 has a
+systematic timezone-sized offset.
+
+**Next**: after #23 chooses the BDG2 evaluation paradigm, revisit this only if
+electricity enters an anomaly-scoring path. That review should use per-site
+electricity diagnostics rather than only median aggregation.
