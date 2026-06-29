@@ -945,3 +945,25 @@ systematic timezone-sized offset.
 **Next**: revisit this only if electricity enters an anomaly-scoring path under
 ADR 0019. That review should use per-site electricity diagnostics rather than
 only median aggregation.
+
+---
+
+## 26. BDG2-only score uplift may be OOD or missingness artifact
+
+**Question**: Why did the Fox/chilledwater Step 3 smoke score BDG2-only rows
+about `22x` higher at the median than GEPIII-overlap rows?
+
+**Status**: open full-transfer interpretation gate (2026-06-29)
+
+**Why it matters**: ADR 0019 permits unlabeled score-transfer evidence, but not
+ground-truth BDG2 accuracy claims. A large score split between BDG2-only and
+GEPIII-overlap rows can be tempting to interpret as readiness or anomaly
+prevalence. Step 3.5 attribution indicates that interpretation is unsafe: the
+BDG2-only Fox/chilledwater rows had about `50%` meter-reading and value-change
+missingness, versus about `1-2.5%` in GEPIII-overlap rows, while primary-use
+unseen rate and `log_square_feet` missingness were both `0.0`.
+
+**Next**: full chilledwater transfer must carry OOD/missingness flags with every
+score output and prefer rank/quantile summaries over absolute score
+interpretation until this calibration issue is resolved. Do not turn the
+BDG2-only score uplift into a headline readiness claim.

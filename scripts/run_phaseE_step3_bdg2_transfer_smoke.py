@@ -141,6 +141,8 @@ def fit_gepiii_lightgbm_detector() -> dict[str, Any]:
             "detector": "m3_2_lightgbm_gbdt",
             "feature_table": "m3_2_137_features",
             "feature_regime": "offline",
+            # Single-meter BDG2 scoring uses row_offset_meter_aware; Step 1 proved
+            # that this is row-by-row equivalent to row_offset for one meter.
             "value_change_regime": "row_offset",
             "split": "80_20_mod5_source_train",
             "building_overlap": int(len(overlap)),
@@ -244,6 +246,11 @@ def score_bdg2_cleaned(
     return {
         "scored_variant": "cleaned",
         "feature_regime": "offline",
+        "single_meter_value_change_equivalence": (
+            "row_offset_meter_aware is equivalent to row_offset for this "
+            "single-meter slice; multi-meter transfer must align train/serve "
+            "value-change semantics before scoring."
+        ),
         "value_change_regime": "row_offset_meter_aware",
         "rows_scored": int(len(featured)),
         "score_seconds": float(score_seconds),

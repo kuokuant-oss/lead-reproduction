@@ -44,6 +44,14 @@ does not accidentally normalize the unsafe multi-meter `row_offset` path. Any
 later real-time/online FDD claim must switch to `PAST_SHIFTS` only per ADR 0007
 and ADR 0011.
 
+Single-meter regime note: the GEPIII source detector records
+`value_change_regime="row_offset"` while BDG2 scoring records
+`"row_offset_meter_aware"`. For this one-meter chilledwater slice these are
+semantically equivalent; Step 1 proved row-by-row equality between meter-aware
+multi-meter scoring and per-meter row-offset scoring. A future multi-meter
+transfer must either train/score through an equivalent meter-aware path or keep
+one detector per meter, so train/serve value-change semantics do not diverge.
+
 ## Smoke Output
 
 Output JSON:
