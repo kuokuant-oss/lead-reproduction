@@ -234,8 +234,9 @@ research/internal-use license. The next stage is Phase E (FDD transfer to BDG2).
 ## Phase E: FDD transfer to BDG2
 
 **Status**: Stage 0/1 complete; Stage 2 GEPIII-only assumptions isolated;
-evaluation paradigm accepted in ADR 0019; Step 4 corrected pilot and pooled
-fallback gates stopped full transfer
+evaluation paradigm accepted in ADR 0019; chilledwater transfer investigation
+stopped at `underpowered_even_pooled` (OOD-leaning, not a missingness-only
+artifact); BDG2 EDA is the next required pre-modeling slice
 **GitHub Issue**: [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39)
 
 Phase E carries the selected FDD models from GEPIII to the BDG2 (Building Data
@@ -291,9 +292,12 @@ ingestion does not start on an unverified schema or an unknown label situation.
    high-missing. Step 4c then pooled raw chilledwater scoring across sites as a
    diagnostic fallback; the pooled verdict is also a stop point,
    `underpowered_even_pooled`, because BDG2-only sufficient-observation rows
-   span only 3 buildings versus the 5-building minimum. Full transfer and Step
-   4b are therefore stopped until a powered `bdg2_only__sufficient_obs` pilot or
-   held-out-BDG2-site scope exists, or the evidence frame is redesigned.
+   span only 3 buildings versus the 5-building minimum. The underpowered
+   direction is OOD-leaning and is not explained by missingness alone, so BDG2
+   EDA is the next required pre-modeling slice before choosing another meter or
+   scope. Full transfer and Step 4b are therefore stopped until a powered
+   `bdg2_only__sufficient_obs` pilot or held-out-BDG2-site scope exists, or the
+   evidence frame is redesigned.
    See
    [docs/reports/phaseE-step4-bdg2-transfer.md](../reports/phaseE-step4-bdg2-transfer.md).
 
@@ -316,4 +320,4 @@ ingestion does not start on an unverified schema or an unknown label situation.
 | Phase E Stage 1 BDG2 ingestion contract | _local gate_ | Done |
 | Phase E Stage 2 GEPIII-only assumption isolation | _local gate_ | Done |
 | Phase E evaluation paradigm ADR | _local gate_ | Done |
-| Phase E FDD transfer to BDG2 | [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39) | Step 4 pilot gate stopped before full |
+| Phase E FDD transfer to BDG2 | [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39) | Step 4 chilledwater stopped at `underpowered_even_pooled`; EDA next |

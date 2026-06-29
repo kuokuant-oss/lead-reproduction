@@ -102,7 +102,8 @@ full transfer: the pilot is underpowered because it has no powered
 `bdg2_only__sufficient_obs` stratum. A pooled cross-site raw fallback was also
 underpowered (`underpowered_even_pooled`, 3 BDG2-only sufficient-observation
 buildings vs the 5-building minimum). Prior full/4b artifacts are quarantined
-as diagnostics only, not accepted results. See
+as diagnostics only, not accepted results. The finding is OOD-leaning rather
+than missingness-only; BDG2 EDA is the next required pre-modeling slice. See
 [docs/reports/phaseE-step4-bdg2-transfer.md](./docs/reports/phaseE-step4-bdg2-transfer.md).
 
 ## src/lead public API

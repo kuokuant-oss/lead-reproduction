@@ -953,7 +953,7 @@ only median aggregation.
 **Question**: Why did the Fox/chilledwater Step 3 smoke score BDG2-only rows
 about `22x` higher at the median than GEPIII-overlap rows?
 
-**Status**: open full-transfer interpretation gate (2026-06-29)
+**Status**: resolved-with-finding (2026-06-29)
 
 **Why it matters**: ADR 0019 permits unlabeled score-transfer evidence, but not
 ground-truth BDG2 accuracy claims. A large score split between BDG2-only and
@@ -963,7 +963,27 @@ BDG2-only Fox/chilledwater rows had about `50%` meter-reading and value-change
 missingness, versus about `1-2.5%` in GEPIII-overlap rows, while primary-use
 unseen rate and `log_square_feet` missingness were both `0.0`.
 
-**Next**: full chilledwater transfer must carry OOD/missingness flags with every
-score output and prefer rank/quantile summaries over absolute score
-interpretation until this calibration issue is resolved. Do not turn the
-BDG2-only score uplift into a headline readiness claim.
+**Phase E Step 4 finding**:
+
+The corrected chilledwater pilot and pooled fallback both stop before any full
+transfer claim. Fox has only 1 BDG2-only sufficient-observation chilledwater
+building, and the cross-site pooled raw fallback reaches only 3 BDG2-only
+sufficient-observation buildings (`52,632` rows), below the 5-building minimum.
+The pooled verdict is therefore `underpowered_even_pooled` with
+`allowed_next_step=stop_and_report`.
+
+The available underpowered evidence does not show a reassuring rollback after
+the missingness split. Fox raw sufficient-observation BDG2-only median score is
+about `0.1302` versus GEPIII-overlap sufficient-observation median about
+`0.0043`; the Fox cleaned M3.2 LightGBM control anchor repeats the same shape
+with BDG2-only median `0.15755569665583008` versus overlap median
+`0.007009272301667491`. In the pooled raw fallback, BDG2-only
+sufficient-observation median is `0.9911189331269352` versus overlap median
+`0.007638401990504516`, with `ood_signal=true`.
+
+**Resolution**: Under ADR 0019, chilledwater cannot produce a powered BDG2-only
+headline from this evidence frame. The uplift is OOD-leaning and is not
+explained by missingness alone, but it remains underpowered and unlabeled
+score-transfer evidence, not BDG2 anomaly prevalence, transfer success, or
+readiness. The next required step is BDG2 dataset EDA to characterize this OOD
+before choosing a different meter, site scope, or held-out-BDG2-site framing.

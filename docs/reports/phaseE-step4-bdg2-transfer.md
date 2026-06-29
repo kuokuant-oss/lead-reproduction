@@ -134,6 +134,17 @@ anchor shape:
 + BDG2-only median score: `0.15755569665583008`
 + GEPIII-overlap median score: `0.007009272301667491`
 
+## Finding
+
+Unknown #26 is resolved-with-finding for chilledwater: the BDG2-only
+sufficient-observation evidence remains underpowered even after cross-site
+pooling (`3` buildings, `52,632` rows, below the 5-building minimum), and the
+available score direction is OOD-leaning rather than missingness-only. Under ADR
+0019, this evidence cannot support a powered BDG2-only headline, transfer
+success, readiness, or anomaly-prevalence claim. The next required pre-modeling
+slice is BDG2 dataset EDA to characterize the OOD before choosing a different
+meter or scope.
+
 ## Decision
 
 Do not run or accept full chilledwater transfer yet. Do not run or accept Step

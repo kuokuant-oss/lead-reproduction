@@ -110,6 +110,12 @@ buildings, so it still fails the 5-building minimum. The sufficient-observation
 median ratio is `129.75474901151046`, with `ood_signal=true`, but the BDG2-only
 side is not powered; treat that contrast as diagnostic context only.
 
+Unknown #26 is resolved-with-finding for chilledwater: the uplift direction is
+OOD-leaning rather than missingness-only, but the powered BDG2-only headline is
+not available because the pooled sufficient-observation stratum has only 3
+buildings. The next required pre-modeling slice is BDG2 dataset EDA before any
+new meter/scope decision.
+
 Step 4c control anchor:
 
 + Fox cleaned M3.2 LightGBM control anchor BDG2-only median:
