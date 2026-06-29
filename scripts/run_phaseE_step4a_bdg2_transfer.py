@@ -33,6 +33,9 @@ from phaseE_transfer import (
 
 
 OUT = Path(".scratch/phaseE-step4a-bdg2-transfer-pilot.json")
+SCORE_UPLIFT_RATIO = 3.0
+OOD_DISTRIBUTION_RATIO = 2.0
+OOD_MISSING_DELTA = 0.10
 
 
 def parse_args() -> argparse.Namespace:
@@ -154,6 +157,59 @@ def score_site_variant(
     }
 
 
+def median_ratio(
+    numerator: dict[str, Any], denominator: dict[str, Any]
+) -> float | None:
+    top = numerator.get("median")
+    bottom = denominator.get("median")
+    if top is None or bottom in (None, 0):
+        return None
+    return float(top / bottom)
+
+
+def ood_evidence(bdg2: dict[str, Any], overlap: dict[str, Any]) -> dict[str, Any]:
+    bdg2_ood = bdg2["ood_summary"]
+    overlap_ood = overlap["ood_summary"]
+    square_feet_ratio = median_ratio(
+        bdg2_ood["square_feet_distribution"],
+        overlap_ood["square_feet_distribution"],
+    )
+    meter_reading_ratio = median_ratio(
+        bdg2_ood["meter_reading_distribution"],
+        overlap_ood["meter_reading_distribution"],
+    )
+    bdg2_missing = bdg2_ood.get("model_feature_missing_rate")
+    overlap_missing = overlap_ood.get("model_feature_missing_rate")
+    model_missing_delta = (
+        float(bdg2_missing - overlap_missing)
+        if bdg2_missing is not None and overlap_missing is not None
+        else None
+    )
+    primary_use_unseen_delta = float(
+        bdg2_ood.get("primary_use_unseen_rate", 0.0)
+        - overlap_ood.get("primary_use_unseen_rate", 0.0)
+    )
+    ratio_flags = [
+        value is not None
+        and (value >= OOD_DISTRIBUTION_RATIO or value <= 1 / OOD_DISTRIBUTION_RATIO)
+        for value in [square_feet_ratio, meter_reading_ratio]
+    ]
+    return {
+        "square_feet_median_ratio_bdg2_vs_overlap": square_feet_ratio,
+        "meter_reading_median_ratio_bdg2_vs_overlap": meter_reading_ratio,
+        "model_feature_missing_rate_delta_bdg2_minus_overlap": model_missing_delta,
+        "primary_use_unseen_rate_delta_bdg2_minus_overlap": primary_use_unseen_delta,
+        "ood_signal": bool(
+            any(ratio_flags)
+            or (
+                model_missing_delta is not None
+                and abs(model_missing_delta) >= OOD_MISSING_DELTA
+            )
+            or abs(primary_use_unseen_delta) >= OOD_MISSING_DELTA
+        ),
+    }
+
+
 def pilot_gate(site_results: list[dict[str, Any]]) -> dict[str, Any]:
     failures: list[str] = []
     raw_reports: list[dict[str, Any]] = []
@@ -182,14 +238,19 @@ def pilot_gate(site_results: list[dict[str, Any]]) -> dict[str, Any]:
         bdg2_median = bdg2_sufficient["score_summary"].get("score_median")
         overlap_median = overlap_sufficient["score_summary"].get("score_median")
         if bdg2_median is not None and overlap_median is not None:
+            ood = ood_evidence(bdg2_sufficient, overlap_sufficient)
             sufficient_comparisons.append(
                 {
                     "site_id": result["site_id"],
                     "bdg2_only_sufficient_median": bdg2_median,
                     "gepiii_overlap_sufficient_median": overlap_median,
                     "median_delta_bdg2_minus_overlap": bdg2_median - overlap_median,
+                    "median_ratio_bdg2_vs_overlap": bdg2_median / overlap_median
+                    if overlap_median
+                    else None,
                     "powered_bdg2_only": stratum_is_powered(bdg2_sufficient),
                     "powered_overlap": stratum_is_powered(overlap_sufficient),
+                    "ood_evidence": ood,
                 }
             )
     verdict = "passed"
@@ -202,8 +263,9 @@ def pilot_gate(site_results: list[dict[str, Any]]) -> dict[str, Any]:
         allowed_next_step = "stop_and_report"
         failures.append("pilot has no powered bdg2_only__sufficient_obs stratum")
     elif not powered_overlap_sufficient:
-        verdict = "isolated"
-        allowed_next_step = "full"
+        verdict = "indeterminate_no_overlap_baseline"
+        allowed_next_step = "stop_and_report"
+        failures.append("pilot has no powered gepiii_overlap__sufficient_obs baseline")
     else:
         powered_comparisons = [
             item
@@ -213,16 +275,22 @@ def pilot_gate(site_results: list[dict[str, Any]]) -> dict[str, Any]:
         uplift = [
             item
             for item in powered_comparisons
-            if item["median_delta_bdg2_minus_overlap"] > 0
+            if item["median_ratio_bdg2_vs_overlap"] is not None
+            and item["median_ratio_bdg2_vs_overlap"] > SCORE_UPLIFT_RATIO
         ]
         if uplift:
-            verdict = "stratification_miss"
+            verdict = (
+                "ood_not_missingness"
+                if any(item["ood_evidence"]["ood_signal"] for item in uplift)
+                else "stratification_miss"
+            )
             allowed_next_step = "stop_and_redesign"
             failures.append(
                 "bdg2_only__sufficient_obs score uplift remains after missingness split"
             )
+    status = "passed" if verdict == "passed" else "failed"
     return {
-        "status": "passed" if verdict in {"passed", "isolated"} else "failed",
+        "status": status,
         "verdict": verdict,
         "failures": failures,
         "allowed_next_step": allowed_next_step,
@@ -238,6 +306,11 @@ def pilot_gate(site_results: list[dict[str, Any]]) -> dict[str, Any]:
             "This gate checks whether the pilot contains powered sufficient-observation "
             "BDG2-only evidence under ADR 0019. It is not an accuracy or readiness gate."
         ),
+        "parameters": {
+            "score_uplift_ratio": SCORE_UPLIFT_RATIO,
+            "ood_distribution_ratio": OOD_DISTRIBUTION_RATIO,
+            "ood_missing_delta": OOD_MISSING_DELTA,
+        },
     }
 
 

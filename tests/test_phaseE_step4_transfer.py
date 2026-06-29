@@ -120,7 +120,7 @@ class TestPhaseEStep4Transfer(unittest.TestCase):
         self.assertEqual(gate["status"], "failed")
         self.assertEqual(gate["allowed_next_step"], "stop_and_diagnose")
 
-    def test_pilot_gate_passes_isolated_powered_bdg2_only(self) -> None:
+    def test_pilot_gate_stops_without_powered_overlap_baseline(self) -> None:
         isolated = [
             {
                 "variant": "raw",
@@ -130,7 +130,7 @@ class TestPhaseEStep4Transfer(unittest.TestCase):
                     "completeness_strata": {
                         "bdg2_only__sufficient_obs": {
                             "rows": 20_000,
-                            "buildings": 3,
+                            "buildings": 5,
                             "score_summary": {"rows": 20_000, "score_median": 0.1},
                         },
                         "gepiii_overlap__sufficient_obs": {
@@ -143,9 +143,48 @@ class TestPhaseEStep4Transfer(unittest.TestCase):
             }
         ]
         gate = self.step4a.pilot_gate(isolated)
-        self.assertEqual(gate["status"], "passed")
-        self.assertEqual(gate["verdict"], "isolated")
-        self.assertEqual(gate["allowed_next_step"], "full")
+        self.assertEqual(gate["status"], "failed")
+        self.assertEqual(gate["verdict"], "indeterminate_no_overlap_baseline")
+        self.assertEqual(gate["allowed_next_step"], "stop_and_report")
+
+    def test_pilot_gate_detects_ood_not_missingness(self) -> None:
+        def stratum(rows, buildings, median, square_feet, reading):
+            return {
+                "rows": rows,
+                "buildings": buildings,
+                "score_summary": {"rows": rows, "score_median": median},
+                "ood_summary": {
+                    "square_feet_distribution": {"median": square_feet},
+                    "meter_reading_distribution": {"median": reading},
+                    "model_feature_missing_rate": 0.0,
+                    "primary_use_unseen_rate": 0.0,
+                },
+            }
+
+        result = [
+            {
+                "variant": "raw",
+                "site_id": "Pooled",
+                "stratified": {
+                    "all": {"score_summary": {"score_coverage": 1.0}},
+                    "completeness_strata": {
+                        "bdg2_only__sufficient_obs": stratum(
+                            100_000, 5, 0.40, 300_000, 500
+                        ),
+                        "gepiii_overlap__sufficient_obs": stratum(
+                            100_000, 20, 0.04, 80_000, 450
+                        ),
+                    },
+                },
+            }
+        ]
+        gate = self.step4a.pilot_gate(result)
+        self.assertEqual(gate["status"], "failed")
+        self.assertEqual(gate["verdict"], "ood_not_missingness")
+        self.assertEqual(gate["allowed_next_step"], "stop_and_redesign")
+        self.assertTrue(
+            gate["sufficient_obs_comparisons"][0]["ood_evidence"]["ood_signal"]
+        )
 
     def test_step4a_contract_does_not_emit_ground_truth_metrics(self) -> None:
         tree = ast.parse(STEP4A.read_text(encoding="utf-8"), filename=str(STEP4A))

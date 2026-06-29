@@ -34,7 +34,7 @@ from lead import (
 METER_CODE = {"electricity": 0, "chilledwater": 1, "steam": 2, "hotwater": 3}
 BDG2_DIR = Path("data/raw/bdg2")
 HIGH_MISSING_RATE = 0.5
-MIN_STRATUM_BUILDINGS = 2
+MIN_STRATUM_BUILDINGS = 5
 MIN_STRATUM_ROWS = 17_544
 
 
