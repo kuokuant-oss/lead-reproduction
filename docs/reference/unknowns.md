@@ -867,20 +867,19 @@ is resolved.
 metadata, and weather files only. No per-row anomaly/fault label or label-like
 schema field is present in the local BDG2 archive.
 
-**Next**: choose the evaluation paradigm in #23; do not claim supervised BDG2
+**Next**: follow ADR 0019's evaluation contract; do not claim supervised BDG2
 AUC without a documented pseudo-label or external label source.
 
 ---
 
 ## 23. BDG2 evaluation paradigm
 
-**Question**: Which evaluation paradigm applies to BDG2 — (a)
-forecasting-residual scoring from readings only, (b) unsupervised / apply a
-GEPIII-trained detector with no BDG2 ground truth, or (c) pseudo-labels derived
-from raw/cleaned differences?
+**Question**: Which evaluation paradigm applies to BDG2 -- (a)
+forecasting-residual scoring from readings only, (b) unsupervised detection, (c)
+applying a GEPIII-trained detector with no BDG2 ground truth, or (d)
+pseudo-labels derived from raw/cleaned differences?
 
-**Status**: open (M5 Phase E gate; #22 resolved as no native per-row labels;
-2026-06-29)
+**Status**: resolved by ADR 0019 (2026-06-29)
 
 **Why it matters**: The paradigm choice determines metrics, the
 transfer-evaluation contract, and what a "result" means. Stage 0 eliminated
@@ -890,8 +889,15 @@ difference pseudo-labels. The last option treats cells that are present in raw
 meter files but become `NaN` in cleaned files as BDG2-cleaning-identified bad
 readings, the closest measured analogue to GEPIII `bad_meter_readings`.
 
-**Next**: record the evaluation-paradigm decision as a follow-up ADR before any
-BDG2 headline metric.
+**Resolution**: ADR 0019 selects GEPIII-trained detector transfer to BDG2 as an
+unlabeled cross-dataset baseline. BDG2 outputs are score-transfer evidence, not
+supervised ground-truth metrics. Raw/cleaned pseudo-labels may be used only as
+secondary sensitivity analysis, and any AUC/PR-AUC/precision/recall/F1 must be
+explicitly labeled as pseudo-label metrics.
+
+**Next**: implement only within the ADR 0019 metric contract: report
+GEPIII-overlap and BDG2-only separately, require BDG2-only or held-out-site
+headline transfer evidence, and do not call `site_id % k` cross-dataset.
 
 ---
 
@@ -915,8 +921,8 @@ cross-dataset test.
 `load_bdg2_frame` implements it while preserving `building_id_kaggle`,
 `site_id_kaggle`, and `is_gepiii_overlap`.
 
-**Next**: keep #23 open for evaluation semantics and use ADR 0017 as the loader
-contract until a later ADR supersedes it.
+**Next**: use ADR 0017 as the loader contract and ADR 0019 as the evaluation
+contract until a later ADR supersedes either one.
 
 ---
 
@@ -936,6 +942,6 @@ correlation about `0.28`. The current interpretation is that electricity is more
 occupancy-driven and therefore less temperature-synchronous, not that BDG2 has a
 systematic timezone-sized offset.
 
-**Next**: after #23 chooses the BDG2 evaluation paradigm, revisit this only if
-electricity enters an anomaly-scoring path. That review should use per-site
-electricity diagnostics rather than only median aggregation.
+**Next**: revisit this only if electricity enters an anomaly-scoring path under
+ADR 0019. That review should use per-site electricity diagnostics rather than
+only median aggregation.

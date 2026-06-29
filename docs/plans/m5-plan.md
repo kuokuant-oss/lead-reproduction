@@ -233,7 +233,8 @@ research/internal-use license. The next stage is Phase E (FDD transfer to BDG2).
 
 ## Phase E: FDD transfer to BDG2
 
-**Status**: Stage 0/1 complete; Stage 2 GEPIII-only assumptions isolated
+**Status**: Stage 0/1 complete; Stage 2 GEPIII-only assumptions isolated;
+evaluation paradigm accepted in ADR 0019
 **GitHub Issue**: [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39)
 
 Phase E carries the selected FDD models from GEPIII to the BDG2 (Building Data
@@ -245,10 +246,11 @@ ingestion does not start on an unverified schema or an unknown label situation.
    local BDG2 archive has 18 real CSVs, 1,636 buildings, 19 sites, 8 raw meter
    files, 8 cleaned meter files, site-level weather, and no per-row anomaly
    labels.
-2. **Evaluation-paradigm decision (record a follow-up ADR).** Because Stage 0
-   found no per-row BDG2 anomaly labels, Phase E must choose between
-   forecasting-residual scoring, unsupervised detection, or applying a
-   GEPIII-trained detector with no BDG2 ground truth. See unknown #23.
+2. **Evaluation-paradigm decision.** ADR 0019 resolves unknown #23: Phase E uses
+   a GEPIII-trained detector applied to BDG2 as an unlabeled cross-dataset
+   baseline. BDG2 outputs are score-transfer evidence, not supervised
+   ground-truth metrics. Raw/cleaned pseudo-label AUC is allowed only as
+   secondary sensitivity evidence and must be labeled as pseudo-label AUC.
 3. **BDG2 ingestion contract.** ADR 0017 accepts the real-schema contract and
    `load_bdg2_frame` rebuilds the retired skeleton on real data: wide meter CSVs
    melt to `(building_id, meter, timestamp, meter_reading)`, metadata joins use
@@ -259,14 +261,23 @@ ingestion does not start on an unverified schema or an unknown label situation.
    correction, meter-aware BDG2 value-change path, dynamic year-end
    post-processing boundaries, BDG2 string meter names, and the exported
    `leave_site_out_mask` helper.
-5. **Transfer-evaluation contract.** Treat the M3 site-held-out ensemble AUC
-   `0.9774` and the Phase D cross-site TabPFN-in-context `0.9833` as **internal
-   references only**, not BDG2 readiness claims. `site_id % 5 == 4` is a
-   GEPIII-internal hold-out and is **not** cross-dataset transfer; BDG2 is the
-   first true cross-dataset test.
+5. **Transfer-evaluation contract.** GEPIII-overlap and BDG2-only rows must be
+   reported separately. Headline cross-dataset evidence must include BDG2-only
+   buildings (`is_gepiii_overlap == False`, 187 buildings measured in Stage 0)
+   or a held-out BDG2 site; GEPIII-overlap rows are bridge/calibration evidence,
+   not a pure transfer headline. Treat the M3 site-held-out ensemble AUC `0.9774`
+   and the Phase D cross-site TabPFN-in-context `0.9833` as **internal
+   references only**, not BDG2 readiness claims. `site_id % k` inside one
+   dataset is **not** cross-dataset transfer.
 6. **Causal discipline.** Any online / real-time FDD claim uses `PAST_SHIFTS`-only
    features per ADR 0007 and ADR 0011; offline and causal regimes stay explicit.
-7. **Roles and limits.** TabPFN is bounded by the TabPFN-3.0 License
+7. **Weather-join premise.** Phase E Step 1 empirically supports the
+   `(site_id, timestamp)` weather join for the tested sites: chilledwater
+   temperature-load diagnostics found about `0.73` median absolute correlation
+   and `1` hour median best lag. Unknown #25 remains open for electricity; if
+   electricity enters the anomaly-scoring path, run a per-site time-basis review
+   before an electricity-specific headline.
+8. **Roles and limits.** TabPFN is bounded by the TabPFN-3.0 License
    (research / internal use only) and by inference latency (~6.3 ms/row, ~100×
    slower than GBDT); it is positioned as an offline / label-scarce bootstrapper.
    The real-time deployment candidate remains GBDT. These constraints are part of
@@ -290,4 +301,5 @@ ingestion does not start on an unverified schema or an unknown label situation.
 | Phase E Stage 0 real BDG2 inventory | _local gate_ | Done |
 | Phase E Stage 1 BDG2 ingestion contract | _local gate_ | Done |
 | Phase E Stage 2 GEPIII-only assumption isolation | _local gate_ | Done |
+| Phase E evaluation paradigm ADR | _local gate_ | Done |
 | Phase E FDD transfer to BDG2 | [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39) | Planned |
