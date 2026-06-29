@@ -234,7 +234,8 @@ research/internal-use license. The next stage is Phase E (FDD transfer to BDG2).
 ## Phase E: FDD transfer to BDG2
 
 **Status**: Stage 0/1 complete; Stage 2 GEPIII-only assumptions isolated;
-evaluation paradigm accepted in ADR 0019
+evaluation paradigm accepted in ADR 0019; Step 4 corrected pilot gate stopped
+full transfer
 **GitHub Issue**: [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39)
 
 Phase E carries the selected FDD models from GEPIII to the BDG2 (Building Data
@@ -282,6 +283,15 @@ ingestion does not start on an unverified schema or an unknown label situation.
    slower than GBDT); it is positioned as an offline / label-scarce bootstrapper.
    The real-time deployment candidate remains GBDT. These constraints are part of
    the Phase E plan, not afterthoughts.
+9. **Chilledwater pilot gate.** Phase E Step 4 corrected the pilot gate after an
+   overrun executed full/4b too early. The accepted pilot now splits score
+   summaries by GEPIII-overlap/BDG2-only and by building/meter completeness.
+   The gate verdict is `underpowered`: Fox has only 1 BDG2-only
+   sufficient-observation building, and Swan's BDG2-only buildings are
+   high-missing. Full transfer and Step 4b are therefore stopped until a powered
+   `bdg2_only__sufficient_obs` pilot exists or the evidence frame is redesigned.
+   See
+   [docs/reports/phaseE-step4-bdg2-transfer.md](../reports/phaseE-step4-bdg2-transfer.md).
 
 ---
 
@@ -302,4 +312,4 @@ ingestion does not start on an unverified schema or an unknown label situation.
 | Phase E Stage 1 BDG2 ingestion contract | _local gate_ | Done |
 | Phase E Stage 2 GEPIII-only assumption isolation | _local gate_ | Done |
 | Phase E evaluation paradigm ADR | _local gate_ | Done |
-| Phase E FDD transfer to BDG2 | [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39) | Planned |
+| Phase E FDD transfer to BDG2 | [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39) | Step 4 pilot gate stopped before full |

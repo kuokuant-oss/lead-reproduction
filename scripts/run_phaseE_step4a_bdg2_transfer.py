@@ -1,0 +1,325 @@
+"""Phase E Step 4a BDG2 chilledwater transfer runner.
+
+Default mode is a two-site pilot. Use ``--mode full`` only after the pilot gate
+passes. Outputs are unlabeled score-transfer summaries under ADR 0019.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import time
+from pathlib import Path
+from typing import Any
+
+from lead import load_bdg2_frame
+from phaseE_transfer import (
+    BDG2_DIR,
+    all_sites,
+    fit_gepiii_lightgbm_detector,
+    fit_gepiii_seed42_ensemble,
+    json_clean,
+    log,
+    m3_primary_use_mapping,
+    pilot_sites,
+    prepare_bdg2_features,
+    predict_scores,
+    schema_summary,
+    selected_site_buildings,
+    site_building_summary,
+    stratum_is_powered,
+    stratified_score_report,
+)
+
+
+OUT = Path(".scratch/phaseE-step4a-bdg2-transfer-pilot.json")
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--bdg2-dir", type=Path, default=BDG2_DIR)
+    parser.add_argument("--out", type=Path, default=OUT)
+    parser.add_argument("--meter", default="chilledwater", choices=["chilledwater"])
+    parser.add_argument("--mode", choices=["pilot", "full"], default="pilot")
+    parser.add_argument(
+        "--sites",
+        nargs="*",
+        default=None,
+        help="Explicit BDG2 site ids. Defaults to Fox + one BDG2-only-rich site in pilot.",
+    )
+    parser.add_argument(
+        "--detector",
+        choices=["ensemble", "lightgbm"],
+        default="ensemble",
+        help="Primary transfer detector. The plan uses ensemble; LightGBM is a sidecar.",
+    )
+    parser.add_argument(
+        "--include-cleaned",
+        action="store_true",
+        help="Also score cleaned as bridge/sensitivity companion.",
+    )
+    return parser.parse_args()
+
+
+def detector_for(name: str) -> dict[str, Any]:
+    if name == "ensemble":
+        return fit_gepiii_seed42_ensemble()
+    if name == "lightgbm":
+        return fit_gepiii_lightgbm_detector()
+    raise ValueError(f"Unknown detector: {name}")
+
+
+def lightgbm_sidecar(detector: dict[str, Any]) -> dict[str, Any]:
+    if detector["kind"] == "single_model":
+        return detector
+    model = detector["models"]["lightgbm"]
+    summary = dict(detector["source_summary"])
+    summary.update(
+        {
+            "detector": "m3_4_seed42_lightgbm_member_control_anchor",
+            "parent_detector": detector["source_summary"]["detector"],
+        }
+    )
+    return {
+        "kind": "single_model",
+        "model": model,
+        "scaler": detector["scaler"],
+        "feature_cols": detector["feature_cols"],
+        "source_summary": summary,
+    }
+
+
+def choose_sites(args: argparse.Namespace) -> list[str]:
+    if args.sites:
+        return [str(site) for site in args.sites]
+    if args.mode == "pilot":
+        return pilot_sites(args.bdg2_dir, meter=args.meter)
+    return all_sites(args.bdg2_dir, meter=args.meter)
+
+
+def score_site_variant(
+    *,
+    bdg2_dir: Path,
+    detector: dict[str, Any],
+    primary_use_mapping: dict[str, int],
+    meter: str,
+    site: str,
+    variant: str,
+) -> dict[str, Any]:
+    site_id, buildings = selected_site_buildings(bdg2_dir, meter=meter, site=site)
+    load_t0 = time.perf_counter()
+    frame = load_bdg2_frame(
+        bdg2_dir=bdg2_dir,
+        variant=variant,
+        meter_types=[meter],
+        building_ids=buildings,
+        include_weather=True,
+    )
+    load_seconds = time.perf_counter() - load_t0
+    feature_t0 = time.perf_counter()
+    featured = prepare_bdg2_features(
+        frame,
+        meter=meter,
+        primary_use_mapping=primary_use_mapping,
+        feature_cols=detector["feature_cols"],
+    )
+    feature_seconds = time.perf_counter() - feature_t0
+    score_t0 = time.perf_counter()
+    scores = predict_scores(detector, featured)
+    score_seconds = time.perf_counter() - score_t0
+    return {
+        "site_id": site_id,
+        "variant": variant,
+        "buildings_requested": int(len(buildings)),
+        "schema": schema_summary(frame),
+        "feature_regime": "offline",
+        "value_change_regime": "row_offset_meter_aware",
+        "single_meter_value_change_equivalence": (
+            "For chilledwater-only scoring, row_offset_meter_aware preserves the "
+            "M3 row_offset semantics without crossing meter types."
+        ),
+        "timing": {
+            "load_seconds": float(load_seconds),
+            "feature_seconds": float(feature_seconds),
+            "score_seconds": float(score_seconds),
+            "score_rows_per_second": float(len(featured) / score_seconds)
+            if score_seconds > 0
+            else None,
+        },
+        "stratified": stratified_score_report(
+            featured=featured,
+            scores=scores,
+            feature_cols=detector["feature_cols"],
+        ),
+    }
+
+
+def pilot_gate(site_results: list[dict[str, Any]]) -> dict[str, Any]:
+    failures: list[str] = []
+    raw_reports: list[dict[str, Any]] = []
+    powered_bdg2_sufficient: list[dict[str, Any]] = []
+    powered_overlap_sufficient: list[dict[str, Any]] = []
+    sufficient_comparisons: list[dict[str, Any]] = []
+    for result in site_results:
+        if result["variant"] != "raw":
+            continue
+        raw_reports.append(result)
+        stratified = result["stratified"]
+        coverage = stratified["all"]["score_summary"].get("score_coverage", 0.0)
+        if coverage < 1.0:
+            failures.append(f"{result['site_id']} raw score coverage {coverage}")
+        completeness = stratified["completeness_strata"]
+        bdg2_sufficient = completeness["bdg2_only__sufficient_obs"]
+        overlap_sufficient = completeness["gepiii_overlap__sufficient_obs"]
+        if stratum_is_powered(bdg2_sufficient):
+            powered_bdg2_sufficient.append(
+                {"site_id": result["site_id"], **bdg2_sufficient}
+            )
+        if stratum_is_powered(overlap_sufficient):
+            powered_overlap_sufficient.append(
+                {"site_id": result["site_id"], **overlap_sufficient}
+            )
+        bdg2_median = bdg2_sufficient["score_summary"].get("score_median")
+        overlap_median = overlap_sufficient["score_summary"].get("score_median")
+        if bdg2_median is not None and overlap_median is not None:
+            sufficient_comparisons.append(
+                {
+                    "site_id": result["site_id"],
+                    "bdg2_only_sufficient_median": bdg2_median,
+                    "gepiii_overlap_sufficient_median": overlap_median,
+                    "median_delta_bdg2_minus_overlap": bdg2_median - overlap_median,
+                    "powered_bdg2_only": stratum_is_powered(bdg2_sufficient),
+                    "powered_overlap": stratum_is_powered(overlap_sufficient),
+                }
+            )
+    verdict = "passed"
+    allowed_next_step = "full"
+    if failures:
+        verdict = "plumbing_failed"
+        allowed_next_step = "stop_and_diagnose"
+    elif not powered_bdg2_sufficient:
+        verdict = "underpowered"
+        allowed_next_step = "stop_and_report"
+        failures.append("pilot has no powered bdg2_only__sufficient_obs stratum")
+    elif not powered_overlap_sufficient:
+        verdict = "isolated"
+        allowed_next_step = "full"
+    else:
+        powered_comparisons = [
+            item
+            for item in sufficient_comparisons
+            if item["powered_bdg2_only"] and item["powered_overlap"]
+        ]
+        uplift = [
+            item
+            for item in powered_comparisons
+            if item["median_delta_bdg2_minus_overlap"] > 0
+        ]
+        if uplift:
+            verdict = "stratification_miss"
+            allowed_next_step = "stop_and_redesign"
+            failures.append(
+                "bdg2_only__sufficient_obs score uplift remains after missingness split"
+            )
+    return {
+        "status": "passed" if verdict in {"passed", "isolated"} else "failed",
+        "verdict": verdict,
+        "failures": failures,
+        "allowed_next_step": allowed_next_step,
+        "raw_sites_checked": [result["site_id"] for result in raw_reports],
+        "powered_bdg2_only_sufficient_obs_sites": [
+            item["site_id"] for item in powered_bdg2_sufficient
+        ],
+        "powered_gepiii_overlap_sufficient_obs_sites": [
+            item["site_id"] for item in powered_overlap_sufficient
+        ],
+        "sufficient_obs_comparisons": sufficient_comparisons,
+        "note": (
+            "This gate checks whether the pilot contains powered sufficient-observation "
+            "BDG2-only evidence under ADR 0019. It is not an accuracy or readiness gate."
+        ),
+    }
+
+
+def main() -> None:
+    args = parse_args()
+    t0 = time.perf_counter()
+    sites = choose_sites(args)
+    log(f"Phase E Step 4a mode={args.mode} meter={args.meter} sites={sites}")
+    detector = detector_for(args.detector)
+    primary_use_mapping = m3_primary_use_mapping()
+    variants = ["raw"]
+    if args.include_cleaned:
+        variants.append("cleaned")
+    site_results = []
+    for site in sites:
+        for variant in variants:
+            log(f"Scoring site={site} variant={variant}")
+            site_results.append(
+                score_site_variant(
+                    bdg2_dir=args.bdg2_dir,
+                    detector=detector,
+                    primary_use_mapping=primary_use_mapping,
+                    meter=args.meter,
+                    site=site,
+                    variant=variant,
+                )
+            )
+    control_anchor = None
+    if args.mode == "pilot":
+        control_anchor = score_site_variant(
+            bdg2_dir=args.bdg2_dir,
+            detector=lightgbm_sidecar(detector),
+            primary_use_mapping=primary_use_mapping,
+            meter=args.meter,
+            site="Fox",
+            variant="cleaned",
+        )
+
+    result = {
+        "schema_version": 1,
+        "experiment": "phaseE_step4a_bdg2_chilledwater_transfer",
+        "mode": args.mode,
+        "adr": "0019-bdg2-evaluation-paradigm",
+        "metric_contract": {
+            "path": "unlabeled_score_transfer",
+            "bdg2_ground_truth_metrics_reported": False,
+            "raw_cleaned_pseudo_label_metrics_reported": False,
+            "headline_metric": args.mode == "full",
+            "headline_scope_rule": (
+                "Any headline must include BDG2-only buildings or held-out BDG2 "
+                "sites; GEPIII-overlap rows are bridge/calibration evidence only."
+            ),
+        },
+        "selection": {
+            "meter": args.meter,
+            "scored_variants": variants,
+            "primary_variant": "raw",
+            "detector": detector["source_summary"]["detector"],
+            "tabpfn_status": "not_used_in_step4a_full_score_cost_tradeoff",
+            "site_ids": sites,
+            "site_selection_table": site_building_summary(
+                args.bdg2_dir, meter=args.meter
+            ).to_dict(orient="records"),
+        },
+        "detector_source": detector["source_summary"],
+        "control_anchor": control_anchor,
+        "site_results": site_results,
+        "pilot_gate": pilot_gate(site_results) if args.mode == "pilot" else None,
+        "interpretation_boundary": (
+            "Scores are unlabeled transfer outputs. Absolute scores are not "
+            "calibrated BDG2 risk; missingness/OOD summaries must travel with "
+            "every score stratum per unknown #26."
+        ),
+        "elapsed_seconds": float(time.perf_counter() - t0),
+    }
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    args.out.write_text(
+        json.dumps(json_clean(result), indent=2, allow_nan=False),
+        encoding="utf-8",
+    )
+    log(f"Saved {args.out}")
+
+
+if __name__ == "__main__":
+    main()

@@ -22,6 +22,13 @@ millions of rows, beyond the practical full-transfer shape for TabPFN-3's
 documented `1,000,000 x 200` row/feature limit. TabPFN is reserved for later
 small in-context slices.
 
+Correction note (2026-06-29 Step 4 gate correction): the TabPFN-3
+`1,000,000 x 200` limit applies to the context/fit set, not the number of BDG2
+query rows to score. The Step 3 exclusion is therefore recorded as a full-score
+cost/latency tradeoff, not as proof that BDG2 query rows cannot be scored in any
+small slice. The Step 3 runner status label is
+`tabpfn_not_scored_in_smoke_full_score_cost_tradeoff`.
+
 ### Meter and Site
 
 The first BDG2 smoke locks to `meter == "chilledwater"` and the single

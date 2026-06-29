@@ -1,0 +1,103 @@
+# Phase E Step 4: BDG2 chilledwater transfer gate correction
+
+**Date**: 2026-06-29
+**Issue**: [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39)
+**Accepted evidence**:
+
++ `.scratch/phaseE-step4a-bdg2-transfer-pilot.json`
+
+**Quarantined evidence from the prior overrun**:
+
++ `.scratch/phaseE-step4a-bdg2-transfer-full.json`
++ `.scratch/phaseE-step4b-tabpfn-vs-gbdt-bdg2.json`
+
+The full and Step 4b artifacts above were produced before the corrected pilot
+gate. They are retained as local diagnostic artifacts only. They are not accepted
+Phase E results, not a passed full transfer, and not a basis for a readiness
+claim.
+
+## Contract
+
+This slice follows ADR 0019. BDG2 has no native per-row anomaly label in the
+measured archive, so all accepted outputs are unlabeled score-transfer
+diagnostics. They are not BDG2 ground-truth ROC-AUC, PR-AUC, precision, recall,
+F1, anomaly prevalence, calibrated risk, or real-time FDD evidence.
+
+Unknown #26 remains the controlling interpretation gate: BDG2 score contrasts
+must travel with OOD and missingness summaries, and score/rank summaries must be
+read by completeness stratum rather than as a mixed headline.
+
+## Correction
+
+The first Step 4 implementation treated `score_coverage=1.0` plus any BDG2-only
+rows as enough to pass the pilot. That was only a plumbing check. The corrected
+gate now splits each overlap stratum by `(building_id, meter)` direct-reading
+completeness:
+
++ `sufficient_obs`: building/meter `meter_reading` missing rate is at most 50%.
++ `high_missing`: building/meter `meter_reading` missing rate is above 50%.
+
+The gate requires a powered `bdg2_only__sufficient_obs` stratum before full
+transfer can proceed. The current minimum is at least 2 buildings and at least
+17,544 rows. If that stratum is absent, the verdict is `underpowered` and the
+next step is `stop_and_report`.
+
+## Pilot Rerun
+
+Command:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_phaseE_step4a_bdg2_transfer.py --mode pilot --include-cleaned --out .scratch\phaseE-step4a-bdg2-transfer-pilot.json
+```
+
+Pilot sites were `Fox` and `Swan`. The corrected gate result:
+
++ `status`: `failed`
++ `verdict`: `underpowered`
++ `allowed_next_step`: `stop_and_report`
++ `failures`: `pilot has no powered bdg2_only__sufficient_obs stratum`
+
+Raw pilot strata:
+
+| Site | BDG2-only sufficient rows | BDG2-only sufficient buildings | BDG2-only sufficient median | BDG2-only high-missing rows | BDG2-only high-missing buildings | GEPIII-overlap sufficient rows | GEPIII-overlap sufficient median |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Fox | 17,544 | 1 | 0.1302 | 17,544 | 1 | 1,736,856 | 0.0043 |
+| Swan | 0 | 0 | n/a | 350,880 | 20 | 0 | n/a |
+
+Fox has a visible sufficient-observation BDG2-only score contrast, but it is one
+building only and therefore underpowered. Swan has many BDG2-only buildings, but
+all are high-missing under the corrected building/meter completeness split.
+
+## Control Anchor
+
+The pilot artifact now includes a Fox cleaned M3.2 LightGBM control anchor:
+
++ BDG2-only median score: `0.15755569665583008`
++ GEPIII-overlap median score: `0.007009272301667491`
+
+This reproduces the Step 3 smoke shape as a control anchor. It does not make the
+Step 4 pilot pass, because the corrected gate is about powered
+sufficient-observation BDG2-only evidence, not merely reproducing the plumbing
+or the earlier score split.
+
+## Decision
+
+Do not run or accept full chilledwater transfer yet. Do not run or accept Step
+4b TabPFN-vs-GBDT BDG2 comparison yet.
+
+Next work should either:
+
++ choose a pilot site/slice with enough BDG2-only sufficient-observation
+  chilledwater buildings, or
++ report that the current chilledwater BDG2-only pilot is underpowered and
+  redesign the Phase E transfer evidence around a different meter/site/sampling
+  frame.
+
+Until that happens, Phase E Step 4 is a corrected pilot-gate stop, not a full
+transfer result.
+
+## Validation Notes
+
+The runner command exited `0` and saved strict JSON. Windows emitted a
+non-fatal `cp950` reader-thread warning after the successful write, plus sklearn
+feature-name warnings during scoring.

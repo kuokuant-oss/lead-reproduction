@@ -328,7 +328,7 @@ def main() -> None:
         "selection": {
             "detector": "m3_2_lightgbm_gbdt",
             "tabpfn_step3_status": (
-                "excluded_from_full_transfer_smoke_scale_limited_small_slices_only"
+                "tabpfn_not_scored_in_smoke_full_score_cost_tradeoff"
             ),
             "meter": args.meter,
             "site_id": site,

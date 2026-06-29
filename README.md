@@ -97,6 +97,12 @@ M5 把工作從 reproduction 推進到 fault detection and diagnosis（FDD），
 
 下一階段為 Phase E（BDG2）：把選定的 FDD 模型轉移到 BDG2 corpus。詳細結果見 [docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)，規劃見 [docs/plans/m5-plan.md](./docs/plans/m5-plan.md)。
 
+Phase E Step 4 corrected the chilledwater BDG2 pilot gate and stopped before
+full transfer: the pilot is underpowered because it has no powered
+`bdg2_only__sufficient_obs` stratum. Prior full/4b artifacts are quarantined as
+diagnostics only, not accepted results. See
+[docs/reports/phaseE-step4-bdg2-transfer.md](./docs/reports/phaseE-step4-bdg2-transfer.md).
+
 ## src/lead public API
 
 M4.5 freezes `lead.__all__` as:
@@ -206,6 +212,9 @@ data/
 ## 環境設定
 
 建議使用 Python 3.13 與 [uv](https://docs.astral.sh/uv/)。
+
+Python version note: `pyproject.toml` requires `>=3.11`; Python 3.13 is the
+local verified environment, not the minimum requirement.
 
 ```bash
 git clone https://github.com/kuokuant-oss/lead-reproduction.git

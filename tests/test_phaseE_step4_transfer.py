@@ -1,0 +1,261 @@
+from __future__ import annotations
+
+import ast
+import json
+import importlib.util
+import sys
+import unittest
+from pathlib import Path
+from unittest import mock
+
+import numpy as np
+import pandas as pd
+
+
+ROOT = Path(__file__).resolve().parents[1]
+SCRIPTS = ROOT / "scripts"
+HELPER = ROOT / "scripts" / "phaseE_transfer.py"
+STEP4A = ROOT / "scripts" / "run_phaseE_step4a_bdg2_transfer.py"
+STEP4B = ROOT / "scripts" / "run_phaseE_step4b_tabpfn_vs_gbdt_bdg2.py"
+
+
+def load_module(path: Path, name: str):
+    if str(SCRIPTS) not in sys.path:
+        sys.path.insert(0, str(SCRIPTS))
+    spec = importlib.util.spec_from_file_location(name, path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Could not load {path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+class TestPhaseEStep4Transfer(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.helper = load_module(HELPER, "phaseE_transfer")
+        cls.step4a = load_module(STEP4A, "phaseE_step4a")
+        cls.step4b = load_module(STEP4B, "phaseE_step4b")
+
+    def test_pilot_sites_include_fox_and_bdg2_only_rich_site(self) -> None:
+        summary = pd.DataFrame(
+            [
+                {
+                    "site_id": "Fox",
+                    "buildings": 101,
+                    "bdg2_only_buildings": 2,
+                    "gepiii_overlap_buildings": 99,
+                },
+                {
+                    "site_id": "Bear",
+                    "buildings": 80,
+                    "bdg2_only_buildings": 15,
+                    "gepiii_overlap_buildings": 65,
+                },
+                {
+                    "site_id": "Wolf",
+                    "buildings": 90,
+                    "bdg2_only_buildings": 3,
+                    "gepiii_overlap_buildings": 87,
+                },
+            ]
+        )
+        with mock.patch.object(
+            self.helper, "site_building_summary", return_value=summary
+        ):
+            self.assertEqual(
+                self.helper.pilot_sites(Path("unused"), meter="chilledwater"),
+                ["Fox", "Bear"],
+            )
+
+    def test_pilot_gate_rejects_plumbing_only_bdg2_rows(self) -> None:
+        plumbing_only = [
+            {
+                "variant": "raw",
+                "site_id": "Fox",
+                "stratified": {
+                    "all": {"score_summary": {"score_coverage": 1.0}},
+                    "completeness_strata": {
+                        "bdg2_only__sufficient_obs": {
+                            "rows": 0,
+                            "buildings": 0,
+                            "score_summary": {"rows": 0},
+                        },
+                        "gepiii_overlap__sufficient_obs": {
+                            "rows": 100,
+                            "buildings": 10,
+                            "score_summary": {"rows": 100},
+                        },
+                    },
+                },
+            }
+        ]
+        gate = self.step4a.pilot_gate(plumbing_only)
+        self.assertEqual(gate["status"], "failed")
+        self.assertEqual(gate["verdict"], "underpowered")
+        self.assertEqual(gate["allowed_next_step"], "stop_and_report")
+
+        failing = [
+            {
+                "variant": "raw",
+                "site_id": "Fox",
+                "stratified": {
+                    "all": {"score_summary": {"score_coverage": 0.99}},
+                    "completeness_strata": {
+                        "bdg2_only__sufficient_obs": {
+                            "rows": 0,
+                            "buildings": 0,
+                            "score_summary": {"rows": 0},
+                        },
+                        "gepiii_overlap__sufficient_obs": {
+                            "rows": 0,
+                            "buildings": 0,
+                            "score_summary": {"rows": 0},
+                        },
+                    },
+                },
+            }
+        ]
+        gate = self.step4a.pilot_gate(failing)
+        self.assertEqual(gate["status"], "failed")
+        self.assertEqual(gate["allowed_next_step"], "stop_and_diagnose")
+
+    def test_pilot_gate_passes_isolated_powered_bdg2_only(self) -> None:
+        isolated = [
+            {
+                "variant": "raw",
+                "site_id": "Swan",
+                "stratified": {
+                    "all": {"score_summary": {"score_coverage": 1.0}},
+                    "completeness_strata": {
+                        "bdg2_only__sufficient_obs": {
+                            "rows": 20_000,
+                            "buildings": 3,
+                            "score_summary": {"rows": 20_000, "score_median": 0.1},
+                        },
+                        "gepiii_overlap__sufficient_obs": {
+                            "rows": 0,
+                            "buildings": 0,
+                            "score_summary": {"rows": 0},
+                        },
+                    },
+                },
+            }
+        ]
+        gate = self.step4a.pilot_gate(isolated)
+        self.assertEqual(gate["status"], "passed")
+        self.assertEqual(gate["verdict"], "isolated")
+        self.assertEqual(gate["allowed_next_step"], "full")
+
+    def test_step4a_contract_does_not_emit_ground_truth_metrics(self) -> None:
+        tree = ast.parse(STEP4A.read_text(encoding="utf-8"), filename=str(STEP4A))
+        names = {
+            node.value
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Constant) and isinstance(node.value, str)
+        }
+        self.assertIn("bdg2_ground_truth_metrics_reported", names)
+        self.assertNotIn("pseudo-label ROC-AUC", names)
+        self.assertNotIn("BDG2 ground-truth ROC-AUC", names)
+
+    def test_rank_agreement_reports_spearman_and_top_decile_overlap(self) -> None:
+        a = np.array([0.1, 0.2, 0.3, 0.4, 0.9])
+        b = np.array([0.1, 0.25, 0.35, 0.45, 0.8])
+        agreement = self.step4b.rank_agreement(a, b)
+        self.assertEqual(agreement["rows"], 5)
+        self.assertAlmostEqual(agreement["spearman"], 1.0)
+        self.assertAlmostEqual(agreement["top_decile_overlap"], 1.0)
+
+    def test_empty_ood_summary_uses_json_clean_none(self) -> None:
+        frame = pd.DataFrame(
+            {
+                "square_feet": pd.Series(dtype="float64"),
+                "meter_reading": pd.Series(dtype="float64"),
+                "primary_use_enc": pd.Series(dtype="int16"),
+            }
+        )
+        summary = self.helper.ood_summary(frame, feature_cols=["meter_reading"])
+        self.assertIsNone(summary["model_feature_missing_rate"])
+        self.assertEqual(summary["feature_missing_rates"], {})
+        cleaned = self.helper.json_clean({"x": np.float64(np.nan)})
+        self.assertIsNone(cleaned["x"])
+        json.dumps(cleaned, allow_nan=False)
+
+    def test_completeness_label_uses_building_meter_missing_rate(self) -> None:
+        frame = pd.DataFrame(
+            {
+                "building_id": ["a", "a", "b", "b"],
+                "meter": [1, 1, 1, 1],
+                "meter_reading": [1.0, None, None, None],
+            }
+        )
+        labels = self.helper.completeness_label(frame)
+        self.assertEqual(labels.iloc[0], "sufficient_obs")
+        self.assertEqual(labels.iloc[1], "sufficient_obs")
+        self.assertEqual(labels.iloc[2], "high_missing")
+        self.assertEqual(labels.iloc[3], "high_missing")
+
+    def test_stratified_delta_is_none_when_overlap_empty(self) -> None:
+        frame = pd.DataFrame(
+            {
+                "building_id": ["a", "b"],
+                "meter": [1, 1],
+                "is_gepiii_overlap": [False, False],
+                "primary_use_enc": [0, 0],
+                "meter_reading": [1.0, 2.0],
+                "log_square_feet": [1.0, 1.0],
+                "square_feet": [10.0, 10.0],
+            }
+        )
+        report = self.helper.stratified_score_report(
+            featured=frame,
+            scores=np.array([0.1, 0.2]),
+            feature_cols=["meter_reading"],
+        )
+        self.assertIsNone(
+            report["overlap_vs_bdg2_only"]["median_score_delta_overlap_minus_bdg2_only"]
+        )
+        self.assertIn("bdg2_only__sufficient_obs", report["completeness_strata"])
+
+    def test_bounded_query_prefers_both_overlap_strata(self) -> None:
+        frame = pd.DataFrame(
+            {
+                "building_id": [f"b{i}" for i in range(8)],
+                "timestamp": pd.date_range("2017-01-01", periods=8, freq="h"),
+                "is_gepiii_overlap": [
+                    False,
+                    False,
+                    False,
+                    False,
+                    True,
+                    True,
+                    True,
+                    True,
+                ],
+            }
+        )
+        query = self.step4b.bounded_query(frame, max_rows=4, seed=42)
+        self.assertLessEqual(len(query), 4)
+        self.assertIn(False, set(query["is_gepiii_overlap"]))
+        self.assertIn(True, set(query["is_gepiii_overlap"]))
+
+    def test_rank_agreement_by_stratum_reports_completeness_cells(self) -> None:
+        frame = pd.DataFrame(
+            {
+                "building_id": ["a", "a", "b", "b"],
+                "meter": [1, 1, 1, 1],
+                "meter_reading": [1.0, 2.0, None, None],
+                "is_gepiii_overlap": [False, False, True, True],
+            }
+        )
+        out = self.step4b.rank_agreement_by_stratum(
+            frame,
+            np.array([0.1, 0.2, 0.3, 0.4]),
+            np.array([0.1, 0.2, 0.4, 0.3]),
+        )
+        self.assertIn("bdg2_only__sufficient_obs", out)
+        self.assertIn("gepiii_overlap__high_missing", out)
+
+
+if __name__ == "__main__":
+    unittest.main()
