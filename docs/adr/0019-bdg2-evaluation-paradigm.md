@@ -62,7 +62,7 @@ must be labeled as pseudo-label metrics, for example "raw/cleaned pseudo-label
 ROC-AUC". They must not be described as ground-truth BDG2 anomaly AUC.
 
 If the selected transfer path includes electricity in anomaly scoring, unknown
-unknown 25 must be handled before an electricity-specific headline. The Step 1
+number 25 must be handled before an electricity-specific headline. The Step 1
 chilledwater result supports the general weather join, but electricity still
 needs a per-site time-basis review if it becomes part of the scored BDG2 path.
 
