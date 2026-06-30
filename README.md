@@ -41,7 +41,7 @@ Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-r
 M1 不訓練模型，目標是把論文與原始碼中的關鍵決策變成可追蹤文件。
 
 - `docs/reference/unknowns.md`：17 個 paper 或 code 未說清楚的地方。
-- `docs/adr/`：目前共有 22 份 ADR；M1 產出 ADR 0001-0006。
+- `docs/adr/`：目前共有 23 份 ADR；M1 產出 ADR 0001-0006。
 - `docs/reference/paper-notes.md`：paper structured summary。
 - `docs/reference/feature-engineering-rules.md`：feature 與 model 規則整理。
 
@@ -130,7 +130,9 @@ and [docs/reports/bdg2-eda.md](./docs/reports/bdg2-eda.md).
 
 ADR 0022 selects electricity as the first within-context transfer/FDD scoring
 meter. Chilledwater remains supported and is deferred to a later Level-3
-weather-conditioned path.
+weather-conditioned path. ADR 0023 makes the transfer/FDD scoring path
+raw-first above the general BDG2 loader; cleaned remains an explicit companion
+for sensitivity and convergence checks.
 
 ## src/lead public API
 
@@ -194,7 +196,7 @@ docs/
 │   ├── m3-50-50-ensemble.json
 │   └── m3-primary-use-auc.json
 ├── adr/
-│   └── 0001-0022 decision records
+│   └── 0001-0023 decision records
 ├── handoffs/
 │   └── historical session handoffs
 ├── agents/

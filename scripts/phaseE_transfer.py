@@ -27,6 +27,7 @@ from lead import (
     add_value_change_features,
     assert_no_building_overlap,
     downsample_indices,
+    load_bdg2_frame,
     load_m3_frame,
 )
 
@@ -36,6 +37,26 @@ BDG2_DIR = Path("data/raw/bdg2")
 HIGH_MISSING_RATE = 0.5
 MIN_STRATUM_BUILDINGS = 5
 MIN_STRATUM_ROWS = 17_544
+
+
+def load_bdg2_scoring_frame(
+    *,
+    bdg2_dir: Path,
+    variant: str = "raw",
+    meter_types: Iterable[str] | None = None,
+    building_ids: Iterable[str] | None = None,
+    nrows: int | None = None,
+    include_weather: bool = True,
+) -> pd.DataFrame:
+    """Load BDG2 for transfer/FDD scoring, where raw is the required default."""
+    return load_bdg2_frame(
+        bdg2_dir=bdg2_dir,
+        variant=variant,
+        meter_types=meter_types,
+        building_ids=building_ids,
+        nrows=nrows,
+        include_weather=include_weather,
+    )
 
 
 def log(message: str) -> None:

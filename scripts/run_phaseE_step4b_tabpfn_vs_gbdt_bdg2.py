@@ -16,13 +16,13 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from lead import load_bdg2_frame
 from phaseE_transfer import (
     BDG2_DIR,
     RANDOM_STATE,
     completeness_label,
     fit_gepiii_lightgbm_detector,
     json_clean,
+    load_bdg2_scoring_frame,
     log,
     m3_primary_use_mapping,
     prepare_bdg2_features,
@@ -170,7 +170,7 @@ def main() -> None:
     site, buildings = selected_site_buildings(
         args.bdg2_dir, meter=args.meter, site=args.site
     )
-    frame = load_bdg2_frame(
+    frame = load_bdg2_scoring_frame(
         bdg2_dir=args.bdg2_dir,
         variant=args.variant,
         meter_types=[args.meter],

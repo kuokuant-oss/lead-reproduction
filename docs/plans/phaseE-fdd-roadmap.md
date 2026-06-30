@@ -8,12 +8,14 @@ FDD on BDG2 (M6). Living document; each slice updates its row.
 Current status: A1 is done ([#42](https://github.com/kuokuant-oss/lead-reproduction/issues/42),
 [ADR 0021](../adr/0021-powered-gate-as-transfer-confidence.md)) and A2 is done
 ([#44](https://github.com/kuokuant-oss/lead-reproduction/issues/44),
-[ADR 0022](../adr/0022-electricity-entry-meter-for-bdg2-fdd.md)). A4, A5, A3,
-and M6 remain queued and must run as separate issue/commit/review slices.
+[ADR 0022](../adr/0022-electricity-entry-meter-for-bdg2-fdd.md)). A4 is done
+([#45](https://github.com/kuokuant-oss/lead-reproduction/issues/45),
+[ADR 0023](../adr/0023-raw-first-bdg2-transfer-scoring.md)). A5, A3, and M6
+remain queued and must run as separate issue/commit/review slices.
 
 This document is the single source of truth for the Phase E to M6 arc. It
 archives the fixed constraints, Part A cleanup sequence, BDG2-paper-derived
-folds, planned unknown #27, and M6 implementation ladder so the through-line
+folds, unknown #27, and M6 implementation ladder so the through-line
 survives context loss.
 
 ## Fixed Constraints
@@ -96,11 +98,11 @@ removes the very candidates FDD targets.
 
 A4 also opens unknown #27, recorded below.
 
-Status: QUEUED after A2.
+Status: DONE.
 
-Issue: not opened yet.
+Issue: [#45](https://github.com/kuokuant-oss/lead-reproduction/issues/45).
 
-ADR: to be added during A4.
+ADR: [ADR 0023](../adr/0023-raw-first-bdg2-transfer-scoring.md).
 
 A4 does not violate the transfer paradigm, does not touch the M3 numeric line,
 and preserves and carries TabPFN forward.
@@ -145,9 +147,9 @@ housekeeping.
 A3 does not violate the transfer paradigm, does not touch the M3 numeric line,
 and preserves and carries TabPFN forward.
 
-## Planned Unknown #27
+## Unknown #27
 
-Unknown #27 will be opened during A4.
+Unknown #27 is open in [unknowns.md](../reference/unknowns.md).
 
 Question: how should Phase E/M6 carry the source-vs-target regime shift baked
 into the GEPIII-to-BDG2 transfer paradigm?
@@ -175,8 +177,8 @@ and chunked. Store within-`(building, meter)` score rank/quantile, with BDG2-onl
 and GEPIII-overlap separated, under
 `data/processed/m6_1_electricity_scan/`.
 
-Dependency: A4 must be landed. M6.1 is raw-only because cleaned electricity
-removes zero readings and can remove FDD candidates.
+Dependency: A4 has landed. M6.1 is raw-only because cleaned electricity removes
+zero readings and can remove FDD candidates. M6.1 is not opened or run by A4.
 
 Definition of Done: at least one BDG2 site's electricity is fully scanned; the
 result is non-quarantined; scan summary and provenance are written under
@@ -273,10 +275,10 @@ weather-conditioned evidence are deferred to M7.
 | Slice 0: archive Part A + M6 roadmap | [#43](https://github.com/kuokuant-oss/lead-reproduction/issues/43) | Done | n/a |
 | A1: powered gate to confidence | [#42](https://github.com/kuokuant-oss/lead-reproduction/issues/42) | Done | [ADR 0021](../adr/0021-powered-gate-as-transfer-confidence.md) |
 | A2: electricity entry meter | [#44](https://github.com/kuokuant-oss/lead-reproduction/issues/44) | Done | [ADR 0022](../adr/0022-electricity-entry-meter-for-bdg2-fdd.md) |
-| A4: raw-first transfer/FDD scoring | Not opened | Queued | To be added |
+| A4: raw-first transfer/FDD scoring | [#45](https://github.com/kuokuant-oss/lead-reproduction/issues/45) | Done | [ADR 0023](../adr/0023-raw-first-bdg2-transfer-scoring.md) |
 | A5: value-change regime convergence | Not opened | Queued | To be added |
 | A3: Swan chilledwater off critical path | Not opened | Queued | To be decided |
-| M6.1: full-corpus electricity scan | Not opened | Blocked until A4 | To be decided |
+| M6.1: full-corpus electricity scan | Not opened | Raw-first precondition satisfied; not opened | To be decided |
 | M6.2: evidence packets + review queue | Not opened | Queued after M6.1 | ADR 0020 plus possible follow-up |
 | M6.3: enrichment-vs-random | Not opened | Queued after M6.2 | To be decided |
 | M6.4: raw-vs-cleaned convergence | Not opened | Queued after M6.2/A4 | To be decided |

@@ -1012,3 +1012,36 @@ outside the GEPIII range. The next design question is whether Swan's roughly
 half-missing chilledwater coverage is structurally contiguous enough for a
 within-Swan powered pilot, or whether Phase E needs a different meter, site
 scope, or audit-yield evidence frame.
+
+---
+
+## 27. GEPIII-to-BDG2 source-vs-target weather/unit regime shift
+
+**Question**: How should Phase E/M6 carry the source-vs-target regime shift
+baked into GEPIII-to-BDG2 transfer?
+
+**Context**: The GEPIII/Kaggle source used to train the detector kept UTC
+weather timestamps and unit-conversion errors left as-is. BDG2 raw and cleaned
+data use local-time weather and corrected units, as described in Miller et al.
+2020 Usage Notes. The detector's weather-lag features were therefore learned
+under a misaligned and unit-erroneous source regime, then applied to an aligned
+and corrected target regime.
+
+ADR 0018 already isolates the GEPIII/Kaggle-only `0.2931` unit correction
+(Miller et al. Table 5 kBTU to kWh factor `0.293071`) and keeps it out of
+`load_bdg2_frame`. That correction stays out of the BDG2 path to avoid double
+conversion.
+
+**Status**: open caveat; non-blocking for M6 within-context ranking
+(2026-06-30)
+
+**Why it matters**: ADR 0019 forbids absolute-score risk claims for BDG2
+transfer output, and M6 reports within-context ranks or quantiles rather than
+calibrated cross-dataset probabilities. That makes the regime shift
+non-blocking for candidate surfacing. It still must travel with every M6
+transfer output because weather-lag evidence may be shaped by source training
+conditions that differ from the BDG2 target.
+
+**Next**: attach this caveat to M6 scan summaries, evidence packets, and
+raw-vs-cleaned convergence reports. Do not apply the GEPIII-only `0.2931`
+correction in the BDG2 scoring path.

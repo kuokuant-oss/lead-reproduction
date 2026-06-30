@@ -17,7 +17,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from lead import load_bdg2_frame
 from phaseE_transfer import (
     BDG2_DIR,
     MIN_STRATUM_BUILDINGS,
@@ -27,6 +26,7 @@ from phaseE_transfer import (
     distribution,
     fit_gepiii_seed42_ensemble,
     json_clean,
+    load_bdg2_scoring_frame,
     log,
     m3_primary_use_mapping,
     prepare_bdg2_features,
@@ -292,7 +292,7 @@ def score_sites(args: argparse.Namespace) -> dict[str, Any]:
         )
         log(f"Scoring pooled fallback site={site_id}")
         site_t0 = time.perf_counter()
-        frame = load_bdg2_frame(
+        frame = load_bdg2_scoring_frame(
             bdg2_dir=args.bdg2_dir,
             variant="raw",
             meter_types=[args.meter],

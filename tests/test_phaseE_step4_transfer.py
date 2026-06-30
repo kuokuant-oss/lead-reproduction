@@ -78,6 +78,44 @@ class TestPhaseEStep4Transfer(unittest.TestCase):
             with mock.patch.object(sys, "argv", ["runner", "--meter", "chilledwater"]):
                 self.assertEqual(module.parse_args().meter, "chilledwater")
 
+    def test_transfer_scoring_loader_defaults_to_raw(self) -> None:
+        sentinel = pd.DataFrame({"building_id": ["x"]})
+        with mock.patch.object(
+            self.helper, "load_bdg2_frame", return_value=sentinel
+        ) as loader:
+            loaded = self.helper.load_bdg2_scoring_frame(
+                bdg2_dir=Path("unused"),
+                meter_types=["electricity"],
+                building_ids=["x"],
+            )
+        self.assertIs(loaded, sentinel)
+        loader.assert_called_once_with(
+            bdg2_dir=Path("unused"),
+            variant="raw",
+            meter_types=["electricity"],
+            building_ids=["x"],
+            nrows=None,
+            include_weather=True,
+        )
+
+    def test_transfer_scoring_loader_allows_explicit_cleaned_companion(self) -> None:
+        with mock.patch.object(self.helper, "load_bdg2_frame") as loader:
+            self.helper.load_bdg2_scoring_frame(
+                bdg2_dir=Path("unused"),
+                variant="cleaned",
+                meter_types=["electricity"],
+                include_weather=False,
+            )
+        self.assertEqual(loader.call_args.kwargs["variant"], "cleaned")
+        self.assertFalse(loader.call_args.kwargs["include_weather"])
+
+    def test_step4_scripts_route_through_transfer_scoring_loader(self) -> None:
+        for path in [STEP4A, STEP4B, STEP4C]:
+            source = path.read_text(encoding="utf-8")
+            self.assertIn("load_bdg2_scoring_frame", source)
+            self.assertNotIn("from lead import load_bdg2_frame", source)
+            self.assertNotIn("load_bdg2_frame(", source)
+
     def test_pilot_gate_rejects_plumbing_only_bdg2_rows(self) -> None:
         plumbing_only = [
             {

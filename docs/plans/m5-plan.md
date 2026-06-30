@@ -239,7 +239,8 @@ measured `underpowered_even_pooled` as a reporting-confidence label
 (OOD-leaning, not a missingness-only artifact); BDG2 pre-modeling EDA complete;
 FDD audit-yield evaluation framework accepted in ADR 0020; powered entry gate
 demoted to confidence metadata in ADR 0021; electricity selected as the entry
-meter in ADR 0022; implementation queued, not started
+meter in ADR 0022; raw-first transfer/FDD scoring accepted in ADR 0023; M6
+implementation queued, not started
 **GitHub Issue**: [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39)
 **Roadmap**: [docs/plans/phaseE-fdd-roadmap.md](phaseE-fdd-roadmap.md)
 
@@ -331,10 +332,16 @@ ingestion does not start on an unverified schema or an unknown label situation.
    is the first transfer/FDD within-context scoring meter because it has broad
    BDG2-only coverage and sufficient-observation support. Chilledwater remains
    supported but is deferred to a later Level-3 weather-conditioned path.
-13. **Next queued implementation slice.** Not started: A4 raw-first transfer/FDD
-   scoring wrapper or required argument. The full-corpus electricity scan,
-   evidence-packet implementation, value-change regime decision, and Swan
-   downgrade remain later slices.
+13. **Raw-first transfer/FDD scoring.** Accepted in
+   [ADR 0023](../adr/0023-raw-first-bdg2-transfer-scoring.md). Phase E transfer
+   scripts route through a raw-first scoring wrapper above the general BDG2
+   loader. `load_bdg2_frame` keeps its general cleaned default, while cleaned
+   remains an explicit sensitivity or convergence companion. Unknown #27 is open
+   as the non-blocking GEPIII-to-BDG2 weather/unit regime caveat that must travel
+   with M6 outputs.
+14. **Next queued implementation slice.** Not started: A5 value-change regime
+   decision. The full-corpus electricity scan, evidence-packet implementation,
+   and Swan downgrade remain later slices.
 
 ---
 
@@ -360,4 +367,5 @@ ingestion does not start on an unverified schema or an unknown label situation.
 | Phase E BDG2 FDD audit-yield evaluation framework | [#41](https://github.com/kuokuant-oss/lead-reproduction/issues/41) | Designed and accepted in ADR 0020 |
 | Phase E A1 powered-gate demotion | [#42](https://github.com/kuokuant-oss/lead-reproduction/issues/42) | Done |
 | Phase E A2 electricity entry meter | [#44](https://github.com/kuokuant-oss/lead-reproduction/issues/44) | Done |
+| Phase E A4 raw-first transfer/FDD scoring | [#45](https://github.com/kuokuant-oss/lead-reproduction/issues/45) | Done |
 | Phase E GBDT scan + evidence packets + Swan gating | _not opened_ | Queued; not started |

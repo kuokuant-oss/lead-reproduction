@@ -12,13 +12,13 @@ import time
 from pathlib import Path
 from typing import Any
 
-from lead import load_bdg2_frame
 from phaseE_transfer import (
     BDG2_DIR,
     all_sites,
     fit_gepiii_lightgbm_detector,
     fit_gepiii_seed42_ensemble,
     json_clean,
+    load_bdg2_scoring_frame,
     log,
     m3_primary_use_mapping,
     multi_building_transfer_stability,
@@ -122,7 +122,7 @@ def score_site_variant(
 ) -> dict[str, Any]:
     site_id, buildings = selected_site_buildings(bdg2_dir, meter=meter, site=site)
     load_t0 = time.perf_counter()
-    frame = load_bdg2_frame(
+    frame = load_bdg2_scoring_frame(
         bdg2_dir=bdg2_dir,
         variant=variant,
         meter_types=[meter],
