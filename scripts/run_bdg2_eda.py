@@ -450,6 +450,18 @@ def _write_report(payload: dict[str, Any], path: Path) -> None:
     ood = payload["ood"]
     figures = payload["figures"]
     chilledwater = next(item for item in meters if item["meter"] == "chilledwater")
+    building_count = f"{meta['building_count']:,}"
+    bdg2_only_count = f"{meta['bdg2_only_count']:,}"
+    gepiii_overlap_count = f"{meta['gepiii_overlap_count']:,}"
+    chilledwater_bdg2_only = chilledwater["bdg2_only_sufficient_obs"][
+        "buildings_with_meter"
+    ]
+    chilledwater_sufficient = chilledwater["bdg2_only_sufficient_obs"][
+        "sufficient_obs_buildings"
+    ]
+    chilledwater_high_missing = chilledwater["bdg2_only_sufficient_obs"][
+        "high_missing_buildings"
+    ]
 
     meter_rows = [
         [
@@ -552,30 +564,50 @@ share, flatline share, missingness, coverage, and distribution distance.
 
 ## Headline Findings
 
-+ BDG2 has {meta["building_count"]} buildings: {meta["bdg2_only_count"]}
-  BDG2-only and {meta["gepiii_overlap_count"]} GEPIII-overlap.
-+ BDG2-only chilledwater is sparse at the building level:
-  {chilledwater["bdg2_only_sufficient_obs"]["buildings_with_meter"]} BDG2-only
-  buildings have chilledwater columns, but only
-  {chilledwater["bdg2_only_sufficient_obs"]["sufficient_obs_buildings"]} meet the
-  sufficient-observation rule (`missing_rate <= 0.50`). This reproduces the
-  Phase E Step 4 pooled stop point from the data side.
-+ The chilledwater underpowering root cause is mostly building availability plus
-  per-building observation missingness: most BDG2-only buildings do not have a
-  chilledwater meter, and the available BDG2-only chilledwater set still leaves
-  {chilledwater["bdg2_only_sufficient_obs"]["high_missing_buildings"]}
-  high-missing buildings.
-+ OOD quantification gives comparable scalars: square_feet KS
-  `{_fmt(ood["square_feet"]["ks_bdg2_only_vs_gepiii"])}`, meter_reading KS
-  `{_fmt(ood["meter_reading"]["ks_bdg2_only_vs_gepiii"])}`, and primary_use
-  categorical PSI
-  `{_fmt(meta["primary_use_unseen_vs_gepiii"]["categorical_psi_bdg2_only_vs_gepiii"])}`.
++ BDG2 contains {building_count} buildings, but meter availability is
+  highly uneven across meters.
++ Electricity is broadly available; chilledwater, steam, hotwater, gas, water,
+  irrigation, and solar have much narrower building coverage.
++ Several meters show high zero-reading or flatline shares, especially
+  irrigation, water, gas, and hotwater. These can reflect operational
+  off-periods described by Miller et al. 2020, not data faults.
++ Cleaned files increase null rates for every meter, reflecting BDG2's own
+  outlier/zero removal rules described by Miller et al. 2020: Twitter
+  AnomalyDetection outlier removal, removal of zero-reading runs longer than 24
+  hours, and removal of electricity zeros. This is a data-quality delta, not a
+  label.
++ For BDG2-only buildings, chilledwater is especially underpowered: of the
+  {bdg2_only_count} BDG2-only buildings, {chilledwater_bdg2_only} have
+  chilledwater columns but only {chilledwater_sufficient} meet the
+  sufficient-observation rule (`missing_rate <= 0.50`); this reproduces the
+  Phase E Step 4 stop point from the data side.
++ The GEPIII comparison is used only to contextualize coverage and distribution
+  differences, not to make modeling or transfer-readiness claims.
 
-## Per-Meter Structure
+## Dataset Provenance And Cleaning
+
+The BDG2 data descriptor is tracked in
+[docs/reference/papers/bdg2-miller-2020.md](../reference/papers/bdg2-miller-2020.md).
+The PDF is kept locally at `docs/reference/papers/bdg2-miller-2020.pdf` and is
+gitignored because it exceeds the repo's 500 KB large-file gate.
+
+Miller et al. 2020 describe the raw release pipeline as unit conversion,
+negative readings set to missing, removal of meters with more than 50% negative
+readings, removal of meters with more than 100 consecutive days of missing
+readings, log plus three-standard-deviation outlier removal, and four-decimal
+rounding. The cleaned release then applies additional Twitter AnomalyDetection
+outlier removal, removes zero-reading runs longer than 24 hours, and removes
+electricity zeros. These release-level rules explain why raw negative-reading
+share is zero in this EDA and why cleaned null rates are higher than raw null
+rates for every meter.
+
+## BDG2 Data-Quality Inventory
+
+### Per-Meter Structure
 
 {_markdown_table(["Meter", "Buildings", "BDG2-only buildings", "Raw null", "Cleaned null", "Raw zero", "Raw negative", "Raw flatline"], meter_rows)}
 
-## Missingness Decomposition
+### Missingness Decomposition
 
 This table separates building-level meter availability from observation-level
 missingness. `Absent buildings` means metadata buildings without a column in the
@@ -583,15 +615,29 @@ wide meter file.
 
 {_markdown_table(["Meter", "Absent buildings", "Median timestamp coverage", "Raw observation missingness", "Cleaned observation missingness"], coverage_rows)}
 
-## Cleaned-Vs-Raw Delta
+### Cleaned-Vs-Raw Delta
 
 {_markdown_table(["Meter", "Null-rate delta", "Raw present -> cleaned missing", "Raw missing -> cleaned present", "Changed observed cells"], delta_rows)}
 
-## BDG2-Only Sufficient-Observation Counts
+## BDG2-Only Sufficiency
+
+BDG2 has {bdg2_only_count} BDG2-only buildings and
+{gepiii_overlap_count} GEPIII-overlap buildings. The table below
+summarizes BDG2-only meter availability and the sufficient-observation split.
+For chilledwater, {chilledwater_bdg2_only} BDG2-only buildings have meter
+columns, {chilledwater_sufficient} meet the `missing_rate <= 0.50` rule, and
+{chilledwater_high_missing} are high-missing. This is the data-side reason the
+Phase E Step 4 chilledwater frame remains underpowered.
 
 {_markdown_table(["Meter", "BDG2-only with meter", "Sufficient obs", "High missing", "Median missing rate"], sufficient_rows)}
 
-## Metadata And Meter Coverage
+## GEPIII Comparison As Context
+
+The GEPIII comparison is a diagnostic lens for coverage and distribution
+differences. It is not a modeling result, not a transfer result, and not a
+readiness claim.
+
+### Meter Coverage Context
 
 {_markdown_table(["Meter", "All buildings marked yes", "BDG2-only", "GEPIII-overlap"], meter_coverage_rows)}
 
@@ -606,20 +652,22 @@ Square-feet medians:
 + GEPIII-overlap: `{_fmt(meta["square_feet"]["gepiii_overlap"].get("median"))}`.
 + GEPIII: `{_fmt(meta["square_feet"]["gepiii"].get("median"))}`.
 
-## BDG2-Only Vs GEPIII-Overlap Main Line
+BDG2-only buildings are concentrated in a smaller set of sites, especially
+Lamb, Panther, Rat, and Swan in the local archive. Meter availability differs
+sharply by meter. Electricity is broadest; solar and irrigation remain narrow.
+Chilledwater has enough overlap buildings for a bridge baseline but not enough
+BDG2-only sufficient-observation buildings for the prior Step 4 frame.
 
-+ BDG2-only buildings are concentrated in a smaller set of sites, especially
-  Lamb, Panther, Rat, and Swan in the local archive.
-+ Meter availability differs sharply by meter. Electricity is broadest; solar
-  and irrigation remain narrow. Chilledwater has enough overlap buildings for a
-  bridge baseline but not enough BDG2-only sufficient-observation buildings for
-  the prior Step 4 frame.
-+ Cleaned files increase null rates for every meter in this archive, consistent
-  with the Stage 0 inventory. That is a data-quality delta, not a label.
-
-## BDG2 Vs GEPIII OOD Quantification
+### Reference Distribution Distances
 
 {_markdown_table(["Feature", "KS", "PSI", "Basis"], ood_rows)}
+
+The meter_reading distance compares sampled BDG2 raw cells against GEPIII
+Kaggle-release cells via `load_m3_frame`. Part of this distance reflects known
+release-level differences described by Miller et al. 2020: Kaggle
+unit-conversion errors and UTC-vs-local weather timestamps that BDG2 raw/cleaned
+fixed but the Kaggle subset left as-is. It should therefore not be read as
+building heterogeneity alone.
 
 Figures:
 
@@ -641,8 +689,13 @@ they are not model features, scores, or readiness evidence.
 + Machine-readable summary: `data/processed/bdg2_eda.json` (gitignored shard).
 + Script: `scripts/run_bdg2_eda.py`.
 + BDG2 source: `data/raw/bdg2`.
++ BDG2 paper reference: `docs/reference/papers/bdg2-miller-2020.md`.
 + GEPIII comparison source: `load_m3_frame(verbose=False)` and
   `data/raw/m3/building_metadata.csv`.
++ Distance scalar sampling: per-meter BDG2 sample
+  `{payload["sampling"]["sample_per_meter"]}`, GEPIII sample
+  `{payload["sampling"]["gepiii_sample_size"]}`, seed
+  `{payload["sampling"]["seed"]}`.
 """
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
@@ -665,6 +718,9 @@ def _write_handoff(payload: dict[str, Any], path: Path) -> None:
 + Wrote `docs/reports/bdg2-eda.md`.
 + Wrote small figures under `docs/assets/bdg2-eda/`.
 + Wrote ignored provenance JSON at `data/processed/bdg2_eda.json`.
++ Added the Miller et al. 2020 BDG2 data descriptor reference card and reframed
+  the report around data-quality inventory, BDG2-only sufficiency, and reference
+  distribution distances.
 
 ## Guardrails Preserved
 
@@ -674,6 +730,7 @@ def _write_handoff(payload: dict[str, Any], path: Path) -> None:
 + No supervised BDG2 metrics.
 + No readiness or transfer claim.
 + No `src/lead` changes and no M3 numeric-line changes.
++ No distance-scalar recalculation logic changes.
 
 ## Key Numbers
 
@@ -691,6 +748,9 @@ def _write_handoff(payload: dict[str, Any], path: Path) -> None:
   {_fmt(ood["meter_reading"]["ks_bdg2_only_vs_gepiii"])}.
 + Primary_use categorical PSI BDG2-only vs GEPIII:
   {_fmt(payload["metadata"]["primary_use_unseen_vs_gepiii"]["categorical_psi_bdg2_only_vs_gepiii"])}.
++ Distance scalar sampling:
+  per-meter BDG2 sample {payload["sampling"]["sample_per_meter"]}, GEPIII sample
+  {payload["sampling"]["gepiii_sample_size"]}, seed {payload["sampling"]["seed"]}.
 
 ## Next Review Point
 
@@ -748,6 +808,12 @@ def run_eda(args: argparse.Namespace) -> dict[str, Any]:
             "bdg2_dir": str(args.bdg2_dir),
             "gepiii_metadata": str(M3_DIR / "building_metadata.csv"),
             "gepiii_loader": "load_m3_frame(verbose=False)",
+            "bdg2_paper_reference": "docs/reference/papers/bdg2-miller-2020.md",
+        },
+        "sampling": {
+            "seed": args.seed,
+            "sample_per_meter": args.sample_per_meter,
+            "gepiii_sample_size": args.gepiii_sample_size,
         },
         "metadata": metadata,
         "meters": meters,

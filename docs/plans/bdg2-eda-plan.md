@@ -6,7 +6,7 @@
 
 ## Purpose
 
-對 BDG2 做任何完整資料集建模前，刻畫 BDG2 資料集本身，並定量描述它與 GEPIII 的分布差異（OOD），解釋 Phase E Step 4 的 OOD-leaning finding。
+對 BDG2 做任何完整資料集建模前，刻畫 BDG2 資料集本身，並定量描述它與 GEPIII 的 reference distribution distance / divergence，解釋 Phase E Step 4 的 distribution-shift finding。
 
 本 slice 是 read-only EDA：無建模、無 score、無偽造標籤、無 readiness/transfer 宣稱。
 
@@ -66,9 +66,20 @@ Summarize:
 + `site_id` and `timezone`。
 + 每棟 meter 覆蓋。
 
-## 6. BDG2-Only Vs GEPIII-Overlap
+## 6. Report Narrative Order
 
-這是報告主線，不放附錄。使用 `is_gepiii_overlap`。
+Report sections should be generated from `scripts/run_bdg2_eda.py` in this order:
+
++ `Dataset Provenance And Cleaning`：引用 Miller et al. 2020 BDG2 data descriptor，摘要 raw/cleaned release cleaning rules，並說明 raw negative-reading share 全為 0 與 cleaned null rate 全面高於 raw 的資料釋義。
++ `BDG2 Data-Quality Inventory`：per-meter 結構、missingness 四層 decomposition、zero / flatline 指標、cleaned-vs-raw delta。
++ `BDG2-Only Sufficiency`：重現 chilledwater `26 -> 3 + 23`，並把 187 BDG2-only / 1,449 GEPIII-overlap 作為 sufficiency 脈絡。
++ `GEPIII Comparison As Context`：meter coverage 對照與 `Reference Distribution Distances`，定位為 diagnostic lens，不作 modeling 或 transfer-readiness claim。
+
+Tracked paper reference: `docs/reference/papers/bdg2-miller-2020.md`。Local PDF `docs/reference/papers/bdg2-miller-2020.pdf` 因超過 500 KB large-file gate 而 gitignored。
+
+## 7. BDG2-Only Vs GEPIII-Overlap
+
+使用 `is_gepiii_overlap`，但 GEPIII comparison 只作 context / diagnostic lens。
 
 Compare 187 棟 BDG2-only vs 1,449 棟 GEPIII-overlap buildings on:
 
@@ -85,7 +96,7 @@ Compare 187 棟 BDG2-only vs 1,449 棟 GEPIII-overlap buildings on:
 + 其中 sufficient_obs 建築有幾棟。
 + 解釋「為何只有約 3 棟」這個 underpowered 根因：是少有建築有該 meter，還是有但 observation missingness 太高。
 
-## 7. BDG2 Vs GEPIII OOD Quantification
+## 8. Reference Distribution Distances
 
 結論不靠肉眼看圖。
 
@@ -95,12 +106,14 @@ Compare 187 棟 BDG2-only vs 1,449 棟 GEPIII-overlap buildings on:
 + coverage days / hourly completeness。
 + BDG2-only vs overlap 差異表。
 + BDG2 vs GEPIII 差異表。
-+ 招牌 OOD 標量：對關鍵特徵（square_feet、meter_reading、primary_use coverage）各給一個分布距離標量（KS statistic 或 PSI）於 BDG2-only vs GEPIII 之間，讓「多 OOD」是一個可比的數。
++ Reference distribution distance 標量：對關鍵特徵（square_feet、meter_reading、primary_use coverage）各給一個分布距離標量（KS statistic 或 PSI）於 BDG2-only vs GEPIII 之間，讓 divergence 是一個可比的數。
++ `meter_reading` distance 需附 caveat：BDG2 raw cells 與 GEPIII Kaggle-release cells 的差距部分反映 Miller et al. 2020 記錄的 release-level differences（Kaggle unit-conversion errors、UTC-vs-local weather timestamps），不只反映 building heterogeneity。
++ Provenance 段需記錄抽樣參數：per-meter BDG2 sample `80,000`、GEPIII sample `400,000`、seed `42`（若 script defaults 改變，以 script 實際值為準）。
 + ECDF / histogram overlay 只作輔助；結論落在定量表。
 
-## 8. Deliverables
+## 9. Deliverables
 
-+ `docs/reports/bdg2-eda.md`：BDG2-only-vs-overlap 與 OOD 放主線。
++ `docs/reports/bdg2-eda.md`：BDG2 data-quality inventory、BDG2-only sufficiency、GEPIII comparison context 與 reference distribution distances 放主線。
 + `docs/assets/bdg2-eda/*.png`：每張圖小於 500 KB，通過 large-file gate。
 + provenance JSON summary：放在 `data/processed/` shard；遵守 gitignore，必要時只提交報告摘要。
 + `docs/handoffs/<date>-bdg2-eda.md`。

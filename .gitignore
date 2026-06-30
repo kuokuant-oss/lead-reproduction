@@ -249,3 +249,6 @@ m32a-m33-prompt.md
 # Local TabPFN checkpoints
 .tabpfn-cache/
 *.ckpt
+
+# Local reference PDFs that exceed the repo large-file gate
+docs/reference/papers/bdg2-miller-2020.pdf
