@@ -17,7 +17,7 @@
 | **M2** | LEAD competition subset reproduction | Closed | Kaggle Private AUC `0.98616`，與原始解法 `0.98661` 的差距為 `0.05%` |
 | **M3** | Full ASHRAE GEPIII reproduction | Complete | M3.4 ensemble AUC `0.9928`；PI 50/50 ensemble offline `0.9921` / causal `0.9911`；post-processing 為 null result |
 | **M4** | Importable pipeline foundation | M4.0-M4.5 complete | `src/lead` public API frozen; M3.2/M3.4 regression gates pass; M4.2-M4.5 closed |
-| **M5** | FDD on BDG2 | Model track (Phase A–D) complete；Phase E (BDG2) 規劃中 | FDD 選模階段完成：GEPIII 上 TabPFN-vs-GBDT 四軸比較（[報告](./docs/reports/m5-foundation-vs-gbdt.md)）— TabPFN 於 label scarcity（+0.100 PR-AUC @200 labels）與 true cross-site ROC-AUC（0.9833 vs 0.9797）勝出，GBDT 保有 inference 延遲與 minimal-FE 優勢，real-time 部署候選仍為 GBDT。下一階段 = Phase E：FDD transfer to BDG2 |
+| **M5** | FDD on BDG2 | Model track (Phase A–D) complete；Phase E (BDG2) EDA stop point | FDD 選模階段完成：GEPIII 上 TabPFN-vs-GBDT 四軸比較（[報告](./docs/reports/m5-foundation-vs-gbdt.md)）— TabPFN 於 label scarcity（+0.100 PR-AUC @200 labels）與 true cross-site ROC-AUC（0.9833 vs 0.9797）勝出，GBDT 保有 inference 延遲與 minimal-FE 優勢，real-time 部署候選仍為 GBDT。Phase E 已完成 BDG2 read-only EDA，停等審查 |
 
 Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-reproduction/milestones)。
 
@@ -27,6 +27,7 @@ Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-r
 - **M3 完成報告**：[docs/reports/m3-report.md](./docs/reports/m3-report.md)
 - **M4 評估報告**：[docs/reports/m4-evaluation-report.md](./docs/reports/m4-evaluation-report.md)
 - **M5 FDD 選模報告**：[docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)
+- **BDG2 EDA 報告**：[docs/reports/bdg2-eda.md](./docs/reports/bdg2-eda.md)
 - **工作方法**：[docs/reference/workflow.md](./docs/reference/workflow.md)
 - **M4 計畫**：[docs/plans/m4-plan.md](./docs/plans/m4-plan.md)
 - **M5 計畫**：[docs/plans/m5-plan.md](./docs/plans/m5-plan.md)
@@ -95,7 +96,7 @@ M5 把工作從 reproduction 推進到 fault detection and diagnosis（FDD），
 - TabPFN 在 10k context 的 in-domain ROC-AUC（`0.9925`）接近 M3.4 ensemble（`0.9928`）。
 - GBDT 保有推論延遲與 minimal feature engineering 的優勢，real-time 部署候選仍為 GBDT。
 
-下一階段為 Phase E（BDG2）：把選定的 FDD 模型轉移到 BDG2 corpus。詳細結果見 [docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)，規劃見 [docs/plans/m5-plan.md](./docs/plans/m5-plan.md)。
+Phase E（BDG2）把選定的 FDD 模型轉移到 BDG2 corpus，但目前停在 pre-modeling EDA 審查點。模型選擇結果見 [docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)，Phase E 規劃見 [docs/plans/m5-plan.md](./docs/plans/m5-plan.md)。
 
 Phase E Step 4 corrected the chilledwater BDG2 pilot gate and stopped before
 full transfer: the pilot is underpowered because it has no powered
@@ -103,8 +104,13 @@ full transfer: the pilot is underpowered because it has no powered
 underpowered (`underpowered_even_pooled`, 3 BDG2-only sufficient-observation
 buildings vs the 5-building minimum). Prior full/4b artifacts are quarantined
 as diagnostics only, not accepted results. The finding is OOD-leaning rather
-than missingness-only; BDG2 EDA is the next required pre-modeling slice. See
-[docs/reports/phaseE-step4-bdg2-transfer.md](./docs/reports/phaseE-step4-bdg2-transfer.md).
+than missingness-only. BDG2 EDA has now reproduced the chilledwater sparsity
+from the data side: 26 BDG2-only buildings have chilledwater columns, but only
+3 satisfy the sufficient-observation rule. The EDA also quantifies OOD via
+square_feet KS `0.2176`, sampled meter_reading KS `0.4549`, and primary_use
+categorical PSI `1.415`. See
+[docs/reports/phaseE-step4-bdg2-transfer.md](./docs/reports/phaseE-step4-bdg2-transfer.md)
+and [docs/reports/bdg2-eda.md](./docs/reports/bdg2-eda.md).
 
 ## src/lead public API
 

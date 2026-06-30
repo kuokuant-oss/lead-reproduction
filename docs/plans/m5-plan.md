@@ -236,7 +236,8 @@ research/internal-use license. The next stage is Phase E (FDD transfer to BDG2).
 **Status**: Stage 0/1 complete; Stage 2 GEPIII-only assumptions isolated;
 evaluation paradigm accepted in ADR 0019; chilledwater transfer investigation
 stopped at `underpowered_even_pooled` (OOD-leaning, not a missingness-only
-artifact); BDG2 EDA is the next required pre-modeling slice
+artifact); BDG2 pre-modeling EDA complete and stopped for review before any
+modeling or transfer follow-up
 **GitHub Issue**: [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39)
 
 Phase E carries the selected FDD models from GEPIII to the BDG2 (Building Data
@@ -294,12 +295,20 @@ ingestion does not start on an unverified schema or an unknown label situation.
    `underpowered_even_pooled`, because BDG2-only sufficient-observation rows
    span only 3 buildings versus the 5-building minimum. The underpowered
    direction is OOD-leaning and is not explained by missingness alone, so BDG2
-   EDA is the next required pre-modeling slice before choosing another meter or
-   scope. Full transfer and Step 4b are therefore stopped until a powered
-   `bdg2_only__sufficient_obs` pilot or held-out-BDG2-site scope exists, or the
-   evidence frame is redesigned.
+   EDA was run as the next pre-modeling slice before choosing another meter or
+   scope. The EDA report reproduces the chilledwater sparsity from the data
+   side: 26 BDG2-only buildings have chilledwater columns, but only 3 satisfy
+   the sufficient-observation rule. Full transfer and Step 4b remain stopped
+   until the EDA is reviewed and a powered `bdg2_only__sufficient_obs` pilot,
+   held-out-BDG2-site scope, or redesigned evidence frame is explicitly chosen.
    See
    [docs/reports/phaseE-step4-bdg2-transfer.md](../reports/phaseE-step4-bdg2-transfer.md).
+10. **BDG2 pre-modeling EDA.** Completed in
+   [docs/reports/bdg2-eda.md](../reports/bdg2-eda.md). The EDA is read-only and
+   does not create labels, model scores, supervised BDG2 metrics, or readiness
+   claims. It quantifies BDG2-only vs GEPIII distribution shift with square_feet
+   KS `0.2176`, sampled meter_reading KS `0.4549`, and primary_use categorical
+   PSI `1.415`.
 
 ---
 
@@ -320,5 +329,5 @@ ingestion does not start on an unverified schema or an unknown label situation.
 | Phase E Stage 1 BDG2 ingestion contract | _local gate_ | Done |
 | Phase E Stage 2 GEPIII-only assumption isolation | _local gate_ | Done |
 | Phase E evaluation paradigm ADR | _local gate_ | Done |
-| Phase E FDD transfer to BDG2 | [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39) | Step 4 chilledwater stopped at `underpowered_even_pooled`; EDA next |
-| Phase E BDG2 pre-modeling EDA | [#40](https://github.com/kuokuant-oss/lead-reproduction/issues/40) | Planned |
+| Phase E FDD transfer to BDG2 | [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39) | Step 4 chilledwater stopped at `underpowered_even_pooled`; EDA complete, review next |
+| Phase E BDG2 pre-modeling EDA | [#40](https://github.com/kuokuant-oss/lead-reproduction/issues/40) | Done; stopped for review |

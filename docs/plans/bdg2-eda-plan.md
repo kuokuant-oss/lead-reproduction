@@ -1,7 +1,7 @@
 # BDG2 EDA Plan
 
 **Stage**: Phase E pre-modeling EDA
-**Status**: Planned
+**Status**: Completed (2026-06-30); stopped for review before any modeling or transfer follow-up
 **GitHub Issue**: [#40](https://github.com/kuokuant-oss/lead-reproduction/issues/40)
 
 ## Purpose
