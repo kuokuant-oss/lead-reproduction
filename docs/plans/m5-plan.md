@@ -321,3 +321,4 @@ ingestion does not start on an unverified schema or an unknown label situation.
 | Phase E Stage 2 GEPIII-only assumption isolation | _local gate_ | Done |
 | Phase E evaluation paradigm ADR | _local gate_ | Done |
 | Phase E FDD transfer to BDG2 | [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39) | Step 4 chilledwater stopped at `underpowered_even_pooled`; EDA next |
+| Phase E BDG2 pre-modeling EDA | [#40](https://github.com/kuokuant-oss/lead-reproduction/issues/40) | Planned |
