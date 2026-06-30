@@ -17,7 +17,7 @@
 | **M2** | LEAD competition subset reproduction | Closed | Kaggle Private AUC `0.98616`，與原始解法 `0.98661` 的差距為 `0.05%` |
 | **M3** | Full ASHRAE GEPIII reproduction | Complete | M3.4 ensemble AUC `0.9928`；PI 50/50 ensemble offline `0.9921` / causal `0.9911`；post-processing 為 null result |
 | **M4** | Importable pipeline foundation | M4.0-M4.5 complete | `src/lead` public API frozen; M3.2/M3.4 regression gates pass; M4.2-M4.5 closed |
-| **M5** | FDD on BDG2 | Model track (Phase A–D) complete；Phase E (BDG2) implementation queued | FDD 選模階段完成：GEPIII 上 TabPFN-vs-GBDT 四軸比較（[報告](./docs/reports/m5-foundation-vs-gbdt.md)）— TabPFN 於 label scarcity（+0.100 PR-AUC @200 labels）與 true cross-site ROC-AUC（0.9833 vs 0.9797）勝出，GBDT 保有 inference 延遲與 minimal-FE 優勢，real-time 部署候選仍為 GBDT。Phase E 已完成 BDG2 read-only EDA；powered gate 已降為 reporting-confidence label，implementation queued |
+| **M5** | FDD on BDG2 | Model track (Phase A–D) complete；Phase E (BDG2) implementation queued | FDD 選模階段完成：GEPIII 上 TabPFN-vs-GBDT 四軸比較（[報告](./docs/reports/m5-foundation-vs-gbdt.md)）— TabPFN 於 label scarcity（+0.100 PR-AUC @200 labels）與 true cross-site ROC-AUC（0.9833 vs 0.9797）勝出，GBDT 保有 inference 延遲與 minimal-FE 優勢，real-time 部署候選仍為 GBDT。Phase E 已完成 BDG2 read-only EDA；powered gate 已降為 reporting-confidence label；electricity 已選為 entry meter，implementation queued |
 
 Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-reproduction/milestones)。
 
@@ -41,7 +41,7 @@ Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-r
 M1 不訓練模型，目標是把論文與原始碼中的關鍵決策變成可追蹤文件。
 
 - `docs/reference/unknowns.md`：17 個 paper 或 code 未說清楚的地方。
-- `docs/adr/`：目前共有 21 份 ADR；M1 產出 ADR 0001-0006。
+- `docs/adr/`：目前共有 22 份 ADR；M1 產出 ADR 0001-0006。
 - `docs/reference/paper-notes.md`：paper structured summary。
 - `docs/reference/feature-engineering-rules.md`：feature 與 model 規則整理。
 
@@ -128,6 +128,10 @@ categorical PSI `1.415`. See
 [docs/reports/phaseE-step4-bdg2-transfer.md](./docs/reports/phaseE-step4-bdg2-transfer.md)
 and [docs/reports/bdg2-eda.md](./docs/reports/bdg2-eda.md).
 
+ADR 0022 selects electricity as the first within-context transfer/FDD scoring
+meter. Chilledwater remains supported and is deferred to a later Level-3
+weather-conditioned path.
+
 ## src/lead public API
 
 M4.5 freezes `lead.__all__` as:
@@ -190,7 +194,7 @@ docs/
 │   ├── m3-50-50-ensemble.json
 │   └── m3-primary-use-auc.json
 ├── adr/
-│   └── 0001-0021 decision records
+│   └── 0001-0022 decision records
 ├── handoffs/
 │   └── historical session handoffs
 ├── agents/

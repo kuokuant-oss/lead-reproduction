@@ -1,4 +1,4 @@
-"""Phase E Step 4a BDG2 chilledwater transfer runner.
+"""Phase E Step 4a BDG2 transfer runner.
 
 Default mode is a two-site pilot. Use ``--mode full`` only after the pilot gate
 passes. Outputs are unlabeled score-transfer summaries under ADR 0019.
@@ -33,6 +33,8 @@ from phaseE_transfer import (
 
 
 OUT = Path(".scratch/phaseE-step4a-bdg2-transfer-pilot.json")
+ENTRY_METER_CHOICES = ["electricity", "chilledwater"]
+ENTRY_METER_DEFAULT = "electricity"
 SCORE_UPLIFT_RATIO = 3.0
 OOD_DISTRIBUTION_RATIO = 2.0
 OOD_MISSING_DELTA = 0.10
@@ -42,7 +44,16 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--bdg2-dir", type=Path, default=BDG2_DIR)
     parser.add_argument("--out", type=Path, default=OUT)
-    parser.add_argument("--meter", default="chilledwater", choices=["chilledwater"])
+    parser.add_argument(
+        "--meter",
+        default=ENTRY_METER_DEFAULT,
+        choices=ENTRY_METER_CHOICES,
+        help=(
+            "Entry meter for within-context transfer scoring. Electricity is "
+            "the default; chilledwater remains supported for deferred Level-3 "
+            "weather-conditioned review."
+        ),
+    )
     parser.add_argument("--mode", choices=["pilot", "full"], default="pilot")
     parser.add_argument(
         "--sites",
@@ -138,7 +149,7 @@ def score_site_variant(
         "feature_regime": "offline",
         "value_change_regime": "row_offset_meter_aware",
         "single_meter_value_change_equivalence": (
-            "For chilledwater-only scoring, row_offset_meter_aware preserves the "
+            f"For {meter}-only scoring, row_offset_meter_aware preserves the "
             "M3 row_offset semantics without crossing meter types."
         ),
         "timing": {
@@ -372,7 +383,7 @@ def main() -> None:
 
     result = {
         "schema_version": 1,
-        "experiment": "phaseE_step4a_bdg2_chilledwater_transfer",
+        "experiment": "phaseE_step4a_bdg2_transfer",
         "mode": args.mode,
         "adr": "0019-bdg2-evaluation-paradigm",
         "metric_contract": {

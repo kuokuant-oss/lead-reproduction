@@ -926,13 +926,13 @@ contract until a later ADR supersedes either one.
 
 ---
 
-## 25. BDG2 electricity weather-load time-basis follow-up
+## 25. BDG2 electricity weather-response validity follow-up
 
 **Question**: If electricity enters the BDG2 anomaly-scoring pipeline, does its
-weather-load timing need a per-site clock-basis review beyond the Stage 1 median
-diagnostic?
+weather-response evidence need a per-site and per-meter validity review beyond
+the Stage 1 median diagnostic?
 
-**Status**: open follow-up; not a Phase E gate (2026-06-29)
+**Status**: open caveat; not a Phase E entry gate (2026-06-30)
 
 **Why it matters**: The Phase E Step 1 timezone diagnostic found strong
 chilledwater evidence against a timezone-sized meter/weather offset: median
@@ -942,9 +942,18 @@ correlation about `0.28`. The current interpretation is that electricity is more
 occupancy-driven and therefore less temperature-synchronous, not that BDG2 has a
 systematic timezone-sized offset.
 
-**Next**: revisit this only if electricity enters an anomaly-scoring path under
-ADR 0019. That review should use per-site electricity diagnostics rather than
-only median aggregation.
+ADR 0022 selects electricity as the entry meter for within-context scoring, but
+this unknown remains open for Level-3 `weather_response` evidence. Miller et al.
+2020 Fig 5 shows electricity weather sensitivity is heterogeneous: a significant
+subset of electricity meters are temperature-correlated, while others are not.
+Therefore this is a per-site/per-meter weather-feature-validity caveat, not an
+electricity-wide Level-3 disqualifier and not evidence that all electricity
+meters have usable weather response.
+
+**Next**: before attaching Level-3 weather-response evidence to an electricity
+packet, run per-site/per-meter electricity diagnostics. Level-1/2
+within-context scoring can proceed without resolving this unknown, as long as
+weather-response evidence is not applied wholesale across electricity meters.
 
 ---
 

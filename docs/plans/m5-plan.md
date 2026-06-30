@@ -238,7 +238,8 @@ evaluation paradigm accepted in ADR 0019; chilledwater transfer investigation
 measured `underpowered_even_pooled` as a reporting-confidence label
 (OOD-leaning, not a missingness-only artifact); BDG2 pre-modeling EDA complete;
 FDD audit-yield evaluation framework accepted in ADR 0020; powered entry gate
-demoted to confidence metadata in ADR 0021; implementation queued, not started
+demoted to confidence metadata in ADR 0021; electricity selected as the entry
+meter in ADR 0022; implementation queued, not started
 **GitHub Issue**: [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39)
 **Roadmap**: [docs/plans/phaseE-fdd-roadmap.md](phaseE-fdd-roadmap.md)
 
@@ -279,9 +280,10 @@ ingestion does not start on an unverified schema or an unknown label situation.
 7. **Weather-join premise.** Phase E Step 1 empirically supports the
    `(site_id, timestamp)` weather join for the tested sites: chilledwater
    temperature-load diagnostics found about `0.73` median absolute correlation
-   and `1` hour median best lag. Unknown #25 remains open for electricity; if
-   electricity enters the anomaly-scoring path, run a per-site time-basis review
-   before an electricity-specific headline.
+   and `1` hour median best lag. ADR 0022 selects electricity as the entry
+   meter for within-context scoring. Unknown #25 remains open as a per-site and
+   per-meter weather-feature-validity caveat for electricity Level-3
+   `weather_response` evidence; it is not an electricity-wide disqualifier.
 8. **Roles and limits.** TabPFN is bounded by the TabPFN-3.0 License
    (research / internal use only) and by inference latency (~6.3 ms/row, ~100×
    slower than GBDT); it is positioned as an offline / label-scarce bootstrapper.
@@ -324,10 +326,15 @@ ingestion does not start on an unverified schema or an unknown label situation.
    audit-set selection, and few-shot calibration after manual review. It does
    not authorize supervised BDG2 metrics, fault confirmation, or a TabPFN
    full-corpus detector.
-12. **Next queued implementation slice.** Not started: GBDT full-corpus scan,
-   evidence-packet implementation, and read-only Swan chilledwater structural
-   missingness gating. This next slice must preserve ADR 0017/0018/0019/0020
-   and must not begin from this close-out.
+12. **Entry meter.** Accepted in
+   [ADR 0022](../adr/0022-electricity-entry-meter-for-bdg2-fdd.md). Electricity
+   is the first transfer/FDD within-context scoring meter because it has broad
+   BDG2-only coverage and sufficient-observation support. Chilledwater remains
+   supported but is deferred to a later Level-3 weather-conditioned path.
+13. **Next queued implementation slice.** Not started: A4 raw-first transfer/FDD
+   scoring wrapper or required argument. The full-corpus electricity scan,
+   evidence-packet implementation, value-change regime decision, and Swan
+   downgrade remain later slices.
 
 ---
 
@@ -352,4 +359,5 @@ ingestion does not start on an unverified schema or an unknown label situation.
 | Phase E BDG2 pre-modeling EDA | [#40](https://github.com/kuokuant-oss/lead-reproduction/issues/40) | Done; merged |
 | Phase E BDG2 FDD audit-yield evaluation framework | [#41](https://github.com/kuokuant-oss/lead-reproduction/issues/41) | Designed and accepted in ADR 0020 |
 | Phase E A1 powered-gate demotion | [#42](https://github.com/kuokuant-oss/lead-reproduction/issues/42) | Done |
+| Phase E A2 electricity entry meter | [#44](https://github.com/kuokuant-oss/lead-reproduction/issues/44) | Done |
 | Phase E GBDT scan + evidence packets + Swan gating | _not opened_ | Queued; not started |

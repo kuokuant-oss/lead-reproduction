@@ -71,6 +71,13 @@ class TestPhaseEStep4Transfer(unittest.TestCase):
                 ["Fox", "Bear"],
             )
 
+    def test_entry_meter_defaults_to_electricity_but_keeps_chilledwater(self) -> None:
+        for module in [self.step4a, self.step4b, self.step4c]:
+            with mock.patch.object(sys, "argv", ["runner"]):
+                self.assertEqual(module.parse_args().meter, "electricity")
+            with mock.patch.object(sys, "argv", ["runner", "--meter", "chilledwater"]):
+                self.assertEqual(module.parse_args().meter, "chilledwater")
+
     def test_pilot_gate_rejects_plumbing_only_bdg2_rows(self) -> None:
         plumbing_only = [
             {
@@ -417,7 +424,7 @@ class TestPhaseEStep4Transfer(unittest.TestCase):
         self.assertEqual(gate["verdict"], "within_context_evidence_available")
         self.assertEqual(gate["allowed_next_step"], "within_context_packet_path")
         self.assertFalse(
-            gate["multi_building_transfer_stability"]["pooled_chilledwater"][
+            gate["multi_building_transfer_stability"]["pooled_electricity"][
                 "bdg2_only__sufficient_obs"
             ]["powered"]
         )

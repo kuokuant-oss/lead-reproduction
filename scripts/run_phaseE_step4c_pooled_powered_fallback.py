@@ -1,6 +1,6 @@
-"""Phase E Step 4c pooled chilledwater fallback.
+"""Phase E Step 4c pooled meter fallback.
 
-This runner pools raw BDG2 chilledwater score-transfer evidence across sites
+This runner pools raw BDG2 score-transfer evidence across sites
 only to test whether the sufficient-observation BDG2-only stratum becomes
 powered. It is not a full-transfer headline or BDG2 ground-truth evaluation.
 """
@@ -37,6 +37,8 @@ from phaseE_transfer import (
     site_building_summary,
 )
 from run_phaseE_step4a_bdg2_transfer import (
+    ENTRY_METER_CHOICES,
+    ENTRY_METER_DEFAULT,
     SCORE_UPLIFT_RATIO,
     lightgbm_sidecar,
     pilot_gate,
@@ -165,7 +167,16 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--bdg2-dir", type=Path, default=BDG2_DIR)
     parser.add_argument("--out", type=Path, default=OUT)
-    parser.add_argument("--meter", default="chilledwater", choices=["chilledwater"])
+    parser.add_argument(
+        "--meter",
+        default=ENTRY_METER_DEFAULT,
+        choices=ENTRY_METER_CHOICES,
+        help=(
+            "Entry meter for within-context transfer scoring. Electricity is "
+            "the default; chilledwater remains supported for deferred Level-3 "
+            "weather-conditioned review."
+        ),
+    )
     parser.add_argument("--sites", nargs="*", default=None)
     return parser.parse_args()
 
@@ -228,12 +239,14 @@ def pooled_stratified_report(cells: dict[str, PooledStratum]) -> dict[str, Any]:
     return report
 
 
-def pooled_gate(pooled: dict[str, Any]) -> dict[str, Any]:
+def pooled_gate(
+    pooled: dict[str, Any], *, meter: str = ENTRY_METER_DEFAULT
+) -> dict[str, Any]:
     gate = pilot_gate(
         [
             {
                 "variant": "raw",
-                "site_id": "pooled_chilledwater",
+                "site_id": f"pooled_{meter}",
                 "stratified": pooled,
             }
         ]
@@ -243,7 +256,7 @@ def pooled_gate(pooled: dict[str, Any]) -> dict[str, Any]:
         gate["verdict"] = "no_pooled_bdg2_only_sufficient_obs"
         gate["allowed_next_step"] = "stop_and_report"
         gate["failures"] = [
-            failure.replace("pilot has", "pooled chilledwater has")
+            failure.replace("pilot has", f"pooled {meter} has")
             for failure in gate["failures"]
         ]
     elif gate["allowed_next_step"] == "within_context_packet_path":
@@ -323,7 +336,7 @@ def score_sites(args: argparse.Namespace) -> dict[str, Any]:
     pooled = pooled_stratified_report(cells)
     return {
         "schema_version": 1,
-        "experiment": "phaseE_step4c_pooled_chilledwater_powered_fallback",
+        "experiment": "phaseE_step4c_pooled_powered_fallback",
         "adr": "0019-bdg2-evaluation-paradigm",
         "metric_contract": {
             "path": "unlabeled_score_transfer_pooled_fallback",
@@ -347,7 +360,7 @@ def score_sites(args: argparse.Namespace) -> dict[str, Any]:
         "detector_source": detector["source_summary"],
         "site_summaries": site_summaries,
         "pooled_stratified": pooled,
-        "pooled_gate": pooled_gate(pooled),
+        "pooled_gate": pooled_gate(pooled, meter=args.meter),
         "control_anchor": score_site_variant(
             bdg2_dir=args.bdg2_dir,
             detector=lightgbm_sidecar(detector),

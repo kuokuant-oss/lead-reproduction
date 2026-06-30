@@ -35,13 +35,24 @@ from phaseE_transfer import (
 
 OUT = Path(".scratch/phaseE-step4b-tabpfn-vs-gbdt-bdg2.json")
 DEFAULT_MODEL_PATH = Path(".tabpfn-cache/tabpfn-v3-classifier-v3_default.ckpt")
+ENTRY_METER_CHOICES = ["electricity", "chilledwater"]
+ENTRY_METER_DEFAULT = "electricity"
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--bdg2-dir", type=Path, default=BDG2_DIR)
     parser.add_argument("--out", type=Path, default=OUT)
-    parser.add_argument("--meter", default="chilledwater", choices=["chilledwater"])
+    parser.add_argument(
+        "--meter",
+        default=ENTRY_METER_DEFAULT,
+        choices=ENTRY_METER_CHOICES,
+        help=(
+            "Entry meter for within-context transfer scoring. Electricity is "
+            "the default; chilledwater remains supported for deferred Level-3 "
+            "weather-conditioned review."
+        ),
+    )
     parser.add_argument("--site", default="Fox")
     parser.add_argument("--variant", default="raw", choices=["raw", "cleaned"])
     parser.add_argument("--max-context-rows", type=int, default=1000)

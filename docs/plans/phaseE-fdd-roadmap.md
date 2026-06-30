@@ -6,8 +6,10 @@ Authoritative roadmap for clearing Phase E baggage (Part A) and implementing
 FDD on BDG2 (M6). Living document; each slice updates its row.
 
 Current status: A1 is done ([#42](https://github.com/kuokuant-oss/lead-reproduction/issues/42),
-[ADR 0021](../adr/0021-powered-gate-as-transfer-confidence.md)). A2, A4, A5,
-A3, and M6 remain queued and must run as separate issue/commit/review slices.
+[ADR 0021](../adr/0021-powered-gate-as-transfer-confidence.md)) and A2 is done
+([#44](https://github.com/kuokuant-oss/lead-reproduction/issues/44),
+[ADR 0022](../adr/0022-electricity-entry-meter-for-bdg2-fdd.md)). A4, A5, A3,
+and M6 remain queued and must run as separate issue/commit/review slices.
 
 This document is the single source of truth for the Phase E to M6 arc. It
 archives the fixed constraints, Part A cleanup sequence, BDG2-paper-derived
@@ -69,11 +71,11 @@ is heterogeneous. ADR 0020 Level-3 `weather_response` evidence is therefore
 partially usable per electricity meter. Unknown #25 stays a per-site/per-meter
 caveat, not an electricity-wide Level-3 disqualifier.
 
-Status: QUEUED after this roadmap archive is reviewed.
+Status: DONE.
 
-Issue: not opened yet.
+Issue: [#44](https://github.com/kuokuant-oss/lead-reproduction/issues/44).
 
-ADR: to be added during A2.
+ADR: [ADR 0022](../adr/0022-electricity-entry-meter-for-bdg2-fdd.md).
 
 A2 does not violate the transfer paradigm, does not touch the M3 numeric line,
 and preserves and carries TabPFN forward.
@@ -270,7 +272,7 @@ weather-conditioned evidence are deferred to M7.
 | --- | --- | --- | --- |
 | Slice 0: archive Part A + M6 roadmap | [#43](https://github.com/kuokuant-oss/lead-reproduction/issues/43) | Done | n/a |
 | A1: powered gate to confidence | [#42](https://github.com/kuokuant-oss/lead-reproduction/issues/42) | Done | [ADR 0021](../adr/0021-powered-gate-as-transfer-confidence.md) |
-| A2: electricity entry meter | Not opened | Queued | To be added |
+| A2: electricity entry meter | [#44](https://github.com/kuokuant-oss/lead-reproduction/issues/44) | Done | [ADR 0022](../adr/0022-electricity-entry-meter-for-bdg2-fdd.md) |
 | A4: raw-first transfer/FDD scoring | Not opened | Queued | To be added |
 | A5: value-change regime convergence | Not opened | Queued | To be added |
 | A3: Swan chilledwater off critical path | Not opened | Queued | To be decided |

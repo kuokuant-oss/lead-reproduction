@@ -166,8 +166,9 @@ These tasks are intentionally listed but not executed in this design slice:
   rule without relaxing the existing `missing_rate <= 0.50` gate globally.
 + Define the exact matched-random baseline for any future audit-yield run.
 + Define packet rendering and storage paths before implementation.
-+ Review whether electricity can enter a later plan only after unknown #25's
-  time-basis follow-up is handled.
++ For electricity Level-3 `weather_response` evidence, treat unknown #25 as a
+  per-site/per-meter weather-feature-validity caveat rather than an
+  electricity-wide entry blocker.
 
 ## Stop Rule
 
