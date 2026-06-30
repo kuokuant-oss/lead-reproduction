@@ -40,7 +40,7 @@ Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-r
 M1 不訓練模型，目標是把論文與原始碼中的關鍵決策變成可追蹤文件。
 
 - `docs/reference/unknowns.md`：17 個 paper 或 code 未說清楚的地方。
-- `docs/adr/`：目前共有 19 份 ADR；M1 產出 ADR 0001-0006。
+- `docs/adr/`：目前共有 20 份 ADR；M1 產出 ADR 0001-0006。
 - `docs/reference/paper-notes.md`：paper structured summary。
 - `docs/reference/feature-engineering-rules.md`：feature 與 model 規則整理。
 
@@ -154,7 +154,8 @@ docs/
 │   ├── m2-plan.md
 │   ├── m3-plan.md
 │   ├── m4-plan.md
-│   └── m5-plan.md
+│   ├── m5-plan.md
+│   └── bdg2-fdd-eval-plan.md
 ├── reports/
 │   ├── reproduction-report.md
 │   ├── m3-report.md
@@ -174,7 +175,7 @@ docs/
 │   ├── m3-50-50-ensemble.json
 │   └── m3-primary-use-auc.json
 ├── adr/
-│   └── 0001-0019 decision records
+│   └── 0001-0020 decision records
 ├── handoffs/
 │   └── historical session handoffs
 ├── agents/

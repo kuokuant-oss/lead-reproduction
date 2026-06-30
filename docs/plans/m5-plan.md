@@ -334,3 +334,4 @@ ingestion does not start on an unverified schema or an unknown label situation.
 | Phase E evaluation paradigm ADR | _local gate_ | Done |
 | Phase E FDD transfer to BDG2 | [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39) | Step 4 chilledwater stopped at `underpowered_even_pooled`; EDA complete, review next |
 | Phase E BDG2 pre-modeling EDA | [#40](https://github.com/kuokuant-oss/lead-reproduction/issues/40) | Done; stopped for review |
+| Phase E BDG2 FDD audit-yield evaluation framework | [#41](https://github.com/kuokuant-oss/lead-reproduction/issues/41) | Draft ADR/plan; review next |
