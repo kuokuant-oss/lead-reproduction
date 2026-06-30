@@ -1,4 +1,4 @@
-# Handoff: BDG2 FDD audit-yield model roles
+# Handoff: BDG2 FDD audit-yield framework close-out
 
 **Date**: 2026-06-30
 **Issue**: [#41](https://github.com/kuokuant-oss/lead-reproduction/issues/41)
@@ -9,6 +9,11 @@
 + Extended ADR 0020 with a `Model roles` decision section.
 + Extended `docs/plans/bdg2-fdd-eval-plan.md` with a two-stage scanner plus
   audit re-ranker design.
++ Accepted ADR 0020 on 2026-06-30.
++ Landed the deferred canonical wording in `README.md` and
+  `docs/reports/m5-foundation-vs-gbdt.md`.
++ Updated `docs/plans/m5-plan.md` to mark the framework designed and accepted,
+  and to queue the next implementation slice without starting it.
 + Kept the slice design-only: no scoring, no modeling, no labels, no pipeline,
   and no meter-scope change.
 
@@ -46,13 +51,18 @@
   operational candidates; the re-ranker must not simply relearn OOD or
   missingness.
 
-## Deferred
+## Close-Out Notes
 
-README and the canonical M5 report wording were intentionally left unchanged in
-this branch. Update those only after ADR 0020 moves from Proposed to Accepted
-and the design is merged.
++ This is a design-only milestone close-out for issue #41.
++ The next stage is implementation, queued but not started: GBDT full-corpus
+  scan, evidence-packet implementation, and read-only Swan chilledwater
+  structural missingness gating.
++ The evidence contract remains unchanged: Level 5, `confirmed`, confirmed-fault
+  percent, and supervised BDG2 metrics are unavailable under the current BDG2
+  release and ADR 0019/0020.
 
 ## Stop Point
 
-Stop for review here. Do not implement scoring, evidence-packet generation,
-model transfer, a new meter scope, or a BDG2 pipeline from this handoff.
+Stop here after close-out and merge. Do not implement scoring, evidence-packet
+generation, model transfer, a new meter scope, Swan gating, or a BDG2 pipeline
+from this handoff.

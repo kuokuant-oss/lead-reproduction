@@ -1,6 +1,6 @@
 # M5 Plan: FDD on BDG2
 
-**Status**: FDD model-selection stage (model track, Phase A–D) complete; Phase E (BDG2) planned
+**Status**: FDD model-selection stage (model track, Phase A–D) complete; Phase E (BDG2) design accepted, implementation queued
 **Started**: 2026-06-25
 **GitHub Issue**: [#27](https://github.com/kuokuant-oss/lead-reproduction/issues/27)
 **References**:
@@ -236,8 +236,8 @@ research/internal-use license. The next stage is Phase E (FDD transfer to BDG2).
 **Status**: Stage 0/1 complete; Stage 2 GEPIII-only assumptions isolated;
 evaluation paradigm accepted in ADR 0019; chilledwater transfer investigation
 stopped at `underpowered_even_pooled` (OOD-leaning, not a missingness-only
-artifact); BDG2 pre-modeling EDA complete and stopped for review before any
-modeling or transfer follow-up
+artifact); BDG2 pre-modeling EDA complete; FDD audit-yield evaluation framework
+accepted in ADR 0020; implementation queued, not started
 **GitHub Issue**: [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39)
 
 Phase E carries the selected FDD models from GEPIII to the BDG2 (Building Data
@@ -312,6 +312,18 @@ ingestion does not start on an unverified schema or an unknown label situation.
    coverage/missingness-shaped rather than a large chilledwater magnitude
    distance: the 0.50-to-0.55 threshold jump is driven mainly by Swan, while
    chilledwater has the lowest per-meter distance to GEPIII in the EDA table.
+11. **FDD audit-yield evaluation framework.** Accepted in
+   [ADR 0020](../adr/0020-bdg2-fdd-audit-yield-evaluation.md) and planned in
+   [docs/plans/bdg2-fdd-eval-plan.md](bdg2-fdd-eval-plan.md). The framework
+   keeps GBDT as the full-corpus scanner and limits TabPFN to offline audit
+   roles: second-stage re-ranking, disagreement diagnostics, active-learning
+   audit-set selection, and few-shot calibration after manual review. It does
+   not authorize supervised BDG2 metrics, fault confirmation, or a TabPFN
+   full-corpus detector.
+12. **Next queued implementation slice.** Not started: GBDT full-corpus scan,
+   evidence-packet implementation, and read-only Swan chilledwater structural
+   missingness gating. This next slice must preserve ADR 0017/0018/0019/0020
+   and must not begin from this close-out.
 
 ---
 
@@ -333,5 +345,6 @@ ingestion does not start on an unverified schema or an unknown label situation.
 | Phase E Stage 2 GEPIII-only assumption isolation | _local gate_ | Done |
 | Phase E evaluation paradigm ADR | _local gate_ | Done |
 | Phase E FDD transfer to BDG2 | [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39) | Step 4 chilledwater stopped at `underpowered_even_pooled`; EDA complete, review next |
-| Phase E BDG2 pre-modeling EDA | [#40](https://github.com/kuokuant-oss/lead-reproduction/issues/40) | Done; stopped for review |
-| Phase E BDG2 FDD audit-yield evaluation framework | [#41](https://github.com/kuokuant-oss/lead-reproduction/issues/41) | Draft ADR/plan; review next |
+| Phase E BDG2 pre-modeling EDA | [#40](https://github.com/kuokuant-oss/lead-reproduction/issues/40) | Done; merged |
+| Phase E BDG2 FDD audit-yield evaluation framework | [#41](https://github.com/kuokuant-oss/lead-reproduction/issues/41) | Designed and accepted in ADR 0020 |
+| Phase E GBDT scan + evidence packets + Swan gating | _not opened_ | Queued; not started |
