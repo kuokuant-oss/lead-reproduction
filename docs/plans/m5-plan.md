@@ -235,9 +235,10 @@ research/internal-use license. The next stage is Phase E (FDD transfer to BDG2).
 
 **Status**: Stage 0/1 complete; Stage 2 GEPIII-only assumptions isolated;
 evaluation paradigm accepted in ADR 0019; chilledwater transfer investigation
-stopped at `underpowered_even_pooled` (OOD-leaning, not a missingness-only
-artifact); BDG2 pre-modeling EDA complete; FDD audit-yield evaluation framework
-accepted in ADR 0020; implementation queued, not started
+measured `underpowered_even_pooled` as a reporting-confidence label
+(OOD-leaning, not a missingness-only artifact); BDG2 pre-modeling EDA complete;
+FDD audit-yield evaluation framework accepted in ADR 0020; powered entry gate
+demoted to confidence metadata in ADR 0021; implementation queued, not started
 **GitHub Issue**: [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39)
 
 Phase E carries the selected FDD models from GEPIII to the BDG2 (Building Data
@@ -291,16 +292,18 @@ ingestion does not start on an unverified schema or an unknown label situation.
    The pilot verdict is `underpowered`: Fox has only 1 BDG2-only
    sufficient-observation building, and Swan's BDG2-only buildings are
    high-missing. Step 4c then pooled raw chilledwater scoring across sites as a
-   diagnostic fallback; the pooled verdict is also a stop point,
-   `underpowered_even_pooled`, because BDG2-only sufficient-observation rows
-   span only 3 buildings versus the 5-building minimum. The underpowered
-   direction is OOD-leaning and is not explained by missingness alone, so BDG2
-   EDA was run as the next pre-modeling slice before choosing another meter or
-   scope. The EDA report reproduces the chilledwater sparsity from the data
-   side: 26 BDG2-only buildings have chilledwater columns, but only 3 satisfy
-   the sufficient-observation rule. Full transfer and Step 4b remain stopped
-   until the EDA is reviewed and a powered `bdg2_only__sufficient_obs` pilot,
-   held-out-BDG2-site scope, or redesigned evidence frame is explicitly chosen.
+   diagnostic fallback; the pooled measurement was
+   `underpowered_even_pooled` because BDG2-only sufficient-observation rows
+   span only 3 buildings versus the 5-building reporting-confidence threshold.
+   ADR 0021 supersedes the prior blocking-entry-gate interpretation: the
+   powered bar is now `multi_building_transfer_stability` metadata, not a hard
+   stop for within-context evidence packets. The underpowered direction is
+   OOD-leaning and is not explained by missingness alone, so BDG2 EDA was run as
+   the next pre-modeling slice before choosing another meter or scope. The EDA
+   report reproduces the chilledwater sparsity from the data side: 26 BDG2-only
+   buildings have chilledwater columns, but only 3 satisfy the
+   sufficient-observation rule. Full transfer and Step 4b remain stopped until a
+   within-context packet path is explicitly chosen under ADR 0020/0021.
    See
    [docs/reports/phaseE-step4-bdg2-transfer.md](../reports/phaseE-step4-bdg2-transfer.md).
 10. **BDG2 pre-modeling EDA.** Completed in
@@ -344,7 +347,8 @@ ingestion does not start on an unverified schema or an unknown label situation.
 | Phase E Stage 1 BDG2 ingestion contract | _local gate_ | Done |
 | Phase E Stage 2 GEPIII-only assumption isolation | _local gate_ | Done |
 | Phase E evaluation paradigm ADR | _local gate_ | Done |
-| Phase E FDD transfer to BDG2 | [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39) | Step 4 chilledwater stopped at `underpowered_even_pooled`; EDA complete, review next |
+| Phase E FDD transfer to BDG2 | [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39) | Step 4 chilledwater measured `underpowered_even_pooled`; EDA complete |
 | Phase E BDG2 pre-modeling EDA | [#40](https://github.com/kuokuant-oss/lead-reproduction/issues/40) | Done; merged |
 | Phase E BDG2 FDD audit-yield evaluation framework | [#41](https://github.com/kuokuant-oss/lead-reproduction/issues/41) | Designed and accepted in ADR 0020 |
+| Phase E A1 powered-gate demotion | [#42](https://github.com/kuokuant-oss/lead-reproduction/issues/42) | Done |
 | Phase E GBDT scan + evidence packets + Swan gating | _not opened_ | Queued; not started |

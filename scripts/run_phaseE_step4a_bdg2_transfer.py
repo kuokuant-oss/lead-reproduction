@@ -21,13 +21,13 @@ from phaseE_transfer import (
     json_clean,
     log,
     m3_primary_use_mapping,
+    multi_building_transfer_stability,
     pilot_sites,
     prepare_bdg2_features,
     predict_scores,
     schema_summary,
     selected_site_buildings,
     site_building_summary,
-    stratum_is_powered,
     stratified_score_report,
 )
 
@@ -213,9 +213,10 @@ def ood_evidence(bdg2: dict[str, Any], overlap: dict[str, Any]) -> dict[str, Any
 def pilot_gate(site_results: list[dict[str, Any]]) -> dict[str, Any]:
     failures: list[str] = []
     raw_reports: list[dict[str, Any]] = []
-    powered_bdg2_sufficient: list[dict[str, Any]] = []
-    powered_overlap_sufficient: list[dict[str, Any]] = []
+    bdg2_sufficient_sites: list[dict[str, Any]] = []
+    overlap_sufficient_sites: list[dict[str, Any]] = []
     sufficient_comparisons: list[dict[str, Any]] = []
+    stability_by_site: dict[str, Any] = {}
     for result in site_results:
         if result["variant"] != "raw":
             continue
@@ -227,12 +228,36 @@ def pilot_gate(site_results: list[dict[str, Any]]) -> dict[str, Any]:
         completeness = stratified["completeness_strata"]
         bdg2_sufficient = completeness["bdg2_only__sufficient_obs"]
         overlap_sufficient = completeness["gepiii_overlap__sufficient_obs"]
-        if stratum_is_powered(bdg2_sufficient):
-            powered_bdg2_sufficient.append(
+        stability_by_site[result["site_id"]] = {
+            "bdg2_only__sufficient_obs": multi_building_transfer_stability(
+                bdg2_sufficient
+            ),
+            "gepiii_overlap__sufficient_obs": multi_building_transfer_stability(
+                overlap_sufficient
+            ),
+        }
+        if (
+            int(bdg2_sufficient.get("buildings", 0)) > 0
+            and int(
+                bdg2_sufficient.get(
+                    "rows", bdg2_sufficient.get("score_summary", {}).get("rows", 0)
+                )
+            )
+            > 0
+        ):
+            bdg2_sufficient_sites.append(
                 {"site_id": result["site_id"], **bdg2_sufficient}
             )
-        if stratum_is_powered(overlap_sufficient):
-            powered_overlap_sufficient.append(
+        if (
+            int(overlap_sufficient.get("buildings", 0)) > 0
+            and int(
+                overlap_sufficient.get(
+                    "rows", overlap_sufficient.get("score_summary", {}).get("rows", 0)
+                )
+            )
+            > 0
+        ):
+            overlap_sufficient_sites.append(
                 {"site_id": result["site_id"], **overlap_sufficient}
             )
         bdg2_median = bdg2_sufficient["score_summary"].get("score_median")
@@ -248,63 +273,59 @@ def pilot_gate(site_results: list[dict[str, Any]]) -> dict[str, Any]:
                     "median_ratio_bdg2_vs_overlap": bdg2_median / overlap_median
                     if overlap_median
                     else None,
-                    "powered_bdg2_only": stratum_is_powered(bdg2_sufficient),
-                    "powered_overlap": stratum_is_powered(overlap_sufficient),
+                    "multi_building_transfer_stability": {
+                        "bdg2_only__sufficient_obs": multi_building_transfer_stability(
+                            bdg2_sufficient
+                        ),
+                        "gepiii_overlap__sufficient_obs": multi_building_transfer_stability(
+                            overlap_sufficient
+                        ),
+                    },
                     "ood_evidence": ood,
                 }
             )
-    verdict = "passed"
-    allowed_next_step = "full"
+    verdict = "within_context_evidence_available"
+    allowed_next_step = "within_context_packet_path"
     if failures:
         verdict = "plumbing_failed"
         allowed_next_step = "stop_and_diagnose"
-    elif not powered_bdg2_sufficient:
-        verdict = "underpowered"
+    elif not bdg2_sufficient_sites:
+        verdict = "no_bdg2_only_sufficient_obs"
         allowed_next_step = "stop_and_report"
-        failures.append("pilot has no powered bdg2_only__sufficient_obs stratum")
-    elif not powered_overlap_sufficient:
-        verdict = "indeterminate_no_overlap_baseline"
-        allowed_next_step = "stop_and_report"
-        failures.append("pilot has no powered gepiii_overlap__sufficient_obs baseline")
+        failures.append("pilot has no bdg2_only__sufficient_obs evidence")
     else:
-        powered_comparisons = [
-            item
-            for item in sufficient_comparisons
-            if item["powered_bdg2_only"] and item["powered_overlap"]
-        ]
         uplift = [
             item
-            for item in powered_comparisons
+            for item in sufficient_comparisons
             if item["median_ratio_bdg2_vs_overlap"] is not None
             and item["median_ratio_bdg2_vs_overlap"] > SCORE_UPLIFT_RATIO
         ]
         if uplift:
             verdict = (
-                "ood_not_missingness"
+                "within_context_evidence_available_with_ood_signal"
                 if any(item["ood_evidence"]["ood_signal"] for item in uplift)
-                else "stratification_miss"
+                else "within_context_evidence_available_with_score_uplift"
             )
-            allowed_next_step = "stop_and_redesign"
-            failures.append(
-                "bdg2_only__sufficient_obs score uplift remains after missingness split"
-            )
-    status = "passed" if verdict == "passed" else "failed"
+    status = "passed" if allowed_next_step == "within_context_packet_path" else "failed"
     return {
         "status": status,
         "verdict": verdict,
         "failures": failures,
         "allowed_next_step": allowed_next_step,
         "raw_sites_checked": [result["site_id"] for result in raw_reports],
-        "powered_bdg2_only_sufficient_obs_sites": [
-            item["site_id"] for item in powered_bdg2_sufficient
+        "bdg2_only_sufficient_obs_sites": [
+            item["site_id"] for item in bdg2_sufficient_sites
         ],
-        "powered_gepiii_overlap_sufficient_obs_sites": [
-            item["site_id"] for item in powered_overlap_sufficient
+        "gepiii_overlap_sufficient_obs_sites": [
+            item["site_id"] for item in overlap_sufficient_sites
         ],
+        "multi_building_transfer_stability": stability_by_site,
         "sufficient_obs_comparisons": sufficient_comparisons,
         "note": (
-            "This gate checks whether the pilot contains powered sufficient-observation "
-            "BDG2-only evidence under ADR 0019. It is not an accuracy or readiness gate."
+            "This gate checks whether the pilot contains BDG2-only "
+            "sufficient-observation evidence for within-context packets. The "
+            "multi-building powered bar is reported as confidence only, not as "
+            "a blocking entry gate. It is not an accuracy or readiness gate."
         ),
         "parameters": {
             "score_uplift_ratio": SCORE_UPLIFT_RATIO,

@@ -239,21 +239,20 @@ def pooled_gate(pooled: dict[str, Any]) -> dict[str, Any]:
         ]
     )
     gate["source_gate_verdict"] = gate["verdict"]
-    if gate["verdict"] == "underpowered":
-        gate["verdict"] = "underpowered_even_pooled"
+    if gate["verdict"] == "no_bdg2_only_sufficient_obs":
+        gate["verdict"] = "no_pooled_bdg2_only_sufficient_obs"
         gate["allowed_next_step"] = "stop_and_report"
         gate["failures"] = [
             failure.replace("pilot has", "pooled chilledwater has")
             for failure in gate["failures"]
         ]
-    elif gate["verdict"] == "passed":
-        gate["verdict"] = "pooled_powered_no_material_uplift"
-        gate["status"] = "diagnostic_completed"
-        gate["allowed_next_step"] = "stop_and_review_pooled_evidence"
+    elif gate["allowed_next_step"] == "within_context_packet_path":
+        gate["status"] = "passed"
+        gate["allowed_next_step"] = "within_context_packet_path"
     gate["note"] = (
         "Pooled fallback checks cross-site raw score-transfer strata only. It "
-        "does not authorize full transfer, Step 4b, readiness, or BDG2 "
-        "ground-truth claims."
+        "reports multi-building transfer stability as confidence metadata; it "
+        "does not authorize readiness or BDG2 ground-truth claims."
     )
     gate["parameters"].update(
         {

@@ -524,3 +524,29 @@ def stratum_is_powered(
         and int(stratum.get("rows", stratum.get("score_summary", {}).get("rows", 0)))
         >= min_rows
     )
+
+
+def multi_building_transfer_stability(
+    stratum: dict[str, Any],
+    *,
+    min_buildings: int = MIN_STRATUM_BUILDINGS,
+    min_rows: int = MIN_STRATUM_ROWS,
+) -> dict[str, Any]:
+    """Report multi-building support without using it as an entry gate."""
+    rows = int(stratum.get("rows", stratum.get("score_summary", {}).get("rows", 0)))
+    buildings = int(stratum.get("buildings", 0))
+    return {
+        "powered": stratum_is_powered(
+            stratum,
+            min_buildings=min_buildings,
+            min_rows=min_rows,
+        ),
+        "buildings": buildings,
+        "rows": rows,
+        "min_buildings": int(min_buildings),
+        "min_rows": int(min_rows),
+        "interpretation": (
+            "After-the-fact reporting confidence only; not a blocking entry gate "
+            "for within-context BDG2 evidence packets."
+        ),
+    }

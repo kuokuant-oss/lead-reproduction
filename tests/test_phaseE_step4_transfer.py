@@ -95,7 +95,7 @@ class TestPhaseEStep4Transfer(unittest.TestCase):
         ]
         gate = self.step4a.pilot_gate(plumbing_only)
         self.assertEqual(gate["status"], "failed")
-        self.assertEqual(gate["verdict"], "underpowered")
+        self.assertEqual(gate["verdict"], "no_bdg2_only_sufficient_obs")
         self.assertEqual(gate["allowed_next_step"], "stop_and_report")
 
         failing = [
@@ -123,7 +123,51 @@ class TestPhaseEStep4Transfer(unittest.TestCase):
         self.assertEqual(gate["status"], "failed")
         self.assertEqual(gate["allowed_next_step"], "stop_and_diagnose")
 
-    def test_pilot_gate_stops_without_powered_overlap_baseline(self) -> None:
+    def test_pilot_gate_allows_single_bdg2_only_building(self) -> None:
+        single_building = [
+            {
+                "variant": "raw",
+                "site_id": "Fox",
+                "stratified": {
+                    "all": {"score_summary": {"score_coverage": 1.0}},
+                    "completeness_strata": {
+                        "bdg2_only__sufficient_obs": {
+                            "rows": 17_544,
+                            "buildings": 1,
+                            "score_summary": {"rows": 17_544, "score_median": 0.1},
+                            "ood_summary": {
+                                "square_feet_distribution": {"median": 1.0},
+                                "meter_reading_distribution": {"median": 1.0},
+                                "model_feature_missing_rate": 0.0,
+                                "primary_use_unseen_rate": 0.0,
+                            },
+                        },
+                        "gepiii_overlap__sufficient_obs": {
+                            "rows": 100_000,
+                            "buildings": 10,
+                            "score_summary": {"rows": 100_000, "score_median": 0.1},
+                            "ood_summary": {
+                                "square_feet_distribution": {"median": 1.0},
+                                "meter_reading_distribution": {"median": 1.0},
+                                "model_feature_missing_rate": 0.0,
+                                "primary_use_unseen_rate": 0.0,
+                            },
+                        },
+                    },
+                },
+            }
+        ]
+        gate = self.step4a.pilot_gate(single_building)
+        self.assertEqual(gate["status"], "passed")
+        self.assertEqual(gate["verdict"], "within_context_evidence_available")
+        self.assertEqual(gate["allowed_next_step"], "within_context_packet_path")
+        stability = gate["multi_building_transfer_stability"]["Fox"][
+            "bdg2_only__sufficient_obs"
+        ]
+        self.assertFalse(stability["powered"])
+        self.assertEqual(stability["buildings"], 1)
+
+    def test_pilot_gate_allows_missing_overlap_baseline(self) -> None:
         isolated = [
             {
                 "variant": "raw",
@@ -146,9 +190,21 @@ class TestPhaseEStep4Transfer(unittest.TestCase):
             }
         ]
         gate = self.step4a.pilot_gate(isolated)
-        self.assertEqual(gate["status"], "failed")
-        self.assertEqual(gate["verdict"], "indeterminate_no_overlap_baseline")
-        self.assertEqual(gate["allowed_next_step"], "stop_and_report")
+        self.assertEqual(gate["status"], "passed")
+        self.assertEqual(gate["verdict"], "within_context_evidence_available")
+        self.assertEqual(gate["allowed_next_step"], "within_context_packet_path")
+
+    def test_multi_building_transfer_stability_flag_true_and_false(self) -> None:
+        weak = self.helper.multi_building_transfer_stability(
+            {"rows": 17_544, "buildings": 1, "score_summary": {"rows": 17_544}}
+        )
+        strong = self.helper.multi_building_transfer_stability(
+            {"rows": 100_000, "buildings": 5, "score_summary": {"rows": 100_000}}
+        )
+        self.assertFalse(weak["powered"])
+        self.assertTrue(strong["powered"])
+        self.assertEqual(strong["min_buildings"], 5)
+        self.assertEqual(strong["min_rows"], 17_544)
 
     def test_pilot_gate_detects_ood_not_missingness(self) -> None:
         def stratum(rows, buildings, median, square_feet, reading):
@@ -182,9 +238,11 @@ class TestPhaseEStep4Transfer(unittest.TestCase):
             }
         ]
         gate = self.step4a.pilot_gate(result)
-        self.assertEqual(gate["status"], "failed")
-        self.assertEqual(gate["verdict"], "ood_not_missingness")
-        self.assertEqual(gate["allowed_next_step"], "stop_and_redesign")
+        self.assertEqual(gate["status"], "passed")
+        self.assertEqual(
+            gate["verdict"], "within_context_evidence_available_with_ood_signal"
+        )
+        self.assertEqual(gate["allowed_next_step"], "within_context_packet_path")
         self.assertTrue(
             gate["sufficient_obs_comparisons"][0]["ood_evidence"]["ood_signal"]
         )
@@ -355,9 +413,14 @@ class TestPhaseEStep4Transfer(unittest.TestCase):
             },
         }
         gate = self.step4c.pooled_gate(pooled)
-        self.assertEqual(gate["status"], "failed")
-        self.assertEqual(gate["verdict"], "underpowered_even_pooled")
-        self.assertEqual(gate["allowed_next_step"], "stop_and_report")
+        self.assertEqual(gate["status"], "passed")
+        self.assertEqual(gate["verdict"], "within_context_evidence_available")
+        self.assertEqual(gate["allowed_next_step"], "within_context_packet_path")
+        self.assertFalse(
+            gate["multi_building_transfer_stability"]["pooled_chilledwater"][
+                "bdg2_only__sufficient_obs"
+            ]["powered"]
+        )
 
     def test_pooled_gate_detects_powered_ood_without_full_permission(self) -> None:
         def stratum(rows, buildings, median, square_feet, reading):
@@ -383,10 +446,11 @@ class TestPhaseEStep4Transfer(unittest.TestCase):
             },
         }
         gate = self.step4c.pooled_gate(pooled)
-        self.assertEqual(gate["status"], "failed")
-        self.assertEqual(gate["verdict"], "ood_not_missingness")
-        self.assertEqual(gate["allowed_next_step"], "stop_and_redesign")
-        self.assertNotEqual(gate["allowed_next_step"], "full")
+        self.assertEqual(gate["status"], "passed")
+        self.assertEqual(
+            gate["verdict"], "within_context_evidence_available_with_ood_signal"
+        )
+        self.assertEqual(gate["allowed_next_step"], "within_context_packet_path")
 
 
 if __name__ == "__main__":
