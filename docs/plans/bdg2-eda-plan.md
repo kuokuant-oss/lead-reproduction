@@ -4,6 +4,10 @@
 **Status**: Completed (2026-06-30); stopped for review before any modeling or transfer follow-up
 **GitHub Issue**: [#40](https://github.com/kuokuant-oss/lead-reproduction/issues/40)
 
+**Completion note**: This slice produces the EDA report, small figures, a
+gitignored provenance JSON shard, and a handoff. It produces no model, score,
+label, supervised BDG2 metric, or transfer-readiness claim.
+
 ## Purpose
 
 對 BDG2 做任何完整資料集建模前，刻畫 BDG2 資料集本身，並定量描述它與 GEPIII 的 reference distribution distance / divergence，解釋 Phase E Step 4 的 distribution-shift finding。
@@ -28,7 +32,9 @@ Scope: 8 個 raw + 8 個 cleaned meter 檔案族，依 meter name 配對。
 + raw vs cleaned 版本。
 + building 是否有該 meter。
 + 有 meter 但該 timestamp 缺值。
-+ cleaned 相對 raw 被補、被刪、被平滑或 coverage 改變的程度。
++ cleaned 相對 raw 的 cells removed、cells newly present、observed value
+  changes、coverage change；不預設 cleaned 做 smoothing，除非 release
+  documentation 明確支持。
 
 ## 2. Missingness Decomposition
 
@@ -46,6 +52,8 @@ Scope: 8 個 raw + 8 個 cleaned meter 檔案族，依 meter name 配對。
 + zero-reading share。
 + negative-reading share（per meter 描述性；某些 meter 如 solar 淨計量負值可能合法，不預設為壞）。
 + constant-run / flatline share。
++ constant-run / flatline share 須記錄 run-length 門檻、zero-run 計入規則、
+  missing 中斷規則、相等 tolerance、分母、聚合基準於報告或 provenance JSON。
 + suspicious structural patterns。
 + data-quality indicators。
 
@@ -65,6 +73,7 @@ Summarize:
 + `numberoffloors` / `floor_count`。
 + `site_id` and `timezone`。
 + 每棟 meter 覆蓋。
++ 若 planned 欄位被檢視但未用於 headline，須記錄排除理由與摘要存放位置。
 
 ## 6. Report Narrative Order
 
@@ -94,6 +103,8 @@ Compare 187 棟 BDG2-only vs 1,449 棟 GEPIII-overlap buildings on:
 
 + 有 chilledwater 的 BDG2-only 建築有幾棟。
 + 其中 sufficient_obs 建築有幾棟。
++ chilledwater BDG2-only 須報 `0.40` / `0.45` / `0.50` / `0.55` /
+  `0.60` missing-rate 門檻敏感度。
 + 解釋「為何只有約 3 棟」這個 underpowered 根因：是少有建築有該 meter，還是有但 observation missingness 太高。
 
 ## 8. Reference Distribution Distances

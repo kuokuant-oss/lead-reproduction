@@ -38,6 +38,20 @@ METER_TYPES = (
 )
 EXPECTED_HOURS = 17_544
 SUFFICIENT_OBS_MISSING_RATE = 0.50
+SUFFICIENCY_SENSITIVITY_THRESHOLDS = (0.40, 0.45, 0.50, 0.55, 0.60)
+FLATLINE_MIN_RUN_LENGTH = 2
+FLATLINE_INCLUDES_ZERO_RUNS = True
+FLATLINE_MISSING_BREAKS_RUN = True
+FLATLINE_EQUALITY = "exact"
+FLATLINE_DENOMINATOR = "adjacent non-missing building-meter-hour comparisons"
+FLATLINE_AGGREGATION = "cell-weighted adjacent comparisons"
+GEPIII_METER_CODES = {
+    "electricity": 0,
+    "chilledwater": 1,
+    "steam": 2,
+    "hotwater": 3,
+}
+TOP_SITE_NAMES = ("Lamb", "Panther", "Rat", "Swan")
 
 
 def _non_empty(series: pd.Series) -> pd.Series:
@@ -125,6 +139,31 @@ def _sample_values(
     return flat[selected].astype("float64", copy=False)
 
 
+def _distribution_distance_variants(
+    *, bdg2_sample: np.ndarray, gepiii_sample: np.ndarray
+) -> dict[str, Any]:
+    variants: dict[str, Any] = {}
+    definitions = {
+        "raw_zero_included": (bdg2_sample, gepiii_sample),
+        "log1p_zero_included": (
+            np.log1p(np.clip(bdg2_sample, a_min=0, a_max=None)),
+            np.log1p(np.clip(gepiii_sample, a_min=0, a_max=None)),
+        ),
+        "log1p_zero_excluded": (
+            np.log1p(bdg2_sample[bdg2_sample > 0]),
+            np.log1p(gepiii_sample[gepiii_sample > 0]),
+        ),
+    }
+    for name, (bdg2_values, gepiii_values) in definitions.items():
+        variants[name] = {
+            "ks_bdg2_only_vs_gepiii": _ks_statistic(bdg2_values, gepiii_values),
+            "psi_bdg2_only_vs_gepiii": _psi(gepiii_values, bdg2_values),
+            "bdg2_sample_count": int(np.asarray(bdg2_values).size),
+            "gepiii_sample_count": int(np.asarray(gepiii_values).size),
+        }
+    return variants
+
+
 def _flatline_share(frame: pd.DataFrame, columns: list[str]) -> float:
     current = frame[columns]
     previous = current.shift(1)
@@ -134,6 +173,100 @@ def _flatline_share(frame: pd.DataFrame, columns: list[str]) -> float:
         return 0.0
     flat = (current.eq(previous) & comparable).to_numpy().sum()
     return float(flat / denominator)
+
+
+def _flatline_definition() -> dict[str, Any]:
+    return {
+        "min_run_length": FLATLINE_MIN_RUN_LENGTH,
+        "zero_runs_included": FLATLINE_INCLUDES_ZERO_RUNS,
+        "missing_breaks_run": FLATLINE_MISSING_BREAKS_RUN,
+        "equality": FLATLINE_EQUALITY,
+        "denominator": FLATLINE_DENOMINATOR,
+        "aggregation": FLATLINE_AGGREGATION,
+        "reported_share": (
+            "For each meter, share of adjacent non-missing building-hour cells "
+            "whose reading exactly equals the prior hour for the same building."
+        ),
+        "zero_reading_share_reported_separately": True,
+    }
+
+
+def _threshold_sensitivity(missing_by_building: pd.Series) -> dict[str, int]:
+    return {
+        f"{threshold:.2f}": int(missing_by_building.le(threshold).sum())
+        for threshold in SUFFICIENCY_SENSITIVITY_THRESHOLDS
+    }
+
+
+def _metadata_field_summary(series: pd.Series, *, is_numeric: bool) -> dict[str, Any]:
+    non_null_rate = (
+        float(_non_empty(series).mean())
+        if not is_numeric
+        else float(pd.to_numeric(series, errors="coerce").notna().mean())
+    )
+    if is_numeric:
+        numeric = pd.to_numeric(series, errors="coerce").dropna()
+        return {
+            "non_null_rate": non_null_rate,
+            "median": float(numeric.median()) if not numeric.empty else None,
+        }
+    clean = series.dropna().astype(str).str.strip()
+    clean = clean.loc[clean.ne("")]
+    top = clean.value_counts().head(1)
+    return {
+        "non_null_rate": non_null_rate,
+        "top_value": str(top.index[0]) if not top.empty else None,
+        "top_count": int(top.iloc[0]) if not top.empty else 0,
+    }
+
+
+def _top_site_contribution(
+    *, meta: pd.DataFrame, meter_summaries: dict[str, dict[str, Any]]
+) -> list[dict[str, Any]]:
+    bdg2_only = meta.loc[~meta["is_gepiii_overlap"]].copy()
+    chilledwater = meter_summaries["chilledwater"]
+    raw_missing_by_building = chilledwater["raw_missing_by_building"]
+    rows = []
+    for site in TOP_SITE_NAMES:
+        site_buildings = bdg2_only.loc[bdg2_only["site_id"].eq(site), "building_id"]
+        chilledwater_missing = raw_missing_by_building.reindex(site_buildings).dropna()
+        rows.append(
+            {
+                "site_id": site,
+                "bdg2_only_buildings": int(site_buildings.size),
+                "bdg2_only_chilledwater_columns": int(chilledwater_missing.size),
+                "bdg2_only_chilledwater_sufficient_obs": int(
+                    chilledwater_missing.le(SUFFICIENT_OBS_MISSING_RATE).sum()
+                ),
+            }
+        )
+    return rows
+
+
+def _temporal_profile_summaries(meters: list[dict[str, Any]]) -> dict[str, str]:
+    summaries: dict[str, str] = {}
+    for meter in meters:
+        if meter["meter"] not in {"electricity", "chilledwater"}:
+            continue
+        profiles = meter.get("profiles", {})
+        hour_mean = profiles.get("hour_mean", {})
+        month_mean = profiles.get("month_mean", {})
+        if not hour_mean or not month_mean:
+            continue
+        hour_series = pd.Series(
+            {int(hour): float(value) for hour, value in hour_mean.items()}
+        )
+        month_series = pd.Series(
+            {int(month): float(value) for month, value in month_mean.items()}
+        )
+        summaries[meter["meter"]] = (
+            f"{meter['meter']} has its highest mean reading around hour "
+            f"{int(hour_series.idxmax())} and lowest around hour "
+            f"{int(hour_series.idxmin())}; by month it peaks in "
+            f"{int(month_series.idxmax())} and is lowest in "
+            f"{int(month_series.idxmin())}"
+        )
+    return summaries
 
 
 def _read_meter(path: Path) -> pd.DataFrame:
@@ -186,6 +319,7 @@ def _meter_summary(
     raw_missing_by_building = raw_values.isna().mean()
     sufficient = raw_missing_by_building.le(SUFFICIENT_OBS_MISSING_RATE)
     high_missing = raw_missing_by_building.gt(SUFFICIENT_OBS_MISSING_RATE)
+    bdg2_only_missing = raw_missing_by_building[bdg2_only_columns]
 
     profiles = {}
     if meter in {"electricity", "chilledwater"}:
@@ -253,6 +387,12 @@ def _meter_summary(
             )
             if bdg2_only_columns
             else None,
+            "threshold_sensitivity": _threshold_sensitivity(bdg2_only_missing)
+            if bdg2_only_columns
+            else {
+                f"{threshold:.2f}": 0
+                for threshold in SUFFICIENCY_SENSITIVITY_THRESHOLDS
+            },
         },
         "overlap_sufficient_obs": {
             "buildings_with_meter": len(overlap_columns),
@@ -274,12 +414,22 @@ def _meter_summary(
         },
         "profiles": profiles,
         "bdg2_only_reading_sample": raw_bdg2_sample,
+        "raw_missing_by_building": raw_missing_by_building,
     }
 
 
 def _metadata_summary(meta: pd.DataFrame, gepiii_meta: pd.DataFrame) -> dict[str, Any]:
     bdg2_only = meta.loc[~meta["is_gepiii_overlap"]].copy()
     overlap = meta.loc[meta["is_gepiii_overlap"]].copy()
+    metadata_fields = {
+        "primary_use": ("primaryspaceusage", False, "headline_distance"),
+        "square_feet": ("sqft", True, "headline_distance"),
+        "sqm": ("sqm", True, "descriptive_only"),
+        "year_built": ("yearbuilt", True, "descriptive_only"),
+        "floor_count": ("numberoffloors", True, "descriptive_only"),
+        "site_id": ("site_id", False, "descriptive_only"),
+        "timezone": ("timezone", False, "descriptive_only"),
+    }
     gepiii_categories = gepiii_meta["primary_use"].map(_normalise_category)
     bdg2_only_categories = bdg2_only["primaryspaceusage"].map(_normalise_category)
     unseen_mask = ~bdg2_only_categories.isin(set(gepiii_categories))
@@ -296,6 +446,20 @@ def _metadata_summary(meta: pd.DataFrame, gepiii_meta: pd.DataFrame) -> dict[str
             "all_buildings": int(yes.sum()),
             "bdg2_only": int((yes & ~meta["is_gepiii_overlap"]).sum()),
             "gepiii_overlap": int((yes & meta["is_gepiii_overlap"]).sum()),
+        }
+
+    completeness = {}
+    for label, (column, is_numeric, usage) in metadata_fields.items():
+        completeness[label] = {
+            "source_column": column,
+            "usage": usage,
+            "bdg2": _metadata_field_summary(meta[column], is_numeric=is_numeric),
+            "bdg2_only": _metadata_field_summary(
+                bdg2_only[column], is_numeric=is_numeric
+            ),
+            "gepiii_overlap": _metadata_field_summary(
+                overlap[column], is_numeric=is_numeric
+            ),
         }
 
     return {
@@ -344,6 +508,7 @@ def _metadata_summary(meta: pd.DataFrame, gepiii_meta: pd.DataFrame) -> dict[str
             "gepiii_overlap": _series_stats(overlap["numberoffloors"]),
         },
         "timezone_distribution": meta["timezone"].value_counts().sort_index().to_dict(),
+        "completeness": completeness,
         "meter_coverage": meter_coverage,
     }
 
@@ -355,9 +520,13 @@ def _gepiii_reading_sample(
     values = frame["meter_reading"].to_numpy(dtype="float64", copy=False)
     sample = _sample_values(values, rng=rng, limit=sample_limit)
     by_meter = {}
+    samples_by_meter = {}
     for meter_id, group in frame.groupby("meter", observed=True):
         meter_values = group["meter_reading"].to_numpy(dtype="float64", copy=False)
-        by_meter[str(int(meter_id))] = _series_stats(pd.Series(meter_values))
+        meter_sample = _sample_values(meter_values, rng=rng, limit=sample_limit)
+        meter_key = str(int(meter_id))
+        by_meter[meter_key] = _series_stats(pd.Series(meter_values))
+        samples_by_meter[meter_key] = meter_sample
     return {
         "rows": int(len(frame)),
         "sample": sample,
@@ -365,6 +534,7 @@ def _gepiii_reading_sample(
         "zero_share_sample": float(np.mean(sample == 0)) if sample.size else None,
         "negative_share_sample": float(np.mean(sample < 0)) if sample.size else None,
         "by_meter": by_meter,
+        "samples_by_meter": samples_by_meter,
     }
 
 
@@ -449,6 +619,7 @@ def _write_report(payload: dict[str, Any], path: Path) -> None:
     meters = payload["meters"]
     ood = payload["ood"]
     figures = payload["figures"]
+    flatline = payload["definitions"]["flatline"]
     chilledwater = next(item for item in meters if item["meter"] == "chilledwater")
     building_count = f"{meta['building_count']:,}"
     bdg2_only_count = f"{meta['bdg2_only_count']:,}"
@@ -486,6 +657,36 @@ def _write_report(payload: dict[str, Any], path: Path) -> None:
         ]
         for item in meters
     ]
+    metadata_rows = []
+    for label, values in meta["completeness"].items():
+        bdg2_summary = values["bdg2"]
+        only_summary = values["bdg2_only"]
+        overlap_summary = values["gepiii_overlap"]
+        if "median" in bdg2_summary:
+            bdg2_detail = f"median {_fmt(bdg2_summary['median'])}"
+            only_detail = f"median {_fmt(only_summary['median'])}"
+            overlap_detail = f"median {_fmt(overlap_summary['median'])}"
+        else:
+            bdg2_detail = (
+                f"top {bdg2_summary['top_value']} ({bdg2_summary['top_count']})"
+            )
+            only_detail = (
+                f"top {only_summary['top_value']} ({only_summary['top_count']})"
+            )
+            overlap_detail = (
+                f"top {overlap_summary['top_value']} ({overlap_summary['top_count']})"
+            )
+        metadata_rows.append(
+            [
+                label,
+                values["source_column"],
+                values["usage"],
+                _fmt(bdg2_summary["non_null_rate"]),
+                bdg2_detail,
+                only_detail,
+                overlap_detail,
+            ]
+        )
     sufficient_rows = [
         [
             item["meter"],
@@ -495,6 +696,34 @@ def _write_report(payload: dict[str, Any], path: Path) -> None:
             _fmt(item["bdg2_only_sufficient_obs"]["median_missing_rate"]),
         ]
         for item in meters
+    ]
+    chilledwater_threshold_rows = [
+        [threshold, count]
+        for threshold, count in chilledwater["bdg2_only_sufficient_obs"][
+            "threshold_sensitivity"
+        ].items()
+    ]
+    threshold_counts = [
+        count
+        for _, count in chilledwater["bdg2_only_sufficient_obs"][
+            "threshold_sensitivity"
+        ].items()
+    ]
+    threshold_interpretation = (
+        "The verdict is robust across these thresholds because the count remains\n"
+        "well below a powered frame."
+        if max(threshold_counts) < 10
+        else "The verdict is gate-sensitive because relaxed thresholds sharply\n"
+        "increase the eligible building count."
+    )
+    top_site_rows = [
+        [
+            item["site_id"],
+            item["bdg2_only_buildings"],
+            item["bdg2_only_chilledwater_columns"],
+            item["bdg2_only_chilledwater_sufficient_obs"],
+        ]
+        for item in payload["bdg2_only_top_site_contribution"]
     ]
     coverage_rows = [
         [
@@ -544,6 +773,20 @@ def _write_report(payload: dict[str, Any], path: Path) -> None:
             "categorical PSI; unseen/unmapped rate " + _fmt(primary_use_unseen_rate),
         ],
     ]
+    per_meter_rows = []
+    for meter, values in ood["meter_reading"]["per_meter_distances"].items():
+        for variant, distances in values["variants"].items():
+            per_meter_rows.append(
+                [
+                    meter,
+                    variant,
+                    _fmt(distances["ks_bdg2_only_vs_gepiii"]),
+                    _fmt(distances["psi_bdg2_only_vs_gepiii"]),
+                    _fmt(values["bdg2_only_zero_share_sample"]),
+                    _fmt(values["gepiii_zero_share_sample"]),
+                ]
+            )
+    temporal_summaries = payload["temporal_profile_summaries"]
 
     text = f"""# BDG2 EDA Report
 
@@ -607,6 +850,16 @@ rates for every meter.
 
 {_markdown_table(["Meter", "Buildings", "BDG2-only buildings", "Raw null", "Cleaned null", "Raw zero", "Raw negative", "Raw flatline"], meter_rows)}
 
+### Flatline Definition
+
+Flatline share is reported with an explicit rule: minimum run length
+`{flatline["min_run_length"]}`; zero-reading runs are
+`{"included" if flatline["zero_runs_included"] else "excluded"}`; missing values
+break runs; equality is `{flatline["equality"]}`. The denominator is
+{flatline["denominator"]}; aggregation is {flatline["aggregation"]}.
+Zero-reading share is reported separately, so zero prevalence is not hidden
+inside the flatline statistic.
+
 ### Missingness Decomposition
 
 This table separates building-level meter availability from observation-level
@@ -619,6 +872,14 @@ wide meter file.
 
 {_markdown_table(["Meter", "Null-rate delta", "Raw present -> cleaned missing", "Raw missing -> cleaned present", "Changed observed cells"], delta_rows)}
 
+For every meter, raw-to-cleaned missing is positive and raw missing-to-cleaned
+present is zero; consistent with cleaned files removing additional observations
+rather than filling raw gaps.
+
+### Metadata Completeness
+
+{_markdown_table(["Field", "Source column", "Usage", "BDG2 non-null", "BDG2 summary", "BDG2-only summary", "GEPIII-overlap summary"], metadata_rows)}
+
 ## BDG2-Only Sufficiency
 
 BDG2 has {bdg2_only_count} BDG2-only buildings and
@@ -630,6 +891,16 @@ columns, {chilledwater_sufficient} meet the `missing_rate <= 0.50` rule, and
 Phase E Step 4 chilledwater frame remains underpowered.
 
 {_markdown_table(["Meter", "BDG2-only with meter", "Sufficient obs", "High missing", "Median missing rate"], sufficient_rows)}
+
+### Chilledwater Sufficiency Threshold Sensitivity
+
+{_markdown_table(["Missing-rate threshold", "Sufficient BDG2-only chilledwater buildings"], chilledwater_threshold_rows)}
+
+{threshold_interpretation}
+
+### BDG2-Only Top-Site Contribution
+
+{_markdown_table(["Site", "BDG2-only buildings", "BDG2-only chilledwater columns", "BDG2-only chilledwater sufficient obs"], top_site_rows)}
 
 ## GEPIII Comparison As Context
 
@@ -664,10 +935,16 @@ BDG2-only sufficient-observation buildings for the prior Step 4 frame.
 
 The meter_reading distance compares sampled BDG2 raw cells against GEPIII
 Kaggle-release cells via `load_m3_frame`. Part of this distance reflects known
-release-level differences described by Miller et al. 2020: Kaggle
-unit-conversion errors and UTC-vs-local weather timestamps that BDG2 raw/cleaned
-fixed but the Kaggle subset left as-is. It should therefore not be read as
-building heterogeneity alone.
+release-level differences described by Miller et al. 2020: meter-type mix,
+zero inflation, site composition, Kaggle unit-conversion errors, and
+UTC-vs-local weather timestamps that BDG2 raw/cleaned fixed but the Kaggle
+subset left as-is. It should therefore not be read as building behavior alone;
+future refinement should prioritize per-meter, log1p, and zero-excluded
+distances.
+
+### Per-Meter Reference Distances
+
+{_markdown_table(["Meter", "Variant", "KS", "PSI", "BDG2-only zero share", "GEPIII zero share"], per_meter_rows)}
 
 Figures:
 
@@ -683,6 +960,25 @@ Figure sizes:
 The provenance JSON includes hour/month mean profiles for representative
 electricity and chilledwater raw readings. These are descriptive profiles only;
 they are not model features, scores, or readiness evidence.
+
++ {temporal_summaries.get("electricity", "electricity profile unavailable")}.
++ {temporal_summaries.get("chilledwater", "chilledwater profile unavailable")}.
+
+## Methodological Caveats And Review Notes
+
++ Released-raw negative-reading share is measured on the released BDG2 raw
+  files. It does not imply the original site-source feeds never contained
+  negative readings: Miller et al. 2020 describe setting negative readings to
+  missing and removing meters with more than 50% negative readings during
+  release processing.
++ Cleaned null rate above raw null rate is a data-quality delta, not a label.
+  Miller et al. 2020 describe the cleaned files as applying Twitter
+  AnomalyDetection outlier removal, removing zero-reading runs longer than
+  24 hours, and removing electricity zeros.
++ Pooled meter_reading KS/PSI is a headline diagnostic only. It mixes meter-type
+  composition, zero inflation, site composition, and known BDG2-vs-GEPIII
+  release-regime differences; it should not be interpreted as a pure building
+  behavior distance.
 
 ## Provenance
 
@@ -706,6 +1002,24 @@ def _write_handoff(payload: dict[str, Any], path: Path) -> None:
         item for item in payload["meters"] if item["meter"] == "chilledwater"
     )
     ood = payload["ood"]
+    threshold_text = ", ".join(
+        f"{threshold}: {count}"
+        for threshold, count in chilledwater["bdg2_only_sufficient_obs"][
+            "threshold_sensitivity"
+        ].items()
+    )
+    chilledwater_distances = ood["meter_reading"]["per_meter_distances"][
+        "chilledwater"
+    ]["variants"]
+    top_site_rows = [
+        [
+            item["site_id"],
+            item["bdg2_only_buildings"],
+            item["bdg2_only_chilledwater_columns"],
+            item["bdg2_only_chilledwater_sufficient_obs"],
+        ]
+        for item in payload["bdg2_only_top_site_contribution"]
+    ]
     text = f"""# Handoff: BDG2 pre-modeling EDA
 
 **Date**: {payload["generated_at"][:10]}
@@ -721,6 +1035,10 @@ def _write_handoff(payload: dict[str, Any], path: Path) -> None:
 + Added the Miller et al. 2020 BDG2 data descriptor reference card and reframed
   the report around data-quality inventory, BDG2-only sufficiency, and reference
   distribution distances.
++ Applied the review refinement patch: explicit flatline definition,
+  chilledwater threshold sensitivity, metadata completeness, BDG2-only top-site
+  contribution, per-meter reference distances, temporal summaries, and
+  methodological caveats.
 
 ## Guardrails Preserved
 
@@ -748,9 +1066,24 @@ def _write_handoff(payload: dict[str, Any], path: Path) -> None:
   {_fmt(ood["meter_reading"]["ks_bdg2_only_vs_gepiii"])}.
 + Primary_use categorical PSI BDG2-only vs GEPIII:
   {_fmt(payload["metadata"]["primary_use_unseen_vs_gepiii"]["categorical_psi_bdg2_only_vs_gepiii"])}.
++ Chilledwater threshold sensitivity:
+  {threshold_text}.
++ Chilledwater per-meter raw-zero-included KS/PSI:
+  {_fmt(chilledwater_distances["raw_zero_included"]["ks_bdg2_only_vs_gepiii"])}
+  / {_fmt(chilledwater_distances["raw_zero_included"]["psi_bdg2_only_vs_gepiii"])}.
++ Chilledwater per-meter log1p-zero-included KS/PSI:
+  {_fmt(chilledwater_distances["log1p_zero_included"]["ks_bdg2_only_vs_gepiii"])}
+  / {_fmt(chilledwater_distances["log1p_zero_included"]["psi_bdg2_only_vs_gepiii"])}.
++ Chilledwater per-meter log1p-zero-excluded KS/PSI:
+  {_fmt(chilledwater_distances["log1p_zero_excluded"]["ks_bdg2_only_vs_gepiii"])}
+  / {_fmt(chilledwater_distances["log1p_zero_excluded"]["psi_bdg2_only_vs_gepiii"])}.
 + Distance scalar sampling:
   per-meter BDG2 sample {payload["sampling"]["sample_per_meter"]}, GEPIII sample
   {payload["sampling"]["gepiii_sample_size"]}, seed {payload["sampling"]["seed"]}.
+
+BDG2-only top-site contribution:
+
+{_markdown_table(["Site", "BDG2-only buildings", "Chilledwater columns", "Sufficient obs"], top_site_rows)}
 
 ## Next Review Point
 
@@ -770,6 +1103,8 @@ def run_eda(args: argparse.Namespace) -> dict[str, Any]:
     metadata = _metadata_summary(meta, gepiii_meta)
     meters = []
     bdg2_samples = []
+    bdg2_samples_by_meter = {}
+    meter_summaries_for_derived = {}
     for meter in METER_TYPES:
         raw = _read_meter(args.bdg2_dir / f"{meter}.csv")
         cleaned = _read_meter(args.bdg2_dir / f"{meter}_cleaned.csv")
@@ -781,7 +1116,12 @@ def run_eda(args: argparse.Namespace) -> dict[str, Any]:
             rng=rng,
             sample_limit=args.sample_per_meter,
         )
-        bdg2_samples.append(summary.pop("bdg2_only_reading_sample"))
+        bdg2_sample_for_meter = summary.pop("bdg2_only_reading_sample")
+        bdg2_samples.append(bdg2_sample_for_meter)
+        bdg2_samples_by_meter[meter] = bdg2_sample_for_meter
+        meter_summaries_for_derived[meter] = {
+            "raw_missing_by_building": summary.pop("raw_missing_by_building")
+        }
         meters.append(summary)
 
     bdg2_sample = (
@@ -793,6 +1133,28 @@ def run_eda(args: argparse.Namespace) -> dict[str, Any]:
     meter_ks = _ks_statistic(bdg2_sample, gepiii_readings["sample"])
     gepiii_reading_sample = gepiii_readings["sample"]
     meter_psi = _psi(gepiii_reading_sample, bdg2_sample)
+    per_meter_distances = {}
+    for meter, meter_code in GEPIII_METER_CODES.items():
+        meter_bdg2_sample = bdg2_samples_by_meter[meter]
+        meter_gepiii_sample = gepiii_readings["samples_by_meter"].get(
+            str(meter_code), np.array([], dtype="float64")
+        )
+        per_meter_distances[meter] = {
+            "bdg2_only_zero_share_sample": float(np.mean(meter_bdg2_sample == 0))
+            if meter_bdg2_sample.size
+            else None,
+            "gepiii_zero_share_sample": float(np.mean(meter_gepiii_sample == 0))
+            if meter_gepiii_sample.size
+            else None,
+            "variants": _distribution_distance_variants(
+                bdg2_sample=meter_bdg2_sample,
+                gepiii_sample=meter_gepiii_sample,
+            ),
+        }
+    top_site_contribution = _top_site_contribution(
+        meta=meta, meter_summaries=meter_summaries_for_derived
+    )
+    temporal_profile_summaries = _temporal_profile_summaries(meters)
 
     payload: dict[str, Any] = {
         "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
@@ -815,8 +1177,17 @@ def run_eda(args: argparse.Namespace) -> dict[str, Any]:
             "sample_per_meter": args.sample_per_meter,
             "gepiii_sample_size": args.gepiii_sample_size,
         },
+        "definitions": {
+            "flatline": _flatline_definition(),
+            "sufficient_obs_missing_rate": SUFFICIENT_OBS_MISSING_RATE,
+            "sufficiency_sensitivity_thresholds": list(
+                SUFFICIENCY_SENSITIVITY_THRESHOLDS
+            ),
+        },
         "metadata": metadata,
         "meters": meters,
+        "bdg2_only_top_site_contribution": top_site_contribution,
+        "temporal_profile_summaries": temporal_profile_summaries,
         "gepiii": {
             "load_m3_frame_rows": gepiii_readings["rows"],
             "meter_reading_sample_stats": gepiii_readings["stats"],
@@ -843,6 +1214,7 @@ def run_eda(args: argparse.Namespace) -> dict[str, Any]:
                 ],
                 "ks_bdg2_only_vs_gepiii": meter_ks,
                 "psi_bdg2_only_vs_gepiii": meter_psi,
+                "per_meter_distances": per_meter_distances,
             },
             "primary_use": metadata["primary_use_unseen_vs_gepiii"],
         },

@@ -69,6 +69,16 @@ rates for every meter.
 | irrigation | 37 | 20 | 0.107 | 0.1189 | 0.7662 | 0 | 0.8319 |
 | solar | 5 | 0 | 0.2013 | 0.2172 | 0.2719 | 0 | 0.331 |
 
+### Flatline Definition
+
+Flatline share is reported with an explicit rule: minimum run length
+`2`; zero-reading runs are
+`included`; missing values
+break runs; equality is `exact`. The denominator is
+adjacent non-missing building-meter-hour comparisons; aggregation is cell-weighted adjacent comparisons.
+Zero-reading share is reported separately, so zero prevalence is not hidden
+inside the flatline statistic.
+
 ### Missingness Decomposition
 
 This table separates building-level meter availability from observation-level
@@ -99,6 +109,22 @@ wide meter file.
 | irrigation | 0.01195 | 0.01195 | 0 | 0.001761 |
 | solar | 0.01595 | 0.01595 | 0 | 0 |
 
+For every meter, raw-to-cleaned missing is positive and raw missing-to-cleaned
+present is zero; consistent with cleaned files removing additional observations
+rather than filling raw gaps.
+
+### Metadata Completeness
+
+| Field | Source column | Usage | BDG2 non-null | BDG2 summary | BDG2-only summary | GEPIII-overlap summary |
+| --- | --- | --- | --- | --- | --- | --- |
+| primary_use | primaryspaceusage | headline_distance | 0.9872 | top Education (617) | top Education (68) | top Education (549) |
+| square_feet | sqft | headline_distance | 1 | median 5.462e+04 | median 2.786e+04 | median 5.767e+04 |
+| sqm | sqm | descriptive_only | 1 | median 5074 | median 2588 | median 5358 |
+| year_built | yearbuilt | descriptive_only | 0.4994 | median 1971 | median 1976 | median 1970 |
+| floor_count | numberoffloors | descriptive_only | 0.2696 | median 2 | median 2 | median 3 |
+| site_id | site_id | descriptive_only | 1 | top Rat (305) | top Lamb (58) | top Rat (274) |
+| timezone | timezone | descriptive_only | 1 | top US/Eastern (812) | top Europe/London (75) | top US/Eastern (739) |
+
 ## BDG2-Only Sufficiency
 
 BDG2 has 187 BDG2-only buildings and
@@ -119,6 +145,28 @@ Phase E Step 4 chilledwater frame remains underpowered.
 | water | 25 | 23 | 2 | 0.01146 |
 | irrigation | 20 | 20 | 0 | 0.05424 |
 | solar | 0 | 0 | 0 | n/a |
+
+### Chilledwater Sufficiency Threshold Sensitivity
+
+| Missing-rate threshold | Sufficient BDG2-only chilledwater buildings |
+| --- | --- |
+| 0.40 | 2 |
+| 0.45 | 2 |
+| 0.50 | 3 |
+| 0.55 | 24 |
+| 0.60 | 24 |
+
+The verdict is gate-sensitive because relaxed thresholds sharply
+increase the eligible building count.
+
+### BDG2-Only Top-Site Contribution
+
+| Site | BDG2-only buildings | BDG2-only chilledwater columns | BDG2-only chilledwater sufficient obs |
+| --- | --- | --- | --- |
+| Lamb | 58 | 0 | 0 |
+| Panther | 31 | 0 | 0 |
+| Rat | 31 | 0 | 0 |
+| Swan | 21 | 20 | 0 |
 
 ## GEPIII Comparison As Context
 
@@ -166,10 +214,29 @@ BDG2-only sufficient-observation buildings for the prior Step 4 frame.
 
 The meter_reading distance compares sampled BDG2 raw cells against GEPIII
 Kaggle-release cells via `load_m3_frame`. Part of this distance reflects known
-release-level differences described by Miller et al. 2020: Kaggle
-unit-conversion errors and UTC-vs-local weather timestamps that BDG2 raw/cleaned
-fixed but the Kaggle subset left as-is. It should therefore not be read as
-building heterogeneity alone.
+release-level differences described by Miller et al. 2020: meter-type mix,
+zero inflation, site composition, Kaggle unit-conversion errors, and
+UTC-vs-local weather timestamps that BDG2 raw/cleaned fixed but the Kaggle
+subset left as-is. It should therefore not be read as building behavior alone;
+future refinement should prioritize per-meter, log1p, and zero-excluded
+distances.
+
+### Per-Meter Reference Distances
+
+| Meter | Variant | KS | PSI | BDG2-only zero share | GEPIII zero share |
+| --- | --- | --- | --- | --- | --- |
+| electricity | raw_zero_included | 0.4447 | 1.017 | 0.2095 | 0.04376 |
+| electricity | log1p_zero_included | 0.4447 | 1.017 | 0.2095 | 0.04376 |
+| electricity | log1p_zero_excluded | 0.3799 | 0.8278 | 0.2095 | 0.04376 |
+| chilledwater | raw_zero_included | 0.1177 | 0.08789 | 0.2543 | 0.1568 |
+| chilledwater | log1p_zero_included | 0.1177 | 0.08789 | 0.2543 | 0.1568 |
+| chilledwater | log1p_zero_excluded | 0.06005 | 0.07149 | 0.2543 | 0.1568 |
+| steam | raw_zero_included | 0.5237 | 1.24 | 0.6224 | 0.1279 |
+| steam | log1p_zero_included | 0.5237 | 1.24 | 0.6224 | 0.1279 |
+| steam | log1p_zero_excluded | 0.1391 | 0.3773 | 0.6224 | 0.1279 |
+| hotwater | raw_zero_included | 0.3487 | 1.66 | 0.4643 | 0.27 |
+| hotwater | log1p_zero_included | 0.3487 | 1.66 | 0.4643 | 0.27 |
+| hotwater | log1p_zero_excluded | 0.4582 | 2.322 | 0.4643 | 0.27 |
 
 Figures:
 
@@ -188,6 +255,25 @@ Figure sizes:
 The provenance JSON includes hour/month mean profiles for representative
 electricity and chilledwater raw readings. These are descriptive profiles only;
 they are not model features, scores, or readiness evidence.
+
++ electricity has its highest mean reading around hour 14 and lowest around hour 3; by month it peaks in 8 and is lowest in 12.
++ chilledwater has its highest mean reading around hour 20 and lowest around hour 8; by month it peaks in 7 and is lowest in 12.
+
+## Methodological Caveats And Review Notes
+
++ Released-raw negative-reading share is measured on the released BDG2 raw
+  files. It does not imply the original site-source feeds never contained
+  negative readings: Miller et al. 2020 describe setting negative readings to
+  missing and removing meters with more than 50% negative readings during
+  release processing.
++ Cleaned null rate above raw null rate is a data-quality delta, not a label.
+  Miller et al. 2020 describe the cleaned files as applying Twitter
+  AnomalyDetection outlier removal, removing zero-reading runs longer than
+  24 hours, and removing electricity zeros.
++ Pooled meter_reading KS/PSI is a headline diagnostic only. It mixes meter-type
+  composition, zero inflation, site composition, and known BDG2-vs-GEPIII
+  release-regime differences; it should not be interpreted as a pure building
+  behavior distance.
 
 ## Provenance
 
