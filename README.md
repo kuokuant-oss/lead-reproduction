@@ -40,7 +40,7 @@ Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-r
 M1 不訓練模型，目標是把論文與原始碼中的關鍵決策變成可追蹤文件。
 
 - `docs/reference/unknowns.md`：17 個 paper 或 code 未說清楚的地方。
-- `docs/adr/`：目前共有 19 份 ADR；M1 產出 ADR 0001-0006。
+- `docs/adr/`：目前共有 20 份 ADR；M1 產出 ADR 0001-0006。
 - `docs/reference/paper-notes.md`：paper structured summary。
 - `docs/reference/feature-engineering-rules.md`：feature 與 model 規則整理。
 
@@ -99,6 +99,18 @@ M5 把工作從 reproduction 推進到 fault detection and diagnosis（FDD），
 
 Phase E（BDG2）把選定的 FDD 模型轉移到 BDG2 corpus，但目前停在 pre-modeling EDA 審查點。模型選擇結果見 [docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)，Phase E 規劃見 [docs/plans/m5-plan.md](./docs/plans/m5-plan.md)。
 
+ADR 0020 accepts the BDG2 FDD audit-yield evaluation frame and fixes model
+roles for the next implementation slice. TabPFN is not the BDG2 primary
+full-corpus detector. Per M5 Phase D, GBDT remains the real-time scanner:
+sub-second inference versus TabPFN at about `6.3 ms/row` (`~100x` slower), with
+the TabPFN-3.0 research/internal-use license boundary. The minimal-feature axis
+also was not a TabPFN win: raw-17-feature GBDT ROC-AUC `0.9587` exceeded TabPFN
+`0.9499`. In BDG2 FDD, TabPFN is limited to offline audit roles: second-stage
+candidate re-ranking, model-disagreement diagnostics, active-learning audit-set
+selection, and few-shot calibration after a small manual audit set. TabPFN
+outputs are triage/ranking utility, not BDG2 supervised performance or fault
+confirmation.
+
 Phase E Step 4 corrected the chilledwater BDG2 pilot gate and stopped before
 full transfer: the pilot is underpowered because it has no powered
 `bdg2_only__sufficient_obs` stratum. A pooled cross-site raw fallback was also
@@ -154,7 +166,8 @@ docs/
 │   ├── m2-plan.md
 │   ├── m3-plan.md
 │   ├── m4-plan.md
-│   └── m5-plan.md
+│   ├── m5-plan.md
+│   └── bdg2-fdd-eval-plan.md
 ├── reports/
 │   ├── reproduction-report.md
 │   ├── m3-report.md
@@ -174,7 +187,7 @@ docs/
 │   ├── m3-50-50-ensemble.json
 │   └── m3-primary-use-auc.json
 ├── adr/
-│   └── 0001-0019 decision records
+│   └── 0001-0020 decision records
 ├── handoffs/
 │   └── historical session handoffs
 ├── agents/
