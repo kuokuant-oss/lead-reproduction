@@ -985,5 +985,21 @@ sufficient-observation median is `0.9911189331269352` versus overlap median
 headline from this evidence frame. The uplift is OOD-leaning and is not
 explained by missingness alone, but it remains underpowered and unlabeled
 score-transfer evidence, not BDG2 anomaly prevalence, transfer success, or
-readiness. The next required step is BDG2 dataset EDA to characterize this OOD
-before choosing a different meter, site scope, or held-out-BDG2-site framing.
+readiness.
+
+**BDG2 EDA follow-up (2026-06-30)**:
+
+The read-only EDA in `docs/reports/bdg2-eda.md` characterized the data-side
+shape behind this stop point. It reproduced the chilledwater sparsity:
+26 BDG2-only buildings have chilledwater columns, but only 3 satisfy the
+`missing_rate <= 0.50` sufficient-observation rule. The sufficiency gate is
+knife-edge: relaxing the threshold to `0.55` raises the eligible count to 24,
+driven mainly by Swan's BDG2-only chilledwater columns sitting just above the
+`0.50` cut point. At the same time, chilledwater has the lowest per-meter
+distance to the GEPIII reference distribution in the EDA table (raw KS `0.1177`,
+log1p-zero-excluded KS `0.06005`), so the immediate blocker is
+coverage/missingness shape rather than chilledwater reading magnitude being far
+outside the GEPIII range. The next design question is whether Swan's roughly
+half-missing chilledwater coverage is structurally contiguous enough for a
+within-Swan powered pilot, or whether Phase E needs a different meter, site
+scope, or audit-yield evidence frame.
