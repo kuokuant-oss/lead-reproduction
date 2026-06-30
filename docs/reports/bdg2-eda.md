@@ -156,8 +156,21 @@ Phase E Step 4 chilledwater frame remains underpowered.
 | 0.55 | 24 |
 | 0.60 | 24 |
 
-The verdict is gate-sensitive because relaxed thresholds sharply
-increase the eligible building count.
+This is a knife-edge gate-sensitive result:
+
++ Moving the threshold from `0.50` to `0.55` raises the eligible count
+  from `3` to `24`. The jump is almost entirely explained by the Swan
+  row in the top-site table: Swan contributes about 20 BDG2-only
+  chilledwater columns whose missingness is concentrated near the
+  `0.5024` median, just above the `0.50` gate.
++ At the `0.55` threshold, 24 buildings exceed the prior powered lower
+  bound of 5 buildings. The Step 4 underpowered finding therefore hangs
+  on the `0.50` cut point plus Swan's missingness shape, rather than on
+  a broad absence of BDG2-only chilledwater readings.
++ Open question for the next stage: whether Swan's roughly half-missing
+  chilledwater coverage is structurally contiguous or dispersed is not
+  characterized here. If it is structurally contiguous, a within-Swan
+  subwindow may be a powered pilot candidate.
 
 ### BDG2-Only Top-Site Contribution
 
@@ -237,6 +250,13 @@ distances.
 | hotwater | raw_zero_included | 0.3487 | 1.66 | 0.4643 | 0.27 |
 | hotwater | log1p_zero_included | 0.3487 | 1.66 | 0.4643 | 0.27 |
 | hotwater | log1p_zero_excluded | 0.4582 | 2.322 | 0.4643 | 0.27 |
+
+Chilledwater has the lowest per-meter distance in this table: raw KS `0.1177`,
+and log1p-zero-excluded KS `0.06005`. This connects the Step 4 stop point back
+to coverage and missingness, especially Swan, rather than to a chilledwater
+reading-magnitude distance outside the GEPIII reference distribution. The larger
+pooled meter_reading distance is driven mainly by steam/electricity composition,
+zero inflation, and release-regime differences already caveated below.
 
 Figures:
 

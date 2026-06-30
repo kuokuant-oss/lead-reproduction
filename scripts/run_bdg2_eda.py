@@ -713,8 +713,20 @@ def _write_report(payload: dict[str, Any], path: Path) -> None:
         "The verdict is robust across these thresholds because the count remains\n"
         "well below a powered frame."
         if max(threshold_counts) < 10
-        else "The verdict is gate-sensitive because relaxed thresholds sharply\n"
-        "increase the eligible building count."
+        else "This is a knife-edge gate-sensitive result:\n\n"
+        "+ Moving the threshold from `0.50` to `0.55` raises the eligible count\n"
+        "  from `3` to `24`. The jump is almost entirely explained by the Swan\n"
+        "  row in the top-site table: Swan contributes about 20 BDG2-only\n"
+        "  chilledwater columns whose missingness is concentrated near the\n"
+        "  `0.5024` median, just above the `0.50` gate.\n"
+        "+ At the `0.55` threshold, 24 buildings exceed the prior powered lower\n"
+        "  bound of 5 buildings. The Step 4 underpowered finding therefore hangs\n"
+        "  on the `0.50` cut point plus Swan's missingness shape, rather than on\n"
+        "  a broad absence of BDG2-only chilledwater readings.\n"
+        "+ Open question for the next stage: whether Swan's roughly half-missing\n"
+        "  chilledwater coverage is structurally contiguous or dispersed is not\n"
+        "  characterized here. If it is structurally contiguous, a within-Swan\n"
+        "  subwindow may be a powered pilot candidate."
     )
     top_site_rows = [
         [
@@ -945,6 +957,13 @@ distances.
 ### Per-Meter Reference Distances
 
 {_markdown_table(["Meter", "Variant", "KS", "PSI", "BDG2-only zero share", "GEPIII zero share"], per_meter_rows)}
+
+Chilledwater has the lowest per-meter distance in this table: raw KS `0.1177`,
+and log1p-zero-excluded KS `0.06005`. This connects the Step 4 stop point back
+to coverage and missingness, especially Swan, rather than to a chilledwater
+reading-magnitude distance outside the GEPIII reference distribution. The larger
+pooled meter_reading distance is driven mainly by steam/electricity composition,
+zero inflation, and release-regime differences already caveated below.
 
 Figures:
 
