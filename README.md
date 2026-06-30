@@ -32,6 +32,7 @@ Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-r
 - **工作方法**：[docs/reference/workflow.md](./docs/reference/workflow.md)
 - **M4 計畫**：[docs/plans/m4-plan.md](./docs/plans/m4-plan.md)
 - **M5 計畫**：[docs/plans/m5-plan.md](./docs/plans/m5-plan.md)
+- **Phase E → M6 roadmap**：[docs/plans/phaseE-fdd-roadmap.md](./docs/plans/phaseE-fdd-roadmap.md)
 
 ## Milestone 摘要
 
@@ -97,7 +98,7 @@ M5 把工作從 reproduction 推進到 fault detection and diagnosis（FDD），
 - TabPFN 在 10k context 的 in-domain ROC-AUC（`0.9925`）接近 M3.4 ensemble（`0.9928`）。
 - GBDT 保有推論延遲與 minimal feature engineering 的優勢，real-time 部署候選仍為 GBDT。
 
-Phase E（BDG2）把選定的 FDD 模型轉移到 BDG2 corpus，但目前停在 pre-modeling EDA 審查點。模型選擇結果見 [docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)，Phase E 規劃見 [docs/plans/m5-plan.md](./docs/plans/m5-plan.md)。
+Phase E（BDG2）把選定的 FDD 模型轉移到 BDG2 corpus；Part A 清理與 M6 delivery ladder 的權威路線圖見 [docs/plans/phaseE-fdd-roadmap.md](./docs/plans/phaseE-fdd-roadmap.md)。模型選擇結果見 [docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)，Phase E 規劃見 [docs/plans/m5-plan.md](./docs/plans/m5-plan.md)。
 
 ADR 0020 accepts the BDG2 FDD audit-yield evaluation frame and fixes model
 roles for the next implementation slice. TabPFN is not the BDG2 primary

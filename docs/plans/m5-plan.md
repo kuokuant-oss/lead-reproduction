@@ -240,6 +240,7 @@ measured `underpowered_even_pooled` as a reporting-confidence label
 FDD audit-yield evaluation framework accepted in ADR 0020; powered entry gate
 demoted to confidence metadata in ADR 0021; implementation queued, not started
 **GitHub Issue**: [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39)
+**Roadmap**: [docs/plans/phaseE-fdd-roadmap.md](phaseE-fdd-roadmap.md)
 
 Phase E carries the selected FDD models from GEPIII to the BDG2 (Building Data
 Genome 2) corpus. It is gated: each step below must clear before the next, so
