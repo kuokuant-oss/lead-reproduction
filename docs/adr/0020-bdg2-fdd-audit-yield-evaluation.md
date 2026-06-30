@@ -41,6 +41,48 @@ it is not confirmed by the score. The workflow measures whether top-ranked
 candidates are enriched for independent supporting evidence relative to random
 sampling from the same eligible context.
 
+### Model roles
+
+Use the GEPIII-trained GBDT detector as the primary full-corpus scanner. This
+matches the Phase D conclusion in `docs/reports/m5-foundation-vs-gbdt.md` and
+`docs/plans/m5-plan.md`: GBDT remains the real-time deployment candidate because
+it has sub-second inference on the measured GEPIII comparison, while TabPFN is
+roughly `6.3 ms/row`, about `100x` slower.
+
+Use TabPFN only as an offline, label-scarce, second-stage, audit-centered model
+with these roles:
+
++ case-level second-stage re-ranker for GBDT top-K candidates;
++ few-shot calibrator after a small human review set, such as 50-200 reviewed
+  cases, exists;
++ active-learning / audit-set selector that chooses diverse model-disagreement
+  cases plus a matched random baseline, so the review set is not dominated by
+  one model's bias;
++ model-disagreement diagnostic, such as GBDT-high / TabPFN-low or GBDT-low /
+  TabPFN-high cases, for error analysis rather than performance claims.
+
+The boundaries are part of the decision. TabPFN is not the default real-time
+full-corpus detector. Its current local role is limited by inference latency,
+the TabPFN-3.0 research/internal-use license, and the Phase D minimal-feature
+finding: raw-17-feature GBDT ROC-AUC `0.9587` exceeded TabPFN `0.9499`, so
+value-change and meter-aware feature engineering remain necessary.
+
+Manual or external evidence is the only path to higher plausibility levels.
+Even then, `confirmed` remains unavailable under the current BDG2 contract
+because the repo has no maintenance, BMS, work-order, or adjudicated review
+record. Reviewer triage judgments are audit labels, not ground-truth fault
+labels.
+
+Must-not rules:
+
++ Do not report TabPFN outputs on audit labels as BDG2 supervised AUC, PR-AUC,
+  precision, recall, or F1. If a later review set exists, report only
+  triage-utility measures within that review protocol.
++ Do not use TabPFN as the default full-corpus real-time scanner.
++ Do not let the re-ranker relearn only OOD or missingness signals; its target
+  should align with operational-anomaly candidate usefulness, separated from
+  data-quality and OOD-normal cases in the packet status contract.
+
 ### Within-context scoring
 
 Candidate surfacing must be within context:

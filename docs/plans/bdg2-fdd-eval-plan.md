@@ -70,6 +70,54 @@ accuracy:
 
 Report enrichment as evidence quality, not confirmation.
 
+## Two-Stage Scanner + Audit Re-Ranker
+
+The design uses one evaluation frame, not a parallel TabPFN track:
+
+```text
+GEPIII-trained GBDT full-corpus scan
+  -> within-context candidate generation
+  -> evidence packet assembly
+  -> diverse audit sample with matched random baseline
+  -> TabPFN offline re-rank / few-shot calibration / disagreement review
+  -> prioritized review queue
+```
+
+### Model roles
+
++ **GBDT primary scanner**: the GEPIII-trained detector remains the full-corpus
+  scanner because Phase D kept GBDT as the real-time deployment candidate with
+  sub-second inference.
++ **TabPFN second-stage tool**: TabPFN is offline, label-scarce, second-stage,
+  and audit-centered. Its permitted roles are case-level re-ranking of GBDT
+  top-K candidates, few-shot calibration after 50-200 reviewed cases,
+  active-learning / audit-set selection, and model-disagreement diagnostics.
++ **Manual or external evidence**: higher plausibility comes only from review or
+  external evidence. The BDG2 status contract still excludes `confirmed`.
+
+TabPFN boundaries are explicit: Phase D measured about `6.3 ms/row`, roughly
+`100x` slower than GBDT; the TabPFN-3.0 license is research/internal-use; and
+minimal feature engineering was not a TabPFN win because raw-17-feature GBDT
+ROC-AUC `0.9587` exceeded TabPFN `0.9499`. Value-change and meter-aware feature
+engineering remain necessary.
+
+### Methodological guardrails
+
++ Audit labels are reviewer triage judgments over `likely`, `data-quality`,
+  `OOD-normal`, and `unknown`, not confirmed faults. TabPFN ranking utility can
+  be evaluated only on held-out audit cases or within-audit cross-validation,
+  and must be labeled triage-utility rather than accuracy or BDG2 performance.
++ A small review set can overfit the loop. Any re-ranker or calibrator must use
+  a held-out review slice or within-audit cross-validation; it cannot validate
+  itself on the same cases that selected or tuned it.
++ Case-level evidence features should separate data-quality/OOD candidates from
+  operational candidates. Candidate features may include GBDT score,
+  missingness, zero-run, flatline, raw-cleaned disagreement,
+  weather-response mismatch, regime-shift, site-peer / neighbor deviation,
+  OOD distance, meter type, site, primary use, and square feet. The re-ranker
+  target should align to operational-anomaly candidate usefulness and must not
+  merely restate distribution shift or missingness.
+
 ## Evidence-Packet Schema
 
 Each packet should include:
