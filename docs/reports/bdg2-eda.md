@@ -4,60 +4,38 @@
 **Issue**: [#40](https://github.com/kuokuant-oss/lead-reproduction/issues/40)
 **Plan**: [docs/plans/bdg2-eda-plan.md](../plans/bdg2-eda-plan.md)
 
-## Scope And Guardrails
+## Scope 與 guardrails
 
-This is a read-only, pre-modeling EDA slice. It reads BDG2 from `data/raw/bdg2`
-and reads GEPIII comparison data from frozen GEPIII sources (`load_m3_frame` and
-`data/raw/m3/building_metadata.csv`). It does not build a model, create scores,
-attach the GEPIII overlap label bridge, report supervised BDG2 metrics, or make
-readiness/transfer claims. Its coverage and distribution facts now scope which
-buildings/meters can enter the labeled M6 overlap evaluation.
+這是一個 read-only、pre-modeling EDA slice。資料來源是 `data/raw/bdg2`，GEPIII comparison data 只來自 frozen GEPIII sources（`load_m3_frame` 與 `data/raw/m3/building_metadata.csv`）。本報告不建 model、不產生 score、不接 GEPIII overlap label bridge、不回報 supervised BDG2 metrics，也不宣稱 readiness/transfer。
 
-The report uses neutral data-quality terms: zero-reading share, negative-reading
-share, flatline share, missingness, coverage, and distribution distance.
+ADR 0025/0026 之後，這份報告的用途是定義 M6 的資料面 scope：哪些 buildings/meters 可以進入 labeled overlap evaluation，哪些只能留在 secondary pseudo-label 或 review branch。報告使用中性資料品質詞彙：zero-reading share、negative-reading share、flatline share、missingness、coverage、distribution distance。
 
-## Headline Findings
+Interpretation rule：所有 EDA outputs 都是 descriptive data-quality 或 distribution-context evidence。它們不是 labels、model scores 或 supervised metrics。
 
-+ BDG2 contains 1,636 buildings, but meter availability is
-  highly uneven across meters.
-+ Electricity is broadly available; chilledwater, steam, hotwater, gas, water,
-  irrigation, and solar have much narrower building coverage.
-+ Several meters show high zero-reading or flatline shares, especially
-  irrigation, water, gas, and hotwater. These can reflect operational
-  off-periods described by Miller et al. 2020, not data faults.
-+ Cleaned files increase null rates for every meter, reflecting BDG2's own
-  outlier/zero removal rules described by Miller et al. 2020: Twitter
-  AnomalyDetection outlier removal, removal of zero-reading runs longer than 24
-  hours, and removal of electricity zeros. This is a data-quality delta, not a
-  label.
-+ For BDG2-only buildings, chilledwater is especially underpowered: of the
-  187 BDG2-only buildings, 26 have
-  chilledwater columns but only 3 meet the
-  sufficient-observation rule (`missing_rate <= 0.50`); this reproduces the
-  Phase E Step 4 stop point from the data side.
-+ The GEPIII comparison is used only to contextualize coverage and distribution
-  differences, not to make modeling or transfer-readiness claims.
+Evidence levels：
 
-## Dataset Provenance And Cleaning
++ L3 descriptive data-quality evidence：meter coverage、missingness、raw-vs-cleaned deltas、flatline/zero indicators。
++ L4 secondary review evidence：BDG2-only chilledwater coverage 與 raw/cleaned pseudo-label candidates。
++ Retired historical context：舊 Phase E chilledwater powered-gate interpretation。
 
-The BDG2 data descriptor is tracked in
-[docs/reference/papers/bdg2-miller-2020.md](../reference/papers/bdg2-miller-2020.md).
-The PDF is kept locally at `docs/reference/papers/bdg2-miller-2020.pdf` and is
-gitignored because it exceeds the repo's 500 KB large-file gate.
+## 主要發現
 
-Miller et al. 2020 describe the raw release pipeline as unit conversion,
-negative readings set to missing, removal of meters with more than 50% negative
-readings, removal of meters with more than 100 consecutive days of missing
-readings, log plus three-standard-deviation outlier removal, and four-decimal
-rounding. The cleaned release then applies additional Twitter AnomalyDetection
-outlier removal, removes zero-reading runs longer than 24 hours, and removes
-electricity zeros. These release-level rules explain why raw negative-reading
-share is zero in this EDA and why cleaned null rates are higher than raw null
-rates for every meter.
++ BDG2 有 1,636 buildings，但 meter availability 在各 meter 間高度不均。
++ Electricity coverage 最廣；chilledwater、steam、hotwater、gas、water、irrigation、solar 的 building coverage 明顯較窄。
++ 多個 meters 有高 zero-reading 或 flatline share，尤其是 irrigation、water、gas、hotwater。這些可能反映 Miller et al. 2020 描述的 operational off-periods，不等於 data faults。
++ Cleaned files 對每個 meter 都提高 null rate，反映 BDG2 release 自身的 outlier/zero removal rules。這是 data-quality delta，不是 label。
++ BDG2-only chilledwater 只作 secondary branch context：187 個 BDG2-only buildings 中，26 個有 chilledwater columns，但只有 3 個滿足 sufficient-observation rule（`missing_rate <= 0.50`）。
++ GEPIII comparison 只用來描述 coverage 與 distribution differences，不作 modeling 或 transfer-readiness claim。
 
-## BDG2 Data-Quality Inventory
+## Dataset provenance 與 cleaning
 
-### Per-Meter Structure
+BDG2 data descriptor 追蹤於 [docs/reference/papers/bdg2-miller-2020.md](../reference/papers/bdg2-miller-2020.md)。PDF 本地存於 `docs/reference/papers/bdg2-miller-2020.pdf`，因超過 repo 500 KB large-file gate 而維持 gitignored。
+
+Miller et al. 2020 描述 raw release pipeline 包含 unit conversion、negative readings set to missing、移除超過 50% negative readings 的 meters、移除超過 100 consecutive days missing readings 的 meters、log plus three-standard-deviation outlier removal，以及 four-decimal rounding。Cleaned release 再套用 Twitter AnomalyDetection outlier removal、移除超過 24 小時的 zero-reading runs、移除 electricity zeros。這些 release-level rules 解釋了為什麼本 EDA 中 raw negative-reading share 為 0，以及為什麼每個 meter 的 cleaned null rate 都高於 raw null rate。
+
+## BDG2 data-quality inventory
+
+### Per-meter structure
 
 | Meter | Buildings | BDG2-only buildings | Raw null | Cleaned null | Raw zero | Raw negative | Raw flatline |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -70,21 +48,13 @@ rates for every meter.
 | irrigation | 37 | 20 | 0.107 | 0.1189 | 0.7662 | 0 | 0.8319 |
 | solar | 5 | 0 | 0.2013 | 0.2172 | 0.2719 | 0 | 0.331 |
 
-### Flatline Definition
+### Flatline definition
 
-Flatline share is reported with an explicit rule: minimum run length
-`2`; zero-reading runs are
-`included`; missing values
-break runs; equality is `exact`. The denominator is
-adjacent non-missing building-meter-hour comparisons; aggregation is cell-weighted adjacent comparisons.
-Zero-reading share is reported separately, so zero prevalence is not hidden
-inside the flatline statistic.
+Flatline share 使用明確規則回報：minimum run length 為 `2`；zero-reading runs 計入；missing values 會中斷 run；equality 採 `exact`。分母是 adjacent non-missing building-meter-hour comparisons，aggregation 是 cell-weighted adjacent comparisons。Zero-reading share 另行回報，因此 zero prevalence 不會被藏在 flatline statistic 裡。
 
-### Missingness Decomposition
+### Missingness decomposition
 
-This table separates building-level meter availability from observation-level
-missingness. `Absent buildings` means metadata buildings without a column in the
-wide meter file.
+下表把 building-level meter availability 與 observation-level missingness 分開。`Absent buildings` 指 metadata 裡存在、但 wide meter file 沒有對應 column 的 buildings。
 
 | Meter | Absent buildings | Median timestamp coverage | Raw observation missingness | Cleaned observation missingness |
 | --- | --- | --- | --- | --- |
@@ -97,7 +67,7 @@ wide meter file.
 | irrigation | 1599 | 0.9444 | 0.107 | 0.1189 |
 | solar | 1631 | 0.9987 | 0.2013 | 0.2172 |
 
-### Cleaned-Vs-Raw Delta
+### Cleaned-vs-raw delta
 
 | Meter | Null-rate delta | Raw present -> cleaned missing | Raw missing -> cleaned present | Changed observed cells |
 | --- | --- | --- | --- | --- |
@@ -110,11 +80,9 @@ wide meter file.
 | irrigation | 0.01195 | 0.01195 | 0 | 0.001761 |
 | solar | 0.01595 | 0.01595 | 0 | 0 |
 
-For every meter, raw-to-cleaned missing is positive and raw missing-to-cleaned
-present is zero; consistent with cleaned files removing additional observations
-rather than filling raw gaps.
+每個 meter 的 raw-to-cleaned missing 都是正值，raw missing-to-cleaned present 都是 0；這符合 cleaned files 移除額外 observations、而不是填補 raw gaps 的解讀。
 
-### Metadata Completeness
+### Metadata completeness
 
 | Field | Source column | Usage | BDG2 non-null | BDG2 summary | BDG2-only summary | GEPIII-overlap summary |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -126,15 +94,9 @@ rather than filling raw gaps.
 | site_id | site_id | descriptive_only | 1 | top Rat (305) | top Lamb (58) | top Rat (274) |
 | timezone | timezone | descriptive_only | 1 | top US/Eastern (812) | top Europe/London (75) | top US/Eastern (739) |
 
-## BDG2-Only Sufficiency
+## BDG2-only sufficiency
 
-BDG2 has 187 BDG2-only buildings and
-1,449 GEPIII-overlap buildings. The table below
-summarizes BDG2-only meter availability and the sufficient-observation split.
-For chilledwater, 26 BDG2-only buildings have meter
-columns, 3 meet the `missing_rate <= 0.50` rule, and
-23 are high-missing. This is the data-side reason the
-Phase E Step 4 chilledwater frame remains underpowered.
+BDG2 有 187 個 BDG2-only buildings 與 1,449 個 GEPIII-overlap buildings。下表摘要 BDG2-only meter availability 與 sufficient-observation split。以 chilledwater 來看，26 個 BDG2-only buildings 有 meter columns，3 個符合 `missing_rate <= 0.50` 規則，23 個屬於 high-missing。這是有用的 BDG2-only context；active M6.1 bridge 則從 GEPIII-overlap rows 開始。
 
 | Meter | BDG2-only with meter | Sufficient obs | High missing | Median missing rate |
 | --- | --- | --- | --- | --- |
@@ -147,7 +109,7 @@ Phase E Step 4 chilledwater frame remains underpowered.
 | irrigation | 20 | 20 | 0 | 0.05424 |
 | solar | 0 | 0 | 0 | n/a |
 
-### Chilledwater Sufficiency Threshold Sensitivity
+### Chilledwater sufficient-observation threshold sensitivity
 
 | Missing-rate threshold | Sufficient BDG2-only chilledwater buildings |
 | --- | --- |
@@ -159,21 +121,11 @@ Phase E Step 4 chilledwater frame remains underpowered.
 
 This is a knife-edge gate-sensitive result:
 
-+ Moving the threshold from `0.50` to `0.55` raises the eligible count
-  from `3` to `24`. The jump is almost entirely explained by the Swan
-  row in the top-site table: Swan contributes about 20 BDG2-only
-  chilledwater columns whose missingness is concentrated near the
-  `0.5024` median, just above the `0.50` gate.
-+ At the `0.55` threshold, 24 buildings exceed the prior powered lower
-  bound of 5 buildings. The Step 4 underpowered finding therefore hangs
-  on the `0.50` cut point plus Swan's missingness shape, rather than on
-  a broad absence of BDG2-only chilledwater readings.
-+ Optional future chilledwater work: whether Swan's roughly half-missing
-  chilledwater coverage is structurally contiguous or dispersed is not
-  characterized here. If it is structurally contiguous, a within-Swan subwindow
-  may support a later Level-3 weather-conditioned chilledwater review path.
++ Threshold 從 `0.50` 放寬到 `0.55` 時，eligible count 會從 `3` 增加到 `24`。這個跳升幾乎都來自 top-site table 裡的 Swan：Swan 提供約 20 個 BDG2-only chilledwater columns，其 missingness 集中在 `0.5024` median 附近，略高於 `0.50` gate。
++ 在 `0.55` threshold 下，24 個 buildings 會超過舊 powered lower bound 的 5 buildings。因此 chilledwater BDG2-only finding 取決於 `0.50` cut point 與 Swan 的 missingness shape，而不是 BDG2-only chilledwater readings 普遍不存在。
++ 後續 chilledwater work 可檢查 Swan 約半缺值的 chilledwater coverage 是 structurally contiguous 還是 dispersed；此處尚未刻畫。若它是 structurally contiguous，within-Swan subwindow 可能支援後續 Level-3 weather-conditioned chilledwater review path。
 
-### BDG2-Only Top-Site Contribution
+### BDG2-only top-site contribution
 
 | Site | BDG2-only buildings | BDG2-only chilledwater columns | BDG2-only chilledwater sufficient obs |
 | --- | --- | --- | --- |
@@ -182,13 +134,11 @@ This is a knife-edge gate-sensitive result:
 | Rat | 31 | 0 | 0 |
 | Swan | 21 | 20 | 0 |
 
-## GEPIII Comparison As Context
+## GEPIII comparison context
 
-The GEPIII comparison is a diagnostic lens for coverage and distribution
-differences. It is not a modeling result, not a transfer result, and not a
-readiness claim.
+GEPIII comparison 是 coverage 與 distribution differences 的 diagnostic lens。它不是 modeling result、不是 transfer result，也不是 readiness claim。
 
-### Meter Coverage Context
+### Meter coverage context
 
 | Meter | All buildings marked yes | BDG2-only | GEPIII-overlap |
 | --- | --- | --- | --- |
@@ -201,10 +151,7 @@ readiness claim.
 | irrigation | 37 | 20 | 17 |
 | solar | 5 | 0 | 5 |
 
-Primary-use unseen/unmapped rate for BDG2-only vs GEPIII is
-`0.1123`.
-Unseen or unmapped normalized categories:
-`(missing/unmapped)`.
+BDG2-only vs GEPIII 的 primary-use unseen/unmapped rate 是 `0.1123`。Unseen or unmapped normalized categories 為 `(missing/unmapped)`。
 
 Square-feet medians:
 
@@ -212,13 +159,9 @@ Square-feet medians:
 + GEPIII-overlap: `5.767e+04`.
 + GEPIII: `5.767e+04`.
 
-BDG2-only buildings are concentrated in a smaller set of sites, especially
-Lamb, Panther, Rat, and Swan in the local archive. Meter availability differs
-sharply by meter. Electricity is broadest; solar and irrigation remain narrow.
-Chilledwater has enough overlap buildings for a bridge baseline but not enough
-BDG2-only sufficient-observation buildings for the prior Step 4 frame.
+BDG2-only buildings 集中在較少 sites，尤其是本地 archive 中的 Lamb、Panther、Rat、Swan。Meter availability 依 meter 差異很大。Electricity 最廣；solar 與 irrigation 很窄。Chilledwater 有足夠 overlap buildings 可支援 bridge baseline，但 BDG2-only sufficient-observation buildings 不足以支撐舊 Step 4 frame。
 
-### Reference Distribution Distances
+### Reference distribution distances
 
 | Feature | KS | PSI | Basis |
 | --- | --- | --- | --- |
@@ -226,16 +169,9 @@ BDG2-only sufficient-observation buildings for the prior Step 4 frame.
 | meter_reading | 0.4549 | 1.102 | sampled raw BDG2-only cells vs GEPIII `load_m3_frame` cells |
 | primary_use coverage | n/a | 1.415 | categorical PSI; unseen/unmapped rate 0.1123 |
 
-The meter_reading distance compares sampled BDG2 raw cells against GEPIII
-Kaggle-release cells via `load_m3_frame`. Part of this distance reflects known
-release-level differences described by Miller et al. 2020: meter-type mix,
-zero inflation, site composition, Kaggle unit-conversion errors, and
-UTC-vs-local weather timestamps that BDG2 raw/cleaned fixed but the Kaggle
-subset left as-is. It should therefore not be read as building behavior alone;
-future refinement should prioritize per-meter, log1p, and zero-excluded
-distances.
+`meter_reading` distance 比較 sampled BDG2 raw cells 與 `load_m3_frame` 讀到的 GEPIII Kaggle-release cells。這個距離的一部分來自 Miller et al. 2020 描述的 release-level differences：meter-type mix、zero inflation、site composition、Kaggle unit-conversion errors，以及 BDG2 raw/cleaned 已修正但 Kaggle subset 保留的 UTC-vs-local weather timestamps。因此它不能被讀成純粹的 building behavior distance；後續 refinement 應優先使用 per-meter、log1p、zero-excluded distances。
 
-### Per-Meter Reference Distances
+### Per-meter reference distances
 
 | Meter | Variant | KS | PSI | BDG2-only zero share | GEPIII zero share |
 | --- | --- | --- | --- | --- | --- |
@@ -252,42 +188,25 @@ distances.
 | hotwater | log1p_zero_included | 0.3487 | 1.66 | 0.4643 | 0.27 |
 | hotwater | log1p_zero_excluded | 0.4582 | 2.322 | 0.4643 | 0.27 |
 
-Chilledwater has the lowest per-meter distance in this table: raw KS `0.1177`,
-and log1p-zero-excluded KS `0.06005`. This connects the Step 4 stop point back
-to coverage and missingness, especially Swan, rather than to a chilledwater
-reading-magnitude distance outside the GEPIII reference distribution. The larger
-pooled meter_reading distance is driven mainly by steam/electricity composition,
-zero inflation, and release-regime differences already caveated below.
+Chilledwater 在此表中的 per-meter distance 最低：raw KS `0.1177`，log1p-zero-excluded KS `0.06005`。這表示 chilledwater BDG2-only context 的主問題仍回到 coverage 與 missingness，尤其是 Swan，而不是 chilledwater reading magnitude 明顯離開 GEPIII reference distribution。較大的 pooled meter_reading distance 主要由 steam/electricity composition、zero inflation、release-regime differences 驅動。
 
 Figures:
 
 + ![Square feet ECDF](../assets/bdg2-eda/square-feet-ecdf.png)
 + ![Meter reading histogram](../assets/bdg2-eda/meter-reading-hist.png)
 
-## Temporal Profiles
+## Temporal profiles
 
-The provenance JSON includes hour/month mean profiles for representative
-electricity and chilledwater raw readings. These are descriptive profiles only;
-they are not model features, scores, or readiness evidence.
+Provenance JSON 包含 representative electricity 與 chilledwater raw readings 的 hour/month mean profiles。這些只作 descriptive profiles，不是 model features、scores 或 readiness evidence。
 
-+ electricity has its highest mean reading around hour 14 and lowest around hour 3; by month it peaks in 8 and is lowest in 12.
-+ chilledwater has its highest mean reading around hour 20 and lowest around hour 8; by month it peaks in 7 and is lowest in 12.
++ Electricity 的最高 mean reading 約在 hour 14，最低約在 hour 3；按 month 看，8 月最高、12 月最低。
++ Chilledwater 的最高 mean reading 約在 hour 20，最低約在 hour 8；按 month 看，7 月最高、12 月最低。
 
-## Methodological Caveats And Review Notes
+## 方法 caveats 與 review notes
 
-+ Released-raw negative-reading share is measured on the released BDG2 raw
-  files. It does not imply the original site-source feeds never contained
-  negative readings: Miller et al. 2020 describe setting negative readings to
-  missing and removing meters with more than 50% negative readings during
-  release processing.
-+ Cleaned null rate above raw null rate is a data-quality delta, not a label.
-  Miller et al. 2020 describe the cleaned files as applying Twitter
-  AnomalyDetection outlier removal, removing zero-reading runs longer than
-  24 hours, and removing electricity zeros.
-+ Pooled meter_reading KS/PSI is a headline diagnostic only. It mixes meter-type
-  composition, zero inflation, site composition, and known BDG2-vs-GEPIII
-  release-regime differences; it should not be interpreted as a pure building
-  behavior distance.
++ Released-raw negative-reading share 是在 released BDG2 raw files 上量測。這不代表原始 site-source feeds 從未有 negative readings；Miller et al. 2020 描述 release processing 會把 negative readings 設為 missing，並移除超過 50% negative readings 的 meters。
++ Cleaned null rate 高於 raw null rate 是 data-quality delta，不是 label。Miller et al. 2020 描述 cleaned files 會套用 Twitter AnomalyDetection outlier removal、移除超過 24 小時的 zero-reading runs、移除 electricity zeros。
++ Pooled meter_reading KS/PSI 只是 headline diagnostic。它混合 meter-type composition、zero inflation、site composition、以及已知 BDG2-vs-GEPIII release-regime differences；不能解讀成純 building behavior distance。
 
 ## Provenance
 

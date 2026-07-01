@@ -1,134 +1,103 @@
-# Phase E to M6 FDD roadmap
+# Phase E 到 M6 FDD Roadmap
 
-## Purpose And Status
+## 目的與狀態
 
-Authoritative roadmap for the Phase E to M6 pivot.
+這份文件是 Phase E 到 M6 的現行 roadmap。Phase E Part A 已完成；現行 M6 主線是 BDG2 的 supervised FDD 評估，範圍限於 GEPIII-overlap subset，決策記錄為 [ADR 0025](../adr/0025-supervised-bdg2-fdd-overlap-evaluation.md) 與 [ADR 0026](../adr/0026-bdg2-label-bridge-integrity.md)。
 
-Current status: Phase E Part A is complete. The old unlabeled review M6 ladder
-has been superseded by the supervised BDG2 overlap pivot recorded in
-[ADR 0025](../adr/0025-supervised-bdg2-fdd-overlap-evaluation.md) and
-[ADR 0026](../adr/0026-bdg2-label-bridge-integrity.md).
+本輪 P0 pivot 是 docs-only：不實作 label bridge、不跑 scoring、不回報 metric、不改 `src/lead`。
 
-This P0 pivot is documentation-only. It does not implement a label bridge, run
-scoring, report metrics, or change `src/lead`.
+## 現行 M6 路線
 
-## Pivot Fact
+M6 透過 GEPIII-overlap 的 supervised bridge 在 BDG2 上評估 FDD。現行路線是：
 
-BDG2 has no native per-row anomaly labels in the local archive. However,
-`data/raw/m3/bad_meter_readings.csv` is the rank-1 manual GEPIII/Kaggle
-bad-reading annotation file already used by M2 and M3. Because BDG2 preserves
-`building_id_kaggle` for GEPIII-overlap buildings, those labels can be bridged
-by `(kaggle_building_id, meter_code, timestamp)` onto BDG2 overlap rows for
-2016 meters `electricity`, `chilledwater`, `steam`, and `hotwater`.
+1. M6.1：建立 label bridge 並驗證 integrity。
+2. M6.2：在 raw BDG2 overlap rows 上回報 supervised transfer metrics。
+3. M6.3：在同一個 labeled overlap frame 上比較 GBDT 與 TabPFN。
+4. M6.4：把 unlabeled remainder evidence 分開回報。
+5. M6.5：收斂 documentation、provenance、validation 與 issue state。
 
-That makes supervised metrics legitimate only for the bridged subset:
-GEPIII-overlap buildings, 2016, meters 0-3. BDG2-only buildings, 2017 rows, and
-other meters remain unlabeled.
+所有 supervised metrics 都遵守 [bdg2-supervised-fdd-plan.md](./bdg2-supervised-fdd-plan.md) 的 M6 Supervised Scope Contract。
 
-## Fixed Constraints
+## Pivot fact
 
-+ M3 numeric line is frozen: `load_m3_frame` defaults, M3.2/M3.4 golden values,
-  the +/- `0.0005` gate, downsampling semantics, and StandardScaler fit path.
-+ `lead.__all__` is frozen unless a later implementation slice makes an
-  additive export with ADR and `test_public_api.py` coverage.
-+ Raw BDG2 is the primary scoring surface; cleaned is a companion sensitivity.
-+ The GEPIII-only `0.2931` unit correction stays out of the BDG2 path.
-+ Every supervised BDG2 metric must state: GEPIII-overlap, 2016, meters 0-3,
-  bridged rank-1 GEPIII annotations.
-+ BDG2-only, 2017, water, gas, solar, and irrigation rows are counted and
-  excluded from supervised denominators.
-+ One slice = one issue = one commit = stop for review; run the full
-  change-checklist per slice.
+本地 BDG2 archive 沒有 native per-row anomaly labels。可用的監督式 label 來源是 M2/M3 已使用的 rank-1 manual GEPIII/Kaggle `bad_meter_readings.csv`。BDG2 metadata 保留 GEPIII-overlap buildings 的 `building_id_kaggle`，因此 M6 可以用 `(kaggle_building_id, meter_code, timestamp)` 把這批 labels 橋接到 BDG2 overlap rows。
 
-## Superseded Part A Decisions
+合法的 supervised metrics 只屬於這個子集：GEPIII-overlap buildings、2016、meters 0-3，也就是 `electricity`、`chilledwater`、`steam`、`hotwater`。BDG2-only buildings、2017 rows、以及其他 meters 仍是 unlabeled。
 
-The following Part A decisions remain historical context but no longer define
-the primary M6 evaluation paradigm:
+## 固定邊界
 
-+ [ADR 0019](../adr/0019-bdg2-evaluation-paradigm.md): superseded by ADR 0025.
-+ [ADR 0020](../adr/0020-bdg2-fdd-audit-yield-evaluation.md): superseded by ADR
-  0025; retained only for the unlabeled remainder.
-+ [ADR 0021](../adr/0021-powered-gate-as-transfer-confidence.md): superseded as
-  moot for the supervised-overlap path.
++ M3 numeric line 凍結：`load_m3_frame` defaults、M3.2/M3.4 golden values、`+/- 0.0005` gate、downsampling semantics、StandardScaler fit path 都不動。
++ `lead.__all__` 凍結；除非後續 implementation slice 有 ADR 與 `test_public_api.py` coverage，否則不新增 public export。
++ Raw BDG2 是 primary scoring surface；cleaned BDG2 只作 companion sensitivity。
++ GEPIII-only `0.2931` unit correction 不進 BDG2 path。
++ 每個 supervised BDG2 metric 都必須明寫 scope：GEPIII-overlap、2016、meters 0-3、bridged rank-1 GEPIII annotations。
++ BDG2-only、2017、water、gas、solar、irrigation rows 要計數並排除在 supervised denominators 之外。
++ 每個 implementation slice 維持 one issue、one commit、stop for review，並跑完整 change checklist。
 
-The following decisions continue with amended scope:
-
-+ [ADR 0022](../adr/0022-electricity-entry-meter-for-bdg2-fdd.md): electricity
-  remains the first BDG2 FDD meter, now as the first labeled supervised-eval
-  meter.
-+ [ADR 0023](../adr/0023-raw-first-bdg2-transfer-scoring.md): raw-first remains
-  required for supervised evaluation correctness.
-+ [ADR 0024](../adr/0024-value-change-regime-convergence.md): value-change
-  semantics remain the multi-meter guardrail.
-
-## M6 Phase Ladder
+## M6 Ladder
 
 ### M6.1 Label Bridge And Integrity
 
-Build the keyed bridge from GEPIII labels to BDG2 overlap rows. Prove the
-bridge before metrics.
+建立 GEPIII labels 到 BDG2 overlap rows 的 keyed bridge，先證明橋接完整性，不回報 accuracy metrics。
 
-Definition of Done:
+完成條件：
 
-+ labeled overlap frame builds for eligible rows;
-+ ADR 0026 guards pass, including label-file schema/length/index checks,
-  unique label keys, timestamp-grid sampling, and null-label-rate checks;
-+ coverage provenance records eligible rows, hit rates, positive counts, and
-  excluded BDG2-only/2017/other-meter rows;
-+ no supervised accuracy metrics are reported.
++ eligible rows 可以建立 labeled overlap frame；
++ ADR 0026 guards 通過，包含 label-file schema、length、index、unique label keys、timestamp-grid sampling、null-label-rate checks；
++ coverage provenance 記錄 eligible rows、hit rates、positive counts、以及 excluded BDG2-only/2017/other-meter rows；
++ 不回報 supervised accuracy metrics。
 
 ### M6.2 Supervised Transfer Accuracy
 
-Score the GEPIII-trained M3.4 ensemble on BDG2 raw overlap rows and report
-ROC-AUC, PR-AUC, precision, recall, and F1 by meter. Cleaned BDG2 is reported
-as a companion sensitivity.
+把 GEPIII-trained M3.4 ensemble score 到 BDG2 raw overlap rows，並按 meter 回報 ROC-AUC、PR-AUC、precision、recall、F1。Cleaned BDG2 只作 companion sensitivity。
 
-Definition of Done:
+完成條件：
 
-+ raw primary metrics and cleaned companion metrics exist;
-+ unknown #27 is measured as a raw-vs-source / BDG2-vs-Kaggle regime delta;
-+ ADR 0025 can be accepted if review approves the evidence.
++ raw primary metrics 與 cleaned companion metrics 都存在；
++ unknown #27 量測為 raw-vs-source / BDG2-vs-Kaggle feature-regime delta；
++ 若 review 接受 evidence，ADR 0025 可由 Proposed 移到 Accepted。
 
 ### M6.3 GBDT Vs TabPFN Supervised Comparison
 
-Compare GBDT and TabPFN on the labeled BDG2 overlap frame.
+在同一個 labeled BDG2 overlap frame 上比較 GBDT 與 TabPFN。
 
-Definition of Done:
+完成條件：
 
-+ accuracy and latency are reported side by side;
-+ TabPFN research/internal-use license and about `6.3 ms/row` latency caveats
-  remain attached;
-+ the verdict mirrors M5 Phase D discipline and is based on labeled BDG2 overlap
-  evidence.
++ accuracy 與 latency side by side；
++ TabPFN research/internal-use license 與約 `6.3 ms/row` latency caveats 隨結果一起呈現；
++ verdict 來自 labeled BDG2 overlap evidence，而不是預先指定 TabPFN 或 GBDT 的角色。
 
 ### M6.4 Unlabeled Remainder
 
-Handle BDG2-only buildings, 2017 rows, and other meters through an
-explicitly-secondary pseudo-label or audit screen.
+BDG2-only buildings、2017 rows、其他 meters 走 secondary pseudo-label 或 review screen。這一支可以使用 raw-vs-cleaned 與資料品質訊號，但不能宣稱 ground truth。
 
-Definition of Done:
+完成條件：
 
-+ raw-vs-cleaned or audit outputs are labeled as pseudo-label/review evidence;
-+ no unlabeled remainder rows enter supervised metrics.
++ 所有 outputs 都標為 pseudo-label 或 review evidence；
++ unlabeled remainder rows 不進 supervised metrics。
 
 ### M6.5 Close-Out
 
-Close M6 with README, plan, ADR, handoff, provenance, validation, issue, and CI
-updates.
+收斂 README、plan、ADR、handoff、provenance、validation、issue 與 CI 狀態。
 
 ## Unknown #27
 
-Unknown #27 remains active but changes role. It is no longer only a caveat that
-travels with unlabeled score transfer. In M6.2 it becomes a measured
-source-vs-target / raw-vs-cleaned regime-shift delta on the labeled overlap
-subset.
+Unknown #27 是 M6.2 要量測的 feature-regime delta：GEPIII/Kaggle source 與 BDG2 raw/cleaned target 在 weather timestamp、unit correction、meter reading distribution、coverage/missingness 上的差距。
 
-The GEPIII/Kaggle source kept UTC weather timestamps and unit-conversion errors
-left as-is, while BDG2 raw/cleaned uses local-time weather and corrected units.
-The GEPIII-only `0.2931` correction remains outside the BDG2 path to avoid
-double conversion.
+GEPIII/Kaggle source 保留 UTC weather timestamps 與 unit-conversion errors；BDG2 raw/cleaned 使用 local-time weather 與 corrected units。GEPIII-only `0.2931` correction 不進 BDG2 path，避免 double conversion。
 
-## Slice Tracker
+## 已退役或暫停的路線
+
+| Route | Status | Why it is not active |
+| --- | --- | --- |
+| ADR 0019 BDG2 evaluation paradigm | Superseded | 已由 ADR 0025 supervised-overlap scope 取代 |
+| ADR 0020 audit-yield evaluation | Historical context | 移到 M6.4 secondary review 背景 |
+| ADR 0021 powered gate | Moot for primary M6 | Labeled-overlap denominator 不需要這個 gate |
+| Chilledwater Step 4 / Swan path | Parked | Coverage-sensitive 且 unlabeled；最多只作 M6.4 背景 |
+
+ADR 0022/0023/0024 仍是 active guardrails：electricity 是第一個 labeled supervised-evaluation meter，raw BDG2 是 primary scoring surface，value-change semantics 是未來 multi-meter guardrail。
+
+## Slice tracker
 
 | Slice | Issue | Status | ADR |
 | --- | --- | --- | --- |

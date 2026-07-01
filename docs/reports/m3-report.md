@@ -10,6 +10,15 @@ M3 是 M2 LEAD reproduction 的延伸實驗。M2 驗證的是 LEAD competition s
 建立穩定 anomaly ranking model。M3 沒有 Kaggle leaderboard，因此所有結果皆為
 building-held-out validation AUC。
 
+## 對應程式碼
+
++ M3.3 buds-lab alignment：[scripts/run_m3_3_budslab.py](../../scripts/run_m3_3_budslab.py)。
++ M3.4 ensemble：[scripts/run_m3_4_ensemble.py](../../scripts/run_m3_4_ensemble.py)。
++ M3.5 post-processing：[scripts/run_m3_5_postprocessing.py](../../scripts/run_m3_5_postprocessing.py)。
++ 50/50 offline/causal ensemble：[scripts/run_m3_50_50_ensemble.py](../../scripts/run_m3_50_50_ensemble.py)。
++ Split causality diagnostic：[scripts/run_m3_split_causality.py](../../scripts/run_m3_split_causality.py)。
++ Golden gates 與 metrics：[tests/golden_metrics.json](../../tests/golden_metrics.json)、[docs/metrics/m3-50-50-ensemble.json](../metrics/m3-50-50-ensemble.json)。
+
 ---
 
 # Ch1: 任務與評估設計

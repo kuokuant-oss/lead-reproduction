@@ -6,6 +6,13 @@
 **Provenance**: 以 `data/processed/m5_phaseD_foundation_vs_gbdt.json`
 （commit `8f4373b`，產生於 2026-06-26 UTC）為準。
 
+## 對應程式碼
+
++ Phase C TabPFN feasibility spike：[scripts/run_m5_phaseC_tabpfn_spike.py](../../scripts/run_m5_phaseC_tabpfn_spike.py)、[tests/test_m5_tabpfn_spike.py](../../tests/test_m5_tabpfn_spike.py)。
++ Phase D GBDT vs TabPFN comparison：[scripts/run_m5_phaseD_foundation_vs_gbdt.py](../../scripts/run_m5_phaseD_foundation_vs_gbdt.py)、[tests/test_m5_phaseD_comparison.py](../../tests/test_m5_phaseD_comparison.py)。
++ Frozen pipeline helpers：[src/lead/data.py](../../src/lead/data.py)、[src/lead/features.py](../../src/lead/features.py)、[src/lead/split.py](../../src/lead/split.py)、[src/lead/sample.py](../../src/lead/sample.py)、[src/lead/evaluate.py](../../src/lead/evaluate.py)。
++ M3 numeric gates：[tests/golden_metrics.json](../../tests/golden_metrics.json)。
+
 ## 設定
 
 每個配對 cell 都重用**相同的 split、downsample、feature table 與固定的驗證
@@ -118,32 +125,26 @@ learning 並未從 raw tabular rows 還原那種結構，因此它至少和 GBDT
 依 ADR 0015 的準則（以 transfer、label scarcity、minimal feature engineering
 判斷，而非單一頭條 AUC）：
 
-TabPFN-3 在 GEPIII 上不是 GBDT 的全面替代品，但在 label-scarce 與部分 cross-site
-設定中提供了真實增益 —— 最明確是 label scarcity 的 PR-AUC，其次是 true cross-site
-的 ROC-AUC。在 10k support 下，它的 in-domain accuracy 已接近完整 M3.4 GBDT
-ensemble，但推論延遲高出數個數量級，限制了即時 FDD 使用。它也沒有降低 feature
-engineering burden；value-change features 仍是關鍵。
+M5 將兩個模型家族都帶入 M6.3 比較：
 
-**Decision**：keep GBDT as the production baseline；keep TabPFN as a label-scarce /
-transfer candidate；do not claim real-time readiness；move cross-dataset validation
-to Phase E (BDG2).
+| M6.3 輸入 | 模型 | M5 要帶入的 evidence |
+| --- | --- | --- |
+| 在 BDG2 overlap 上比較 | GBDT | 推論較快，raw-feature baseline 較強 |
+| 在 BDG2 overlap 上比較 | TabPFN | Low-label PR-AUC 與 site-held-out ROC-AUC 較強 |
+| M6.3 必做比較 | Both | M6.3 在同一 labeled BDG2 overlap frame 上，依 accuracy、latency、feature behavior 做判斷 |
 
-ADR 0025 now carries this Phase D result into BDG2 as a supervised-overlap M6
-comparison frame. GBDT remains the real-time scanner candidate because it is
-sub-second, while TabPFN was about `6.3 ms/row` (`~100x` slower) and remains
-bounded by the TabPFN-3.0
-research/internal-use license. Minimal feature engineering was not a TabPFN
-win, either: raw-17-feature GBDT ROC-AUC `0.9587` exceeded TabPFN `0.9499`, so
-value-change / meter-aware feature engineering remains necessary. In BDG2 FDD,
-TabPFN is restricted to offline audit roles: second-stage candidate re-ranking,
-model-disagreement diagnostics, active-learning audit-set selection, and
-few-shot calibration after a small manual audit set. Its output is
-triage/ranking utility, not BDG2 supervised performance or fault confirmation.
+目前 evidence 不支持「TabPFN 可降低 value-change features 需求」這個說法。Raw-17-feature 條件下，GBDT ROC-AUC `0.9587` 高於 TabPFN `0.9499`，因此 value-change / meter-aware feature engineering 仍屬於 FDD line。
 
-## 延後至 Phase E（BDG2）—— M5 的下一階段
+ADR 0025/0026 把這個 Phase D 結果帶入 M6，作為 labeled-overlap 比較設計。M6.3 必須並列回報 accuracy、latency、license constraints，包含 TabPFN 約 `6.3 ms/row` 的 latency 與 TabPFN-3.0 research/internal-use license boundary。BDG2 上的 model-role decision 屬於 M6.3 evidence。
 
-+ 真正跨**資料集（cross-dataset）**轉移至 BDG2（不同 buildings、sites、meters），
-  使用真實的 BDG2 資料、schema 與標籤 —— 而非已退役的合成 skeleton。
-+ 對 BDG2 的無標註 / few-shot target-site 適應。
-+ 任何 real-time FDD 延遲工程：TabPFN 的推論延遲必須降低數個數量級，且特徵必須
-  是 `PAST_SHIFTS`-only（ADR 0007/0011）。
+## 銜接 M6：BDG2 overlap 正式評估
+
+M5 的結論只來自 GEPIII。M6 才會在 BDG2 上回報 FDD 評估結果，且 supervised scope 只限於 GEPIII-overlap、2016、meters 0-3。Label 來源是 rank-1 GEPIII `bad_meter_readings` annotations 透過 `building_id_kaggle`、meter code、timestamp 橋接到 BDG2 overlap rows；BDG2-only、2017、其他 meter 不進 supervised denominators。
+
+M6 的下一步：
+
++ **M6.1 label bridge + integrity**：先證明 bridge coverage 與 integrity，不回報 accuracy。
++ **M6.2 supervised transfer accuracy**：在 BDG2 raw overlap rows 上回報 ROC-AUC、PR-AUC、precision、recall、F1；cleaned 作 companion sensitivity。
++ **M6.3 GBDT vs TabPFN supervised comparison**：在同一 labeled overlap frame 上比較 accuracy 與 latency。
++ **M6.4 unlabeled remainder**：BDG2-only、2017、其他 meter 只作 secondary pseudo-label / review evidence。
++ **Real-time caveat**：任何 real-time FDD claim 都必須使用 `PAST_SHIFTS`-only features（ADR 0007/0011）；TabPFN latency/license caveats 不可省略。

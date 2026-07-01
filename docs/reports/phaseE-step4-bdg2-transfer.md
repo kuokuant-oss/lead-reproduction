@@ -2,6 +2,12 @@
 
 **Date**: 2026-06-29
 **Issue**: [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39)
+
+**2026-07-01 pivot note**: this report is a legacy record for the old
+unlabeled chilledwater transfer gate. ADR 0025/0026 supersede that route as the
+primary M6 path. Keep the measurements below as historical BDG2-only
+coverage/OOD context; do not treat them as the active supervised M6 design.
+
 **Accepted evidence**:
 
 + `.scratch/phaseE-step4a-bdg2-transfer-pilot.json`
