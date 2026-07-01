@@ -263,13 +263,6 @@ Figures:
 + ![Square feet ECDF](../assets/bdg2-eda/square-feet-ecdf.png)
 + ![Meter reading histogram](../assets/bdg2-eda/meter-reading-hist.png)
 
-Figure sizes:
-
-| Figure | Bytes |
-| --- | --- |
-| docs/assets/bdg2-eda/square-feet-ecdf.png | 31412 |
-| docs/assets/bdg2-eda/meter-reading-hist.png | 25387 |
-
 ## Temporal Profiles
 
 The provenance JSON includes hour/month mean profiles for representative
