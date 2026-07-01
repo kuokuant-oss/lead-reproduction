@@ -54,9 +54,12 @@
 ## Close-Out Notes
 
 + This is a design-only milestone close-out for issue #41.
-+ The next stage is implementation, queued but not started: GBDT full-corpus
-  scan, evidence-packet implementation, and read-only Swan chilledwater
-  structural missingness gating.
++ The next stage was implementation planning, queued but not started: GBDT
+  full-corpus scan, evidence-packet implementation, and Swan chilledwater
+  structural missingness review.
++ A3 later reclassified Swan chilledwater structural missingness as optional
+  future chilledwater work, not a blocking gate, because ADR 0021 demoted the
+  powered gate and ADR 0022 selected electricity as the entry meter.
 + The evidence contract remains unchanged: Level 5, `confirmed`, confirmed-fault
   percent, and supervised BDG2 metrics are unavailable under the current BDG2
   release and ADR 0019/0020.
@@ -64,5 +67,5 @@
 ## Stop Point
 
 Stop here after close-out and merge. Do not implement scoring, evidence-packet
-generation, model transfer, a new meter scope, Swan gating, or a BDG2 pipeline
-from this handoff.
+generation, model transfer, a new meter scope, Swan chilledwater review, or a
+BDG2 pipeline from this handoff.

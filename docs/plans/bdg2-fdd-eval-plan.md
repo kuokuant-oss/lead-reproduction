@@ -156,14 +156,20 @@ removed or changed by cleaned data, the correct interpretation is agreement
 between two data-quality screens. The measurable output is a
 data-quality-candidate rate, not a certified fault rate.
 
-## Read-Only Gating Tasks
+## Optional Future Chilledwater And Implementation Tasks
 
-These tasks are intentionally listed but not executed in this design slice:
+These tasks are intentionally listed but not executed in this design slice.
+After ADR 0021 demoted the powered gate to confidence metadata and ADR 0022
+selected electricity as the entry meter, Swan chilledwater contiguity is
+optional future chilledwater work rather than a blocking gate before the first
+transfer/FDD path.
 
-+ Characterize Swan chilledwater missingness time structure:
++ Optional future chilledwater work: characterize Swan chilledwater missingness
+  time structure:
   contiguous-year blocks, seasonal concentration, and dispersed missingness.
-+ Decide whether Swan has a within-site subwindow that can meet a powered pilot
-  rule without relaxing the existing `missing_rate <= 0.50` gate globally.
++ Optional future chilledwater work: decide whether Swan has a within-site
+  subwindow that can support Level-3 weather-conditioned chilledwater review
+  without relaxing the existing `missing_rate <= 0.50` rule globally.
 + Define the exact matched-random baseline for any future audit-yield run.
 + Define packet rendering and storage paths before implementation.
 + For electricity Level-3 `weather_response` evidence, treat unknown #25 as a

@@ -167,10 +167,10 @@ This is a knife-edge gate-sensitive result:
   bound of 5 buildings. The Step 4 underpowered finding therefore hangs
   on the `0.50` cut point plus Swan's missingness shape, rather than on
   a broad absence of BDG2-only chilledwater readings.
-+ Open question for the next stage: whether Swan's roughly half-missing
++ Optional future chilledwater work: whether Swan's roughly half-missing
   chilledwater coverage is structurally contiguous or dispersed is not
-  characterized here. If it is structurally contiguous, a within-Swan
-  subwindow may be a powered pilot candidate.
+  characterized here. If it is structurally contiguous, a within-Swan subwindow
+  may support a later Level-3 weather-conditioned chilledwater review path.
 
 ### BDG2-Only Top-Site Contribution
 

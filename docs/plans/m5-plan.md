@@ -307,8 +307,9 @@ ingestion does not start on an unverified schema or an unknown label situation.
    the next pre-modeling slice before choosing another meter or scope. The EDA
    report reproduces the chilledwater sparsity from the data side: 26 BDG2-only
    buildings have chilledwater columns, but only 3 satisfy the
-   sufficient-observation rule. Full transfer and Step 4b remain stopped until a
-   within-context packet path is explicitly chosen under ADR 0020/0021.
+   sufficient-observation rule. ADR 0022 moved the entry meter to electricity,
+   so Swan chilledwater contiguity is optional future chilledwater work rather
+   than a blocker for the first transfer/FDD path.
    See
    [docs/reports/phaseE-step4-bdg2-transfer.md](../reports/phaseE-step4-bdg2-transfer.md).
 10. **BDG2 pre-modeling EDA.** Completed in
@@ -345,10 +346,14 @@ ingestion does not start on an unverified schema or an unknown label situation.
    multi-meter transfer must use an additive opt-in meter-aware-equivalent source
    and target path, leaving M3 `row_offset` defaults and golden values unchanged.
    M6.1 single-meter electricity is unaffected; multi-meter wiring is deferred.
-15. **Next queued implementation slice.** Not started: A3 Swan downgrade. After
-   A3 is approved, a docs-only M6 comparison redesign is queued before any M6
-   implementation. The full-corpus electricity scan and evidence-packet
-   implementation remain later slices.
+15. **Swan chilledwater off the critical path.** Completed in A3. Swan's
+   roughly half-missing chilledwater coverage and possible contiguity remain
+   available for optional future Level-3 weather-conditioned chilledwater work,
+   but they no longer block Phase E because ADR 0021 demoted the powered gate
+   and ADR 0022 selected electricity as the entry meter.
+16. **Next queued implementation slice.** Not started: docs-only M6 comparison
+   redesign. It is queued before any M6 implementation. The full-corpus
+   electricity scan and evidence-packet implementation remain later slices.
 
 ---
 
@@ -376,5 +381,6 @@ ingestion does not start on an unverified schema or an unknown label situation.
 | Phase E A2 electricity entry meter | [#44](https://github.com/kuokuant-oss/lead-reproduction/issues/44) | Done |
 | Phase E A4 raw-first transfer/FDD scoring | [#45](https://github.com/kuokuant-oss/lead-reproduction/issues/45) | Done |
 | Phase E A5 value-change regime convergence | [#48](https://github.com/kuokuant-oss/lead-reproduction/issues/48) | Done |
-| Phase E M6 comparison redesign queue | [#47](https://github.com/kuokuant-oss/lead-reproduction/issues/47) | Queued after A5/A3; not started |
-| Phase E GBDT scan + evidence packets + Swan gating | _not opened_ | Queued; not started |
+| Phase E A3 Swan chilledwater off critical path | [#49](https://github.com/kuokuant-oss/lead-reproduction/issues/49) | Done |
+| Phase E M6 comparison redesign queue | [#47](https://github.com/kuokuant-oss/lead-reproduction/issues/47) | Next queued after A3 approval; not started |
+| Phase E GBDT scan + evidence packets | _not opened_ | Queued; not started |

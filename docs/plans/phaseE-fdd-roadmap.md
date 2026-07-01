@@ -12,12 +12,14 @@ Current status: A1 is done ([#42](https://github.com/kuokuant-oss/lead-reproduct
 ([#45](https://github.com/kuokuant-oss/lead-reproduction/issues/45),
 [ADR 0023](../adr/0023-raw-first-bdg2-transfer-scoring.md)). A5 is done
 ([#48](https://github.com/kuokuant-oss/lead-reproduction/issues/48),
-[ADR 0024](../adr/0024-value-change-regime-convergence.md)). A3, the queued
-M6 comparison redesign, and M6 remain queued and must run as separate
-issue/commit/review slices.
+[ADR 0024](../adr/0024-value-change-regime-convergence.md)). A3 is done
+([#49](https://github.com/kuokuant-oss/lead-reproduction/issues/49)). Part A is
+complete. The queued M6 comparison redesign and M6 remain queued and must run as
+separate issue/commit/review slices.
 
-Part A progress: A1, A2, A4, and A5 are done; A3 remains. After A3 is approved,
-the queued M6 comparison redesign runs before any M6 implementation.
+Part A progress: A1, A2, A4, A5, and A3 are done. The next queued item is the
+M6 comparison redesign, which is not started and must run before any M6
+implementation.
 
 This document is the single source of truth for the Phase E to M6 arc. It
 archives the fixed constraints, Part A cleanup sequence, BDG2-paper-derived
@@ -155,19 +157,24 @@ idea; remove it from the critical path once A1/A2 make it non-blocking.
 BDG2 paper fold: none specific to A3. This cleanup follows from A1 and A2:
 Swan contiguity only fed the old powered chilledwater gate.
 
-Status: QUEUED after A5.
+Status: DONE.
 
-Issue: not opened yet.
+Issue: [#49](https://github.com/kuokuant-oss/lead-reproduction/issues/49).
 
-ADR: add or update only if the slice records a new decision beyond plan
-housekeeping.
+ADR: no new ADR. This is plan housekeeping that follows
+[ADR 0021](../adr/0021-powered-gate-as-transfer-confidence.md) and
+[ADR 0022](../adr/0022-electricity-entry-meter-for-bdg2-fdd.md).
+
+Result: Swan chilledwater structural-missingness contiguity is optional future
+chilledwater work, not a blocking gate. The idea and the EDA finding remain
+available for a later Level-3 weather-conditioned chilledwater slice.
 
 A3 does not violate the transfer paradigm, does not touch the M3 numeric line,
 and preserves and carries TabPFN forward.
 
 ## Queued M6 Comparison Redesign
 
-Status: QUEUED after A5 and A3; do not start before Part A is approved.
+Status: QUEUED after Part A; do not start until A3 is approved by review.
 
 Issue: [#47](https://github.com/kuokuant-oss/lead-reproduction/issues/47).
 
@@ -213,7 +220,7 @@ Planned independent comparison phases for the future redesign:
 
 This queueing note does not add the ADR or change the current M6 ladder. The
 actual comparison ADR and M6 ladder rewrite belong to the queued slice after
-A5/A3 approval.
+A3 approval and Part A review.
 
 ## Unknown #27
 
@@ -345,8 +352,8 @@ weather-conditioned evidence are deferred to M7.
 | A2: electricity entry meter | [#44](https://github.com/kuokuant-oss/lead-reproduction/issues/44) | Done | [ADR 0022](../adr/0022-electricity-entry-meter-for-bdg2-fdd.md) |
 | A4: raw-first transfer/FDD scoring | [#45](https://github.com/kuokuant-oss/lead-reproduction/issues/45) | Done | [ADR 0023](../adr/0023-raw-first-bdg2-transfer-scoring.md) |
 | A5: value-change regime convergence | [#48](https://github.com/kuokuant-oss/lead-reproduction/issues/48) | Done | [ADR 0024](../adr/0024-value-change-regime-convergence.md) |
-| A3: Swan chilledwater off critical path | Not opened | Queued | To be decided |
-| M6 comparison redesign | [#47](https://github.com/kuokuant-oss/lead-reproduction/issues/47) | Queued after A5/A3; not started | To be added by redesign slice |
+| A3: Swan chilledwater off critical path | [#49](https://github.com/kuokuant-oss/lead-reproduction/issues/49) | Done | n/a |
+| M6 comparison redesign | [#47](https://github.com/kuokuant-oss/lead-reproduction/issues/47) | Next queued after A3 approval; not started | To be added by redesign slice |
 | M6.1: full-corpus electricity scan | Not opened | Raw-first precondition satisfied; not opened | To be decided |
 | M6.2: evidence packets + review queue | Not opened | Queued after M6.1 | ADR 0020 plus possible follow-up |
 | M6.3: enrichment-vs-random | Not opened | Queued after M6.2 | To be decided |

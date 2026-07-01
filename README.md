@@ -17,7 +17,7 @@
 | **M2** | LEAD competition subset reproduction | Closed | Kaggle Private AUC `0.98616`，與原始解法 `0.98661` 的差距為 `0.05%` |
 | **M3** | Full ASHRAE GEPIII reproduction | Complete | M3.4 ensemble AUC `0.9928`；PI 50/50 ensemble offline `0.9921` / causal `0.9911`；post-processing 為 null result |
 | **M4** | Importable pipeline foundation | M4.0-M4.5 complete | `src/lead` public API frozen; M3.2/M3.4 regression gates pass; M4.2-M4.5 closed |
-| **M5** | FDD on BDG2 | Model track (Phase A–D) complete；Phase E (BDG2) implementation queued | FDD 選模階段完成：GEPIII 上 TabPFN-vs-GBDT 四軸比較（[報告](./docs/reports/m5-foundation-vs-gbdt.md)）— TabPFN 於 label scarcity（+0.100 PR-AUC @200 labels）與 true cross-site ROC-AUC（0.9833 vs 0.9797）勝出，GBDT 保有 inference 延遲與 minimal-FE 優勢，real-time 部署候選仍為 GBDT。Phase E 已完成 BDG2 read-only EDA；powered gate 已降為 reporting-confidence label；electricity 已選為 entry meter，implementation queued |
+| **M5** | FDD on BDG2 | Model track (Phase A–D) complete；Phase E Part A complete | FDD 選模階段完成：GEPIII 上 TabPFN-vs-GBDT 四軸比較（[報告](./docs/reports/m5-foundation-vs-gbdt.md)）— TabPFN 於 label scarcity（+0.100 PR-AUC @200 labels）與 true cross-site ROC-AUC（0.9833 vs 0.9797）勝出，GBDT 保有 inference 延遲與 minimal-FE 優勢，real-time 部署候選仍為 GBDT。Phase E 已完成 BDG2 read-only EDA；powered gate 已降為 reporting-confidence label；electricity 已選為 entry meter；Swan chilledwater contiguity 已移為 optional future chilledwater work |
 
 Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-reproduction/milestones)。
 
@@ -134,7 +134,9 @@ weather-conditioned path. ADR 0023 makes the transfer/FDD scoring path
 raw-first above the general BDG2 loader; cleaned remains an explicit companion
 for sensitivity and convergence checks. ADR 0024 selects additive
 meter-aware-equivalent value-change convergence for future multi-meter transfer
-without moving the M3 `row_offset` default.
+without moving the M3 `row_offset` default. A3 completes Part A by moving Swan
+chilledwater contiguity off the critical path and preserving it as optional
+future chilledwater work.
 
 ## src/lead public API
 
