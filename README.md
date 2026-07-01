@@ -76,44 +76,32 @@ M3 從 ASHRAE GEPIII raw CSV 重建 feature engineering pipeline，使用 buildi
 
 ### M4 Importable Pipeline Foundation
 
-M4 把 notebook 與 script 中重複的 M3 helper 抽到 `src/lead`，先保留既有行為，再為後續語意修正建立 regression gates。
+M4 把已驗證的 M3 reproduction pipeline 整理成可匯入的 `src/lead` package，並用 regression gates 鎖住 M3 numeric line。
 
-M4.0-M4.5 complete:
+M4.0-M4.5 complete。
 
-- `src/lead/data.py`：M3 data loading 與目前 positional label assignment。
-- `src/lead/features.py`：value-change feature generation。
-- `src/lead/split.py`：building-level split helpers。
-- `src/lead/sample.py`：downsample index helper。
-- `src/lead/evaluate.py`：AUC / precision / recall / F1 metrics。
-- `src/lead/io.py`：JSON provenance helper。
+主要結果：
 
-M4.2 完成 guarded positional label alignment，ADR 0010 已 Accepted。M4.3 完成 timestamp-merge value-change evaluation，ADR 0011 已 Accepted。M4.4 保留 StandardScaler 與 positive-duplication sampling 相容性，ADR 0016 已 Accepted。M4.5 完成 M5 readiness gate，並凍結 `src/lead` public API。
+- `src/lead` public API 凍結。
+- M3.2 LightGBM golden AUC 維持 `0.9920`；M3.4 ensemble golden AUC 維持 `0.9928`。
+- Label alignment 已由 ADR 0010 Accepted 鎖定；timestamp/value-change regime 已由 ADR 0011 Accepted 鎖定。
+- Sampling/scaler semantics 已由 ADR 0016 Accepted 鎖定。
+- M5 可直接重用 data、feature、split、sample、evaluation helpers。
+
+詳細結果見 [docs/reports/m4-evaluation-report.md](./docs/reports/m4-evaluation-report.md)。
 
 ### M5/M6 FDD on BDG2
 
-M5 已完成 GEPIII 上的 FDD 模型比較。此階段記錄 TabPFN 在少標籤與部分 site-held-out 情境的增益，也記錄 GBDT 在 latency 與 raw-feature baseline 上的優勢。這些結果是 M6.3 比較的輸入，不是預先指定的 M6 verdict。
+M5 已完成 GEPIII 上的 FDD 模型比較；M6 將在 BDG2 GEPIII-overlap 子集上做正式 supervised FDD 評估。
 
 主要結果：
 
 - TabPFN 在 label scarcity（200 labels 時 +0.100 PR-AUC）與 GEPIII site-held-out ROC-AUC（`0.9833` vs GBDT-retrain `0.9797`）勝出。
-- TabPFN 在 10k context 的 in-domain ROC-AUC（`0.9925`）接近 M3.4 ensemble（`0.9928`）。
-- GBDT 保有推論延遲與 minimal feature engineering 的優勢，real-time 部署候選仍為 GBDT。
+- GBDT 在 latency 與 raw-feature baseline behavior 上保有優勢；M6.3 會在同一 labeled BDG2 overlap frame 上重新比較 GBDT 與 TabPFN。
+- M6 supervised scope 限於 GEPIII-overlap、2016、meters 0-3，label 來源是 GEPIII/Kaggle `bad_meter_readings` bridge。
+- 下一步是 M6.1 label bridge + integrity；coverage/integrity 先行，accuracy metrics 從 M6.2 開始。
 
-M6 是 BDG2 上的正式 supervised FDD 階段。它只使用 GEPIII-overlap、2016、meters 0-3 rows，並以 `building_id_kaggle`、meter code、timestamp 把 GEPIII/Kaggle `bad_meter_readings` labels 橋接到 BDG2。
-
-下一步是 M6.1 label bridge + integrity。這個 slice 只建立 labeled overlap frame 並回報 coverage/integrity；accuracy metrics 從 M6.2 才開始。
-
-細節文件：
-
-- M5 報告：[docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)。
-- M6 roadmap：[docs/plans/phaseE-fdd-roadmap.md](./docs/plans/phaseE-fdd-roadmap.md)。
-- M6 implementation contract：[docs/plans/bdg2-supervised-fdd-plan.md](./docs/plans/bdg2-supervised-fdd-plan.md)。
-- BDG2 EDA: [docs/reports/bdg2-eda.md](./docs/reports/bdg2-eda.md)。
-- ADR 0025/0026：supervised-overlap scope 與 label-bridge integrity。
-
-TabPFN latency/license caveats 已記錄在 M5 報告，M6.3 比較時仍必須一起呈現。BDG2-only、2017、non-GEPIII meters 只屬於 M6.4 secondary review evidence。
-
-ADR 0022/0023/0024 仍是工程 guardrails：electricity 是第一個 labeled supervised-evaluation meter，raw BDG2 是 primary scoring surface，value-change convergence 不移動 M3 `row_offset` default。
+詳細結果見 [docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)；M6 路線見 [docs/plans/phaseE-fdd-roadmap.md](./docs/plans/phaseE-fdd-roadmap.md) 與 [docs/plans/bdg2-supervised-fdd-plan.md](./docs/plans/bdg2-supervised-fdd-plan.md)。BDG2 資料面背景見 [docs/reports/bdg2-eda.md](./docs/reports/bdg2-eda.md)。
 
 ## src/lead public API
 
