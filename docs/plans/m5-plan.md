@@ -340,8 +340,10 @@ ingestion does not start on an unverified schema or an unknown label situation.
    as the non-blocking GEPIII-to-BDG2 weather/unit regime caveat that must travel
    with M6 outputs.
 14. **Next queued implementation slice.** Not started: A5 value-change regime
-   decision. The full-corpus electricity scan, evidence-packet implementation,
-   and Swan downgrade remain later slices.
+   decision. A3 Swan downgrade follows A5. After A5 and A3 are approved, a
+   docs-only M6 comparison redesign is queued before any M6 implementation. The
+   full-corpus electricity scan and evidence-packet implementation remain later
+   slices.
 
 ---
 
@@ -368,4 +370,5 @@ ingestion does not start on an unverified schema or an unknown label situation.
 | Phase E A1 powered-gate demotion | [#42](https://github.com/kuokuant-oss/lead-reproduction/issues/42) | Done |
 | Phase E A2 electricity entry meter | [#44](https://github.com/kuokuant-oss/lead-reproduction/issues/44) | Done |
 | Phase E A4 raw-first transfer/FDD scoring | [#45](https://github.com/kuokuant-oss/lead-reproduction/issues/45) | Done |
+| Phase E M6 comparison redesign queue | [#47](https://github.com/kuokuant-oss/lead-reproduction/issues/47) | Queued after A5/A3; not started |
 | Phase E GBDT scan + evidence packets + Swan gating | _not opened_ | Queued; not started |

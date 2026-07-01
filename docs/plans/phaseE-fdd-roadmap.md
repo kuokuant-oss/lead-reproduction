@@ -10,10 +10,12 @@ Current status: A1 is done ([#42](https://github.com/kuokuant-oss/lead-reproduct
 ([#44](https://github.com/kuokuant-oss/lead-reproduction/issues/44),
 [ADR 0022](../adr/0022-electricity-entry-meter-for-bdg2-fdd.md)). A4 is done
 ([#45](https://github.com/kuokuant-oss/lead-reproduction/issues/45),
-[ADR 0023](../adr/0023-raw-first-bdg2-transfer-scoring.md)). A5, A3, and M6
-remain queued and must run as separate issue/commit/review slices.
+[ADR 0023](../adr/0023-raw-first-bdg2-transfer-scoring.md)). A5, A3, the
+queued M6 comparison redesign, and M6 remain queued and must run as separate
+issue/commit/review slices.
 
-Part A progress: A1, A2, and A4 are done; A5 and A3 remain.
+Part A progress: A1, A2, and A4 are done; A5 and A3 remain. After A5 and A3 are
+approved, the queued M6 comparison redesign runs before any M6 implementation.
 
 This document is the single source of truth for the Phase E to M6 arc. It
 archives the fixed constraints, Part A cleanup sequence, BDG2-paper-derived
@@ -149,6 +151,56 @@ housekeeping.
 A3 does not violate the transfer paradigm, does not touch the M3 numeric line,
 and preserves and carries TabPFN forward.
 
+## Queued M6 Comparison Redesign
+
+Status: QUEUED after A5 and A3; do not start before Part A is approved.
+
+Issue: [#47](https://github.com/kuokuant-oss/lead-reproduction/issues/47).
+
+Scope: docs-only redesign of the M6 ladder plus a new M6-comparison ADR. This
+future slice should compare GBDT and TabPFN on BDG2 instead of pre-assigning
+roles from the M5 Phase D GEPIII result. The redesign must preserve independent
+experiment phases: a run may go deep on one experiment while keeping others
+light or skipped, and each phase needs its own ground-truth or comparison basis
+and definition of done.
+
+Queued design constraints for the future slice:
+
++ Forecasting RMSE/MAE is a forecasting metric, not FDD accuracy. Forecasting
+  error is not a fault, though residuals may seed review candidates.
++ Synthetic-injection precision/recall/PR-AUC must be labeled as measured on
+  injected synthetic anomalies only, not generalized to real BDG2 faults.
++ Human-audit labels remain triage judgments:
+  `actionable_candidate`, `data_quality`, `ood_normal`, `not_interesting`, and
+  `unknown`. No `confirmed` fault status is allowed.
++ No absolute cross-dataset top-K. Within-context ranking, BDG2-only versus
+  GEPIII-overlap separation, raw-first scoring, and unknown #25/#27 caveats
+  remain in force.
++ TabPFN remains a research focus and is not pre-assigned to auditor-only in the
+  redesign. BDG2 evidence should decide whether GBDT wins, TabPFN wins, or a
+  combined workflow is best. TabPFN license and about `6.3 ms/row` latency
+  caveats stay in runtime comparisons.
++ The M3 numeric line and `lead.__all__` remain frozen unless a later slice
+  explicitly satisfies the additive-plus-ADR-plus-test requirement.
+
+Planned independent comparison phases for the future redesign:
+
++ M6.1 forecasting benchmark on BDG2 raw electricity with actual future meter
+  reading as ground truth, comparing GBDT, TabPFN, and persistence baseline.
++ M6.2 synthetic anomaly injection benchmark on injected spike, flatline, drift,
+  and extended-zero-run cases, reported as injected-set metrics only.
++ M6.3 union candidate pool plus shared event-packet comparison across GBDT
+  top-K, TabPFN top-K, forecast residuals, raw-vs-cleaned disagreement,
+  zero-run/missingness candidates, optional injected anomalies, and a stratified
+  random baseline.
++ M6.4 human audit top-K comparison across GBDT-only, TabPFN-only, both, random,
+  residual-only, and combined rankings, reported as triage utility rather than
+  accuracy.
+
+This queueing note does not add the ADR or change the current M6 ladder. The
+actual comparison ADR and M6 ladder rewrite belong to the queued slice after
+A5/A3 approval.
+
 ## Unknown #27
 
 Unknown #27 is open in [unknowns.md](../reference/unknowns.md).
@@ -280,6 +332,7 @@ weather-conditioned evidence are deferred to M7.
 | A4: raw-first transfer/FDD scoring | [#45](https://github.com/kuokuant-oss/lead-reproduction/issues/45) | Done | [ADR 0023](../adr/0023-raw-first-bdg2-transfer-scoring.md) |
 | A5: value-change regime convergence | Not opened | Queued | To be added |
 | A3: Swan chilledwater off critical path | Not opened | Queued | To be decided |
+| M6 comparison redesign | [#47](https://github.com/kuokuant-oss/lead-reproduction/issues/47) | Queued after A5/A3; not started | To be added by redesign slice |
 | M6.1: full-corpus electricity scan | Not opened | Raw-first precondition satisfied; not opened | To be decided |
 | M6.2: evidence packets + review queue | Not opened | Queued after M6.1 | ADR 0020 plus possible follow-up |
 | M6.3: enrichment-vs-random | Not opened | Queued after M6.2 | To be decided |
