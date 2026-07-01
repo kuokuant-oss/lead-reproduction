@@ -13,6 +13,8 @@ Current status: A1 is done ([#42](https://github.com/kuokuant-oss/lead-reproduct
 [ADR 0023](../adr/0023-raw-first-bdg2-transfer-scoring.md)). A5, A3, and M6
 remain queued and must run as separate issue/commit/review slices.
 
+Part A progress: A1, A2, and A4 are done; A5 and A3 remain.
+
 This document is the single source of truth for the Phase E to M6 arc. It
 archives the fixed constraints, Part A cleanup sequence, BDG2-paper-derived
 folds, unknown #27, and M6 implementation ladder so the through-line
