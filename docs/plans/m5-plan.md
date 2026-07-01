@@ -239,8 +239,9 @@ measured `underpowered_even_pooled` as a reporting-confidence label
 (OOD-leaning, not a missingness-only artifact); BDG2 pre-modeling EDA complete;
 FDD audit-yield evaluation framework accepted in ADR 0020; powered entry gate
 demoted to confidence metadata in ADR 0021; electricity selected as the entry
-meter in ADR 0022; raw-first transfer/FDD scoring accepted in ADR 0023; M6
-implementation queued, not started
+meter in ADR 0022; raw-first transfer/FDD scoring accepted in ADR 0023;
+value-change convergence accepted in ADR 0024; M6 implementation queued, not
+started
 **GitHub Issue**: [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39)
 **Roadmap**: [docs/plans/phaseE-fdd-roadmap.md](phaseE-fdd-roadmap.md)
 
@@ -339,11 +340,15 @@ ingestion does not start on an unverified schema or an unknown label situation.
    remains an explicit sensitivity or convergence companion. Unknown #27 is open
    as the non-blocking GEPIII-to-BDG2 weather/unit regime caveat that must travel
    with M6 outputs.
-14. **Next queued implementation slice.** Not started: A5 value-change regime
-   decision. A3 Swan downgrade follows A5. After A5 and A3 are approved, a
-   docs-only M6 comparison redesign is queued before any M6 implementation. The
-   full-corpus electricity scan and evidence-packet implementation remain later
-   slices.
+14. **Value-change convergence.** Accepted in
+   [ADR 0024](../adr/0024-value-change-regime-convergence.md). Future
+   multi-meter transfer must use an additive opt-in meter-aware-equivalent source
+   and target path, leaving M3 `row_offset` defaults and golden values unchanged.
+   M6.1 single-meter electricity is unaffected; multi-meter wiring is deferred.
+15. **Next queued implementation slice.** Not started: A3 Swan downgrade. After
+   A3 is approved, a docs-only M6 comparison redesign is queued before any M6
+   implementation. The full-corpus electricity scan and evidence-packet
+   implementation remain later slices.
 
 ---
 
@@ -370,5 +375,6 @@ ingestion does not start on an unverified schema or an unknown label situation.
 | Phase E A1 powered-gate demotion | [#42](https://github.com/kuokuant-oss/lead-reproduction/issues/42) | Done |
 | Phase E A2 electricity entry meter | [#44](https://github.com/kuokuant-oss/lead-reproduction/issues/44) | Done |
 | Phase E A4 raw-first transfer/FDD scoring | [#45](https://github.com/kuokuant-oss/lead-reproduction/issues/45) | Done |
+| Phase E A5 value-change regime convergence | [#48](https://github.com/kuokuant-oss/lead-reproduction/issues/48) | Done |
 | Phase E M6 comparison redesign queue | [#47](https://github.com/kuokuant-oss/lead-reproduction/issues/47) | Queued after A5/A3; not started |
 | Phase E GBDT scan + evidence packets + Swan gating | _not opened_ | Queued; not started |

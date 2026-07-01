@@ -10,12 +10,14 @@ Current status: A1 is done ([#42](https://github.com/kuokuant-oss/lead-reproduct
 ([#44](https://github.com/kuokuant-oss/lead-reproduction/issues/44),
 [ADR 0022](../adr/0022-electricity-entry-meter-for-bdg2-fdd.md)). A4 is done
 ([#45](https://github.com/kuokuant-oss/lead-reproduction/issues/45),
-[ADR 0023](../adr/0023-raw-first-bdg2-transfer-scoring.md)). A5, A3, the
-queued M6 comparison redesign, and M6 remain queued and must run as separate
+[ADR 0023](../adr/0023-raw-first-bdg2-transfer-scoring.md)). A5 is done
+([#48](https://github.com/kuokuant-oss/lead-reproduction/issues/48),
+[ADR 0024](../adr/0024-value-change-regime-convergence.md)). A3, the queued
+M6 comparison redesign, and M6 remain queued and must run as separate
 issue/commit/review slices.
 
-Part A progress: A1, A2, and A4 are done; A5 and A3 remain. After A5 and A3 are
-approved, the queued M6 comparison redesign runs before any M6 implementation.
+Part A progress: A1, A2, A4, and A5 are done; A3 remains. After A3 is approved,
+the queued M6 comparison redesign runs before any M6 implementation.
 
 This document is the single source of truth for the Phase E to M6 arc. It
 archives the fixed constraints, Part A cleanup sequence, BDG2-paper-derived
@@ -122,12 +124,24 @@ BDG2 paper fold: none specific to A5. The decision exists because the current
 GEPIII source detector trains under `row_offset`, while BDG2 scoring uses
 `row_offset_meter_aware`, justified only by single-meter equivalence.
 
-Status: QUEUED after A4.
+Status: DONE.
 
-Issue: not opened yet.
+Issue: [#48](https://github.com/kuokuant-oss/lead-reproduction/issues/48).
 
-ADR: to be added during A5. Implementation may stage separately if needed, but
-the decision should stop rolling.
+ADR: [ADR 0024](../adr/0024-value-change-regime-convergence.md).
+
+Decision: choose the additive meter-aware-equivalent path. Future multi-meter
+transfer must train and score through matching value-change semantics, using an
+opt-in meter-aware source path paired with BDG2 target scoring through the same
+regime. `row_offset` remains the M3 default and the M3 numeric line is not
+moved. The one-detector-per-meter alternative remains a fallback only if later
+implementation proves the additive path cannot be wired without violating the
+frozen M3 line.
+
+Deferred: the exact multi-meter source-training helper or script flag,
+multi-meter detector artifacts, provenance schema, and any fallback decision for
+a concrete later run. M6.1 single-meter electricity is unaffected because Phase E
+Step 1 already proved single-meter equivalence.
 
 A5 does not violate the transfer paradigm, does not touch the M3 numeric line,
 and preserves and carries TabPFN forward.
@@ -330,7 +344,7 @@ weather-conditioned evidence are deferred to M7.
 | A1: powered gate to confidence | [#42](https://github.com/kuokuant-oss/lead-reproduction/issues/42) | Done | [ADR 0021](../adr/0021-powered-gate-as-transfer-confidence.md) |
 | A2: electricity entry meter | [#44](https://github.com/kuokuant-oss/lead-reproduction/issues/44) | Done | [ADR 0022](../adr/0022-electricity-entry-meter-for-bdg2-fdd.md) |
 | A4: raw-first transfer/FDD scoring | [#45](https://github.com/kuokuant-oss/lead-reproduction/issues/45) | Done | [ADR 0023](../adr/0023-raw-first-bdg2-transfer-scoring.md) |
-| A5: value-change regime convergence | Not opened | Queued | To be added |
+| A5: value-change regime convergence | [#48](https://github.com/kuokuant-oss/lead-reproduction/issues/48) | Done | [ADR 0024](../adr/0024-value-change-regime-convergence.md) |
 | A3: Swan chilledwater off critical path | Not opened | Queued | To be decided |
 | M6 comparison redesign | [#47](https://github.com/kuokuant-oss/lead-reproduction/issues/47) | Queued after A5/A3; not started | To be added by redesign slice |
 | M6.1: full-corpus electricity scan | Not opened | Raw-first precondition satisfied; not opened | To be decided |
