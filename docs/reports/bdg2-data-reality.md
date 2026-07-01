@@ -6,27 +6,27 @@
 
 ## Provenance
 
-- Local source: Kaggle archive `claytonmiller/buildingdatagenomeproject2`, copied from `C:\Users\tonykuo\Downloads\archive`.
-- Official reference repo: https://github.com/buds-lab/building-data-genome-project-2
-- Meter field reference: https://github.com/buds-lab/building-data-genome-project-2/wiki/Meters-data-features
-- Paper: Miller et al., Scientific Data 7, 368 (2020), DOI `10.1038/s41597-020-00712-x`.
-- Download/copy date: 2026-06-29.
-- Upstream commit: not applicable to this local Kaggle CSV archive. The prior Git checkout was discarded because it contained Git LFS pointers rather than real CSV data.
+- Local source：Kaggle archive `claytonmiller/buildingdatagenomeproject2`，由 `C:\Users\tonykuo\Downloads\archive` 複製。
+- Official reference repo：https://github.com/buds-lab/building-data-genome-project-2
+- Meter field reference：https://github.com/buds-lab/building-data-genome-project-2/wiki/Meters-data-features
+- Paper：Miller et al., Scientific Data 7, 368 (2020), DOI `10.1038/s41597-020-00712-x`。
+- Download/copy date：2026-06-29。
+- Upstream commit：不適用於本地 Kaggle CSV archive。先前 Git checkout 因為只有 Git LFS pointer、沒有真實 CSV，已捨棄。
 
 ## File Gate
 
-- CSV files found: 18.
-- Git LFS pointer files: 0.
+- CSV files found：18。
+- Git LFS pointer files：0。
 - `electricity.csv`: 166.167 MB.
 - `weather.csv`: 18.556 MB.
 - `metadata.csv`: 0.259 MB.
 
 ## Metadata Reality
 
-- `metadata.csv` shape: 1636 rows x 32 columns.
-- Building id is the string `building_id` field, for example `Panther_lodging_Dean`.
-- Site count: 19; building count: 1636.
-- Timezone column: `timezone`, with 6 distinct values: Europe/Dublin, Europe/London, US/Central, US/Eastern, US/Mountain, US/Pacific.
+- `metadata.csv` shape：1636 rows x 32 columns。
+- Building id 是 string `building_id` field，例如 `Panther_lodging_Dean`。
+- Site count：19；building count：1636。
+- Timezone column：`timezone`，共有 6 個 distinct values：Europe/Dublin、Europe/London、US/Central、US/Eastern、US/Mountain、US/Pacific。
 
 ### GEPIII-to-BDG2 Field Mapping
 
@@ -43,9 +43,9 @@
 
 ### GEPIII Overlap Bridge
 
-- `building_id_kaggle` non-empty buildings: 1449.
-- BDG2-only buildings: 187.
-- Loader contract: retain `building_id_kaggle`, `site_id_kaggle`, and derive `is_gepiii_overlap`.
+- `building_id_kaggle` non-empty buildings：1449。
+- BDG2-only buildings：187。
+- Loader contract：保留 `building_id_kaggle`、`site_id_kaggle`，並 derive `is_gepiii_overlap`。
 
 Overlap site distribution:
 
@@ -108,8 +108,8 @@ BDG2-only site distribution:
 
 - Raw meter files: 8.
 - Cleaned meter files: 8.
-- Layout: each meter file is a wide table with `timestamp` plus one column per building id.
-- Long-table mapping for ingestion: `(building, meter_type, timestamp, reading)` is obtained by melting each meter file's building columns, using the file stem as `meter_type` and the cell value as `reading`.
+- Layout：每個 meter file 都是 wide table，包含 `timestamp` 與每個 building id 對應的一個 column。
+- Long-table mapping for ingestion：把每個 meter file 的 building columns melt 成 `(building, meter_type, timestamp, reading)`；file stem 作為 `meter_type`，cell value 作為 `reading`。
 
 | File | Variant | Meter | Rows | Building cols | Start | End | Null rate |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -132,35 +132,40 @@ BDG2-only site distribution:
 
 ## Weather Reality
 
-- `weather.csv` shape: 331166 rows x 10 columns.
-- Weather key: `site_id`; site count: 19.
-- Timestamp range: 2016-01-01 00:00:00 to 2017-12-31 23:00:00.
-- Timezone column present: False. Site timezone must therefore be joined from metadata if local-time interpretation is needed.
-- Columns: `timestamp, site_id, airTemperature, cloudCoverage, dewTemperature, precipDepth1HR, precipDepth6HR, seaLvlPressure, windDirection, windSpeed`
-- Null rate: 0.197133.
-- Stage 1 timezone diagnostic note: the `0.197133` null rate is the whole
-  weather-table null rate across all weather fields. The `airTemperature`
-  column used for the meter/weather phase diagnostic has null rate `0.000387`.
+- `weather.csv` shape：331166 rows x 10 columns。
+- Weather key：`site_id`；site count：19。
+- Timestamp range：2016-01-01 00:00:00 to 2017-12-31 23:00:00。
+- Timezone column present：False。若需要 local-time interpretation，site timezone 必須從 metadata join。
+- Columns：`timestamp, site_id, airTemperature, cloudCoverage, dewTemperature, precipDepth1HR, precipDepth6HR, seaLvlPressure, windDirection, windSpeed`
+- Null rate：0.197133。
+- Stage 1 timezone diagnostic note：`0.197133` 是整張 weather table across all weather fields 的 null rate。Meter/weather phase diagnostic 使用的 `airTemperature` column null rate 是 `0.000387`。
 
 ## Label Reality
 
-- Per-row anomaly labels present: **False**.
-- Label-like files found: [].
-- Label-like metadata/weather columns found: [].
+- Per-row anomaly labels present：**False**。
+- Label-like files found：[]。
+- Label-like metadata/weather columns found：[]。
 
-BDG2, as present in this archive, does not provide a per-row anomaly label comparable to GEPIII `bad_meter_readings.csv`. Any Phase E supervised FDD claim must therefore choose and document a label strategy before training or evaluation.
+本地 BDG2 archive 沒有可與 GEPIII `bad_meter_readings.csv` 對等的 native per-row anomaly label。ADR 0025/0026 定義的現行策略是：把 rank-1 manual GEPIII annotations 透過 `building_id_kaggle`、meter code、timestamp 橋接到 BDG2 的 GEPIII-overlap、2016、meters-0-3 子集。這個 bridge 不標記 BDG2-only buildings、2017 rows 或 non-GEPIII meters。
 
-Viable strategies:
+Implication for M6:
 
-- Unsupervised detection on BDG2 meter series.
-- Forecasting-residual labels or anomaly scores from held-out temporal forecasts.
-- Apply a GEPIII-trained detector as a cross-dataset scoring baseline.
-- Raw/cleaned difference pseudo-labels: cells present in raw but set to `NaN` in cleaned are a candidate proxy for BDG2-cleaning-identified bad readings.
+- Supervised evaluation 需要 GEPIII/Kaggle bad-meter-reading bridge。
+- Bridge 外的 rows 維持 unlabeled。
+- Unlabeled rows 可支援 secondary review evidence，但不能進入 supervised metrics。
+
+可行路線：
+
+- Primary M6 path：ADR 0026 bridge integrity gate 通過後，在 GEPIII-overlap、2016、meters-0-3 子集做 supervised evaluation。
+- Secondary M6.4 path：unlabeled BDG2 remainder 只作 pseudo-label 或 review evidence。
+- Forecasting-residual labels 或 held-out temporal forecasts 產生的 anomaly scores，可作後續 secondary evidence。
+- GEPIII-trained detector 可作 cross-dataset scoring baseline，但 metric scope 必須明確。
+- Raw/cleaned difference pseudo-labels：raw present 但 cleaned 設為 `NaN` 的 cells 只能作 secondary branch 的候選 proxy。
 
 ## Raw, Cleaned, and Kaggle Variants
 
-- This local archive has raw and cleaned files for all eight BDG2 meter types.
-- Cleaned null rates are higher than raw null rates for every measured meter type:
+- 本地 archive 對 8 種 BDG2 meter types 都有 raw 與 cleaned files。
+- 每個 measured meter type 的 cleaned null rate 都高於 raw null rate：
 
 | Meter | cleaned null rate - raw null rate |
 | --- | --- |
@@ -173,9 +178,9 @@ Viable strategies:
 | steam | 0.009229 |
 | water | 0.011553 |
 
-- The separate GEPIII/Kaggle 2017 subset file is not present in this archive; this matches the user-provided correction that `kaggle.csv` is not part of the local true-data download.
-- Source-level note for Stage 1 ADR: BDG2 raw/cleaned files are the full 2016+2017 BDG2 meter release, while the GEPIII/Kaggle subset is a 2017 local-time subset with different unit-correction semantics. The loader contract must not assume the GEPIII site-0/meter-0 correction applies to BDG2 raw/cleaned files.
+- 這個 archive 沒有 separate GEPIII/Kaggle 2017 subset file；這符合 user-provided correction：`kaggle.csv` 不是本地 true-data download 的一部分。
+- Stage 1 ADR 的 source-level note：BDG2 raw/cleaned files 是完整 2016+2017 BDG2 meter release；GEPIII/Kaggle subset 是 2017 local-time subset，unit-correction semantics 不同。Loader contract 不得假設 GEPIII site-0/meter-0 correction 適用於 BDG2 raw/cleaned files。
 
-## Stage 0 Decision Boundary
+## Stage 0 decision boundary
 
-This report is the fact base for Stage 1. No `src/lead` code was inspected or changed by this inventory script, and no BDG2 loader contract is inferred here beyond the measured file schema.
+本報告是 Stage 1 之後工作的 fact base。這個 inventory script 沒有 inspect 或改動 `src/lead` code，也不從量測到的 file schema 之外推論新的 BDG2 loader contract。

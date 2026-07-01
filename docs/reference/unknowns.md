@@ -855,7 +855,8 @@ order-of-magnitude inference-latency reduction (deferred to Phase E, BDG2).
 **Question**: Does the BDG2 (Building Data Genome 2) Fox subset provide a per-row
 anomaly/fault label, or only raw meter readings?
 
-**Status**: resolved by Stage 0 inventory (2026-06-29)
+**Status**: resolved by Stage 0 inventory; amended by supervised bridge pivot
+(2026-07-01)
 
 **Why it matters**: This is the highest-priority Phase E gate. The label answer
 decides the entire evaluation paradigm (see #23) and whether supervised AUC is
@@ -864,11 +865,18 @@ labels; BDG2 may not offer an equivalent. No BDG2 ingestion may start until this
 is resolved.
 
 **Stage 0 finding**: `docs/reports/bdg2-data-reality.md` found meter,
-metadata, and weather files only. No per-row anomaly/fault label or label-like
-schema field is present in the local BDG2 archive.
+metadata, and weather files only. No native per-row anomaly/fault label or
+label-like schema field is present in the local BDG2 archive.
 
-**Next**: follow ADR 0019's evaluation contract; do not claim supervised BDG2
-AUC without a documented pseudo-label or external label source.
+**2026-07-01 bridge amendment**: the no-native-label finding remains true for
+BDG2 itself, but `data/raw/m3/bad_meter_readings.csv` is the rank-1 manual
+GEPIII/Kaggle annotation file already used by M2/M3. ADR 0025/0026 propose
+bridging those annotations onto BDG2's GEPIII-overlap, 2016, meters-0-3 subset
+through `building_id_kaggle`, meter code, and timestamp.
+
+**Next**: M6.1 must prove the keyed label bridge and coverage before any M6.2
+supervised metric. BDG2-only buildings, 2017 rows, and other meters remain
+unlabeled.
 
 ---
 
@@ -879,7 +887,7 @@ forecasting-residual scoring from readings only, (b) unsupervised detection, (c)
 applying a GEPIII-trained detector with no BDG2 ground truth, or (d)
 pseudo-labels derived from raw/cleaned differences?
 
-**Status**: resolved by ADR 0019 (2026-06-29)
+**Status**: superseded/reopened by ADR 0025/0026 pivot (2026-07-01)
 
 **Why it matters**: The paradigm choice determines metrics, the
 transfer-evaluation contract, and what a "result" means. Stage 0 eliminated
@@ -889,15 +897,14 @@ difference pseudo-labels. The last option treats cells that are present in raw
 meter files but become `NaN` in cleaned files as BDG2-cleaning-identified bad
 readings, the closest measured analogue to GEPIII `bad_meter_readings`.
 
-**Resolution**: ADR 0019 selects GEPIII-trained detector transfer to BDG2 as an
-unlabeled cross-dataset baseline. BDG2 outputs are score-transfer evidence, not
-supervised ground-truth metrics. Raw/cleaned pseudo-labels may be used only as
-secondary sensitivity analysis, and any AUC/PR-AUC/precision/recall/F1 must be
-explicitly labeled as pseudo-label metrics.
+**Resolution**: ADR 0025 selects supervised evaluation on BDG2's
+GEPIII-overlap, 2016, meters-0-3 subset using bridged rank-1 GEPIII annotations.
+ADR 0019's "no native BDG2 label" premise remains true, but its unlabeled
+primary paradigm is superseded for the eligible overlap subset.
 
-**Next**: implement only within the ADR 0019 metric contract: report
-GEPIII-overlap and BDG2-only separately, require BDG2-only or held-out-site
-headline transfer evidence, and do not call `site_id % k` cross-dataset.
+**Next**: implement M6.1 label bridge + integrity first. Raw/cleaned
+pseudo-labels and the old audit tooling move to the explicitly-secondary M6.4
+unlabeled remainder branch.
 
 ---
 
@@ -921,8 +928,8 @@ cross-dataset test.
 `load_bdg2_frame` implements it while preserving `building_id_kaggle`,
 `site_id_kaggle`, and `is_gepiii_overlap`.
 
-**Next**: use ADR 0017 as the loader contract and ADR 0019 as the evaluation
-contract until a later ADR supersedes either one.
+**Next**: use ADR 0017 as the default unlabeled loader contract. Use ADR
+0025/0026 for the optional labeled-overlap bridge path.
 
 ---
 
@@ -942,18 +949,18 @@ correlation about `0.28`. The current interpretation is that electricity is more
 occupancy-driven and therefore less temperature-synchronous, not that BDG2 has a
 systematic timezone-sized offset.
 
-ADR 0022 selects electricity as the entry meter for within-context scoring, but
-this unknown remains open for Level-3 `weather_response` evidence. Miller et al.
+ADR 0022 selects electricity as the first BDG2 FDD meter, but this unknown
+remains open for any weather-response evidence. Miller et al.
 2020 Fig 5 shows electricity weather sensitivity is heterogeneous: a significant
 subset of electricity meters are temperature-correlated, while others are not.
 Therefore this is a per-site/per-meter weather-feature-validity caveat, not an
 electricity-wide Level-3 disqualifier and not evidence that all electricity
 meters have usable weather response.
 
-**Next**: before attaching Level-3 weather-response evidence to an electricity
-packet, run per-site/per-meter electricity diagnostics. Level-1/2
-within-context scoring can proceed without resolving this unknown, as long as
-weather-response evidence is not applied wholesale across electricity meters.
+**Next**: before attaching weather-response evidence to an electricity result,
+run per-site/per-meter electricity diagnostics. M6.1 label bridge integrity can
+proceed without resolving this unknown, as long as weather-response evidence is
+not applied wholesale across electricity meters.
 
 ---
 
@@ -962,7 +969,8 @@ weather-response evidence is not applied wholesale across electricity meters.
 **Question**: Why did the Fox/chilledwater Step 3 smoke score BDG2-only rows
 about `22x` higher at the median than GEPIII-overlap rows?
 
-**Status**: resolved-with-finding (2026-06-29)
+**Status**: resolved-with-finding; demoted to unlabeled-remainder context by
+ADR 0025 (2026-07-01)
 
 **Why it matters**: ADR 0019 permits unlabeled score-transfer evidence, but not
 ground-truth BDG2 accuracy claims. A large score split between BDG2-only and
@@ -990,11 +998,11 @@ with BDG2-only median `0.15755569665583008` versus overlap median
 sufficient-observation median is `0.9911189331269352` versus overlap median
 `0.007638401990504516`, with `ood_signal=true`.
 
-**Resolution**: Under ADR 0019, chilledwater cannot produce a powered BDG2-only
-headline from this evidence frame. The uplift is OOD-leaning and is not
-explained by missingness alone, but it remains underpowered and unlabeled
-score-transfer evidence, not BDG2 anomaly prevalence, transfer success, or
-readiness.
+**Resolution**: This remains useful historical evidence for BDG2-only and
+chilledwater distribution shift, but it is no longer the primary M6 result
+frame. BDG2-only rows are outside the supervised label bridge and remain
+unlabeled. The uplift must not be used as anomaly prevalence, transfer success,
+or readiness.
 
 **BDG2 EDA follow-up (2026-06-30)**:
 
@@ -1011,7 +1019,7 @@ coverage/missingness shape rather than chilledwater reading magnitude being far
 outside the GEPIII range. The next design question is whether Swan's roughly
 half-missing chilledwater coverage is structurally contiguous enough for a
 within-Swan powered pilot, or whether Phase E needs a different meter, site
-scope, or audit-yield evidence frame.
+scope, or an explicitly-secondary unlabeled-remainder evidence frame.
 
 ---
 
@@ -1032,16 +1040,25 @@ ADR 0018 already isolates the GEPIII/Kaggle-only `0.2931` unit correction
 `load_bdg2_frame`. That correction stays out of the BDG2 path to avoid double
 conversion.
 
-**Status**: open caveat; non-blocking for M6 within-context ranking
-(2026-06-30)
+**Status**: open measurable M6.2 delta; non-blocking for M6.1 bridge integrity
+(2026-07-01)
 
-**Why it matters**: ADR 0019 forbids absolute-score risk claims for BDG2
-transfer output, and M6 reports within-context ranks or quantiles rather than
-calibrated cross-dataset probabilities. That makes the regime shift
-non-blocking for candidate surfacing. It still must travel with every M6
-transfer output because weather-lag evidence may be shaped by source training
-conditions that differ from the BDG2 target.
+**Why it matters**: ADR 0025 makes supervised metrics legitimate on the bridged
+overlap subset, so the source-vs-target regime shift becomes measurable instead
+of only a caveat. It may affect detector features and score calibration even
+though the label bridge itself keys only on building, meter, and timestamp.
 
-**Next**: attach this caveat to M6 scan summaries, evidence packets, and
-raw-vs-cleaned convergence reports. Do not apply the GEPIII-only `0.2931`
-correction in the BDG2 scoring path.
+**Next**: M6.2 should measure raw-vs-source and raw-vs-cleaned deltas under the
+supervised overlap metrics. Do not apply the GEPIII-only `0.2931` correction in
+the BDG2 scoring path.
+
+---
+
+## Parked contingency. LEAD1.0 dual-label electricity
+
+**Status**: parked; not active for M6 (2026-07-01)
+
+LEAD1.0 dual-label electricity work is a documented future option only. Do not
+download it, wire it, or reference it in active M6 metrics unless a later issue
+and ADR explicitly reactivate it. See
+`docs/plans/bdg2-supervised-fdd-plan.md`.

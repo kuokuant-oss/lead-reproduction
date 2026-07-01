@@ -17,7 +17,7 @@
 | **M2** | LEAD competition subset reproduction | Closed | Kaggle Private AUC `0.98616`，與原始解法 `0.98661` 的差距為 `0.05%` |
 | **M3** | Full ASHRAE GEPIII reproduction | Complete | M3.4 ensemble AUC `0.9928`；PI 50/50 ensemble offline `0.9921` / causal `0.9911`；post-processing 為 null result |
 | **M4** | Importable pipeline foundation | M4.0-M4.5 complete | `src/lead` public API frozen; M3.2/M3.4 regression gates pass; M4.2-M4.5 closed |
-| **M5** | FDD on BDG2 | Model track (Phase A–D) complete；Phase E Part A complete | FDD 選模階段完成：GEPIII 上 TabPFN-vs-GBDT 四軸比較（[報告](./docs/reports/m5-foundation-vs-gbdt.md)）— TabPFN 於 label scarcity（+0.100 PR-AUC @200 labels）與 true cross-site ROC-AUC（0.9833 vs 0.9797）勝出，GBDT 保有 inference 延遲與 minimal-FE 優勢，real-time 部署候選仍為 GBDT。Phase E 已完成 BDG2 read-only EDA；powered gate 已降為 reporting-confidence label；electricity 已選為 entry meter；Swan chilledwater contiguity 已移為 optional future chilledwater work |
+| **M5/M6** | FDD on BDG2 | M5 GEPIII 初步模型比較完成；M6 BDG2 overlap 正式評估已規劃 | M5 建立 BDG2 FDD 評估前的模型比較基準：TabPFN 在 label scarcity 與 GEPIII site-held-out ROC-AUC 有增益，GBDT 在 latency 與 minimal-FE baseline 上有優勢。M6.3 會在同一 labeled BDG2 overlap frame 上正式比較 GBDT 與 TabPFN；M6 supervised metrics 只限 GEPIII-overlap、2016、meters 0-3。 |
 
 Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-reproduction/milestones)。
 
@@ -26,13 +26,14 @@ Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-r
 - **M2 復現報告**：[docs/reports/reproduction-report.md](./docs/reports/reproduction-report.md)
 - **M3 完成報告**：[docs/reports/m3-report.md](./docs/reports/m3-report.md)
 - **M4 評估報告**：[docs/reports/m4-evaluation-report.md](./docs/reports/m4-evaluation-report.md)
-- **M5 FDD 選模報告**：[docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)
+- **M5 GEPIII 模型比較報告**：[docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)
 - **BDG2 EDA 報告**：[docs/reports/bdg2-eda.md](./docs/reports/bdg2-eda.md)
 - **BDG2 data descriptor reference**：[docs/reference/papers/bdg2-miller-2020.md](./docs/reference/papers/bdg2-miller-2020.md)
 - **工作方法**：[docs/reference/workflow.md](./docs/reference/workflow.md)
 - **M4 計畫**：[docs/plans/m4-plan.md](./docs/plans/m4-plan.md)
 - **M5 計畫**：[docs/plans/m5-plan.md](./docs/plans/m5-plan.md)
 - **Phase E → M6 roadmap**：[docs/plans/phaseE-fdd-roadmap.md](./docs/plans/phaseE-fdd-roadmap.md)
+- **BDG2 supervised FDD plan**：[docs/plans/bdg2-supervised-fdd-plan.md](./docs/plans/bdg2-supervised-fdd-plan.md)
 
 ## Milestone 摘要
 
@@ -41,7 +42,7 @@ Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-r
 M1 不訓練模型，目標是把論文與原始碼中的關鍵決策變成可追蹤文件。
 
 - `docs/reference/unknowns.md`：17 個 paper 或 code 未說清楚的地方。
-- `docs/adr/`：目前共有 24 份 ADR；M1 產出 ADR 0001-0006。
+- `docs/adr/`：目前共有 26 份 ADR；M1 產出 ADR 0001-0006。
 - `docs/reference/paper-notes.md`：paper structured summary。
 - `docs/reference/feature-engineering-rules.md`：feature 與 model 規則整理。
 
@@ -86,57 +87,33 @@ M4.0-M4.5 complete:
 - `src/lead/evaluate.py`：AUC / precision / recall / F1 metrics。
 - `src/lead/io.py`：JSON provenance helper。
 
-M4.2 completed guarded positional label alignment; ADR 0010 is Accepted. M4.3 completed timestamp-merge value-change evaluation; ADR 0011 is Accepted. M4.4 preserved StandardScaler and positive-duplication sampling compatibility; ADR 0016 is Accepted. M4.5 completed the M5 readiness gate and froze the `src/lead` public API.
+M4.2 完成 guarded positional label alignment，ADR 0010 已 Accepted。M4.3 完成 timestamp-merge value-change evaluation，ADR 0011 已 Accepted。M4.4 保留 StandardScaler 與 positive-duplication sampling 相容性，ADR 0016 已 Accepted。M4.5 完成 M5 readiness gate，並凍結 `src/lead` public API。
 
-### M5 FDD on BDG2
+### M5/M6 FDD on BDG2
 
-M5 把工作從 reproduction 推進到 fault detection and diagnosis（FDD），最終目標是 BDG2。其 model track（Phase A–D）是 FDD 的選模階段：在現有 GEPIII 資料上以相同 split、downsample、feature table 與 seeds，對 TabPFN（tabular foundation model）與 GBDT 做四軸比較（in-domain、site transfer、label scarcity、minimal feature engineering），此階段已完成。
+M5 已完成 GEPIII 上的 FDD 模型比較。此階段記錄 TabPFN 在少標籤與部分 site-held-out 情境的增益，也記錄 GBDT 在 latency 與 raw-feature baseline 上的優勢。這些結果是 M6.3 比較的輸入，不是預先指定的 M6 verdict。
 
 主要結果：
 
-- TabPFN 在 label scarcity（200 labels 時 +0.100 PR-AUC）與 true cross-site ROC-AUC（`0.9833` vs GBDT-retrain `0.9797`）勝出。
+- TabPFN 在 label scarcity（200 labels 時 +0.100 PR-AUC）與 GEPIII site-held-out ROC-AUC（`0.9833` vs GBDT-retrain `0.9797`）勝出。
 - TabPFN 在 10k context 的 in-domain ROC-AUC（`0.9925`）接近 M3.4 ensemble（`0.9928`）。
 - GBDT 保有推論延遲與 minimal feature engineering 的優勢，real-time 部署候選仍為 GBDT。
 
-Phase E（BDG2）把選定的 FDD 模型轉移到 BDG2 corpus；Part A 清理與 M6 delivery ladder 的權威路線圖見 [docs/plans/phaseE-fdd-roadmap.md](./docs/plans/phaseE-fdd-roadmap.md)。模型選擇結果見 [docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)，Phase E 規劃見 [docs/plans/m5-plan.md](./docs/plans/m5-plan.md)。
+M6 是 BDG2 上的正式 supervised FDD 階段。它只使用 GEPIII-overlap、2016、meters 0-3 rows，並以 `building_id_kaggle`、meter code、timestamp 把 GEPIII/Kaggle `bad_meter_readings` labels 橋接到 BDG2。
 
-ADR 0020 accepts the BDG2 FDD audit-yield evaluation frame and fixes model
-roles for the next implementation slice. TabPFN is not the BDG2 primary
-full-corpus detector. Per M5 Phase D, GBDT remains the real-time scanner:
-sub-second inference versus TabPFN at about `6.3 ms/row` (`~100x` slower), with
-the TabPFN-3.0 research/internal-use license boundary. The minimal-feature axis
-also was not a TabPFN win: raw-17-feature GBDT ROC-AUC `0.9587` exceeded TabPFN
-`0.9499`. In BDG2 FDD, TabPFN is limited to offline audit roles: second-stage
-candidate re-ranking, model-disagreement diagnostics, active-learning audit-set
-selection, and few-shot calibration after a small manual audit set. TabPFN
-outputs are triage/ranking utility, not BDG2 supervised performance or fault
-confirmation.
+下一步是 M6.1 label bridge + integrity。這個 slice 只建立 labeled overlap frame 並回報 coverage/integrity；accuracy metrics 從 M6.2 才開始。
 
-Phase E Step 4 corrected the chilledwater BDG2 pilot gate before full transfer:
-the pilot measured only 1 BDG2-only sufficient-observation building, and a
-pooled cross-site raw fallback measured `underpowered_even_pooled` (3 BDG2-only
-sufficient-observation buildings vs the 5-building confidence threshold). ADR
-0021 now treats that powered bar as `multi_building_transfer_stability`
-reporting metadata, not a blocking entry gate for within-context evidence
-packets. Prior full/4b artifacts are quarantined as diagnostics only, not
-accepted results. The finding is OOD-leaning rather than missingness-only. BDG2
-EDA has now reproduced the chilledwater sparsity from the data side: 26
-BDG2-only buildings have chilledwater columns, but only 3 satisfy the
-sufficient-observation rule. The EDA also quantifies OOD via
-square_feet KS `0.2176`, sampled meter_reading KS `0.4549`, and primary_use
-categorical PSI `1.415`. See
-[docs/reports/phaseE-step4-bdg2-transfer.md](./docs/reports/phaseE-step4-bdg2-transfer.md)
-and [docs/reports/bdg2-eda.md](./docs/reports/bdg2-eda.md).
+細節文件：
 
-ADR 0022 selects electricity as the first within-context transfer/FDD scoring
-meter. Chilledwater remains supported and is deferred to a later Level-3
-weather-conditioned path. ADR 0023 makes the transfer/FDD scoring path
-raw-first above the general BDG2 loader; cleaned remains an explicit companion
-for sensitivity and convergence checks. ADR 0024 selects additive
-meter-aware-equivalent value-change convergence for future multi-meter transfer
-without moving the M3 `row_offset` default. A3 completes Part A by moving Swan
-chilledwater contiguity off the critical path and preserving it as optional
-future chilledwater work.
+- M5 報告：[docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)。
+- M6 roadmap：[docs/plans/phaseE-fdd-roadmap.md](./docs/plans/phaseE-fdd-roadmap.md)。
+- M6 implementation contract：[docs/plans/bdg2-supervised-fdd-plan.md](./docs/plans/bdg2-supervised-fdd-plan.md)。
+- BDG2 EDA: [docs/reports/bdg2-eda.md](./docs/reports/bdg2-eda.md)。
+- ADR 0025/0026：supervised-overlap scope 與 label-bridge integrity。
+
+TabPFN latency/license caveats 已記錄在 M5 報告，M6.3 比較時仍必須一起呈現。BDG2-only、2017、non-GEPIII meters 只屬於 M6.4 secondary review evidence。
+
+ADR 0022/0023/0024 仍是工程 guardrails：electricity 是第一個 labeled supervised-evaluation meter，raw BDG2 是 primary scoring surface，value-change convergence 不移動 M3 `row_offset` default。
 
 ## src/lead public API
 
@@ -180,7 +157,7 @@ docs/
 │   ├── m3-plan.md
 │   ├── m4-plan.md
 │   ├── m5-plan.md
-│   └── bdg2-fdd-eval-plan.md
+│   └── bdg2-supervised-fdd-plan.md
 ├── reports/
 │   ├── reproduction-report.md
 │   ├── m3-report.md
@@ -200,7 +177,7 @@ docs/
 │   ├── m3-50-50-ensemble.json
 │   └── m3-primary-use-auc.json
 ├── adr/
-│   └── 0001-0024 decision records
+│   └── 0001-0026 decision records
 ├── handoffs/
 │   └── historical session handoffs
 ├── agents/
@@ -373,7 +350,14 @@ uv run python -m unittest tests.test_call_arity
 uv run python -m unittest tests.test_readme_freshness
 ```
 
-Golden regression values are tracked in [tests/golden_metrics.json](./tests/golden_metrics.json).
+M5 GEPIII 模型比較：
+
+```bash
+uv run python scripts/run_m5_phaseC_tabpfn_spike.py
+uv run python scripts/run_m5_phaseD_foundation_vs_gbdt.py
+```
+
+Golden regression values 記錄在 [tests/golden_metrics.json](./tests/golden_metrics.json)。
 
 ## 方法紀律
 

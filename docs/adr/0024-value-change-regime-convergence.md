@@ -21,9 +21,11 @@ M3 semantics. The same equivalence breaks when one detector scores multiple
 meter types, because plain `row_offset` can cross meter series inside a building
 while `row_offset_meter_aware` cannot.
 
-ADR 0019 fixes the transfer paradigm as GEPIII-trained detector transfer to
-BDG2 with BDG2-only and GEPIII-overlap separated and no supervised BDG2 metric
-claims. ADR 0023 makes BDG2 transfer/FDD scoring raw-first. A5 decides how
+At acceptance time, ADR 0019 fixed the transfer paradigm as GEPIII-trained
+detector transfer to BDG2 without supervised BDG2 metric claims. ADR 0025 later
+superseded that primary paradigm for the GEPIII-overlap, 2016, meters-0-3
+subset, where bridged rank-1 GEPIII annotations make supervised metrics
+legitimate. ADR 0023 makes BDG2 transfer/FDD scoring raw-first. A5 decides how
 value-change semantics must converge before transfer expands beyond a
 single-meter electricity path.
 
@@ -60,17 +62,18 @@ Deferred to implementation:
 + whether a one-detector-per-meter fallback is needed for a specific later
   multi-meter run.
 
-This does not change the transfer paradigm. GEPIII-trained detector transfer to
-BDG2 remains fixed under ADR 0019.
+ADR 0025 now owns the primary transfer/evaluation paradigm. This ADR only
+decides value-change train/serve semantics and does not run the label bridge or
+report metrics.
 
 This does not touch the M3 numeric line. `row_offset` remains the default
 regime for the M3 reproduction path, and `load_m3_frame` defaults, M3.2/M3.4
 golden values, downsampling, StandardScaler fitting, and existing M3 scripts
 remain unchanged.
 
-This preserves and carries TabPFN forward. ADR 0020's TabPFN audit roles remain
-available, and this value-change decision applies to the shared feature
-semantics a TabPFN comparison or audit path would consume.
+This preserves and carries TabPFN forward for the supervised M6 comparison and
+label-scarce/offline evaluation, with the Phase D latency and license caveats
+attached.
 
 ## Rationale
 
@@ -100,4 +103,5 @@ or comparison work reuses one source detector across multiple meter types.
   condition and choose one-detector-per-meter for that slice.
 + The M6.1 electricity scan remains single-meter and does not need new
   value-change wiring before it can run.
-+ No unknown #25, #26, or #27 status changes are made by this ADR.
++ Unknown #27 is now measured in M6.2 under ADR 0025; this ADR itself made no
+  unknown status change when accepted.

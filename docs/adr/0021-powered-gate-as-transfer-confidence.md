@@ -2,7 +2,14 @@
 
 ## Status
 
-Accepted (2026-06-30)
+Superseded by ADR 0025 (2026-07-01)
+
+Previously accepted (2026-06-30).
+
+Supersession note: this decision belonged to the unlabeled audit-yield path.
+The supervised GEPIII-overlap path in ADR 0025 makes the powered-entry-gate
+question moot for primary M6 evaluation, though the historical measurements
+remain valid context.
 
 ## Context
 
