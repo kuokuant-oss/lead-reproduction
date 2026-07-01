@@ -128,10 +128,10 @@ engineering burden；value-change features 仍是關鍵。
 transfer candidate；do not claim real-time readiness；move cross-dataset validation
 to Phase E (BDG2).
 
-ADR 0020 carries this Phase D result into BDG2 as an audit-yield design, not a
-new supervised benchmark. TabPFN is not the BDG2 primary full-corpus detector:
-GBDT remains the real-time scanner because it is sub-second, while TabPFN was
-about `6.3 ms/row` (`~100x` slower) and remains bounded by the TabPFN-3.0
+ADR 0025 now carries this Phase D result into BDG2 as a supervised-overlap M6
+comparison frame. GBDT remains the real-time scanner candidate because it is
+sub-second, while TabPFN was about `6.3 ms/row` (`~100x` slower) and remains
+bounded by the TabPFN-3.0
 research/internal-use license. Minimal feature engineering was not a TabPFN
 win, either: raw-17-feature GBDT ROC-AUC `0.9587` exceeded TabPFN `0.9499`, so
 value-change / meter-aware feature engineering remains necessary. In BDG2 FDD,

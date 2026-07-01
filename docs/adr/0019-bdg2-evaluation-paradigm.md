@@ -2,7 +2,14 @@
 
 ## Status
 
-Accepted (2026-06-29)
+Superseded by ADR 0025 (2026-07-01)
+
+Previously accepted (2026-06-29).
+
+Supersession note: the "no native BDG2 labels" finding remains true, but the
+primary evaluation paradigm changed after recognizing that the rank-1
+`bad_meter_readings` GEPIII annotations can be keyed onto BDG2's GEPIII-overlap
+2016 meters 0-3 subset. See ADR 0025 and ADR 0026.
 
 ## Context
 

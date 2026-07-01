@@ -234,31 +234,30 @@ research/internal-use license. The next stage is Phase E (FDD transfer to BDG2).
 ## Phase E: FDD transfer to BDG2
 
 **Status**: Stage 0/1 complete; Stage 2 GEPIII-only assumptions isolated;
-evaluation paradigm accepted in ADR 0019; chilledwater transfer investigation
-measured `underpowered_even_pooled` as a reporting-confidence label
-(OOD-leaning, not a missingness-only artifact); BDG2 pre-modeling EDA complete;
-FDD audit-yield evaluation framework accepted in ADR 0020; powered entry gate
-demoted to confidence metadata in ADR 0021; electricity selected as the entry
-meter in ADR 0022; raw-first transfer/FDD scoring accepted in ADR 0023;
-value-change convergence accepted in ADR 0024; M6 implementation queued, not
-started
+BDG2 pre-modeling EDA complete; Part A cleanup complete; supervised M6 pivot
+proposed in ADR 0025/0026; label bridge implementation queued, not started
 **GitHub Issue**: [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39)
 **Roadmap**: [docs/plans/phaseE-fdd-roadmap.md](phaseE-fdd-roadmap.md)
+**Supervised M6 plan**:
+[docs/plans/bdg2-supervised-fdd-plan.md](bdg2-supervised-fdd-plan.md)
 
 Phase E carries the selected FDD models from GEPIII to the BDG2 (Building Data
-Genome 2) corpus. It is gated: each step below must clear before the next, so
-ingestion does not start on an unverified schema or an unknown label situation.
+Genome 2) corpus. The current M6 pivot keeps the "no native BDG2 label" finding
+but adds a supervised overlap path: the rank-1 manual GEPIII/Kaggle
+`bad_meter_readings` annotations can be keyed onto BDG2's GEPIII-overlap,
+2016, meters-0-3 subset through `building_id_kaggle`, meter code, and
+timestamp. BDG2-only buildings, 2017 rows, and other meters remain unlabeled.
 
 1. **Real-data inventory.** Completed in
    [docs/reports/bdg2-data-reality.md](../reports/bdg2-data-reality.md): the
    local BDG2 archive has 18 real CSVs, 1,636 buildings, 19 sites, 8 raw meter
    files, 8 cleaned meter files, site-level weather, and no per-row anomaly
    labels.
-2. **Evaluation-paradigm decision.** ADR 0019 resolves unknown #23: Phase E uses
-   a GEPIII-trained detector applied to BDG2 as an unlabeled cross-dataset
-   baseline. BDG2 outputs are score-transfer evidence, not supervised
-   ground-truth metrics. Raw/cleaned pseudo-label AUC is allowed only as
-   secondary sensitivity evidence and must be labeled as pseudo-label AUC.
+2. **Evaluation-paradigm pivot.** ADR 0025 proposes supervised evaluation on
+   BDG2's GEPIII-overlap, 2016, meters-0-3 subset using bridged rank-1 GEPIII
+   annotations. ADR 0019's no-native-label finding remains true for BDG2 itself,
+   but ADR 0019's unlabeled-primary paradigm is superseded for the labeled
+   overlap subset.
 3. **BDG2 ingestion contract.** ADR 0017 accepts the real-schema contract and
    `load_bdg2_frame` rebuilds the retired skeleton on real data: wide meter CSVs
    melt to `(building_id, meter, timestamp, meter_reading)`, metadata joins use
@@ -270,22 +269,21 @@ ingestion does not start on an unverified schema or an unknown label situation.
    post-processing boundaries, BDG2 string meter names, and the exported
    `leave_site_out_mask` helper.
 5. **Transfer-evaluation contract.** GEPIII-overlap and BDG2-only rows must be
-   reported separately. Headline cross-dataset evidence must include BDG2-only
-   buildings (`is_gepiii_overlap == False`, 187 buildings measured in Stage 0)
-   or a held-out BDG2 site; GEPIII-overlap rows are bridge/calibration evidence,
-   not a pure transfer headline. Treat the M3 site-held-out ensemble AUC `0.9774`
-   and the Phase D cross-site TabPFN-in-context `0.9833` as **internal
-   references only**, not BDG2 readiness claims. `site_id % k` inside one
-   dataset is **not** cross-dataset transfer.
+   reported separately. Supervised metrics are legitimate only for rows with
+   bridged labels. GEPIII-overlap metrics are labeled BDG2-overlap supervised
+   evidence, not pure BDG2-only transfer evidence. Treat the M3 site-held-out
+   ensemble AUC `0.9774` and the Phase D cross-site TabPFN-in-context `0.9833`
+   as internal references only. `site_id % k` inside one dataset is not
+   cross-dataset transfer.
 6. **Causal discipline.** Any online / real-time FDD claim uses `PAST_SHIFTS`-only
    features per ADR 0007 and ADR 0011; offline and causal regimes stay explicit.
 7. **Weather-join premise.** Phase E Step 1 empirically supports the
    `(site_id, timestamp)` weather join for the tested sites: chilledwater
    temperature-load diagnostics found about `0.73` median absolute correlation
-   and `1` hour median best lag. ADR 0022 selects electricity as the entry
-   meter for within-context scoring. Unknown #25 remains open as a per-site and
-   per-meter weather-feature-validity caveat for electricity Level-3
-   `weather_response` evidence; it is not an electricity-wide disqualifier.
+   and `1` hour median best lag. ADR 0022 selects electricity as the first BDG2
+   FDD meter, now scoped by ADR 0025 as the first labeled supervised-eval meter.
+   Unknown #25 remains open as a per-site and per-meter weather-feature-validity
+   caveat; it is not an electricity-wide disqualifier.
 8. **Roles and limits.** TabPFN is bounded by the TabPFN-3.0 License
    (research / internal use only) and by inference latency (~6.3 ms/row, ~100×
    slower than GBDT); it is positioned as an offline / label-scarce bootstrapper.
@@ -300,11 +298,11 @@ ingestion does not start on an unverified schema or an unknown label situation.
    diagnostic fallback; the pooled measurement was
    `underpowered_even_pooled` because BDG2-only sufficient-observation rows
    span only 3 buildings versus the 5-building reporting-confidence threshold.
-   ADR 0021 supersedes the prior blocking-entry-gate interpretation: the
-   powered bar is now `multi_building_transfer_stability` metadata, not a hard
-   stop for within-context evidence packets. The underpowered direction is
-   OOD-leaning and is not explained by missingness alone, so BDG2 EDA was run as
-   the next pre-modeling slice before choosing another meter or scope. The EDA
+   ADR 0021 superseded the prior blocking-entry-gate interpretation for the old
+   unlabeled route: the powered bar became `multi_building_transfer_stability`
+   metadata. The underpowered direction is OOD-leaning and is not explained by
+   missingness alone, so BDG2 EDA was run as the next pre-modeling slice before
+   choosing another meter or scope. The EDA
    report reproduces the chilledwater sparsity from the data side: 26 BDG2-only
    buildings have chilledwater columns, but only 3 satisfy the
    sufficient-observation rule. ADR 0022 moved the entry meter to electricity,
@@ -321,19 +319,18 @@ ingestion does not start on an unverified schema or an unknown label situation.
    coverage/missingness-shaped rather than a large chilledwater magnitude
    distance: the 0.50-to-0.55 threshold jump is driven mainly by Swan, while
    chilledwater has the lowest per-meter distance to GEPIII in the EDA table.
-11. **FDD audit-yield evaluation framework.** Accepted in
-   [ADR 0020](../adr/0020-bdg2-fdd-audit-yield-evaluation.md) and planned in
-   [docs/plans/bdg2-fdd-eval-plan.md](bdg2-fdd-eval-plan.md). The framework
-   keeps GBDT as the full-corpus scanner and limits TabPFN to offline audit
-   roles: second-stage re-ranking, disagreement diagnostics, active-learning
-   audit-set selection, and few-shot calibration after manual review. It does
-   not authorize supervised BDG2 metrics, fault confirmation, or a TabPFN
-   full-corpus detector.
+11. **Supervised M6 plan.** Proposed in
+   [ADR 0025](../adr/0025-supervised-bdg2-fdd-overlap-evaluation.md),
+   [ADR 0026](../adr/0026-bdg2-label-bridge-integrity.md), and
+   [docs/plans/bdg2-supervised-fdd-plan.md](bdg2-supervised-fdd-plan.md). The
+   first implementation slice is M6.1 label bridge + integrity, with no metrics
+   until the bridge passes. The old ADR 0020 audit framework is retained only
+   as historical context for the later unlabeled remainder.
 12. **Entry meter.** Accepted in
    [ADR 0022](../adr/0022-electricity-entry-meter-for-bdg2-fdd.md). Electricity
-   is the first transfer/FDD within-context scoring meter because it has broad
-   BDG2-only coverage and sufficient-observation support. Chilledwater remains
-   supported but is deferred to a later Level-3 weather-conditioned path.
+   is the first transfer/FDD meter because it has broad BDG2-only coverage,
+   sufficient-observation support, and a GEPIII meter-code bridge for supervised
+   overlap evaluation. Chilledwater remains supported but deferred.
 13. **Raw-first transfer/FDD scoring.** Accepted in
    [ADR 0023](../adr/0023-raw-first-bdg2-transfer-scoring.md). Phase E transfer
    scripts route through a raw-first scoring wrapper above the general BDG2
@@ -351,9 +348,9 @@ ingestion does not start on an unverified schema or an unknown label situation.
    available for optional future Level-3 weather-conditioned chilledwater work,
    but they no longer block Phase E because ADR 0021 demoted the powered gate
    and ADR 0022 selected electricity as the entry meter.
-16. **Next queued implementation slice.** Not started: docs-only M6 comparison
-   redesign. It is queued before any M6 implementation. The full-corpus
-   electricity scan and evidence-packet implementation remain later slices.
+16. **Next queued implementation slice.** Not started: M6.1 label bridge +
+   integrity. It must build the keyed bridge, record coverage provenance, and
+   stop before supervised transfer accuracy.
 
 ---
 
@@ -376,11 +373,12 @@ ingestion does not start on an unverified schema or an unknown label situation.
 | Phase E evaluation paradigm ADR | _local gate_ | Done |
 | Phase E FDD transfer to BDG2 | [#39](https://github.com/kuokuant-oss/lead-reproduction/issues/39) | Step 4 chilledwater measured `underpowered_even_pooled`; EDA complete |
 | Phase E BDG2 pre-modeling EDA | [#40](https://github.com/kuokuant-oss/lead-reproduction/issues/40) | Done; merged |
-| Phase E BDG2 FDD audit-yield evaluation framework | [#41](https://github.com/kuokuant-oss/lead-reproduction/issues/41) | Designed and accepted in ADR 0020 |
+| Phase E BDG2 FDD audit framework | [#41](https://github.com/kuokuant-oss/lead-reproduction/issues/41) | Historical route; superseded for primary M6 by ADR 0025 |
 | Phase E A1 powered-gate demotion | [#42](https://github.com/kuokuant-oss/lead-reproduction/issues/42) | Done |
 | Phase E A2 electricity entry meter | [#44](https://github.com/kuokuant-oss/lead-reproduction/issues/44) | Done |
 | Phase E A4 raw-first transfer/FDD scoring | [#45](https://github.com/kuokuant-oss/lead-reproduction/issues/45) | Done |
 | Phase E A5 value-change regime convergence | [#48](https://github.com/kuokuant-oss/lead-reproduction/issues/48) | Done |
 | Phase E A3 Swan chilledwater off critical path | [#49](https://github.com/kuokuant-oss/lead-reproduction/issues/49) | Done |
-| Phase E M6 comparison redesign queue | [#47](https://github.com/kuokuant-oss/lead-reproduction/issues/47) | Next queued after A3 approval; not started |
-| Phase E GBDT scan + evidence packets | _not opened_ | Queued; not started |
+| Phase E M6 comparison redesign queue | [#47](https://github.com/kuokuant-oss/lead-reproduction/issues/47) | Superseded by supervised M6 pivot |
+| M6 supervised pivot docs | _not opened_ | In progress |
+| M6.1 label bridge + integrity | _not opened_ | Queued; not started |

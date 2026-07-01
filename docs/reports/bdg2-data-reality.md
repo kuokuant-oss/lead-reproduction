@@ -148,11 +148,18 @@ BDG2-only site distribution:
 - Label-like files found: [].
 - Label-like metadata/weather columns found: [].
 
-BDG2, as present in this archive, does not provide a per-row anomaly label comparable to GEPIII `bad_meter_readings.csv`. Any Phase E supervised FDD claim must therefore choose and document a label strategy before training or evaluation.
+BDG2, as present in this archive, does not provide a native per-row anomaly
+label comparable to GEPIII `bad_meter_readings.csv`. ADR 0025/0026 add the
+documented label strategy: bridge the rank-1 manual GEPIII annotations onto
+BDG2's GEPIII-overlap, 2016, meters-0-3 subset through `building_id_kaggle`,
+meter code, and timestamp. That bridge does not label BDG2-only buildings, 2017
+rows, or non-GEPIII meters.
 
 Viable strategies:
 
-- Unsupervised detection on BDG2 meter series.
+- Supervised evaluation on the GEPIII-overlap subset after the ADR 0026 bridge
+  integrity gate passes.
+- Unsupervised detection on the unlabeled BDG2 remainder.
 - Forecasting-residual labels or anomaly scores from held-out temporal forecasts.
 - Apply a GEPIII-trained detector as a cross-dataset scoring baseline.
 - Raw/cleaned difference pseudo-labels: cells present in raw but set to `NaN` in cleaned are a candidate proxy for BDG2-cleaning-identified bad readings.

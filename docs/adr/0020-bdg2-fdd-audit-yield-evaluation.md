@@ -2,7 +2,14 @@
 
 ## Status
 
-Accepted (2026-06-30)
+Superseded by ADR 0025 (2026-07-01)
+
+Previously accepted (2026-06-30).
+
+Supersession note: audit-yield/evidence-packet tooling is no longer the primary
+M6 evaluation paradigm. It is retained only for the unlabeled remainder
+(BDG2-only buildings, 2017 rows, and non-GEPIII meters) after the supervised
+GEPIII-overlap path is implemented.
 
 ## Context
 

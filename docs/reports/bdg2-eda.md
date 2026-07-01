@@ -9,8 +9,9 @@
 This is a read-only, pre-modeling EDA slice. It reads BDG2 from `data/raw/bdg2`
 and reads GEPIII comparison data from frozen GEPIII sources (`load_m3_frame` and
 `data/raw/m3/building_metadata.csv`). It does not build a model, create scores,
-fabricate labels, report supervised BDG2 metrics, or make readiness/transfer
-claims.
+attach the GEPIII overlap label bridge, report supervised BDG2 metrics, or make
+readiness/transfer claims. Its coverage and distribution facts now scope which
+buildings/meters can enter the labeled M6 overlap evaluation.
 
 The report uses neutral data-quality terms: zero-reading share, negative-reading
 share, flatline share, missingness, coverage, and distribution distance.

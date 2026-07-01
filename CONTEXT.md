@@ -67,6 +67,13 @@ _Avoid_: "value-changing feature"(語法不正確)。
 
 ## Working principles
 
+**BDG2 label scope**: BDG2 has no native per-row anomaly labels in the local
+archive. The active M6 supervised path is narrower: rank-1 manual GEPIII/Kaggle
+`bad_meter_readings` annotations may be bridged only onto BDG2 GEPIII-overlap
+buildings, year 2016, meters `electricity`, `chilledwater`, `steam`, and
+`hotwater`. BDG2-only buildings, 2017 rows, and other meters remain unlabeled
+unless a later approved pseudo-label or audit slice handles them explicitly.
+
 **三方不一致原則**: 當論文、README、程式碼描述不一致時,以程式碼為準(例:ADR 0005,imputation method)。發現任何不一致都記 ADR,不省略。
 
 **Setup 完整性原則**: 使用者初始描述提供的 reference 連結(論文、程式碼、資料集)必須完整保留在 README + CONTEXT,即使當下覺得「之後再說」。setup 階段漏掉的 reference 會在後期反咬(例:commit 7e7bfa9 補入 M3 資源——`02_preprocess_data.py` 與 `bad_meter_readings.zip` 在 M1 階段 B 就需要)。

@@ -4,17 +4,21 @@
 
 Accepted (2026-06-30)
 
+Amended by ADR 0025 (2026-07-01): raw-first remains required, but the primary
+rationale now includes supervised evaluation correctness. Scoring only cleaned
+BDG2 would evaluate after the release cleaning process may have removed
+candidate positives.
+
 ## Context
 
 ADR 0017 defines `load_bdg2_frame` as the general BDG2 loader. Its default
 variant remains `cleaned` because the loader is a broad data-access surface and
 existing loader tests cover the cleaned release behavior.
 
-ADR 0019 fixes the Phase E evaluation paradigm: a GEPIII-trained detector is
-applied to BDG2 as unlabeled transfer evidence, with BDG2-only and
-GEPIII-overlap strata reported separately. ADR 0020 then defines the useful
-output as within-context evidence packets and audit-yield measurement rather
-than absolute cross-dataset risk.
+At acceptance time, ADR 0019 framed Phase E as unlabeled transfer evidence and
+ADR 0020 framed the useful output as audit evidence. ADR 0025 later superseded
+that primary paradigm for the GEPIII-overlap, 2016, meters-0-3 subset, where
+bridged rank-1 GEPIII annotations make supervised metrics legitimate.
 
 Miller et al. 2020 describe the BDG2 cleaned release as applying Twitter
 AnomalyDetection, removing zero-reading runs longer than 24 hours, and removing
@@ -26,8 +30,8 @@ the zero-run and electricity-zero candidates that M6.1 is meant to surface.
 Unknown #27 is now open for a separate caveat: the GEPIII/Kaggle source kept UTC
 weather timestamps and unit-conversion errors left as-is, while BDG2 raw and
 cleaned data use local-time weather and corrected units. That source-vs-target
-regime shift must travel with M6 transfer outputs, but it does not block
-within-context ranking.
+regime shift must be measured in M6.2, but it does not block M6.1 label-bridge
+integrity.
 
 ## Decision
 
@@ -44,13 +48,14 @@ Phase E Step 4 transfer scripts must route through this raw-first scoring entry
 point. `load_bdg2_frame` keeps its general default, and `lead.__all__` is not
 changed.
 
-This is a correctness precondition for M6.1. The full-corpus electricity scan
-must use raw BDG2 electricity data for scoring, with any cleaned comparison
-reported as a companion data-quality screen rather than the primary scoring
-surface.
+This is a correctness precondition for M6.1. The label-bridge integrity slice
+and later supervised scoring must use raw BDG2 data as the primary scoring
+surface, with any cleaned comparison reported as a companion sensitivity rather
+than the primary metric surface.
 
-This does not change the transfer paradigm. GEPIII-trained detector transfer to
-BDG2 remains fixed under ADR 0019.
+This paragraph is superseded by ADR 0025 for the primary M6 path. GEPIII-trained
+detector scoring remains the transfer object, but the GEPIII-overlap subset now
+supports supervised metrics through the bridged rank-1 annotations.
 
 This does not touch the M3 numeric line. `load_m3_frame` defaults, M3.2/M3.4
 golden values, downsampling, scaler fitting, and the existing GEPIII/Kaggle
@@ -71,10 +76,10 @@ Keeping the raw-first rule in a transfer/FDD wrapper preserves ADR 0017's
 general loader contract. It also gives later M6 code a named entry point that
 communicates intent at call sites without changing the reusable loader default.
 
-Unknown #27 does not force a different scoring source because M6 outputs remain
-within-context ranks and quantiles. ADR 0019 still forbids absolute-score risk
-claims, so the weather/unit regime shift is a required caveat rather than a
-blocking metric invalidation.
+Unknown #27 does not force a different scoring source because M6.1 keys labels
+by building, meter, and timestamp, independent of `meter_reading` value. Under
+ADR 0025, M6.2 should measure the weather/unit regime shift as a supervised
+overlap delta rather than treat it as a blocking label-integrity problem.
 
 ADR 0018 already isolates the GEPIII/Kaggle-only `0.2931` unit correction and
 keeps it out of `load_bdg2_frame`; this ADR reuses that boundary to avoid double
@@ -83,12 +88,12 @@ conversion in the BDG2 path.
 ## Consequences
 
 + `scripts/phaseE_transfer.py` owns the raw-first transfer/FDD scoring wrapper.
-+ Phase E Step 4 runners use the wrapper instead of importing the general loader
-  directly.
++ Existing Phase E Step 4 runners used the wrapper instead of importing the
+  general loader directly; their old metric contract is a known code/docs gap
+  for a later M6.2 refactor.
 + Cleaned BDG2 scoring remains explicit and secondary.
 + M6.1's raw-first precondition is satisfied, but A4 does not run the M6.1 scan.
-+ Unknown #27 must travel with every M6 transfer output as a non-blocking
-  source-vs-target regime caveat.
-+ No BDG2 supervised metrics, confirmed fault labels, absolute cross-dataset
-  top-K, M3 numeric-line changes, or TabPFN full-corpus scanner role are
-  introduced.
++ Unknown #27 must be measured in M6.2 as a non-blocking source-vs-target
+  regime delta.
++ This ADR itself introduced no supervised metric, label bridge execution, M3
+  numeric-line change, or TabPFN full-corpus scanner role.
