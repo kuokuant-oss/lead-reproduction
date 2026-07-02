@@ -141,7 +141,10 @@ Ensemble 使用 M3.2 feature set，因為 M3.3 沒有改善 AUC。
 | Ensemble | 0.9928 | 0.6779 | 0.9664 | 0.7969 |
 
 Ensemble lift 為 `+0.00079`；value-change features 是主要貢獻，ensembling
-是次要增益。
+是次要增益。後續 INV-7 以 row-offset-meter-aware 特徵重算時，row-aggregate
+ensemble 對 LightGBM 的 lift 為 `+0.0012`，building-bootstrap CI 分別為
+LightGBM `[0.9802, 0.9928]` 與 ensemble `[0.9928, 0.9970]`，兩者有重疊；
+此 lift 為方向性正向，建物層級未達可區分。
 
 ## 3.5 Post-processing
 
@@ -177,13 +180,13 @@ past-shift features 呈現對稱訊號。
 |---|---|---|
 | Building overlap | 所有 reported splits 皆為 0 | Validation buildings 以 `building_id` held out。 |
 | Past-only vs future-only | Past `0.9908`, future `0.9908`, full `0.9920` | Future shifts 是 non-causal，但不是 AUC 的唯一來源。 |
-| Label shuffle, M3.2 seed 42 | 0.5669 | 高於 random；視為 residual structure/base-rate signal。 |
-| Label shuffle, M3.5 seeds 42/123/999 | 0.5669 / 0.5669 / 0.4232, mean 0.5190 | Shuffle signal 不穩定，且遠低於 real-label result。 |
+| Label shuffle, INV-4 8 seeds | mean 0.5197, std 0.0654 | Shuffle signal 不穩定，且遠低於 real-label result。 |
+| Label shuffle feature ablation | remove value-change 0.5092; remove meter / building / weather 0.5251 / 0.5279 / 0.5253 | Shuffled-label 殘餘訊號主要來自 value-change 特徵在打亂標籤下的殘餘結構。 |
 | Remove meter features | AUC drops to 0.8160 | Meter reading 與 value-change features 承載主要 anomaly signal。 |
 | M3.3 target encoder ablation | Removing `gte_site_meter_anomaly` does not reduce shuffle AUC | Target encoding 不是 elevated shuffle result 的來源。 |
 
-Checks 沒有顯示 split leakage；label-shuffle 結果顯示 dataset 中仍存在
-metadata/base-rate structure。
+Checks 沒有顯示 split leakage；label-shuffle 結果顯示 value-change 特徵在
+打亂標籤下仍保留殘餘結構。
 
 ## 4.2 Generalization diagnostics
 
@@ -192,11 +195,21 @@ metadata/base-rate structure。
 | Site-held-out ensemble AUC (`site_id % 5 == 4`) | 0.9774 | Cross-site validation 明顯比 building-held-out validation 更難。 |
 | Per-meter AUC: electricity / chilled water / steam / hot water | 0.9991 / 0.9888 / 0.9553 / 0.9863 | Steam 是最弱 meter slice。 |
 | Buildings with missing hours inside observed range | 945/1449 (65.2%) | Row-offset value-change shifts 是跨 timestamp gaps 的近似。 |
+| Causal time-holdout, same buildings | single LightGBM 0.9907 → 0.9928; ensemble 0.9915 → 0.9937 | 使用 `row_offset_meter_aware` 與 `PAST_SHIFTS`；同一批建物的 held-out 時段未降低 AUC。 |
 
 Value-change implementation 使用 `groupby().shift()`，因此 shifts 是 row-offset
 features，而不是精確的 `timestamp + timedelta` joins。此 GEPIII default 也只以
-`building_id` 分組；多 meter frame 可能發生 meter-crossing。BDG2 path 必須使用
-meter-aware value-change regime。這是解讀 long-range shifts 時的限制。
+`building_id` 分組；多 meter frame 會發生 meter-crossing。INV-1 量化顯示
+`row_offset` 與 `row_offset_meter_aware` 在 GEPIII 上約 `57.6%` 至 `59.3%`
+的 value-change cells 不同；80/20 split 的 meter-aware single LightGBM AUC
+差為 `+0.00053`，ensemble 差為 `+0.00091`，皆超過 `0.0005` noise floor。
+M3 headline 保留 `row_offset` 作為凍結 reproduction default；M6 cross-model
+比較線使用 opt-in `row_offset_meter_aware`（見 #52）。
+
+Causal time-holdout 檢驗是同一批建物的時間外推：train 為 2016-01-01 至
+2016-08-31，validation 為 2016-09-01 至 2016-12-31；held-out 時段的建物在
+訓練中出現過。結果顯示 headline 未依賴同建物時間鄰近性而虛高。此檢驗未涵蓋
+未見建物疊加未見時段的情形，跨建物加跨時間的泛化仍未量測。
 
 ## 4.3 Primary-use slices
 
@@ -204,6 +217,14 @@ meter-aware value-change regime。這是解讀 long-range shifts 時的限制。
 `data/raw/m3/building_metadata.csv` 計算而來。完整 machine-readable table 存在
 `docs/metrics/m3-primary-use-auc.json`。部分 primary-use categories 的 validation
 buildings 很少，這些 slices 只作診斷用途。
+
+INV-7 以 validation building 為單位重算分布。有效 validation buildings 為
+`234`；per-building median AUC 為 single LightGBM `0.9996`、ensemble
+`0.9999`；single LightGBM p10/p90 為 `0.9751` / `1.0000`；minimum AUC 為
+single LightGBM `0.4061`、ensemble `0.8042`。Building-bootstrap mean CI
+為 single LightGBM `[0.9802, 0.9928]`、ensemble `[0.9928, 0.9970]`。
+High-score small slices 為 `primary_use_enc` 3、7、8、11、12、13、14、15，
+各自有不超過 4 個有效建物且 median AUC 接近 `0.999` 至 `1.000`，只作診斷用途。
 
 | Primary use | AUC | Rows | Anomalies | Buildings |
 |---|---:|---:|---:|---:|
@@ -226,8 +247,27 @@ buildings 很少，這些 slices 只作診斷用途。
 ## 4.4 Limitations
 
 Site-held-out validation 較 building-held-out 困難；steam 是最弱 meter slice；
-label-shuffle 保留 metadata/base-rate residual；row-offset value-change shifts 是
-timestamp gaps 的近似；primary-use slices 受 validation building count 限制。
+label-shuffle 保留 value-change 殘餘結構；row-offset value-change shifts 是
+timestamp gaps 的近似且含 meter-crossing；primary-use slices 受 validation
+building count 限制。
+
+INV-6 train/validation gap 顯示 LightGBM fit-set AUC 為 `0.9983`、full
+train-buildings AUC 為 `0.9983`、validation AUC 為 `0.9925`，full-train 減
+validation 為 `+0.0058`。4-model ensemble fit-set AUC 為 `0.9997`、full
+train-buildings AUC 為 `0.9996`、validation AUC 為 `0.9937`，gap 為 `+0.0059`。
+Fit-set 與 full-train 分數接近，顯示分數不來自複製 fit-set 列的記憶；
+full-train 對 validation 有 `0.006` 量級的容量 gap，列為 capacity/stability
+caveat。
+
+INV-8 sampling sweep 顯示 M3-style downsample seed 的 AUC mean 為 `0.9924`、
+std 為 `0.00024`、range 為 `0.0008`；canonical seeds `(10,20)` 為 `0.9925`。
+乾淨 50:50 且不複製正樣本的 mean 為 `0.9924`、std 為 `0.00027`；與 M3-style
+mean 差為 `+0.00004`。Mean 不依賴正樣本複製；validation AUC 跨 sampling
+seed 的 range `0.0008` 超過 `0.0005` noise floor，列為 sampling-seed
+穩定度 caveat。
+
+小於約 `0.001` 的 AUC 差異落在 sampling 與 building-level 變異範圍內，
+不作顯著性宣稱。
 
 ---
 

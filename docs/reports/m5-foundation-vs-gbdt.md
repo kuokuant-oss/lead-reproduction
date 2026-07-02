@@ -41,6 +41,11 @@
 in-process fit+predict（TabPFN 含 model init + fit + `predict_proba`）；TabPFN 的
 `predict_proba` 每次呼叫都會對 in-context 訓練集重新計算。
 
+原始 headline 使用單一 validation 子樣本。INV-2 額外以 5 個 validation seeds
+量測抽樣變異；in-domain GBDT ROC-AUC std 為 `0.0019`，site-transfer GBDT
+ROC-AUC std 為 `0.0044`。後續判讀小 delta 時使用這個 validation 抽樣變異；
+舊 fixture 未覆蓋，新數據來源為 `data/processed/inv2_phaseD_val_variance.json`。
+
 ---
 
 ## Axis 1 — In-domain（`80_20_mod5` building split）
@@ -50,9 +55,12 @@ in-process fit+predict（TabPFN 含 model init + fit + `predict_proba`）；TabP
 | GBDT (LightGBM, 10k fit) | 0.9877 ± 0.0012 | 0.9154 ± 0.0068 | 0.756 ± 0.013 | ~0.23 (warm) |
 | TabPFN-3 (10k context) | **0.9925 ± 0.0005** | **0.9253 ± 0.0049** | 0.747 ± 0.007 | 26.8 ± 2.0 |
 
-TabPFN 略勝 single-GBDT-at-10k 的 baseline（+0.0048 ROC、+0.010 PR-AUC），
-但其 `predict_proba` 對 4,000 rows 需約 25.3 s（~6.3 ms/row），相對於 GBDT
-的次秒級評分 —— 在推論上大約**慢兩個數量級**。
+TabPFN 在 single-GBDT-at-10k baseline 上方（原始 fixture 為 +0.0048 ROC、
++0.010 PR-AUC），但其 `predict_proba` 對 4,000 rows 需約 25.3 s
+（~6.3 ms/row），相對於 GBDT 的次秒級評分 —— 在推論上大約**慢兩個數量級**。
+INV-2 計入 validation 抽樣變異後，TabPFN 減 GBDT 的 paired ROC-AUC delta
+mean 為 `+0.00255`、std 為 `0.00238`，範圍為 `-0.0025` 至 `+0.0059`；
+in-domain 的 TabPFN 優勢為方向性正向，非穩健結論。
 
 **脈絡**：已被接受的 M3.4 line 是*在完整資料上的 4-model ensemble*，ROC-AUC
 為 `0.9928`，而 single-GBDT-at-10k 的 baseline 略低於它。TabPFN 在 10k context 下
@@ -74,7 +82,10 @@ True cross-site（只用 source sites 訓練）：
 | TabPFN-in-context | **0.9833 ± 0.0009** | 0.8119 ± 0.0052 | **0.783 ± 0.003** | 26.5 ± 0.2 |
 
 兩個 true cross-site 模型間，TabPFN-in-context 在 ROC-AUC（+0.0035）與 F1 勝出，
-GBDT-retrain 在 PR-AUC 勝出（+0.010）。
+GBDT-retrain 在 PR-AUC 勝出（+0.010）。INV-2 計入 validation 抽樣變異後，
+TabPFN 減 GBDT-retrain 的 ROC-AUC delta mean 為 `+0.00438`、std 為 `0.00228`，
+所有 paired delta 為正；PR-AUC delta mean 為 `-0.00326`、std 為 `0.01045`，
+跨零。Site-transfer 的 ROC-AUC 優勢方向穩定；PR-AUC 優勢不穩定。
 
 附註（known-site building generalization，不納入跨站勝負）：GBDT-transfer-without-retrain
 —— 即 in-domain 全 sites 模型直接套用 —— 得 ROC-AUC `0.9882`、PR-AUC `0.9023`，
@@ -97,9 +108,16 @@ ROC-AUC 與 PR-AUC（3 個 seeds 的 mean），隨著有標註的 support set �
 | 10,000 | 0.9877 | 0.9925 | +0.0048 | 0.9154 | 0.9234 | +0.0080 |
 
 **這是 TabPFN 最明確的勝場。** 在 200 labels 時，TabPFN 領先 +0.015 ROC 與
-**+0.100 PR-AUC**；隨著標註增加，差距（在 PR-AUC 上）單調縮小。PR-AUC 視角
+**+0.100 PR-AUC**；隨著標註增加，差距（在 PR-AUC 上）縮小。INV-2 的 paired
+bootstrap CI 顯示 support 200 的 PR-AUC delta mean 為 `+0.116`
+（CI `[0.095, 0.139]`），support 500 為 `+0.063`（CI `[0.049, 0.077]`），
+support 1,000 為 `+0.070`（CI `[0.057, 0.083]`），皆不跨零。PR-AUC 視角
 —— 對一個 ~6% 盛行率的 anomaly 任務而言是正確的觀察角度 —— 顯示這個基礎模型
 在標註稀少時明顯更好，正是它被期待能幫上忙的地方。
+
+固定 `val_seed=42` 下 support 5,000 的 GBDT ROC-AUC 高於 support 10,000 的
+非單調，在 5 個 validation seeds 下消失；support 5,000 為 `0.9872 ± 0.0019`，
+support 10,000 為 `0.9883 ± 0.0019`。此非單調屬 validation 抽樣雜訊。
 
 ---
 
