@@ -1,13 +1,13 @@
-# LEAD Reproduction
+# FDD on BDG2
 
 本專案復現 Fu et al. 2022 BuildSys 論文
-["Trimming outliers using trees: Winning solution of the Large-scale Energy Anomaly Detection (LEAD) competition"](https://dl.acm.org/doi/abs/10.1145/3563357.3566147)，並把工作從 LEAD competition subset 延伸到 ASHRAE GEPIII raw dataset。
+["Trimming outliers using trees: Winning solution of the Large-scale Energy Anomaly Detection (LEAD) competition"](https://dl.acm.org/doi/abs/10.1145/3563357.3566147)，並把工作從 LEAD competition subset 延伸到 ASHRAE GEPIII raw dataset。復現完成後，本專案進一步延伸到 anomaly detection 的資料集整理、FDD 評估設計，以及 GBDT、ensemble、TabPFN 等模型表現比較。
 
 參考來源：
 
 - 論文：Fu et al. 2022, BuildSys '22
-- 原始解法：https://github.com/buds-lab/LEAD-1st-solution
-- GEPIII reference：https://github.com/buds-lab/ashrae-great-energy-predictor-3-solution-analysis
+- 原始解法：[https://github.com/buds-lab/LEAD-1st-solution](https://github.com/buds-lab/LEAD-1st-solution)
+- GEPIII reference：[https://github.com/buds-lab/ashrae-great-energy-predictor-3-solution-analysis](https://github.com/buds-lab/ashrae-great-energy-predictor-3-solution-analysis)
 
 ## 目前狀態
 
@@ -27,11 +27,7 @@ Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-r
 - **M3 完成報告**：[docs/reports/m3-report.md](./docs/reports/m3-report.md)
 - **M4 評估報告**：[docs/reports/m4-evaluation-report.md](./docs/reports/m4-evaluation-report.md)
 - **M5 GEPIII 模型比較報告**：[docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)
-- **BDG2 EDA 報告**：[docs/reports/bdg2-eda.md](./docs/reports/bdg2-eda.md)
 - **BDG2 data descriptor reference**：[docs/reference/papers/bdg2-miller-2020.md](./docs/reference/papers/bdg2-miller-2020.md)
-- **工作方法**：[docs/reference/workflow.md](./docs/reference/workflow.md)
-- **M4 計畫**：[docs/plans/m4-plan.md](./docs/plans/m4-plan.md)
-- **M5 計畫**：[docs/plans/m5-plan.md](./docs/plans/m5-plan.md)
 
 ## Milestone 摘要
 
