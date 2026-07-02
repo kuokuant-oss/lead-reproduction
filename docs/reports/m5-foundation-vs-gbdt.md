@@ -1,105 +1,91 @@
-# M5 Phase D — TabPFN（基礎模型）vs GBDT（樹模型）於 GEPIII
+# M5 Phase D：TabPFN（基礎模型）vs GBDT（樹模型）於 GEPIII
 
-**Issue**: [#35](https://github.com/kuokuant-oss/lead-reproduction/issues/35)
-**資料**: 現有 M3 ASHRAE GEPIII frame（`20,216,100 × 21`），含標籤。
-無 BDG2、無雲端、無資料外傳。TabPFN 僅以本地權重執行。
-**Provenance**: 以 `data/processed/m5_phaseD_foundation_vs_gbdt.json`
-（commit `8f4373b`，產生於 2026-06-26 UTC）為準。
++ **Issue**：[#35](https://github.com/kuokuant-oss/lead-reproduction/issues/35)
++ **資料範圍**：既有 M3 ASHRAE GEPIII frame（`20,216,100 × 21`），含標籤。
++ **執行環境**：資料留在本地環境處理，TabPFN 使用本地權重執行。
++ **Provenance**：結果以 `data/processed/m5_phaseD_foundation_vs_gbdt.json`
+  （commit `8f4373b`，產生於 2026-06-26 UTC）為準。
 
-## 對應程式碼
+---
 
-+ Phase C TabPFN feasibility spike：[scripts/run_m5_phaseC_tabpfn_spike.py](../../scripts/run_m5_phaseC_tabpfn_spike.py)、[tests/test_m5_tabpfn_spike.py](../../tests/test_m5_tabpfn_spike.py)。
-+ Phase D GBDT vs TabPFN comparison：[scripts/run_m5_phaseD_foundation_vs_gbdt.py](../../scripts/run_m5_phaseD_foundation_vs_gbdt.py)、[tests/test_m5_phaseD_comparison.py](../../tests/test_m5_phaseD_comparison.py)。
-+ Frozen pipeline helpers：[src/lead/data.py](../../src/lead/data.py)、[src/lead/features.py](../../src/lead/features.py)、[src/lead/split.py](../../src/lead/split.py)、[src/lead/sample.py](../../src/lead/sample.py)、[src/lead/evaluate.py](../../src/lead/evaluate.py)。
-+ M3 numeric gates：[tests/golden_metrics.json](../../tests/golden_metrics.json)。
+## 1. 任務與共同設定
 
-## 設定
+M5 Phase D 比較 TabPFN-3 與 single LightGBM 在 GEPIII 上的模型行為。每個配對
+cell 都重用相同的 split、downsample、feature table 與固定驗證子樣本，並透過 frozen
+`src/lead` pipeline 執行：`load_m3_frame`、`add_value_change_features`、
+`split_mask`、`downsample_indices`、`classification_metrics`。同一個配對 cell
+中唯一變因是模型本身。
 
-每個配對 cell 都重用**相同的 split、downsample、feature table 與固定的驗證
-子樣本**，皆透過 frozen `src/lead` pipeline（`load_m3_frame`、
-`add_value_change_features`、`split_mask` 式的 mask、`downsample_indices`、
-`classification_metrics`）。一個配對 cell 中唯一的變因是模型本身。
-
-+ **模型**：TabPFN-3 本地 checkpoint（`tabpfn==8.0.8`、RTX 4070 Laptop GPU、
-  8 GB）vs LightGBM `LGBMClassifier(n_estimators=100)`。兩者吃同一份
-  `StandardScaler` 轉換後的 table。
-+ **Feature table**：137 features（17 baseline + 120 row-offset value-change），
-  即 M3.2 line。
-+ **Fit budget**：10,000 balanced rows（遠超 1,000-row 的 Phase C spike）。
-  137 features ≤ 200 且 10,000 ≪ 1,000,000，因此整個執行**落在已記載的
-  TabPFN-3 `1,000,000 × 200` 限制內** —— `ignore_pretraining_limits` 從未被設定。
-  此 budget 受限於 8 GB laptop VRAM，而非那個已記載的上限。（完整 M3 downsample
-  為 `4,285,104 × 137`，超過 `1,000,000 × 200` 的 row 上限，因此完整 table 無法
-  餵給 TabPFN-3。）
-+ **驗證（Validation）**：每軸固定 4,000-row 的自然盛行率（natural-prevalence）
-  子樣本（anomaly rate ≈ 6%），由兩個模型以相同方式評分。
-+ **Seeds**：fit-subsample 與模型 `random_state` 取 `{42, 123, 999}`；以
-  mean ± std 回報。指標：ROC-AUC、PR-AUC（average precision）、0.5 門檻下的
-  precision/recall/F1，以及 fit+predict 延遲。
-
-以下所有指標除另註明外皆為 **3 個 seeds 的 mean ± std**。延遲為冷啟動的
-in-process fit+predict（TabPFN 含 model init + fit + `predict_proba`）；TabPFN 的
-`predict_proba` 每次呼叫都會對 in-context 訓練集重新計算。
+| 項目 | 設定 |
+|---|---|
+| GBDT | LightGBM `LGBMClassifier(n_estimators=100)` |
+| TabPFN | TabPFN-3 本地 checkpoint（`tabpfn==8.0.8`、RTX 4070 Laptop GPU、8 GB） |
+| 特徵表 | 137 features（17 baseline + 120 row-offset value-change），即 M3.2 line |
+| 訓練預算 | 10,000 balanced rows |
+| 驗證 | 每軸固定 4,000-row natural-prevalence 子樣本，anomaly rate 約 6% |
+| Seeds | fit-subsample 與模型 `random_state` 取 `{42, 123, 999}` |
+| 指標 | ROC-AUC、PR-AUC、precision/recall/F1@0.5、fit+predict 延遲 |
 
 原始 headline 使用單一 validation 子樣本。INV-2 額外以 5 個 validation seeds
 量測抽樣變異；in-domain GBDT ROC-AUC std 為 `0.0019`，site-transfer GBDT
-ROC-AUC std 為 `0.0044`。後續判讀小 delta 時使用這個 validation 抽樣變異；
-舊 fixture 未覆蓋，新數據來源為 `data/processed/inv2_phaseD_val_variance.json`。
+ROC-AUC std 為 `0.0044`。下列小 delta 依此抽樣變異解讀。舊 fixture 未覆蓋，
+新數據來源為 `data/processed/inv2_phaseD_val_variance.json`。
 
 ---
 
-## Axis 1 — In-domain（`80_20_mod5` building split）
+## 2. TabPFN 執行邊界
 
-| Model | ROC-AUC | PR-AUC | F1@0.5 | fit+predict (s) |
-| --- | --- | --- | --- | --- |
-| GBDT (LightGBM, 10k fit) | 0.9877 ± 0.0012 | 0.9154 ± 0.0068 | 0.756 ± 0.013 | ~0.23 (warm) |
+TabPFN 評估採用本地權重與 10,000 列平衡訓練子樣本。本次 10,000 列訓練預算主要由
+本地 8 GB 顯示記憶體決定；該設定仍低於 TabPFN-3 已記載的 `1,000,000 × 200`
+輸入限制，`ignore_pretraining_limits` 從未被設定。完整 M3 下採樣表格約為
+`4,285,104 × 137`，超出可直接輸入範圍，因此本階段比較的是 10,000 列情境下的
+模型行為。
+
+TabPFN 的準確率提升需要搭配延遲解讀。本次 4,000 列驗證子樣本上，TabPFN 評分約需
+25 至 27 秒，約為每列 6.3 毫秒；GBDT 則為次秒級。TabPFN 的機制會在預測時重新使用
+上下文訓練集，後續 M6.3 銜接時需保留準確率、延遲與授權條件三類觀察量。
+
+---
+
+## 3. 四個比較軸
+
+### 3.1 站內建物切分（`80_20_mod5`）
+
+| 模型 | ROC-AUC | PR-AUC | F1@0.5 | fit+predict (s) |
+|---|---:|---:|---:|---:|
+| GBDT (LightGBM, 10k fit) | 0.9877 ± 0.0012 | 0.9154 ± 0.0068 | 0.756 ± 0.013 | ~0.23 |
 | TabPFN-3 (10k context) | **0.9925 ± 0.0005** | **0.9253 ± 0.0049** | 0.747 ± 0.007 | 26.8 ± 2.0 |
 
-TabPFN 在 single-GBDT-at-10k baseline 上方（原始 fixture 為 +0.0048 ROC、
-+0.010 PR-AUC），但其 `predict_proba` 對 4,000 rows 需約 25.3 s
-（~6.3 ms/row），相對於 GBDT 的次秒級評分 —— 在推論上大約**慢兩個數量級**。
-INV-2 計入 validation 抽樣變異後，TabPFN 減 GBDT 的 paired ROC-AUC delta
-mean 為 `+0.00255`、std 為 `0.00238`，範圍為 `-0.0025` 至 `+0.0059`；
-in-domain 的 TabPFN 優勢為方向性正向，非穩健結論。
+站內建物切分下，TabPFN 平均分數略高，但差距接近驗證抽樣變異，因此只能視為接近強
+基準的結果。INV-2 計入 validation 抽樣變異後，TabPFN 減 GBDT 的 paired ROC-AUC
+delta mean 為 `+0.00255`、std 為 `0.00238`，範圍為 `-0.0025` 至 `+0.0059`。
 
-**脈絡**：已被接受的 M3.4 line 是*在完整資料上的 4-model ensemble*，ROC-AUC
-為 `0.9928`，而 single-GBDT-at-10k 的 baseline 略低於它。TabPFN 在 10k context 下
-的 in-domain ROC-AUC 接近該 ensemble，accuracy 已達強基準水準（延遲代價見上）。
+已被接受的 M3.4 line 是完整資料上的 4-model ensemble，ROC-AUC 為 `0.9928`。
+TabPFN 在 10k context 下的 in-domain ROC-AUC 接近該 ensemble。
 
----
+### 3.2 跨站轉移（`site_id % 5 == 4` held out）
 
-## Axis 2 — Site transfer（PRIMARY，`site_id % 5 == 4` held out）
+真正跨站比較只採用訓練時未見目標站點的設定。M3 ensemble site-held-out anchor
+為 ROC-AUC `0.9774`，此 anchor 是完整資料的 4-model ensemble，作為背景參照。
 
-對 true cross-site 模型而言，held-out sites 在訓練時從未被看過。M3 ensemble
-site-held-out anchor：ROC-AUC `0.9774`（完整資料的 4-model ensemble；與這些
-single-model 10k cells 不直接可比）。
-
-True cross-site（只用 source sites 訓練）：
-
-| Condition | ROC-AUC | PR-AUC | F1@0.5 | fit+predict (s) |
-| --- | --- | --- | --- | --- |
+| 條件 | ROC-AUC | PR-AUC | F1@0.5 | fit+predict (s) |
+|---|---:|---:|---:|---:|
 | GBDT-retrain | 0.9797 ± 0.0008 | **0.8221 ± 0.0035** | 0.780 ± 0.013 | ~0.24 |
 | TabPFN-in-context | **0.9833 ± 0.0009** | 0.8119 ± 0.0052 | **0.783 ± 0.003** | 26.5 ± 0.2 |
 
-兩個 true cross-site 模型間，TabPFN-in-context 在 ROC-AUC（+0.0035）與 F1 勝出，
-GBDT-retrain 在 PR-AUC 勝出（+0.010）。INV-2 計入 validation 抽樣變異後，
-TabPFN 減 GBDT-retrain 的 ROC-AUC delta mean 為 `+0.00438`、std 為 `0.00228`，
-所有 paired delta 為正；PR-AUC delta mean 為 `-0.00326`、std 為 `0.01045`，
-跨零。Site-transfer 的 ROC-AUC 優勢方向穩定；PR-AUC 優勢不穩定。
+跨站設定中，TabPFN 的 ROC-AUC 優勢在配對比較下較一致；PR-AUC 則受驗證抽樣影響
+較大，尚不能判定由哪個模型穩定領先。INV-2 計入 validation 抽樣變異後，TabPFN
+減 GBDT-retrain 的 ROC-AUC delta mean 為 `+0.00438`、std 為 `0.00228`，所有
+paired delta 為正；PR-AUC delta mean 為 `-0.00326`、std 為 `0.01045`，跨零。
 
-附註（known-site building generalization，不納入跨站勝負）：GBDT-transfer-without-retrain
-—— 即 in-domain 全 sites 模型直接套用 —— 得 ROC-AUC `0.9882`、PR-AUC `0.9023`，
-但其 source buildings 橫跨所有 sites（含 held-out sites 的其他 buildings），衡量的
-是已知 site 內新 building 的泛化，而非 cross-site transfer，因此不列入上表。
+另有一個已知站點內的新建物泛化結果：GBDT 直接套用站內模型可達 ROC-AUC `0.9882`、
+PR-AUC `0.9023`。訓練資料已包含目標站點的其他建物，這項結果只作補充，不納入真正
+跨站比較。
 
----
-
-## Axis 3 — Label scarcity（`80_20_mod5`，固定 4k val）
-
-ROC-AUC 與 PR-AUC（3 個 seeds 的 mean），隨著有標註的 support set 縮小：
+### 3.3 標註稀少（`80_20_mod5`，固定 4k validation）
 
 | Support | GBDT ROC | TabPFN ROC | ΔROC | GBDT PR | TabPFN PR | ΔPR |
-| --- | --- | --- | --- | --- | --- | --- |
+|---|---:|---:|---:|---:|---:|---:|
 | 200 | 0.9659 | 0.9806 | **+0.0148** | 0.6954 | 0.7953 | **+0.0999** |
 | 500 | 0.9786 | 0.9829 | +0.0043 | 0.7669 | 0.8302 | +0.0634 |
 | 1,000 | 0.9809 | 0.9834 | +0.0025 | 0.7815 | 0.8507 | +0.0692 |
@@ -107,62 +93,57 @@ ROC-AUC 與 PR-AUC（3 個 seeds 的 mean），隨著有標註的 support set �
 | 5,000 | 0.9885 | 0.9899 | +0.0014 | 0.9086 | 0.9121 | +0.0035 |
 | 10,000 | 0.9877 | 0.9925 | +0.0048 | 0.9154 | 0.9234 | +0.0080 |
 
-**這是 TabPFN 最明確的勝場。** 在 200 labels 時，TabPFN 領先 +0.015 ROC 與
-**+0.100 PR-AUC**；隨著標註增加，差距（在 PR-AUC 上）縮小。INV-2 的 paired
-bootstrap CI 顯示 support 200 的 PR-AUC delta mean 為 `+0.116`
-（CI `[0.095, 0.139]`），support 500 為 `+0.063`（CI `[0.049, 0.077]`），
-support 1,000 為 `+0.070`（CI `[0.057, 0.083]`），皆不跨零。PR-AUC 視角
-—— 對一個 ~6% 盛行率的 anomaly 任務而言是正確的觀察角度 —— 顯示這個基礎模型
-在標註稀少時明顯更好，正是它被期待能幫上忙的地方。
+標註稀少情境是本階段最支持 TabPFN 的證據。INV-2 的 paired bootstrap CI 顯示
+support 200 的 PR-AUC delta mean 為 `+0.116`（CI `[0.095, 0.139]`），support
+500 為 `+0.063`（CI `[0.049, 0.077]`），support 1,000 為 `+0.070`
+（CI `[0.057, 0.083]`），皆不跨零。
 
 固定 `val_seed=42` 下 support 5,000 的 GBDT ROC-AUC 高於 support 10,000 的
 非單調，在 5 個 validation seeds 下消失；support 5,000 為 `0.9872 ± 0.0019`，
 support 10,000 為 `0.9883 ± 0.0019`。此非單調屬 validation 抽樣雜訊。
 
----
+### 3.4 最少特徵工程（`80_20_mod5`，10k fit、4k validation）
 
-## Axis 4 — Minimal feature engineering（`80_20_mod5`，10k fit、4k val）
-
-| Feature set | GBDT ROC | TabPFN ROC | GBDT PR | TabPFN PR |
-| --- | --- | --- | --- | --- |
+| 特徵集 | GBDT ROC | TabPFN ROC | GBDT PR | TabPFN PR |
+|---|---:|---:|---:|---:|
 | Raw baseline (17 feats) | **0.9587 ± 0.0042** | 0.9499 ± 0.0016 | **0.8305** | 0.7943 |
 | Full value-change (137 feats) | 0.9877 | **0.9924** | 0.9154 | **0.9248** |
-| **ROC drop 137 → 17** | **−0.0290** | −0.0424 | — | — |
+| ROC drop 137 → 17 | **−0.0290** | −0.0424 | — | — |
 
-**「降低特徵工程負擔」的假設在此並不成立。** 在 raw 17-feature 集上，GBDT
-*勝過* TabPFN（0.9587 vs 0.9499 ROC；0.831 vs 0.794 PR-AUC），而移除工程化的
-value-change lags 後，TabPFN 掉得*更多*（−0.042 vs GBDT 的 −0.029）。row-offset
-value-change features 編碼了單一 raw row 無法表達的時間脈絡，TabPFN 的 in-context
-learning 並未從 raw tabular rows 還原那種結構，因此它至少和 GBDT 一樣仰賴這些
-工程化特徵。
+本階段未觀察到 TabPFN 可減少值變化特徵需求的證據。使用原始 17 特徵時，GBDT 的
+ROC-AUC 與 PR-AUC 都高於 TabPFN；加入 137 個完整值變化特徵後，兩者分數才接近或
+反轉。時間脈絡仍需要透過值變化或電表感知特徵提供。
 
 ---
 
-## 結論（依 ADR 0015）
+## 4. M5 觀察摘要
 
-依 ADR 0015 的準則（以 transfer、label scarcity、minimal feature engineering
-判斷，而非單一頭條 AUC）：
+GBDT 的優勢在於推論速度快、原始特徵條件下較強，且部署邊界清楚。TabPFN 的優勢
+集中在標註稀少情境，並在真正跨站設定中呈現較穩定的 ROC-AUC 優勢。
 
-M5 將兩個模型家族都帶入 M6.3 比較：
+M5 不支持「TabPFN 可降低值變化特徵需求」這個解讀。原始 17 特徵下，GBDT 優於
+TabPFN；時間脈絡仍需要透過值變化或電表感知特徵提供。
 
-| M6.3 輸入 | 模型 | M5 要帶入的 evidence |
-| --- | --- | --- |
-| 在 BDG2 overlap 上比較 | GBDT | 推論較快，raw-feature baseline 較強 |
-| 在 BDG2 overlap 上比較 | TabPFN | Low-label PR-AUC 與 site-held-out ROC-AUC 較強 |
-| M6.3 必做比較 | Both | M6.3 在同一 labeled BDG2 overlap frame 上，依 accuracy、latency、feature behavior 做判斷 |
+---
 
-目前 evidence 不支持「TabPFN 可降低 value-change features 需求」這個說法。Raw-17-feature 條件下，GBDT ROC-AUC `0.9587` 高於 TabPFN `0.9499`，因此 value-change / meter-aware feature engineering 仍屬於 FDD line。
+## 5. 銜接 M6
 
-ADR 0025/0026 把這個 Phase D 結果帶入 M6，作為 labeled-overlap 比較設計。M6.3 必須並列回報 accuracy、latency、license constraints，包含 TabPFN 約 `6.3 ms/row` 的 latency 與 TabPFN-3.0 research/internal-use license boundary。BDG2 上的 model-role decision 屬於 M6.3 evidence。
+M5 只提供 GEPIII 上的比較觀察；BDG2 上的正式判斷留給 M6。M6 應先完成標籤橋接
+與完整性檢查，再於相同的 BDG2 overlap frame 上回報 GBDT 與 TabPFN 的準確率、
+延遲、特徵需求與授權限制。BDG2-only、2017 年資料與其他電表範圍只作未標註
+補充證據，不進入主要監督式評估分母。
 
-## 銜接 M6：BDG2 overlap 正式評估
+M6.3 銜接時保留 TabPFN 約每列 6.3 毫秒的延遲、research/internal-use 授權邊界，
+以及 real-time FDD claim 需使用 `PAST_SHIFTS`-only features（ADR 0007/0011）
+這三個條件。
 
-M5 的結論只來自 GEPIII。M6 才會在 BDG2 上回報 FDD 評估結果，且 supervised scope 只限於 GEPIII-overlap、2016、meters 0-3。Label 來源是 rank-1 GEPIII `bad_meter_readings` annotations 透過 `building_id_kaggle`、meter code、timestamp 橋接到 BDG2 overlap rows；BDG2-only、2017、其他 meter 不進 supervised denominators。
+---
 
-M6 的下一步：
+## 6. 數字來源與程式碼索引
 
-+ **M6.1 label bridge + integrity**：先證明 bridge coverage 與 integrity，不回報 accuracy。
-+ **M6.2 supervised transfer accuracy**：在 BDG2 raw overlap rows 上回報 ROC-AUC、PR-AUC、precision、recall、F1；cleaned 作 companion sensitivity。
-+ **M6.3 GBDT vs TabPFN supervised comparison**：在同一 labeled overlap frame 上比較 accuracy 與 latency。
-+ **M6.4 unlabeled remainder**：BDG2-only、2017、其他 meter 只作 secondary pseudo-label / review evidence。
-+ **Real-time caveat**：任何 real-time FDD claim 都必須使用 `PAST_SHIFTS`-only features（ADR 0007/0011）；TabPFN latency/license caveats 不可省略。
+| 報告內容 | 程式碼 | 數字輸出 |
+|---|---|---|
+| Phase C TabPFN feasibility spike | [scripts/run_m5_phaseC_tabpfn_spike.py](../../scripts/run_m5_phaseC_tabpfn_spike.py), [tests/test_m5_tabpfn_spike.py](../../tests/test_m5_tabpfn_spike.py) | `data/processed/` Phase C outputs |
+| Phase D GBDT vs TabPFN comparison | [scripts/run_m5_phaseD_foundation_vs_gbdt.py](../../scripts/run_m5_phaseD_foundation_vs_gbdt.py), [tests/test_m5_phaseD_comparison.py](../../tests/test_m5_phaseD_comparison.py) | [data/processed/m5_phaseD_foundation_vs_gbdt.json](../../data/processed/m5_phaseD_foundation_vs_gbdt.json) |
+| Validation 抽樣變異與 paired deltas | [scripts/run_m5_phaseD_foundation_vs_gbdt.py](../../scripts/run_m5_phaseD_foundation_vs_gbdt.py) | [data/processed/inv2_phaseD_val_variance.json](../../data/processed/inv2_phaseD_val_variance.json) |
+| Frozen pipeline helpers | [src/lead/data.py](../../src/lead/data.py), [src/lead/features.py](../../src/lead/features.py), [src/lead/split.py](../../src/lead/split.py), [src/lead/sample.py](../../src/lead/sample.py), [src/lead/evaluate.py](../../src/lead/evaluate.py) | [tests/golden_metrics.json](../../tests/golden_metrics.json) |

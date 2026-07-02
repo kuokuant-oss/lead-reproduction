@@ -12,11 +12,11 @@ reproduction；M3 驗證同一套方法論在完整 GEPIII train subset 上是�
 
 ## 主要程式碼
 
-+ M3.3 buds-lab 對齊：[scripts/run_m3_3_budslab.py](../../scripts/run_m3_3_budslab.py)。
-+ M3.4 集成模型：[scripts/run_m3_4_ensemble.py](../../scripts/run_m3_4_ensemble.py)。
-+ M3.5 事後規則：[scripts/run_m3_5_postprocessing.py](../../scripts/run_m3_5_postprocessing.py)。
-+ 50/50 回溯標註與僅用過去資訊集成：[scripts/run_m3_50_50_ensemble.py](../../scripts/run_m3_50_50_ensemble.py)。
-+ 切分與因果性診斷：[scripts/run_m3_split_causality.py](../../scripts/run_m3_split_causality.py)。
++ M3.3 buds-lab alignment：[scripts/run_m3_3_budslab.py](https://github.com/kuokuant-oss/lead-reproduction/blob/main/scripts/run_m3_3_budslab.py)。
++ M3.4 ensemble：[scripts/run_m3_4_ensemble.py](https://github.com/kuokuant-oss/lead-reproduction/blob/main/scripts/run_m3_4_ensemble.py)。
++ M3.5 post-processing：[scripts/run_m3_5_postprocessing.py](https://github.com/kuokuant-oss/lead-reproduction/blob/main/scripts/run_m3_5_postprocessing.py)。
++ 50/50 offline/causal ensemble：[scripts/run_m3_50_50_ensemble.py](https://github.com/kuokuant-oss/lead-reproduction/blob/main/scripts/run_m3_50_50_ensemble.py)。
++ Split causality diagnostic：[scripts/run_m3_split_causality.py](../../scripts/run_m3_split_causality.py)。
 + Golden gates 與 metrics：[tests/golden_metrics.json](../../tests/golden_metrics.json)、[docs/metrics/m3-50-50-ensemble.json](../metrics/m3-50-50-ensemble.json)。
 
 ---
@@ -37,27 +37,28 @@ reproduction；M3 驗證同一套方法論在完整 GEPIII train subset 上是�
 
 ## 1.2 最終評估設計
 
-最終報告採用 50/50 建物切分：
+最終報告採用 50/50 building-held-out split：
 
-| 切分 | 訓練建物數 | 驗證建物數 | 建物重疊 |
+| Split | 訓練建物數 | 驗證建物數 | 建物重疊 |
 |---|---:|---:|---:|
 | `building_id % 2` | 725 | 724 | 0 |
 
-報告同時列出兩種特徵可用性設定：
+報告同時列出兩種 feature availability 設定：
 
 | 設定 | 特徵可用性 | 特徵數 | 解讀 |
 |---|---|---:|---|
-| 回溯標註 | 過去與未來值變化位移 | 137 | 批次標註與事後分析 |
-| 僅用過去資訊 | 只使用過去值變化位移 | 77 | 線上評分時不可使用未來讀值 |
+| Offline batch labeling | past-shift + future-shift value-change features | 137 | 批次回溯標註 |
+| Past-only | 只使用 past-shift value-change features | 77 | 線上評分時不可使用 future meter readings |
 
 早期 80/20 實驗（`building_id % 5 == 4`，1160/289 buildings，M3.1-M3.5）
 集中放在第 3 章，作為開發階段證據與消融實驗。
 
 ## 1.3 解讀規則
 
-以下結果中，最終結論以 50/50 建物切分為準。80/20 結果用於說明開發階段的特徵、
-模型與診斷證據。小於約 `0.001` 的 AUC 差異落在抽樣與建物層級變異範圍內，
-不作穩健提升宣稱。值變化特徵的貢獻以 17 特徵到 137 特徵的差異作為主要證據。
+以下結果中，最終結論以 50/50 building-held-out split 為準。80/20 結果用於說明
+development-stage feature、model 與 diagnostic evidence。小於約 `0.001` 的 AUC
+差異落在抽樣與建物層級變異範圍內，不作 stable lift claim。Value-change features
+的貢獻以 17 features 到 137 features 的差異作為主要證據。
 
 M2 可作重製錨點：Kaggle Private `0.98616`，與原作者 `0.98661` 的 gap 為
 `0.05%`。M3 的資料、標籤與評估切分不同，因此 M2 分數只作背景參照。
@@ -66,52 +67,68 @@ M2 可作重製錨點：Kaggle Private `0.98616`，與原作者 `0.98661` 的 ga
 
 # 第 2 章：最終結果
 
-最終模型是 four-model equal-weight 集成模型：LightGBM、XGBoost、CatBoost、
-HistGradientBoosting。回溯標註使用 137-feature set；僅用過去資訊使用對應的
-77-feature set。
+最終模型是 four-model equal-weight ensemble：LightGBM、XGBoost、CatBoost、
+HistGradientBoosting。Offline batch labeling 使用 137-feature set；past-only
+設定使用對應的 77-feature set。
 
-| 切分 | 設定 | 特徵數 | 集成模型 AUC | Precision@0.5 | Recall@0.5 | F1@0.5 |
+| Split | 設定 | 特徵數 | Ensemble AUC | Precision@0.5 | Recall@0.5 | F1@0.5 |
 |---|---|---:|---:|---:|---:|---:|
-| 50/50 mod2 | 回溯標註 | 137 | 0.9921 | 0.7175 | 0.9387 | 0.8133 |
-| 50/50 mod2 | 僅用過去資訊 | 77 | 0.9911 | 0.7002 | 0.9311 | 0.7993 |
+| 50/50 mod2 | Offline batch labeling | 137 | 0.9921 | 0.7175 | 0.9387 | 0.8133 |
+| 50/50 mod2 | Past-only | 77 | 0.9911 | 0.7002 | 0.9311 | 0.7993 |
 
 機器可讀 provenance：
 [docs/metrics/m3-50-50-ensemble.json](../metrics/m3-50-50-ensemble.json)。
 
-回溯標註分數是 50/50 protocol 下的批次標註結果。僅用過去資訊的 AUC 低
-`0.0010`，量化了從值變化特徵中移除未來電表讀值的成本。
+Offline batch labeling 分數是 50/50 protocol 下的批次回溯標註結果。Past-only
+AUC 低 `0.0010`，量化了從 value-change features 中移除 future meter readings
+的成本。
+
+既有 train/validation gap 檢查使用 80/20 development line 與 meter-aware
+value-change features，目的只在檢查是否出現明顯 fit-set memorization。
+
+| Score | LightGBM | XGBoost | CatBoost | HistGradientBoosting | Ensemble |
+|---|---:|---:|---:|---:|---:|
+| Fit-set AUC | 0.9983 | 0.9996 | 0.9999 | 0.9983 | 0.9997 |
+| Full train-buildings AUC | 0.9983 | 0.9996 | 0.9999 | 0.9982 | 0.9996 |
+| Validation AUC | 0.9925 | 0.9925 | 0.9884 | 0.9921 | 0.9937 |
+
+Fit-set 與 full train-buildings AUC 接近，表示高分不是只來自重複 fit-set rows。
+Full train-buildings 對 validation 約有 `0.006` AUC gap，列為 capacity/stability
+限制，而不是 M3 headline result。
 
 ---
 
 # 第 3 章：開發階段證據與消融實驗
 
-本章使用 80/20 開發線，目的是說明特徵、模型與事後規則對排序能力的影響。
+本章使用 80/20 development line，目的是說明 features、models 與 post-processing
+rules 對排序能力的影響。
 
 ## 3.1 AUC 進程
 
-| 階段 | 切分 | 設定 | 特徵數 | AUC | 解讀 |
+| 階段 | Split | 設定 | 特徵數 | AUC | 解讀 |
 |---|---|---|---:|---:|---|
-| M3.1 基礎特徵 | 80/20 | 回溯標註 | 17 | 0.9562 | 時間、建物、電表、天氣基礎特徵 |
-| M3.2 值變化特徵 | 80/20 | 回溯標註 | 137 | 0.9920 | 主要 feature-engineering 提升 |
-| M3.2 值變化特徵 | 80/20 | 僅用過去資訊 | 77 | 0.9908 | 過去值變化仍提供穩定訊號 |
-| M3.3 buds-lab 對齊 | 80/20 | 回溯標註 | 170 | 0.9913 | 補充特徵未改善 AUC |
-| M3.4 集成模型 | 80/20 | 回溯標註 | 137 | 0.9928 | 集成模型小幅提升 |
-| M3.5 事後規則 | 80/20 | 回溯標註 | 137 | 0.9927 | 舊規則在本資料設定下未帶來改善 |
+| M3.1 baseline | 80/20 | Offline | 17 | 0.9562 | Time, building, meter, weather baseline |
+| M3.2 value-change | 80/20 | Offline | 137 | 0.9920 | 主要 feature-engineering 提升 |
+| M3.2 value-change | 80/20 | Past-only | 77 | 0.9908 | past-shift features 仍提供穩定訊號 |
+| M3.3 buds-lab alignment | 80/20 | Offline | 170 | 0.9913 | 補充特徵未改善 AUC |
+| M3.4 ensemble | 80/20 | Offline | 137 | 0.9928 | ensemble 小幅提升 |
+| M3.5 post-processing | 80/20 | Offline | 137 | 0.9927 | 舊 rules 在本資料設定下未帶來改善 |
 
-## 3.2 值變化特徵
+## 3.2 Value-change features
 
-M3.1 使用 17 個基礎特徵：時間特徵、建物 metadata、電表類型、電表讀值與天氣。
-M3.2 加入 120 個值變化特徵。
+M3.1 使用 17 個 baseline features：time features、building metadata、meter type、
+meter reading 與 weather。M3.2 加入 120 個 value-change features。
 
 | 模型 | 特徵數 | AUC | 差異 |
 |---|---:|---:|---:|
-| M3.1 基礎特徵 LightGBM | 17 | 0.9562 | - |
-| M3.2 值變化特徵 LightGBM | 137 | 0.9920 | +0.0358 |
+| M3.1 baseline LightGBM | 17 | 0.9562 | - |
+| M3.2 value-change LightGBM | 137 | 0.9920 | +0.0358 |
 
-值變化特徵使用與 M2 相同的 shift family：`-24..-1`, `1..24`,
+Value-change features 使用與 M2 相同的 shift family：`-24..-1`, `1..24`,
 `-168..-48 step 24`, `48..168 step 24`。M3 的 diff sign 與 ratio orientation
-和 M2 相反，屬 negation / reciprocal 的 monotonic 轉換，不影響 tree-based AUC；
-ratio 的 +1 smoothing 公式見 ADR 0008。
+和 M2 相反，屬 negation / reciprocal 的 monotonic 轉換；這個結論只界定
+diff/ratio 方向本身，meter-crossing 的 AUC 影響見 §4.3。Ratio 的 +1
+smoothing 公式見 ADR 0008。
 
 ## 3.3 buds-lab 對齊
 
@@ -128,9 +145,9 @@ train-only `(site, meter)` target encoding、primary-use/meter interaction，
 Full buds-lab alignment 作為驗證與消融步驟有價值；ranking AUC 未改善，
 因此不納入最終模型。Threshold-0.5 指標列於上表。
 
-## 3.4 集成模型
+## 3.4 Ensemble
 
-集成模型使用 M3.2 feature set。
+Ensemble 使用 M3.2 feature set。
 
 | 模型 | 80/20 AUC | Precision@0.5 | Recall@0.5 | F1@0.5 |
 |---|---:|---:|---:|---:|
@@ -138,10 +155,11 @@ Full buds-lab alignment 作為驗證與消融步驟有價值；ranking AUC 未�
 | XGBoost | 0.9909 | 0.6801 | 0.9559 | 0.7947 |
 | CatBoost | 0.9891 | 0.7178 | 0.9579 | 0.8206 |
 | HistGBT | 0.9915 | 0.6385 | 0.9650 | 0.7685 |
-| 集成模型 | 0.9928 | 0.6779 | 0.9664 | 0.7969 |
+| Ensemble | 0.9928 | 0.6779 | 0.9664 | 0.7969 |
 
-集成模型 lift 為 `+0.00079`。值變化特徵是主要貢獻，集成模型是次要增益。補充的
-建物層級 bootstrap 檢查顯示 lift 方向為正，建物層級 CI 仍有重疊，細節見第 4 章。
+Ensemble lift 為 `+0.00079`。Value-change features 是主要貢獻，ensemble 是次要
+增益。補充的建物層級 bootstrap 檢查顯示 lift 方向為正，建物層級 CI 仍有重疊，
+細節見第 4 章。
 
 ## 3.5 事後規則
 
@@ -160,112 +178,60 @@ Pre-rule 集成模型 AUC 是 `0.9927886`；combined post-processing AUC 是
 
 ---
 
-# 第 4 章：有效性檢查與補充診斷
+# 第 4 章：有效性檢查與限制
 
-本章彙整 80/20 開發線上的有效性檢查，以及後續補充調查的結果。這些結果用於界定
-M3 分數的可信範圍與限制。
+本章整理影響 M3 headline result 解讀的有效性檢查。完整補充檢查、程式碼與 JSON
+輸出收錄於 appendix index。
 
-## 4.1 補充檢查索引
+## 4.1 切分與 leakage 檢查
 
-| 補充檢查 | 目的 | 主結論 | 位置 |
-|---|---|---|---|
-| 標籤打亂檢查 | 檢查異常殘餘訊號 | 未支持資料洩漏；值變化特徵在打亂標籤下仍有殘餘結構 | §4.2 |
-| 行偏移檢查 | 量化值變化特徵的跨電表問題 | 電表感知版本略有改善；M3 default 維持凍結 | §4.3 |
-| 時間留出檢查 | 衡量同建物時間外推 | held-out 時段未降低 AUC | §4.3 |
-| 建物層級檢查 | 評估集成提升與高分切片 | lift 方向正向；建物層級 CI 有重疊 | §4.4 |
-| 抽樣種子掃描 | 評估下採樣穩定度 | 平均分數穩定；小差異需保守解讀 | §4.5 |
-| 訓練與驗證 gap | 檢查容量與穩定度 | full-train 對 validation 有約 `0.006` AUC gap | §4.5 |
+M3 採用 building-held-out split，訓練與驗證建物沒有重疊。Target-encoder ablation
+未出現異常分數提升，表示 target encoding 對 headline result 的影響有限。
 
-## 4.2 切分與標籤檢查
+Value-change features 可分為 past-shift features 與 future-shift features。在
+offline batch labeling 中，兩者提供的訊號相近。若模型用於即時 FDD 或線上評分，
+feature set 應限制為 past-shift features，因為 future-shift features 依賴未來
+meter readings。
 
-切分檢查支持目前的建物留出設定：訓練與驗證建物沒有重疊，目標編碼消融也未顯示
-異常提升來源。過去與未來位移在回溯標註設定中提供相近訊號。
+Label-shuffle 後的分數明顯低於真實標籤結果，表示模型表現並非主要由隨機標籤結構
+解釋。不過，value-change features 在打亂標籤後仍保留少量可學習結構。基於這項
+殘餘結構，本文將約 `0.001` AUC 量級的差異視為實質上不可區分，除非另有穩定性或
+slice-level 證據支持。
 
-| 檢查 | 結果 | 解讀 |
-|---|---|---|
-| 建物重疊 | 所有 reported splits 皆為 0 | 驗證建物以 `building_id` 留出。 |
-| 僅用過去 / 僅用未來 / 全部位移 | Past `0.9908`, future `0.9908`, full `0.9920` | 過去與未來位移均提供相近訊號。 |
-| 標籤打亂，8 seeds | mean 0.5197, std 0.0654 | Shuffle signal 不穩定，且遠低於 real-label result。 |
-| 標籤打亂特徵消融 | remove value-change 0.5092; remove meter / building / weather 0.5251 / 0.5279 / 0.5253 | Shuffled-label 殘餘訊號主要來自 value-change 特徵。 |
-| 移除電表特徵 | AUC drops to 0.8160 | Meter reading 與值變化特徵承載主要 anomaly signal。 |
-| M3.3 target encoder 消融 | Removing `gte_site_meter_anomaly` does not reduce shuffle AUC | Target encoding 未形成 elevated shuffle result 的來源。 |
+## 4.2 Generalization 限制
 
-## 4.3 泛化診斷
+Building-held-out 結果可作為 GEPIII 內部基準線。相比之下，site-held-out 驗證更
+困難，顯示跨 site 泛化是 M3 後續部署與比較時的重要限制。各 meter type 中，steam
+的表現最低，應作為後續誤差分析的優先對象。
 
-| 診斷 | 結果 | 解讀 |
-|---|---:|---|
-| Site-held-out 集成模型 AUC (`site_id % 5 == 4`) | 0.9774 | Cross-site validation 明顯比 building-held-out validation 更難。 |
-| Per-meter AUC: electricity / chilled water / steam / hot water | 0.9991 / 0.9888 / 0.9553 / 0.9863 | Steam 是最弱 meter slice。 |
-| Observed range 內缺 hour 的建物 | 945/1449 (65.2%) | Row-offset value-change shifts 近似跨 timestamp gaps 的變化。 |
-| 同建物時間留出 | single LightGBM 0.9907 → 0.9928; ensemble 0.9915 → 0.9937 | 使用 `row_offset_meter_aware` 與 `PAST_SHIFTS`；同一批建物的 held-out 時段未降低 AUC。 |
+Primary-use slices 中，多數類別維持高 AUC。部分類別的驗證建物數較少，因此這些
+high-score small slices 主要用於定位資料分布與模型行為。完整表格見
+`docs/metrics/m3-primary-use-auc.json`。
 
-Value-change implementation 使用 `groupby().shift()`，因此 shifts 是 row-offset
-features。GEPIII default 只以 `building_id` 分組；多 meter frame 會發生
-meter-crossing。INV-1 量化顯示 `row_offset` 與 `row_offset_meter_aware` 在 GEPIII
-上約 `57.6%` 至 `59.3%` 的 value-change cells 不同；80/20 split 的 meter-aware
-single LightGBM AUC 差為 `+0.00053`，集成模型差為 `+0.00091`。M3 headline
-保留 `row_offset` 作為凍結 reproduction default；M6 cross-model 比較線使用 opt-in
-`row_offset_meter_aware`（見 #52）。
+Time-holdout 檢查提供額外敏感性資訊。由於它同時改變 value-change regime 與 split，
+其結果適合用來觀察模型在不同時間設定下的變化，不直接併入 M3 headline comparison。
+細節見 appendix index。
 
-同建物時間留出檢驗衡量同一批建物的時間外推：train 為 2016-01-01 至
-2016-08-31，validation 為 2016-09-01 至 2016-12-31；held-out 時段的建物在
-訓練中出現過。此結果支持同建物時間外推設定下的 headline 穩定度。跨建物加跨時間的
-泛化仍需另行量測。
+## 4.3 Feature implementation 限制
 
-## 4.4 建物用途切片與建物層級分布
+M3 的 value-change features 以 row-offset shift 實作，用相鄰列近似時間變化，
+沒有進行精確的 timestamp join。GEPIII default 以 `building_id` 分組；在多電表
+資料中，這會讓不同 meter 的讀值進入同一個 shift 序列，形成 meter-crossing。
 
-下表 AUC 由 `data/processed/m3_5_val_predictions.csv.gz` join
-`data/raw/m3/building_metadata.csv` 計算而來。完整 machine-readable table 存在
-[docs/metrics/m3-primary-use-auc.json](../metrics/m3-primary-use-auc.json)。
-部分 primary-use categories 的 validation buildings 很少，這些 slices 只作診斷用途。
+補充檢查顯示，`row_offset_meter_aware` 能修正 meter-crossing，且分數略高於原始
+`row_offset` 版本。為了維持與凍結版 GEPIII reproduction baseline 的一致性，M3
+headline result 仍回報原始 row-offset implementation；後續 cross-model comparison
+則固定採用 meter-aware implementation。
 
-INV-7 以 validation building 為單位重算分布。有效 validation buildings 為
-`234`；per-building median AUC 為 single LightGBM `0.9996`、集成模型 `0.9999`；
-single LightGBM p10/p90 為 `0.9751` / `1.0000`；minimum AUC 為 single LightGBM
-`0.4061`、集成模型 `0.8042`。Building-bootstrap mean CI 為 single LightGBM
-`[0.9802, 0.9928]`、集成模型 `[0.9928, 0.9970]`。High-score small slices 為
-`primary_use_enc` 3、7、8、11、12、13、14、15，各自有不超過 4 個有效建物且
-median AUC 接近 `0.999` 至 `1.000`。
+Past-only 50/50 結果只比 offline batch labeling 低 `0.0010` AUC，顯示 M3 在即時
+FDD 設定下仍保有接近 offline batch labeling 的表現。實際部署時，模型輸入應限制為
+當下以前可取得的特徵。
 
-| 建物用途 | AUC | 資料列數 | 異常列數 | 建物數 |
-|---|---:|---:|---:|---:|
-| Parking | 1.0000 | 26,349 | 7,063 | 3 |
-| Retail | 1.0000 | 26,352 | 6,759 | 3 |
-| Utility | 1.0000 | 14,944 | 62 | 1 |
-| Warehouse/storage | 0.9997 | 34,078 | 1,093 | 4 |
-| Healthcare | 0.9987 | 42,949 | 558 | 2 |
-| Public services | 0.9984 | 317,758 | 9,918 | 32 |
-| Lodging/residential | 0.9979 | 378,930 | 18,047 | 26 |
-| Services | 0.9971 | 17,532 | 494 | 2 |
-| Technology/science | 0.9970 | 22,276 | 279 | 1 |
-| Food sales and service | 0.9969 | 26,343 | 18 | 1 |
-| Entertainment/public assembly | 0.9950 | 520,050 | 20,453 | 41 |
-| Office | 0.9941 | 863,244 | 62,886 | 52 |
-| Other | 0.9932 | 35,134 | 737 | 3 |
-| Education | 0.9894 | 1,766,403 | 113,683 | 117 |
-| Manufacturing/industrial | 0.9876 | 6,677 | 1,148 | 1 |
-
-## 4.5 穩定度與限制
-
-Site-held-out validation 較 building-held-out 困難；steam 是最弱 meter slice；
-label-shuffle 保留 value-change 殘餘結構；row-offset value-change shifts 近似跨
-timestamp gaps 的變化且含 meter-crossing；primary-use slices 受 validation
-building count 限制。
-
-INV-6 train/validation gap 顯示 LightGBM fit-set AUC 為 `0.9983`、full
-train-buildings AUC 為 `0.9983`、validation AUC 為 `0.9925`，full-train 減
-validation 為 `+0.0058`。4-model 集成模型 fit-set AUC 為 `0.9997`、full
-train-buildings AUC 為 `0.9996`、validation AUC 為 `0.9937`，gap 為 `+0.0059`。
-Fit-set 與 full-train 分數接近，顯示分數不來自複製 fit-set 列的記憶；
-full-train 對 validation 有 `0.006` 量級的容量 gap，列為 capacity/stability
-caveat。
-
-INV-8 sampling sweep 顯示 M3-style downsample seed 的 AUC mean 為 `0.9924`、
-std 為 `0.00024`、range 為 `0.0008`；canonical seeds `(10,20)` 為 `0.9925`。
-乾淨 50:50 且不複製正樣本的 mean 為 `0.9924`、std 為 `0.00027`；與 M3-style
-mean 差為 `+0.00004`。Mean 不依賴正樣本複製；validation AUC 跨 sampling
-seed 的 range `0.0008` 超過 `0.0005` noise floor，列為 sampling-seed
-穩定度 caveat。
+整體來看，這些檢查界定了 M3 headline score 的適用條件：GEPIII 內部、
+building-held-out split，以及 offline batch labeling 設定。在目前檢查範圍內，
+未觀察到會系統性推高 headline result 的明顯 leakage pattern。後續比較應固定
+split、label source 與 feature availability，並另外回報 cross-site、steam meter、
+meter-aware feature implementation 與抽樣穩定度結果。
 
 ---
 
@@ -312,20 +278,28 @@ M3 已完成，主要結論如下。
 
 ---
 
-# 第 7 章：數字來源與程式碼索引
+# 附錄：數字來源與補充檢查索引
 
-下表列出本報告中補充調查數字的來源，供讀者追溯到產生數字的程式與 JSON。
+補充檢查的程式碼與 JSON 輸出包含標籤對齊、行偏移差異、標籤打亂、時間留出、
+訓練／驗證 gap、建物分布與抽樣種子掃描。主要來源如下：
 
-| 報告內容 | 程式碼 | 數字輸出 |
-|---|---|---|
-| 50/50 最終回溯標註與僅用過去資訊結果 | [scripts/run_m3_50_50_ensemble.py](../../scripts/run_m3_50_50_ensemble.py) | [docs/metrics/m3-50-50-ensemble.json](../metrics/m3-50-50-ensemble.json) |
-| M3.1-M3.5 開發線、標籤打亂與因果性檢查 | [scripts/run_m3_split_causality.py](../../scripts/run_m3_split_causality.py), [scripts/run_m3_3_budslab.py](../../scripts/run_m3_3_budslab.py), [scripts/run_m3_4_ensemble.py](../../scripts/run_m3_4_ensemble.py), [scripts/run_m3_5_postprocessing.py](../../scripts/run_m3_5_postprocessing.py) | [tests/golden_metrics.json](../../tests/golden_metrics.json) |
-| 標籤逐列對齊完整性 | [scripts/run_gate_label_join_integrity.py](../../scripts/run_gate_label_join_integrity.py) | [data/processed/gate_label_join_integrity.json](../../data/processed/gate_label_join_integrity.json) |
-| 行偏移與電表感知值變化差異 | [scripts/run_inv1_meter_aware_impact.py](../../scripts/run_inv1_meter_aware_impact.py) | [data/processed/inv1_meter_aware_impact.json](../../data/processed/inv1_meter_aware_impact.json) |
-| 標籤打亂特徵群消融 | [scripts/run_inv4_shuffle_ablation.py](../../scripts/run_inv4_shuffle_ablation.py) | [data/processed/inv4_shuffle_ablation.json](../../data/processed/inv4_shuffle_ablation.json) |
-| 同建物時間留出 | [scripts/run_inv5_time_holdout.py](../../scripts/run_inv5_time_holdout.py) | [data/processed/inv5_time_holdout.json](../../data/processed/inv5_time_holdout.json) |
-| Train/validation gap | [scripts/run_inv6_train_val_gap.py](../../scripts/run_inv6_train_val_gap.py) | [data/processed/inv6_train_val_gap.json](../../data/processed/inv6_train_val_gap.json) |
-| Per-building AUC 分布與 bootstrap CI | [scripts/run_inv7_per_building_distribution.py](../../scripts/run_inv7_per_building_distribution.py) | [data/processed/inv7_per_building_distribution.json](../../data/processed/inv7_per_building_distribution.json) |
-| Downsample seed 掃描與乾淨 50:50 對照 | [scripts/run_inv8_sampling_fragility.py](../../scripts/run_inv8_sampling_fragility.py) | [data/processed/inv8_sampling_fragility.json](../../data/processed/inv8_sampling_fragility.json) |
++ 最終 50/50 結果：
+  [scripts/run_m3_50_50_ensemble.py](../../scripts/run_m3_50_50_ensemble.py)；
+  [docs/metrics/m3-50-50-ensemble.json](../metrics/m3-50-50-ensemble.json)。
++ 開發線與 golden metrics：
+  [scripts/run_m3_split_causality.py](../../scripts/run_m3_split_causality.py)、
+  [scripts/run_m3_3_budslab.py](../../scripts/run_m3_3_budslab.py)、
+  [scripts/run_m3_4_ensemble.py](../../scripts/run_m3_4_ensemble.py)、
+  [scripts/run_m3_5_postprocessing.py](../../scripts/run_m3_5_postprocessing.py)；
+  [tests/golden_metrics.json](../../tests/golden_metrics.json)。
++ 補充檢查輸出：
+  [scripts/run_gate_label_join_integrity.py](../../scripts/run_gate_label_join_integrity.py)、
+  [scripts/run_inv1_meter_aware_impact.py](../../scripts/run_inv1_meter_aware_impact.py)、
+  [scripts/run_inv4_shuffle_ablation.py](../../scripts/run_inv4_shuffle_ablation.py)、
+  [scripts/run_inv5_time_holdout.py](../../scripts/run_inv5_time_holdout.py)、
+  [scripts/run_inv6_train_val_gap.py](../../scripts/run_inv6_train_val_gap.py)、
+  [scripts/run_inv7_per_building_distribution.py](../../scripts/run_inv7_per_building_distribution.py)、
+  [scripts/run_inv8_sampling_fragility.py](../../scripts/run_inv8_sampling_fragility.py)；
+  對應 JSON 皆位於 [data/processed/](../../data/processed/)。
 
-*Last updated: 2026-07-02 (M3 report structure and investigation evidence links)*
+*Last updated: 2026-07-02 (M3 report structure and check evidence links)*
