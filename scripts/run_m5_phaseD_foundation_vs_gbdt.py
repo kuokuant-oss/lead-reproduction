@@ -56,7 +56,7 @@ from lead import (
     write_json_with_provenance,
 )
 
-VALUE_CHANGE_REGIME = "row_offset"
+DEFAULT_VALUE_CHANGE_REGIME = "row_offset"
 IN_DOMAIN_SPLIT = "80_20_mod5"  # building_id % 5 == 4
 SITE_TRANSFER_RULE = "site_id % 5 == 4"
 SITE_ANCHOR_ENSEMBLE_AUC = 0.9774  # M3 site-held-out ensemble diagnostic.
@@ -136,6 +136,15 @@ def parse_args() -> argparse.Namespace:
             "Optional INV-2 validation resampling seeds. When set, each axis is "
             "rerun for every validation seed and summarized across validation "
             "resamples. The legacy --val-seed path remains the single-seed default."
+        ),
+    )
+    parser.add_argument(
+        "--value-change-regime",
+        choices=["row_offset", "row_offset_meter_aware", "timestamp_merge"],
+        default=DEFAULT_VALUE_CHANGE_REGIME,
+        help=(
+            "Value-change feature regime. Default preserves the legacy M5 fixture; "
+            "M6 cross-model comparison must pass row_offset_meter_aware explicitly."
         ),
     )
     parser.add_argument(
@@ -610,17 +619,23 @@ def summarize_val_resampling(
 # --------------------------------------------------------------------------- #
 # Feature table
 # --------------------------------------------------------------------------- #
-def build_split_table(df, val_mask: np.ndarray, *, split_label: str) -> dict[str, Any]:
+def build_split_table(
+    df,
+    val_mask: np.ndarray,
+    *,
+    split_label: str,
+    value_change_regime: str,
+) -> dict[str, Any]:
     train_buildings = set(df.loc[~val_mask, "building_id"].unique())
     val_buildings = set(df.loc[val_mask, "building_id"].unique())
     overlap = assert_no_building_overlap(
         train_buildings, val_buildings, split_name=split_label
     )
     train_full = add_value_change_features(
-        df.loc[~val_mask], list(SHIFTS), value_change_regime=VALUE_CHANGE_REGIME
+        df.loc[~val_mask], list(SHIFTS), value_change_regime=value_change_regime
     )
     val_full = add_value_change_features(
-        df.loc[val_mask], list(SHIFTS), value_change_regime=VALUE_CHANGE_REGIME
+        df.loc[val_mask], list(SHIFTS), value_change_regime=value_change_regime
     )
     value_cols = [c for c in train_full.columns if c.startswith("lag_value_")]
     feature_cols = BASELINE_FEATURE_COLS + value_cols
@@ -635,6 +650,7 @@ def build_split_table(df, val_mask: np.ndarray, *, split_label: str) -> dict[str
         "ds_idx_full": downsample_indices(train_full["anomaly"]),
         "split": {
             "name": split_label,
+            "value_change_regime_effective": value_change_regime,
             "n_train_buildings": int(len(train_buildings)),
             "n_val_buildings": int(len(val_buildings)),
             "n_train_rows": int((~val_mask).sum()),
@@ -911,7 +927,12 @@ def run_axes_for_val_seed(
     full_shape = None
     if needs_8020:
         mask_8020 = (df["building_id"] % 5 == 4).to_numpy()
-        table = build_split_table(df, mask_8020, split_label=IN_DOMAIN_SPLIT)
+        table = build_split_table(
+            df,
+            mask_8020,
+            split_label=IN_DOMAIN_SPLIT,
+            value_change_regime=args.value_change_regime,
+        )
         table_8020_meta = table["split"]
         full_shape = {
             "downsampled_train_rows": int(len(table["ds_idx_full"])),
@@ -947,11 +968,21 @@ def run_axes_for_val_seed(
     if "site_transfer" in args.axes:
         val_site_ids = sorted(site for site in df["site_id"].unique() if site % 5 == 4)
         mask_site = leave_site_out_mask(df, val_site_ids)
-        site_table = build_split_table(df, mask_site, split_label=SITE_TRANSFER_RULE)
+        site_table = build_split_table(
+            df,
+            mask_site,
+            split_label=SITE_TRANSFER_RULE,
+            value_change_regime=args.value_change_regime,
+        )
         if transfer_model is None and not needs_8020:
             # Build an in-domain transfer model from the 80/20 split on demand.
             mask_8020 = (df["building_id"] % 5 == 4).to_numpy()
-            t8020 = build_split_table(df, mask_8020, split_label=IN_DOMAIN_SPLIT)
+            t8020 = build_split_table(
+                df,
+                mask_8020,
+                split_label=IN_DOMAIN_SPLIT,
+                value_change_regime=args.value_change_regime,
+            )
             v8020 = random_val_indices(
                 t8020["val_full"].index.to_numpy(), args.val_rows, val_seed
             )
@@ -1003,7 +1034,8 @@ def main() -> None:
     log(
         f"Device={runner.device} tabpfn_ok={runner.tabpfn_ok} "
         f"fit_rows={args.tabpfn_fit_rows} val_rows={args.val_rows} "
-        f"seeds={args.seeds} val_seeds={args.val_seeds}"
+        f"seeds={args.seeds} val_seeds={args.val_seeds} "
+        f"value_change_regime={args.value_change_regime}"
     )
 
     df = load_m3_frame(verbose=True)
@@ -1039,15 +1071,30 @@ def main() -> None:
         ),
     }
 
+    is_m6_meter_aware = args.value_change_regime == "row_offset_meter_aware"
     results = {
-        "experiment": "inv2_phaseD_val_variance"
+        "experiment": "m6_phaseD_meter_aware"
+        if is_m6_meter_aware
+        else "inv2_phaseD_val_variance"
         if len(args.val_seeds) > 1
         else "m5_phaseD_foundation_vs_gbdt",
-        "issue": 51 if len(args.val_seeds) > 1 else 35,
+        "issue": 52 if is_m6_meter_aware else 51 if len(args.val_seeds) > 1 else 35,
         "scope": (
             "Existing M3 GEPIII data only; no BDG2, no cloud; TabPFN local weights."
         ),
-        "value_change_regime": VALUE_CHANGE_REGIME,
+        "value_change_regime": args.value_change_regime,
+        "value_change_regime_default": DEFAULT_VALUE_CHANGE_REGIME,
+        "value_change_regime_self_check": {
+            "requested": args.value_change_regime,
+            "effective_in_domain": table_8020_meta.get("value_change_regime_effective")
+            if table_8020_meta
+            else None,
+            "matches_requested": bool(
+                table_8020_meta
+                and table_8020_meta.get("value_change_regime_effective")
+                == args.value_change_regime
+            ),
+        },
         "budgets": {
             "tabpfn_fit_rows": int(args.tabpfn_fit_rows),
             "val_rows": int(args.val_rows),
@@ -1077,7 +1124,10 @@ def main() -> None:
     }
     cmd = (
         "uv run python scripts/run_m5_phaseD_foundation_vs_gbdt.py "
+        f"--out {args.out} "
         f"--tabpfn-fit-rows {args.tabpfn_fit_rows} --val-rows {args.val_rows} "
+        f"--value-change-regime {args.value_change_regime} "
+        f"--axes {' '.join(args.axes)} "
         f"--seeds {' '.join(map(str, args.seeds))} "
         f"--val-seeds {' '.join(map(str, args.val_seeds))}"
     )

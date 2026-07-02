@@ -17,7 +17,7 @@
 | **M2** | LEAD competition subset reproduction | Closed | Kaggle Private AUC `0.98616`，與原始解法 `0.98661` 的差距為 `0.05%` |
 | **M3** | Full ASHRAE GEPIII reproduction | Complete | M3.4 ensemble AUC `0.9928`；PI 50/50 ensemble offline `0.9921` / causal `0.9911`；post-processing 為 null result |
 | **M4** | Importable pipeline foundation | M4.0-M4.5 complete | `src/lead` public API frozen; M3.2/M3.4 regression gates pass; M4.2-M4.5 closed |
-| **M5/M6** | FDD on BDG2 | M5 GEPIII 初步模型比較完成；M6 BDG2 overlap 正式評估已規劃 | M5 建立 BDG2 FDD 評估前的模型比較基準：TabPFN 在 label scarcity 與 GEPIII site-held-out ROC-AUC 有增益，GBDT 在 latency 與 minimal-FE baseline 上有優勢。M6.3 會在同一 labeled BDG2 overlap frame 上正式比較 GBDT 與 TabPFN；M6 supervised metrics 只限 GEPIII-overlap、2016、meters 0-3。 |
+| **M5** | GEPIII FDD model comparison | Complete | TabPFN 的主要優勢出現在低標註量 PR-AUC；full-feature in-domain 分數接近；raw 17 features 下 ranking metric 與 threshold `0.5` classification 給出不同訊號；site-transfer PR-AUC 由 tree family 較強。 |
 
 Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-reproduction/milestones)。
 
@@ -32,8 +32,6 @@ Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-r
 - **工作方法**：[docs/reference/workflow.md](./docs/reference/workflow.md)
 - **M4 計畫**：[docs/plans/m4-plan.md](./docs/plans/m4-plan.md)
 - **M5 計畫**：[docs/plans/m5-plan.md](./docs/plans/m5-plan.md)
-- **Phase E → M6 roadmap**：[docs/plans/phaseE-fdd-roadmap.md](./docs/plans/phaseE-fdd-roadmap.md)
-- **BDG2 supervised FDD plan**：[docs/plans/bdg2-supervised-fdd-plan.md](./docs/plans/bdg2-supervised-fdd-plan.md)
 
 ## Milestone 摘要
 
@@ -42,7 +40,7 @@ Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-r
 M1 不訓練模型，目標是把論文與原始碼中的關鍵決策變成可追蹤文件。
 
 - `docs/reference/unknowns.md`：17 個 paper 或 code 未說清楚的地方。
-- `docs/adr/`：目前共有 26 份 ADR；M1 產出 ADR 0001-0006。
+- `docs/adr/`：目前共有 27 份 ADR；M1 產出 ADR 0001-0006。
 - `docs/reference/paper-notes.md`：paper structured summary。
 - `docs/reference/feature-engineering-rules.md`：feature 與 model 規則整理。
 
@@ -90,18 +88,20 @@ M4.0-M4.5 complete。
 
 詳細結果見 [docs/reports/m4-evaluation-report.md](./docs/reports/m4-evaluation-report.md)。
 
-### M5/M6 FDD on BDG2
+### M5 GEPIII 模型比較
 
-M5 已完成 GEPIII 上的 FDD 模型比較；M6 將在 BDG2 GEPIII-overlap 子集上做正式 supervised FDD 評估。
+M5 已完成 GEPIII 上的 FDD 模型比較。比較線使用 `row_offset_meter_aware`
+features、50% training / 50% testing split，並列出 LightGBM、XGBoost、CatBoost、
+HistGBT、Ensemble 與 TabPFN。
 
 主要結果：
 
-- TabPFN 在 label scarcity（200 labels 時 +0.100 PR-AUC）與 GEPIII site-held-out ROC-AUC（`0.9833` vs GBDT-retrain `0.9797`）勝出。
-- GBDT 在 latency 與 raw-feature baseline behavior 上保有優勢；M6.3 會在同一 labeled BDG2 overlap frame 上重新比較 GBDT 與 TabPFN。
-- M6 supervised scope 限於 GEPIII-overlap、2016、meters 0-3，label 來源是 GEPIII/Kaggle `bad_meter_readings` bridge。
-- 下一步是 M6.1 label bridge + integrity；coverage/integrity 先行，accuracy metrics 從 M6.2 開始。
+- TabPFN 的主要優勢出現在低標註量 PR-AUC；support 200 與 500 時 test PR-AUC 最高。
+- Full features 的 in-domain 50/50 test split 上，六個模型分數接近，無明確模型排序。
+- Raw 17 features 下，tree models 的 test PR-AUC 較高；TabPFN 在 threshold `0.5` 下 TN 最高、FP 最少，且 FP+FN 總錯誤數最低。
+- Site-transfer test PR-AUC 由 tree family 較強。
 
-詳細結果見 [docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)；M6 路線見 [docs/plans/phaseE-fdd-roadmap.md](./docs/plans/phaseE-fdd-roadmap.md) 與 [docs/plans/bdg2-supervised-fdd-plan.md](./docs/plans/bdg2-supervised-fdd-plan.md)。BDG2 資料面背景見 [docs/reports/bdg2-eda.md](./docs/reports/bdg2-eda.md)。
+詳細結果見 [docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)。
 
 ## src/lead public API
 
@@ -145,13 +145,17 @@ docs/
 │   ├── m3-plan.md
 │   ├── m4-plan.md
 │   ├── m5-plan.md
+│   ├── phaseE-fdd-roadmap.md
 │   └── bdg2-supervised-fdd-plan.md
 ├── reports/
 │   ├── reproduction-report.md
 │   ├── m3-report.md
 │   ├── m4-evaluation-report.md
 │   ├── m5-foundation-vs-gbdt.md
-│   └── bdg2-eda.md
+│   ├── bdg2-eda.md
+│   └── assets/
+│       └── m5/
+│           └── confusion matrix PNGs
 ├── reference/
 │   ├── workflow.md
 │   ├── change-checklist.md
@@ -165,7 +169,7 @@ docs/
 │   ├── m3-50-50-ensemble.json
 │   └── m3-primary-use-auc.json
 ├── adr/
-│   └── 0001-0026 decision records
+│   └── 0001-0027 decision records
 ├── handoffs/
 │   └── historical session handoffs
 ├── agents/
@@ -186,13 +190,27 @@ notebooks/
 └── 10-m3-postprocessing.ipynb
 
 scripts/
+├── diagnose_bdg2_timezone_alignment.py
+├── diagnose_phaseE_step3_smoke_attribution.py
+├── explore_bdg2.py
+├── phaseE_transfer.py
 ├── run_m3_3_budslab.py
 ├── run_m3_4_ensemble.py
 ├── run_m3_5_postprocessing.py
 ├── run_m3_50_50_ensemble.py
-└── run_m3_split_causality.py
+├── run_m3_split_causality.py
+├── run_m4_3_timestamp_value_change.py
+├── run_m5_phaseC_tabpfn_spike.py
+├── run_m5_phaseD_foundation_vs_gbdt.py
+├── run_m6_phaseD_50_50_full_models.py
+├── run_phaseE_step3_bdg2_transfer_smoke.py
+├── run_phaseE_step4a_bdg2_transfer.py
+├── run_phaseE_step4b_tabpfn_vs_gbdt_bdg2.py
+└── run_phaseE_step4c_pooled_powered_fallback.py
 
 src/lead/
+├── __init__.py
+├── bdg2.py
 ├── data.py
 ├── features.py
 ├── split.py
@@ -202,11 +220,19 @@ src/lead/
 
 tests/
 ├── golden_metrics.json
-├── test_refactor_regression.py
+├── test_bdg2_loader.py
 ├── test_call_arity.py
 ├── test_label_join_integrity.py
-├── test_value_change_regimes.py
-└── test_readme_freshness.py
+├── test_m5_phaseD_comparison.py
+├── test_m5_tabpfn_spike.py
+├── test_phaseE_step4_transfer.py
+├── test_public_api.py
+├── test_readme_freshness.py
+├── test_refactor_regression.py
+├── test_sampling_semantics.py
+├── test_split_helpers.py
+├── test_time_and_postprocessing_semantics.py
+└── test_value_change_regimes.py
 
 data/
 ├── raw/        # gitignored
@@ -236,6 +262,7 @@ scripts/
   run_m4_3_timestamp_value_change.py
   run_m5_phaseC_tabpfn_spike.py
   run_m5_phaseD_foundation_vs_gbdt.py
+  run_m6_phaseD_50_50_full_models.py
   run_phaseE_step3_bdg2_transfer_smoke.py
   run_phaseE_step4a_bdg2_transfer.py
   run_phaseE_step4b_tabpfn_vs_gbdt_bdg2.py
@@ -342,7 +369,8 @@ M5 GEPIII 模型比較：
 
 ```bash
 uv run python scripts/run_m5_phaseC_tabpfn_spike.py
-uv run python scripts/run_m5_phaseD_foundation_vs_gbdt.py
+uv run python scripts/run_m5_phaseD_foundation_vs_gbdt.py --value-change-regime row_offset_meter_aware --out data/processed/m6_phaseD_meter_aware.json
+uv run python scripts/run_m6_phaseD_50_50_full_models.py --out data/processed/m6_phaseD_50_50_full_models.json
 ```
 
 Golden regression values 記錄在 [tests/golden_metrics.json](./tests/golden_metrics.json)。
