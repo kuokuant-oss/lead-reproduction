@@ -1,9 +1,11 @@
 """M5 Phase D: rigorous TabPFN vs GBDT comparison on the existing M3 GEPIII data.
 
 This harness runs paired, multi-seed comparisons through the frozen ``src/lead``
-pipeline. Every paired cell reuses the same split, downsample, feature table, and
-fixed validation subsample so the only variable is the model. No new dataset, no
-BDG2, no cloud: TabPFN runs from local weights only.
+pipeline. In the default single-``--val-seed`` path, every paired cell reuses the
+same split, downsample, feature table, and fixed validation subsample so the only
+variable is the model. The INV-2 ``--val-seeds`` path repeats that paired design
+across validation resamples. No new dataset, no BDG2, no cloud: TabPFN runs from
+local weights only.
 
 Axes:
   1. in_domain      - TabPFN vs GBDT on the 80/20 (``building_id % 5 == 4``) split.
@@ -15,8 +17,8 @@ Axes:
                       line; quantify the feature-engineering-burden difference.
 
 Metrics per cell: ROC-AUC, PR-AUC (average precision), precision/recall/F1 at the
-0.5 threshold, and fit+predict latency. Multiple seeds per cell are aggregated to
-mean +/- std.
+0.5 threshold, and fit+predict latency. Multiple model seeds, and optionally
+multiple validation seeds, are aggregated to mean +/- std.
 """
 
 from __future__ import annotations
@@ -124,6 +126,17 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=RANDOM_STATE,
         help="Seed for the fixed validation subsample (held constant per axis).",
+    )
+    parser.add_argument(
+        "--val-seeds",
+        type=int,
+        nargs="+",
+        default=None,
+        help=(
+            "Optional INV-2 validation resampling seeds. When set, each axis is "
+            "rerun for every validation seed and summarized across validation "
+            "resamples. The legacy --val-seed path remains the single-seed default."
+        ),
     )
     parser.add_argument(
         "--tabpfn-batch-size",
@@ -345,6 +358,252 @@ def aggregate(cells: list[dict[str, Any]]) -> dict[str, Any]:
     keys = list(METRIC_KEYS) + extra
     summary["mean"] = {k: float(mean([c[k] for c in ok])) for k in keys}
     summary["std"] = {k: float(pstdev([c[k] for c in ok])) for k in keys}
+    return summary
+
+
+def completed_raw(aggregate_result: dict[str, Any]) -> list[dict[str, Any]]:
+    return [
+        c
+        for c in aggregate_result.get("raw", [])
+        if c.get("status", "completed") == "completed"
+    ]
+
+
+def aggregate_named_models(
+    per_val_seed_axes: dict[str, dict[str, Any]],
+    axis_name: str,
+    model_names: list[str],
+) -> dict[str, Any]:
+    out: dict[str, Any] = {}
+    for model_name in model_names:
+        cells: list[dict[str, Any]] = []
+        for axis in per_val_seed_axes.values():
+            if axis_name in axis and model_name in axis[axis_name]:
+                cells.extend(completed_raw(axis[axis_name][model_name]))
+        out[model_name] = aggregate(cells)
+    return out
+
+
+def paired_delta_summary(
+    left_model: dict[str, Any],
+    right_model: dict[str, Any],
+    *,
+    metric: str,
+    label: str,
+) -> dict[str, Any]:
+    left = {
+        (c.get("val_seed"), c.get("seed")): c
+        for c in completed_raw(left_model)
+        if metric in c
+    }
+    right = {
+        (c.get("val_seed"), c.get("seed")): c
+        for c in completed_raw(right_model)
+        if metric in c
+    }
+    pairs = []
+    for key in sorted(left.keys() & right.keys()):
+        val_seed, model_seed = key
+        delta = float(left[key][metric] - right[key][metric])
+        pairs.append(
+            {
+                "val_seed": int(val_seed),
+                "model_seed": int(model_seed),
+                "delta": delta,
+                "left": float(left[key][metric]),
+                "right": float(right[key][metric]),
+            }
+        )
+    deltas = [p["delta"] for p in pairs]
+    return {
+        "label": label,
+        "metric": metric,
+        "n_pairs": len(pairs),
+        "mean_delta": float(mean(deltas)) if deltas else None,
+        "std_delta": float(pstdev(deltas))
+        if len(deltas) > 1
+        else 0.0
+        if deltas
+        else None,
+        "min_delta": float(min(deltas)) if deltas else None,
+        "max_delta": float(max(deltas)) if deltas else None,
+        "pairs": pairs,
+    }
+
+
+def bootstrap_mean_ci(
+    values: list[float],
+    *,
+    seed: int = RANDOM_STATE,
+    n_bootstrap: int = 2000,
+) -> dict[str, Any]:
+    if not values:
+        return {"n": 0, "mean": None, "ci95": None}
+    arr = np.asarray(values, dtype=float)
+    if len(arr) == 1:
+        return {"n": 1, "mean": float(arr[0]), "ci95": [float(arr[0]), float(arr[0])]}
+    rng = np.random.RandomState(seed)
+    means = [
+        float(np.mean(rng.choice(arr, size=len(arr), replace=True)))
+        for _ in range(n_bootstrap)
+    ]
+    return {
+        "n": int(len(arr)),
+        "mean": float(np.mean(arr)),
+        "ci95": [
+            float(np.percentile(means, 2.5)),
+            float(np.percentile(means, 97.5)),
+        ],
+    }
+
+
+def add_val_seed_to_axis(axis: dict[str, Any], val_seed: int) -> dict[str, Any]:
+    for value in axis.values():
+        if isinstance(value, dict) and "raw" in value:
+            for cell in value["raw"]:
+                cell["val_seed"] = int(val_seed)
+        elif isinstance(value, list):
+            for item in value:
+                if isinstance(item, dict):
+                    for nested in item.values():
+                        if isinstance(nested, dict) and "raw" in nested:
+                            for cell in nested["raw"]:
+                                cell["val_seed"] = int(val_seed)
+    return axis
+
+
+def summarize_val_resampling(
+    per_val_seed_axes: dict[str, dict[str, Any]],
+    axes_requested: list[str],
+) -> dict[str, Any]:
+    summary: dict[str, Any] = {}
+    if "in_domain" in axes_requested:
+        models = aggregate_named_models(
+            per_val_seed_axes, "in_domain", ["gbdt", "tabpfn"]
+        )
+        summary["in_domain"] = {
+            **models,
+            "paired_deltas": {
+                "tabpfn_minus_gbdt_roc_auc": paired_delta_summary(
+                    models["tabpfn"],
+                    models["gbdt"],
+                    metric="val_auc",
+                    label="TabPFN - GBDT on paired validation rows",
+                ),
+                "tabpfn_minus_gbdt_pr_auc": paired_delta_summary(
+                    models["tabpfn"],
+                    models["gbdt"],
+                    metric="pr_auc",
+                    label="TabPFN - GBDT on paired validation rows",
+                ),
+            },
+        }
+    if "site_transfer" in axes_requested:
+        models = aggregate_named_models(
+            per_val_seed_axes,
+            "site_transfer",
+            ["gbdt_retrain", "tabpfn_in_context", "gbdt_transfer_no_retrain"],
+        )
+        summary["site_transfer"] = {
+            **models,
+            "paired_deltas": {
+                "tabpfn_minus_gbdt_retrain_roc_auc": paired_delta_summary(
+                    models["tabpfn_in_context"],
+                    models["gbdt_retrain"],
+                    metric="val_auc",
+                    label="TabPFN-in-context - GBDT-retrain",
+                ),
+                "tabpfn_minus_gbdt_retrain_pr_auc": paired_delta_summary(
+                    models["tabpfn_in_context"],
+                    models["gbdt_retrain"],
+                    metric="pr_auc",
+                    label="TabPFN-in-context - GBDT-retrain",
+                ),
+            },
+        }
+    if "label_scarcity" in axes_requested:
+        sizes: list[dict[str, Any]] = []
+        first_axis = next(iter(per_val_seed_axes.values())).get("label_scarcity")
+        if first_axis:
+            for i, size_cell in enumerate(first_axis["sizes"]):
+                support_size = size_cell["support_size"]
+                gbdt_cells: list[dict[str, Any]] = []
+                tabpfn_cells: list[dict[str, Any]] = []
+                for axis in per_val_seed_axes.values():
+                    size_axis = axis["label_scarcity"]["sizes"][i]
+                    if size_axis["support_size"] != support_size:
+                        raise AssertionError("support-size order drifted")
+                    gbdt_cells.extend(completed_raw(size_axis["gbdt"]))
+                    tabpfn_cells.extend(completed_raw(size_axis["tabpfn"]))
+                gbdt_agg = aggregate(gbdt_cells)
+                tabpfn_agg = aggregate(tabpfn_cells)
+                pr_delta = paired_delta_summary(
+                    tabpfn_agg,
+                    gbdt_agg,
+                    metric="pr_auc",
+                    label=f"TabPFN - GBDT PR-AUC at support={support_size}",
+                )
+                roc_delta = paired_delta_summary(
+                    tabpfn_agg,
+                    gbdt_agg,
+                    metric="val_auc",
+                    label=f"TabPFN - GBDT ROC-AUC at support={support_size}",
+                )
+                pr_values = [p["delta"] for p in pr_delta["pairs"]]
+                sizes.append(
+                    {
+                        "support_size": int(support_size),
+                        "gbdt": gbdt_agg,
+                        "tabpfn": tabpfn_agg,
+                        "paired_deltas": {
+                            "tabpfn_minus_gbdt_roc_auc": roc_delta,
+                            "tabpfn_minus_gbdt_pr_auc": pr_delta,
+                            "tabpfn_minus_gbdt_pr_auc_bootstrap_ci": bootstrap_mean_ci(
+                                pr_values
+                            ),
+                        },
+                    }
+                )
+        summary["label_scarcity"] = {"sizes": sizes}
+    if "minimal_fe" in axes_requested:
+        feature_sets: list[dict[str, Any]] = []
+        first_axis = next(iter(per_val_seed_axes.values())).get("minimal_fe")
+        if first_axis:
+            for i, feature_set in enumerate(first_axis["feature_sets"]):
+                name = feature_set["name"]
+                gbdt_cells = []
+                tabpfn_cells = []
+                for axis in per_val_seed_axes.values():
+                    fs_axis = axis["minimal_fe"]["feature_sets"][i]
+                    if fs_axis["name"] != name:
+                        raise AssertionError("feature-set order drifted")
+                    gbdt_cells.extend(completed_raw(fs_axis["gbdt"]))
+                    tabpfn_cells.extend(completed_raw(fs_axis["tabpfn"]))
+                gbdt_agg = aggregate(gbdt_cells)
+                tabpfn_agg = aggregate(tabpfn_cells)
+                feature_sets.append(
+                    {
+                        "name": name,
+                        "n_features": int(feature_set["n_features"]),
+                        "gbdt": gbdt_agg,
+                        "tabpfn": tabpfn_agg,
+                        "paired_deltas": {
+                            "tabpfn_minus_gbdt_roc_auc": paired_delta_summary(
+                                tabpfn_agg,
+                                gbdt_agg,
+                                metric="val_auc",
+                                label=f"TabPFN - GBDT ROC-AUC for {name}",
+                            ),
+                            "tabpfn_minus_gbdt_pr_auc": paired_delta_summary(
+                                tabpfn_agg,
+                                gbdt_agg,
+                                metric="pr_auc",
+                                label=f"TabPFN - GBDT PR-AUC for {name}",
+                            ),
+                        },
+                    }
+                )
+        summary["minimal_fe"] = {"feature_sets": feature_sets}
     return summary
 
 
@@ -633,32 +892,15 @@ def axis_minimal_fe(runner, table, val_idx, args) -> dict[str, Any]:
 
 
 # --------------------------------------------------------------------------- #
-# Main
+# One validation seed run
 # --------------------------------------------------------------------------- #
-def main() -> None:
-    args = parse_args()
-    if args.smoke:
-        args.tabpfn_fit_rows = min(args.tabpfn_fit_rows, 400)
-        args.val_rows = min(args.val_rows, 400)
-        args.scarcity_sizes = [200, 400]
-        args.seeds = args.seeds[:2]
-    t0 = time.perf_counter()
-    env = torch_environment()
-    env.update(
-        {
-            "tabpfn_model_path": str(args.model_path) if args.model_path else None,
-            "tabpfn_model_path_exists": bool(
-                args.model_path and args.model_path.is_file()
-            ),
-        }
-    )
-    runner = Runner(args, env)
-    log(
-        f"Device={runner.device} tabpfn_ok={runner.tabpfn_ok} "
-        f"fit_rows={args.tabpfn_fit_rows} val_rows={args.val_rows} seeds={args.seeds}"
-    )
-
-    df = load_m3_frame(verbose=True)
+def run_axes_for_val_seed(
+    *,
+    df,
+    args,
+    runner,
+    val_seed: int,
+) -> tuple[dict[str, Any], dict[str, Any] | None, dict[str, Any] | None]:
     axes: dict[str, Any] = {}
 
     needs_8020 = any(
@@ -677,23 +919,29 @@ def main() -> None:
             **tabpfn_limit_fit(len(table["ds_idx_full"]), len(table["feature_cols"])),
         }
         val_idx = random_val_indices(
-            table["val_full"].index.to_numpy(), args.val_rows, args.val_seed
+            table["val_full"].index.to_numpy(), args.val_rows, val_seed
         )
         if "in_domain" in args.axes:
-            log("Axis 1: in_domain")
+            log(f"Axis 1: in_domain (val_seed={val_seed})")
             res = axis_in_domain(runner, table, val_idx, args)
             transfer_model = res.pop("_transfer_model", None)
-            axes["in_domain"] = res
+            axes["in_domain"] = add_val_seed_to_axis(res, val_seed)
         elif "site_transfer" in args.axes:
             # Need a transfer model even if in_domain axis not requested.
             res = axis_in_domain(runner, table, val_idx, args)
             transfer_model = res.get("_transfer_model")
         if "label_scarcity" in args.axes:
-            log("Axis 3: label_scarcity")
-            axes["label_scarcity"] = axis_label_scarcity(runner, table, val_idx, args)
+            log(f"Axis 3: label_scarcity (val_seed={val_seed})")
+            axes["label_scarcity"] = add_val_seed_to_axis(
+                axis_label_scarcity(runner, table, val_idx, args),
+                val_seed,
+            )
         if "minimal_fe" in args.axes:
-            log("Axis 4: minimal_fe")
-            axes["minimal_fe"] = axis_minimal_fe(runner, table, val_idx, args)
+            log(f"Axis 4: minimal_fe (val_seed={val_seed})")
+            axes["minimal_fe"] = add_val_seed_to_axis(
+                axis_minimal_fe(runner, table, val_idx, args),
+                val_seed,
+            )
         del table
 
     if "site_transfer" in args.axes:
@@ -705,25 +953,97 @@ def main() -> None:
             mask_8020 = (df["building_id"] % 5 == 4).to_numpy()
             t8020 = build_split_table(df, mask_8020, split_label=IN_DOMAIN_SPLIT)
             v8020 = random_val_indices(
-                t8020["val_full"].index.to_numpy(), args.val_rows, args.val_seed
+                t8020["val_full"].index.to_numpy(), args.val_rows, val_seed
             )
             transfer_model = axis_in_domain(runner, t8020, v8020, args).get(
                 "_transfer_model"
             )
             del t8020
         val_idx_site = random_val_indices(
-            site_table["val_full"].index.to_numpy(), args.val_rows, args.val_seed
+            site_table["val_full"].index.to_numpy(), args.val_rows, val_seed
         )
-        log("Axis 2: site_transfer (PRIMARY)")
-        axes["site_transfer"] = axis_site_transfer(
-            runner, site_table, val_idx_site, transfer_model, args
+        log(f"Axis 2: site_transfer (PRIMARY, val_seed={val_seed})")
+        axes["site_transfer"] = add_val_seed_to_axis(
+            axis_site_transfer(runner, site_table, val_idx_site, transfer_model, args),
+            val_seed,
         )
         axes["site_transfer"]["split"] = site_table["split"]
         del site_table
+    return axes, table_8020_meta, full_shape
+
+
+# --------------------------------------------------------------------------- #
+# Main
+# --------------------------------------------------------------------------- #
+def main() -> None:
+    args = parse_args()
+    if args.val_seeds is None:
+        args.val_seeds = [args.val_seed]
+    else:
+        args.val_seed = args.val_seeds[0]
+        if args.out == PROC / "m5_phaseD_foundation_vs_gbdt.json":
+            args.out = PROC / "inv2_phaseD_val_variance.json"
+    if args.smoke:
+        args.tabpfn_fit_rows = min(args.tabpfn_fit_rows, 400)
+        args.val_rows = min(args.val_rows, 400)
+        args.scarcity_sizes = [200, 400]
+        args.seeds = args.seeds[:2]
+        args.val_seeds = args.val_seeds[:2]
+    t0 = time.perf_counter()
+    env = torch_environment()
+    env.update(
+        {
+            "tabpfn_model_path": str(args.model_path) if args.model_path else None,
+            "tabpfn_model_path_exists": bool(
+                args.model_path and args.model_path.is_file()
+            ),
+        }
+    )
+    runner = Runner(args, env)
+    log(
+        f"Device={runner.device} tabpfn_ok={runner.tabpfn_ok} "
+        f"fit_rows={args.tabpfn_fit_rows} val_rows={args.val_rows} "
+        f"seeds={args.seeds} val_seeds={args.val_seeds}"
+    )
+
+    df = load_m3_frame(verbose=True)
+    per_val_seed_axes: dict[str, dict[str, Any]] = {}
+    table_8020_meta = None
+    full_shape = None
+    for val_seed in args.val_seeds:
+        axes_for_seed, table_meta, shape = run_axes_for_val_seed(
+            df=df,
+            args=args,
+            runner=runner,
+            val_seed=val_seed,
+        )
+        per_val_seed_axes[str(val_seed)] = axes_for_seed
+        if table_8020_meta is None and table_meta is not None:
+            table_8020_meta = table_meta
+        if full_shape is None and shape is not None:
+            full_shape = shape
+
+    axes = (
+        next(iter(per_val_seed_axes.values()))
+        if len(per_val_seed_axes) == 1
+        else summarize_val_resampling(per_val_seed_axes, list(args.axes))
+    )
+    val_resampling = {
+        "enabled": len(args.val_seeds) > 1,
+        "val_seeds": [int(s) for s in args.val_seeds],
+        "per_val_seed_axes": per_val_seed_axes if len(args.val_seeds) > 1 else {},
+        "summary": axes if len(args.val_seeds) > 1 else {},
+        "notes": (
+            "Summary aggregates all completed model-seed x validation-seed cells; "
+            "paired deltas use matching validation seed and model seed."
+        ),
+    }
 
     results = {
-        "experiment": "m5_phaseD_foundation_vs_gbdt",
-        "issue": 35,
+        "experiment": "inv2_phaseD_val_variance"
+        if len(args.val_seeds) > 1
+        else "m5_phaseD_foundation_vs_gbdt",
+        "issue": 51 if len(args.val_seeds) > 1 else 35,
         "scope": (
             "Existing M3 GEPIII data only; no BDG2, no cloud; TabPFN local weights."
         ),
@@ -734,6 +1054,7 @@ def main() -> None:
             "scarcity_sizes": list(args.scarcity_sizes),
             "seeds": list(args.seeds),
             "val_seed": int(args.val_seed),
+            "val_seeds": [int(s) for s in args.val_seeds],
             "downsampling_seeds": list(DOWNSAMPLE_SEEDS),
             "tabpfn_fit_rows_rationale": (
                 "Balanced budget bounded by 8 GB laptop VRAM. 137 features <= 200 and "
@@ -745,6 +1066,7 @@ def main() -> None:
         "full_downsample_shape": full_shape,
         "environment": env,
         "axes": axes,
+        "val_resampling": val_resampling,
         "one_shot_discipline": {
             "leaderboard_probing": False,
             "cloud_client_used": False,
@@ -754,9 +1076,10 @@ def main() -> None:
         "elapsed_seconds": float(time.perf_counter() - t0),
     }
     cmd = (
-        "python scripts/run_m5_phaseD_foundation_vs_gbdt.py "
+        "uv run python scripts/run_m5_phaseD_foundation_vs_gbdt.py "
         f"--tabpfn-fit-rows {args.tabpfn_fit_rows} --val-rows {args.val_rows} "
-        f"--seeds {' '.join(map(str, args.seeds))}"
+        f"--seeds {' '.join(map(str, args.seeds))} "
+        f"--val-seeds {' '.join(map(str, args.val_seeds))}"
     )
     write_json_with_provenance(
         args.out, results, root=ROOT, provenance={"command": cmd}
