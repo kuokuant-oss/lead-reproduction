@@ -27,11 +27,12 @@ reproduction；M3 驗證同一套方法論在完整 GEPIII train subset 上是�
 
 | 項目 | 值 |
 |---|---:|
-| 資料來源 | Kaggle `ashrae-energy-prediction` train data |
+| 資料來源 | ASHRAE GEPIII：[Kaggle ASHRAE Energy Prediction](https://www.kaggle.com/competitions/ashrae-energy-prediction/data) |
+| 資料集 | `data/raw/m3/train.csv`、`data/raw/m3/bad_meter_readings.csv`、`data/raw/m3/building_metadata.csv`、`data/raw/m3/weather_train.csv` |
 | 建物數 | 1,449 |
 | 資料列數 | 20.2M |
 | 電表類型 | electricity, chilled water, steam, hot water |
-| 標籤來源 | buds-lab `bad_meter_readings.csv` |
+| 標籤來源 | buds-lab `bad_meter_readings.zip` |
 | 標籤合併方式 | 逐列位置對齊 |
 | 整體異常比例 | 6.50% |
 
