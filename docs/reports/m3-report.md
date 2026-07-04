@@ -25,9 +25,9 @@ reproduction；M3 驗證同一套方法論在完整 GEPIII train subset 上是�
 
 ## 1.1 資料集
 
-資料來源：ASHRAE GEPIII，來源：[Kaggle ASHRAE Energy Prediction](https://www.kaggle.com/competitions/ashrae-energy-prediction/data)。
-資料集：`data/raw/m3/train.csv`、`data/raw/m3/bad_meter_readings.csv`、`data/raw/m3/building_metadata.csv`、`data/raw/m3/weather_train.csv`。
-Anomaly labels：來自 buds-lab `bad_meter_readings.zip`。
++ 資料來源：ASHRAE GEPIII，來源：[Kaggle ASHRAE Energy Prediction](https://www.kaggle.com/competitions/ashrae-energy-prediction/data)。
++ 資料集：data/raw/m3/train.csv、data/raw/m3/bad_meter_readings.csv、data/raw/m3/building_metadata.csv、data/raw/m3/weather_train.csv。
++ Anomaly labels：來自 buds-lab bad_meter_readings.zip。
 
 | 項目 | 值 |
 |---|---:|
