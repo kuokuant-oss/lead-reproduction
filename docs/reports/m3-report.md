@@ -3,7 +3,7 @@
 + **狀態**：完成
 + **日期**：2026-06-22
 + **任務**：使用完整 ASHRAE GEPIII 訓練資料，從原始 CSV 建立特徵，並以
-  `bad_meter_readings.csv` 異常標籤進行二元分類。
+  buds-lab `bad_meter_readings.zip` 異常標籤進行二元分類。
 
 M3 是 M2 LEAD 重製工作的延伸實驗。M2 驗證 LEAD competition subset 上的 paper
 reproduction；M3 驗證同一套方法論在完整 GEPIII train subset 上是否能建立穩定的
@@ -25,13 +25,15 @@ reproduction；M3 驗證同一套方法論在完整 GEPIII train subset 上是�
 
 ## 1.1 資料集
 
+資料來源：ASHRAE GEPIII，來源：[Kaggle ASHRAE Energy Prediction](https://www.kaggle.com/competitions/ashrae-energy-prediction/data)。
+資料集：`data/raw/m3/train.csv`、`data/raw/m3/bad_meter_readings.csv`、`data/raw/m3/building_metadata.csv`、`data/raw/m3/weather_train.csv`。
+Anomaly labels：來自 buds-lab `bad_meter_readings.zip`。
+
 | 項目 | 值 |
 |---|---:|
-| 資料來源 | Kaggle `ashrae-energy-prediction` train data |
 | 建物數 | 1,449 |
 | 資料列數 | 20.2M |
 | 電表類型 | electricity, chilled water, steam, hot water |
-| 標籤來源 | buds-lab `bad_meter_readings.csv` |
 | 標籤合併方式 | 逐列位置對齊 |
 | 整體異常比例 | 6.50% |
 
