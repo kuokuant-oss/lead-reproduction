@@ -1,0 +1,178 @@
+{
+  "experiment": "m5_phaseC_tabpfn_spike",
+  "issue": 30,
+  "scope": "LEAD/M3-only local feasibility spike; no BDG2 data used",
+  "canonical_line": "80_20_mod5_offline_timestamp_merge",
+  "random_state": 42,
+  "downsampling_seeds": [
+    10,
+    20
+  ],
+  "feature_table": {
+    "source": "load_m3_frame plus add_value_change_features",
+    "value_change_regime": "timestamp_merge",
+    "value_change_regime_default": "timestamp_merge",
+    "baseline_features": 17,
+    "value_change_features": 120,
+    "total_features": 137,
+    "upstream_feature_construction_changed": false
+  },
+  "split": {
+    "name": "80_20_mod5",
+    "n_train_buildings": 1160,
+    "n_val_buildings": 289,
+    "n_train_rows": 16117081,
+    "n_val_rows": 4099019,
+    "train_anomaly_rate": 0.06646836359511998,
+    "val_anomaly_rate": 0.05933078134060857,
+    "building_overlap": 0
+  },
+  "tabpfn3_fit": {
+    "full_downsampled_m3": {
+      "downsampled_train_rows": 4285104,
+      "feature_count": 137,
+      "fits_documented_tabpfn3_limit": false,
+      "matching_limits": [],
+      "documented_limits": [
+        {
+          "max_rows": 1000000,
+          "max_features": 200
+        },
+        {
+          "max_rows": 100000,
+          "max_features": 2000
+        },
+        {
+          "max_rows": 1000,
+          "max_features": 20000
+        }
+      ]
+    },
+    "local_paired_comparison": {
+      "train_rows": 1000,
+      "validation_rows": 20000,
+      "feature_count": 137,
+      "subsample_seed": 42,
+      "max_fit_rows": 1000,
+      "max_val_rows": 20000,
+      "train_positive_rate": 0.5,
+      "validation_positive_rate": 0.0593,
+      "fits_documented_tabpfn3_limit": true,
+      "matching_limits": [
+        {
+          "max_rows": 1000000,
+          "max_features": 200
+        },
+        {
+          "max_rows": 100000,
+          "max_features": 2000
+        },
+        {
+          "max_rows": 1000,
+          "max_features": 20000
+        }
+      ],
+      "documented_limits": [
+        {
+          "max_rows": 1000000,
+          "max_features": 200
+        },
+        {
+          "max_rows": 100000,
+          "max_features": 2000
+        },
+        {
+          "max_rows": 1000,
+          "max_features": 20000
+        }
+      ]
+    },
+    "interpretation": "The full M3 downsample shape answers documented TabPFN-3 fit; the local paired shape is reduced for laptop feasibility."
+  },
+  "environment": {
+    "torch_installed": true,
+    "tabpfn_installed": true,
+    "tabpfn_token_present": false,
+    "execution_path": "local",
+    "cloud_client_used": false,
+    "tabpfn_no_browser": true,
+    "tabpfn_disable_telemetry": true,
+    "nvidia_smi_gpus": [
+      "NVIDIA GeForce RTX 4070 Laptop GPU, 8188 MiB"
+    ],
+    "tabpfn_version": "8.0.8",
+    "torch_version": "2.7.1+cu128",
+    "cuda_available": true,
+    "cuda_device_count": 1,
+    "device": "cuda",
+    "gpu_name": "NVIDIA GeForce RTX 4070 Laptop GPU",
+    "gpu_total_vram_mib": 8187,
+    "tabpfn_model_path": "C:\\Users\\tonykuo\\projects\\lead-reproduction\\.tabpfn-cache\\tabpfn-v3-classifier-v3_default.ckpt",
+    "tabpfn_model_path_exists": true
+  },
+  "models": {
+    "gbdt_lightgbm_anchor": {
+      "status": "completed",
+      "model": "LightGBM LGBMClassifier(n_estimators=100)",
+      "same_local_table_as_tabpfn": true,
+      "val_auc": 0.9782951090743482,
+      "precision_05": 0.4932813177286519,
+      "recall_05": 0.9595278246205734,
+      "f1_05": 0.651588892069854,
+      "threshold_05_true_positive": 1138,
+      "threshold_05_false_positive": 1169,
+      "threshold_05_true_negative": 17645,
+      "threshold_05_false_negative": 48,
+      "threshold_05_predicted_positive": 2307,
+      "threshold_05_predicted_negative": 17693,
+      "fit_predict_seconds": 0.7580834999680519
+    },
+    "tabpfn": {
+      "status": "completed",
+      "batch_size": 256,
+      "device": "cuda",
+      "model_path": "C:\\Users\\tonykuo\\projects\\lead-reproduction\\.tabpfn-cache\\tabpfn-v3-classifier-v3_default.ckpt",
+      "val_auc": 0.984118290512734,
+      "precision_05": 0.5071556350626119,
+      "recall_05": 0.9561551433389545,
+      "f1_05": 0.6627703097603741,
+      "threshold_05_true_positive": 1134,
+      "threshold_05_false_positive": 1102,
+      "threshold_05_true_negative": 17712,
+      "threshold_05_false_negative": 52,
+      "threshold_05_predicted_positive": 2236,
+      "threshold_05_predicted_negative": 17764,
+      "cold_start": true,
+      "timing_note": "fit_predict_seconds includes local checkpoint model initialization, fit, and predict_proba in this process.",
+      "model_init_seconds": 42.11260579992086,
+      "fit_seconds": 0.9459587000310421,
+      "predict_proba_seconds": 26.240805300185457,
+      "fit_predict_seconds": 69.29937239992432
+    }
+  },
+  "latency_signal": {
+    "tabpfn_fit_predict_seconds": 69.29937239992432,
+    "tabpfn_cold_start": true,
+    "tabpfn_model_init_seconds": 42.11260579992086,
+    "tabpfn_fit_seconds": 0.9459587000310421,
+    "tabpfn_predict_proba_seconds": 26.240805300185457,
+    "train_rows": 1000,
+    "feature_count": 137,
+    "batch_size": 256,
+    "device": "cuda"
+  },
+  "one_shot_discipline": {
+    "leaderboard_probing": false,
+    "cloud_client_used": false,
+    "bdg2_used": false
+  },
+  "elapsed_seconds": 680.2398731999565,
+  "provenance": {
+    "commit": "b7fd55b9c4d1c3a74f790b5c1553d03a0632fc2d",
+    "generated_at_utc": "2026-07-03T10:21:38.522310+00:00",
+    "command": "python scripts/run_m5_phaseC_tabpfn_spike.py --max-fit-rows 1000 --max-val-rows 20000 --tabpfn-batch-size 256 --value-change-regime timestamp_merge --model-path C:\\Users\\tonykuo\\projects\\lead-reproduction\\.tabpfn-cache\\tabpfn-v3-classifier-v3_default.ckpt",
+    "value_change_regime": "timestamp_merge"
+  },
+  "value_change_regime": "timestamp_merge",
+  "value_change_regime_default": "timestamp_merge"
+}

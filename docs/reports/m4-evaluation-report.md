@@ -75,10 +75,10 @@ guard。ADR 0010 記錄此決策與限制：若 label-side 缺 key，reorder-plu
 
 ## 2.3 Value-change semantics
 
-M3 reproduction line 使用 `groupby("building_id").shift(n)`，其語意是 row offset，
-不一定等於 timestamp `n` hours offset。M4.3 新增 explicit regime：
-`row_offset` 與 `timestamp_merge`。`row_offset` 保持 default，以維持 M3
-reproduction line；`timestamp_merge` 作為 opt-in semantic alternative。
+M3 reproduction line 現以 `timestamp_merge` 作為 canonical value-change regime。
+這對應 buds-lab 原作的 timestamp `n` hours offset join。M4.3 保留 explicit
+regime：`row_offset` 與 `timestamp_merge`；`row_offset` 作為歷史近似 ablation，
+`timestamp_merge` 則是 2026-07-04 re-baseline 後的 default。
 
 M4.3 同一 harness 量測：
 
@@ -87,7 +87,8 @@ M4.3 同一 harness 量測：
 | `row_offset` | 0.9920119520500562 | 0 |
 | `timestamp_merge` | 0.9924831086743003 | +0.00047115662424412896 |
 
-差異仍在 `0.0005` noise floor 內，因此 M4 不替換 default。
+差異仍在 `0.0005` noise floor 內，因此 2026-07-04 re-baseline 將
+`timestamp_merge` 設為 canonical default，並保留 `row_offset` 供 ablation。
 
 ## 2.4 Sampling and scaler semantics
 
@@ -149,7 +150,8 @@ surface 如下：
 23. `write_json_with_provenance`
 
 `add_value_change_features(df, shifts, value_change_regime=...)` 支援
-`row_offset` 與 `timestamp_merge`。M3 reproduction default 仍為 `row_offset`；
+`row_offset`、`row_offset_meter_aware` 與 `timestamp_merge`。M3 reproduction
+default 現為 `timestamp_merge`；
 任何 real-time FDD claim 必須使用 `PAST_SHIFTS`-only causal features。
 
 ---

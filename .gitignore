@@ -229,6 +229,11 @@ models/*
 !data/raw/.gitkeep
 !data/interim/.gitkeep
 !data/processed/.gitkeep
+!data/processed/m6_phaseD_50_50_full_models_timestamp_merge.json
+!data/processed/m6_phaseD_timestamp_merge_multiseed.json
+!data/processed/m5_phaseC_tabpfn_spike_timestamp_merge.json
+!data/processed/legacy/
+!data/processed/legacy/README.md
 !models/.gitkeep
 
 # Notebooks

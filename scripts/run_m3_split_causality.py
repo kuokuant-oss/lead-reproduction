@@ -29,6 +29,8 @@ from lead import (
     split_mask,
 )
 
+VALUE_CHANGE_REGIME = "timestamp_merge"
+
 
 def log(message: str) -> None:
     print(message, flush=True)
@@ -76,8 +78,12 @@ def run_split(df: pd.DataFrame, split_name: str, regimes: list[str]) -> dict[str
     )
 
     max_shifts = SHIFTS if "offline" in regimes else PAST_SHIFTS
-    train_split = add_value_change_features(df.loc[~mask_val], max_shifts)
-    val_split = add_value_change_features(df.loc[mask_val], max_shifts)
+    train_split = add_value_change_features(
+        df.loc[~mask_val], max_shifts, value_change_regime=VALUE_CHANGE_REGIME
+    )
+    val_split = add_value_change_features(
+        df.loc[mask_val], max_shifts, value_change_regime=VALUE_CHANGE_REGIME
+    )
     value_cols = [c for c in train_split.columns if c.startswith("lag_value_")]
     past_cols = [c for c in value_cols if "_-" not in c]
     future_cols = [c for c in value_cols if "_-" in c]
@@ -127,6 +133,7 @@ def main() -> None:
     df = load_m3_frame()
     results = {
         "experiment": "m3_split_causality",
+        "provenance": {"value_change_regime": VALUE_CHANGE_REGIME},
         "random_state": RANDOM_STATE,
         "downsampling_seeds": list(DOWNSAMPLE_SEEDS),
         "baseline_feature_count": len(BASELINE_FEATURE_COLS),
@@ -148,8 +155,12 @@ def main() -> None:
 
     log("Running 50/50 causal label-shuffle sanity check")
     mask_val = split_mask(df, "50_50_mod2")
-    train_split = add_value_change_features(df.loc[~mask_val], PAST_SHIFTS)
-    val_split = add_value_change_features(df.loc[mask_val], PAST_SHIFTS)
+    train_split = add_value_change_features(
+        df.loc[~mask_val], PAST_SHIFTS, value_change_regime=VALUE_CHANGE_REGIME
+    )
+    val_split = add_value_change_features(
+        df.loc[mask_val], PAST_SHIFTS, value_change_regime=VALUE_CHANGE_REGIME
+    )
     past_cols = [c for c in train_split.columns if c.startswith("lag_value_")]
     shuffle_metrics = fit_eval(
         train_split,

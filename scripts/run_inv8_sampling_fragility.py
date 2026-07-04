@@ -27,7 +27,7 @@ from lead import (
 )
 
 
-VALUE_CHANGE_REGIME = "row_offset_meter_aware"
+VALUE_CHANGE_REGIME = "timestamp_merge"
 SEED_PAIRS = (
     (10, 20),
     (1, 2),

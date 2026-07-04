@@ -27,7 +27,7 @@ from lead import (
 from run_m3_4_ensemble import fit_predict_models
 
 
-VALUE_CHANGE_REGIME = "row_offset_meter_aware"
+VALUE_CHANGE_REGIME = "timestamp_merge"
 
 
 def log(message: str) -> None:

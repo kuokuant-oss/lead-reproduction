@@ -56,7 +56,7 @@ from lead import (
     write_json_with_provenance,
 )
 
-DEFAULT_VALUE_CHANGE_REGIME = "row_offset"
+DEFAULT_VALUE_CHANGE_REGIME = "timestamp_merge"
 IN_DOMAIN_SPLIT = "80_20_mod5"  # building_id % 5 == 4
 SITE_TRANSFER_RULE = "site_id % 5 == 4"
 SITE_ANCHOR_ENSEMBLE_AUC = 0.9774  # M3 site-held-out ensemble diagnostic.
@@ -143,8 +143,8 @@ def parse_args() -> argparse.Namespace:
         choices=["row_offset", "row_offset_meter_aware", "timestamp_merge"],
         default=DEFAULT_VALUE_CHANGE_REGIME,
         help=(
-            "Value-change feature regime. Default preserves the legacy M5 fixture; "
-            "M6 cross-model comparison must pass row_offset_meter_aware explicitly."
+            "Value-change feature regime. Default uses timestamp-aligned value "
+            "changes for the current M5/M6 comparison matrix."
         ),
     )
     parser.add_argument(

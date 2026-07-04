@@ -45,11 +45,14 @@ class TestM5TabPFNSpike(unittest.TestCase):
             },
         )
 
-    def test_runner_uses_m3_split_sample_and_row_offset_path(self) -> None:
+    def test_runner_uses_m3_split_sample_and_timestamp_merge_default(self) -> None:
         source = SCRIPT.read_text(encoding="utf-8")
         self.assertIn('building_id"] % 5 == 4', source)
         self.assertIn("downsample_indices(y_train_full)", source)
-        self.assertIn('VALUE_CHANGE_REGIME = "row_offset"', source)
+        self.assertIn('DEFAULT_VALUE_CHANGE_REGIME = "timestamp_merge"', source)
+        self.assertIn(
+            '"row_offset", "row_offset_meter_aware", "timestamp_merge"', source
+        )
         self.assertIn("list(SHIFTS)", source)
 
     def test_runner_supports_local_checkpoint_without_token(self) -> None:

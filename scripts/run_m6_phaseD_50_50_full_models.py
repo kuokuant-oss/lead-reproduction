@@ -36,7 +36,7 @@ from lead import (
 )
 
 
-VALUE_CHANGE_REGIME = "row_offset_meter_aware"
+DEFAULT_VALUE_CHANGE_REGIME = "timestamp_merge"
 SPLIT_NAME = "50_50_mod2"
 AXES = ("in_domain", "site_transfer", "label_scarcity", "minimal_fe")
 MODEL_ORDER = (
@@ -47,6 +47,14 @@ MODEL_ORDER = (
     "ensemble",
     "tabpfn",
 )
+MODEL_LABELS = {
+    "lightgbm": "LightGBM",
+    "xgboost": "XGBoost",
+    "catboost": "CatBoost",
+    "hist_gradient_boosting": "HistGBT",
+    "ensemble": "Ensemble",
+    "tabpfn": "TabPFN",
+}
 
 
 def log(message: str) -> None:
@@ -75,6 +83,11 @@ def parse_args() -> argparse.Namespace:
         default=[200, 500, 1_000, 2_000, 5_000, 10_000],
     )
     parser.add_argument("--seed", type=int, default=RANDOM_STATE)
+    parser.add_argument(
+        "--value-change-regime",
+        choices=["row_offset", "row_offset_meter_aware", "timestamp_merge"],
+        default=DEFAULT_VALUE_CHANGE_REGIME,
+    )
     parser.add_argument("--skip-tabpfn", action="store_true")
     parser.add_argument("--model-path", type=Path, default=default_model_path)
     return parser.parse_args()
@@ -248,6 +261,112 @@ def metric_summary(y_true, pred: np.ndarray) -> dict[str, Any]:
     }
 
 
+def render_confusion_figure(
+    models: dict[str, Any],
+    *,
+    operation_point: str,
+    title: str,
+    out: Path,
+) -> str:
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    rows = []
+    labels = []
+    for model_name in MODEL_ORDER:
+        model = models.get(model_name, {})
+        test_metrics = model.get("test", {})
+        op = test_metrics.get("operation_points", {}).get(operation_point)
+        if not op:
+            continue
+        cm = op["confusion_matrix"]
+        rows.append([cm["tn"], cm["fp"], cm["fn"], cm["tp"]])
+        labels.append(MODEL_LABELS[model_name])
+
+    if not rows:
+        return ""
+
+    matrix = np.asarray(rows, dtype=float)
+    fig_height = max(3.2, 0.45 * len(labels) + 1.8)
+    fig, ax = plt.subplots(figsize=(8.5, fig_height), constrained_layout=True)
+    im = ax.imshow(matrix, cmap="Blues")
+    ax.set_title(title)
+    ax.set_xticks(np.arange(4), labels=["TN", "FP", "FN", "TP"])
+    ax.set_yticks(np.arange(len(labels)), labels=labels)
+    ax.set_xlabel("Confusion-matrix cell")
+    ax.set_ylabel("Model")
+    for row_idx, row in enumerate(rows):
+        row_total = sum(row)
+        for col_idx, value in enumerate(row):
+            pct = value / row_total if row_total else 0.0
+            ax.text(
+                col_idx,
+                row_idx,
+                f"{value:,}\n{pct:.1%}",
+                ha="center",
+                va="center",
+                color="white"
+                if matrix[row_idx, col_idx] > matrix.max() * 0.55
+                else "black",
+                fontsize=8,
+            )
+    fig.colorbar(im, ax=ax, fraction=0.03, pad=0.02)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out, dpi=180)
+    plt.close(fig)
+    return str(out.relative_to(ROOT))
+
+
+def render_confusion_figures(results: dict[str, Any]) -> dict[str, str]:
+    asset_dir = ROOT / "docs" / "reports" / "assets" / "m5"
+    axes = results["axes"]
+    figures = {
+        "in_domain_threshold_0_5": render_confusion_figure(
+            axes["in_domain"]["models"],
+            operation_point="threshold_0_5",
+            title="In-domain test confusion matrix, threshold 0.5",
+            out=asset_dir / "m5_confusion_in_domain_threshold_0_5.png",
+        ),
+        "in_domain_fixed_recall_0_90": render_confusion_figure(
+            axes["in_domain"]["models"],
+            operation_point="fixed_recall_0_90",
+            title="In-domain test confusion matrix, fixed recall 0.90",
+            out=asset_dir / "m5_confusion_in_domain_fixed_recall_0_90.png",
+        ),
+        "label_scarcity_support_200_threshold_0_5": render_confusion_figure(
+            axes["label_scarcity"]["sizes"][0]["models"],
+            operation_point="threshold_0_5",
+            title="Label scarcity support 200 test confusion matrix, threshold 0.5",
+            out=asset_dir / "m5_confusion_label_scarcity_support_200_threshold_0_5.png",
+        ),
+        "minimal_fe_raw17_threshold_0_5": render_confusion_figure(
+            next(
+                cell
+                for cell in axes["minimal_fe"]["feature_sets"]
+                if cell["feature_set"] == "raw_baseline_17"
+            )["models"],
+            operation_point="threshold_0_5",
+            title="Raw 17-feature test confusion matrix, threshold 0.5",
+            out=asset_dir / "m5_confusion_minimal_fe_raw17_threshold_0_5.png",
+        ),
+        "site_transfer_threshold_0_5": render_confusion_figure(
+            axes["site_transfer"]["models"],
+            operation_point="threshold_0_5",
+            title="Site-transfer test confusion matrix, threshold 0.5",
+            out=asset_dir / "m5_confusion_site_transfer_threshold_0_5.png",
+        ),
+        "site_transfer_fixed_recall_0_90": render_confusion_figure(
+            axes["site_transfer"]["models"],
+            operation_point="fixed_recall_0_90",
+            title="Site-transfer test confusion matrix, fixed recall 0.90",
+            out=asset_dir / "m5_confusion_site_transfer_fixed_recall_0_90.png",
+        ),
+    }
+    return {name: path for name, path in figures.items() if path}
+
+
 def tree_models(seed: int) -> dict[str, Any]:
     return {
         "lightgbm": lgb.LGBMClassifier(
@@ -315,7 +434,12 @@ class Runner:
         return model
 
 
-def build_50_50_table(df, *, site_split: bool = False) -> dict[str, Any]:
+def build_50_50_table(
+    df,
+    *,
+    value_change_regime: str,
+    site_split: bool = False,
+) -> dict[str, Any]:
     if site_split:
         mask_test = (df["site_id"] % 2 == 1).to_numpy()
         split_name = "site_id_mod2_50_50"
@@ -334,12 +458,12 @@ def build_50_50_table(df, *, site_split: bool = False) -> dict[str, Any]:
     train_full = add_value_change_features(
         df.loc[~mask_test],
         list(SHIFTS),
-        value_change_regime=VALUE_CHANGE_REGIME,
+        value_change_regime=value_change_regime,
     )
     test_full = add_value_change_features(
         df.loc[mask_test],
         list(SHIFTS),
-        value_change_regime=VALUE_CHANGE_REGIME,
+        value_change_regime=value_change_regime,
     )
     value_cols = [c for c in train_full.columns if c.startswith("lag_value_")]
     if len(value_cols) != 120:
@@ -353,7 +477,7 @@ def build_50_50_table(df, *, site_split: bool = False) -> dict[str, Any]:
         "ds_idx_full": downsample_indices(train_full["anomaly"]),
         "split": {
             "name": split_name,
-            "value_change_regime": VALUE_CHANGE_REGIME,
+            "value_change_regime": value_change_regime,
             "n_train_units": int(len(train_units)),
             "n_test_units": int(len(test_units)),
             "unit_overlap": int(len(overlap)),
@@ -535,7 +659,7 @@ def feature_sets(table: dict[str, Any]) -> dict[str, list[str]]:
 
 def run_all_axes(args: argparse.Namespace, runner: Runner, df) -> dict[str, Any]:
     axes: dict[str, Any] = {}
-    table = build_50_50_table(df)
+    table = build_50_50_table(df, value_change_regime=args.value_change_regime)
     features = feature_sets(table)
 
     log("Axis: in_domain")
@@ -601,7 +725,11 @@ def run_all_axes(args: argparse.Namespace, runner: Runner, df) -> dict[str, Any]
 
     del table
     log("Axis: site_transfer")
-    site_table = build_50_50_table(df, site_split=True)
+    site_table = build_50_50_table(
+        df,
+        value_change_regime=args.value_change_regime,
+        site_split=True,
+    )
     axes["site_transfer"] = {
         "description": "50/50 site train/test split, full 137 features.",
         "split": site_table["split"],
@@ -632,7 +760,8 @@ def main() -> None:
     runner = Runner(args, env)
     log(
         f"Device={runner.device} tabpfn_ok={runner.tabpfn_ok} "
-        f"fit_rows={args.fit_rows} score_rows={args.score_rows} seed={args.seed}"
+        f"fit_rows={args.fit_rows} score_rows={args.score_rows} "
+        f"seed={args.seed} value_change_regime={args.value_change_regime}"
     )
     df = load_m3_frame(verbose=True)
     axes = run_all_axes(args, runner, df)
@@ -643,7 +772,8 @@ def main() -> None:
             "50/50 train/test split run with all tree models, ensemble, TabPFN, "
             "train/test scoring subsamples, and confusion matrix summaries."
         ),
-        "value_change_regime": VALUE_CHANGE_REGIME,
+        "value_change_regime": args.value_change_regime,
+        "value_change_regime_default": DEFAULT_VALUE_CHANGE_REGIME,
         "budgets": {
             "fit_rows": int(args.fit_rows),
             "score_rows": int(args.score_rows),
@@ -661,12 +791,14 @@ def main() -> None:
         "axes": axes,
         "elapsed_seconds": float(time.perf_counter() - t0),
     }
+    results["figures"] = render_confusion_figures(results)
     command = (
         "uv run python scripts/run_m6_phaseD_50_50_full_models.py "
         f"--out {args.out} --fit-rows {args.fit_rows} "
         f"--score-rows {args.score_rows} "
         f"--scarcity-sizes {' '.join(map(str, args.scarcity_sizes))} "
-        f"--seed {args.seed}"
+        f"--seed {args.seed} "
+        f"--value-change-regime {args.value_change_regime}"
     )
     write_json_with_provenance(
         args.out,

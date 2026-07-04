@@ -31,7 +31,7 @@ from lead import (
 )
 
 
-VALUE_CHANGE_REGIME = "row_offset_meter_aware"
+VALUE_CHANGE_REGIME = "timestamp_merge"
 SPLIT_NAME = "80_20_mod5"
 
 

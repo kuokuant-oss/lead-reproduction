@@ -73,24 +73,28 @@ HistGradientBoosting。Offline batch labeling 使用 137-feature set；past-only
 
 | Split | 設定 | 特徵數 | Ensemble AUC | Precision@0.5 | Recall@0.5 | F1@0.5 |
 |---|---|---:|---:|---:|---:|---:|
-| 50/50 mod2 | Offline batch labeling | 137 | 0.9921 | 0.7175 | 0.9387 | 0.8133 |
-| 50/50 mod2 | Past-only | 77 | 0.9911 | 0.7002 | 0.9311 | 0.7993 |
+| 50/50 mod2 | Offline batch labeling | 137 | 0.9918 | 0.7317 | 0.9483 | 0.8260 |
+| 50/50 mod2 | Past-only | 77 | 0.9913 | 0.7167 | 0.9430 | 0.8144 |
+
+表 2.1：regime=`timestamp_merge`；split ratio=50/50 building-held-out。
 
 機器可讀 provenance：
 [docs/metrics/m3-50-50-ensemble.json](../metrics/m3-50-50-ensemble.json)。
 
 Offline batch labeling 分數是 50/50 protocol 下的批次回溯標註結果。Past-only
-AUC 低 `0.0010`，量化了從 value-change features 中移除 future meter readings
+AUC 低 `0.0005`，量化了從 value-change features 中移除 future meter readings
 的成本。
 
-既有 train/validation gap 檢查使用 80/20 development line 與 meter-aware
+既有 train/validation gap 檢查使用 80/20 development line 與 timestamp_merge
 value-change features，目的只在檢查是否出現明顯 fit-set memorization。
 
 | Score | LightGBM | XGBoost | CatBoost | HistGradientBoosting | Ensemble |
 |---|---:|---:|---:|---:|---:|
-| Fit-set AUC | 0.9983 | 0.9996 | 0.9999 | 0.9983 | 0.9997 |
-| Full train-buildings AUC | 0.9983 | 0.9996 | 0.9999 | 0.9982 | 0.9996 |
-| Validation AUC | 0.9925 | 0.9925 | 0.9884 | 0.9921 | 0.9937 |
+| Fit-set AUC | 0.9984 | 0.9996 | 0.9999 | 0.9983 | 0.9997 |
+| Full train-buildings AUC | 0.9984 | 0.9996 | 0.9999 | 0.9983 | 0.9996 |
+| Validation AUC | 0.9925 | 0.9923 | 0.9904 | 0.9916 | 0.9934 |
+
+表 2.2：regime=`timestamp_merge`；split ratio=80/20 building-held-out。
 
 Fit-set 與 full train-buildings AUC 接近，表示高分不是只來自重複 fit-set rows。
 Full train-buildings 對 validation 約有 `0.006` AUC gap，列為 capacity/stability
@@ -108,11 +112,13 @@ rules 對排序能力的影響。
 | 階段 | Split | 設定 | 特徵數 | AUC | 解讀 |
 |---|---|---|---:|---:|---|
 | M3.1 baseline | 80/20 | Offline | 17 | 0.9562 | Time, building, meter, weather baseline |
-| M3.2 value-change | 80/20 | Offline | 137 | 0.9920 | 主要 feature-engineering 提升 |
-| M3.2 value-change | 80/20 | Past-only | 77 | 0.9908 | past-shift features 仍提供穩定訊號 |
-| M3.3 buds-lab alignment | 80/20 | Offline | 170 | 0.9913 | 補充特徵未改善 AUC |
-| M3.4 ensemble | 80/20 | Offline | 137 | 0.9928 | ensemble 小幅提升 |
-| M3.5 post-processing | 80/20 | Offline | 137 | 0.9927 | 舊 rules 在本資料設定下未帶來改善 |
+| M3.2 value-change | 80/20 | Offline | 137 | 0.9925 | 主要 feature-engineering 提升 |
+| M3.2 value-change | 80/20 | Past-only | 77 | 0.9909 | past-shift features 仍提供穩定訊號 |
+| M3.3 buds-lab alignment | 80/20 | Offline | 170 | 0.9928 | 補充特徵未帶來穩定 lift |
+| M3.4 ensemble | 80/20 | Offline | 137 | 0.9934 | ensemble 小幅提升 |
+| M3.5 post-processing | 80/20 | Offline | 137 | 0.9933 | 舊 rules 在本資料設定下未帶來改善 |
+
+表 3.1：regime=`timestamp_merge`；split ratio=80/20 building-held-out。
 
 ## 3.2 Value-change features
 
@@ -122,13 +128,18 @@ meter reading 與 weather。M3.2 加入 120 個 value-change features。
 | 模型 | 特徵數 | AUC | 差異 |
 |---|---:|---:|---:|
 | M3.1 baseline LightGBM | 17 | 0.9562 | - |
-| M3.2 value-change LightGBM | 137 | 0.9920 | +0.0358 |
+| M3.2 value-change LightGBM | 137 | 0.9925 | +0.0363 |
+
+表 3.2：regime=`timestamp_merge` for M3.2；split ratio=80/20 building-held-out。
 
 Value-change features 使用與 M2 相同的 shift family：`-24..-1`, `1..24`,
-`-168..-48 step 24`, `48..168 step 24`。M3 的 diff sign 與 ratio orientation
-和 M2 相反，屬 negation / reciprocal 的 monotonic 轉換；這個結論只界定
-diff/ratio 方向本身，meter-crossing 的 AUC 影響見 §4.3。Ratio 的 +1
-smoothing 公式見 ADR 0008。
+`-168..-48 step 24`, `48..168 step 24`。M3.2 baseline 的權威產出由
+[scripts/run_m3_2_baseline.py](../../scripts/run_m3_2_baseline.py) 產生，固定
+`value_change_regime="timestamp_merge"`。此 regime 對應 buds-lab 原作的
+`timestamp + timedelta` 後 merge，是 M3/M4/M5 後續比較的 canonical value-change
+基準；`row_offset` 與 `row_offset_meter_aware` 保留為歷史近似與 M5 §7 ablation。
+M3 的 diff sign 與 ratio orientation 和 M2 相反，屬 negation / reciprocal 的
+monotonic 轉換；Ratio 的 +1 smoothing 公式見 ADR 0008。
 
 ## 3.3 buds-lab 對齊
 
@@ -139,8 +150,10 @@ train-only `(site, meter)` target encoding、primary-use/meter interaction，
 
 | 執行 | 特徵數 | AUC | Precision@0.5 | Recall@0.5 | F1@0.5 |
 |---|---:|---:|---:|---:|---:|
-| M3.2 reference | 137 | 0.9920 | 0.6409 | 0.9665 | 0.7707 |
-| M3.3 buds-lab 對齊 | 170 | 0.9913 | 0.6668 | 0.9583 | 0.7864 |
+| M3.2 reference | 137 | 0.9925 | 0.6648 | 0.9688 | 0.7885 |
+| M3.3 buds-lab 對齊 | 170 | 0.9928 | 0.6732 | 0.9533 | 0.7891 |
+
+表 3.3：regime=`timestamp_merge`；split ratio=80/20 building-held-out。
 
 Full buds-lab alignment 作為驗證與消融步驟有價值；ranking AUC 未改善，
 因此不納入最終模型。Threshold-0.5 指標列於上表。
@@ -151,13 +164,15 @@ Ensemble 使用 M3.2 feature set。
 
 | 模型 | 80/20 AUC | Precision@0.5 | Recall@0.5 | F1@0.5 |
 |---|---:|---:|---:|---:|
-| LightGBM | 0.9920 | 0.6409 | 0.9665 | 0.7707 |
-| XGBoost | 0.9909 | 0.6801 | 0.9559 | 0.7947 |
-| CatBoost | 0.9891 | 0.7178 | 0.9579 | 0.8206 |
-| HistGBT | 0.9915 | 0.6385 | 0.9650 | 0.7685 |
-| Ensemble | 0.9928 | 0.6779 | 0.9664 | 0.7969 |
+| LightGBM | 0.9925 | 0.6648 | 0.9688 | 0.7885 |
+| XGBoost | 0.9923 | 0.7033 | 0.9552 | 0.8101 |
+| CatBoost | 0.9904 | 0.7284 | 0.9518 | 0.8252 |
+| HistGBT | 0.9916 | 0.6561 | 0.9655 | 0.7813 |
+| Ensemble | 0.9934 | 0.6961 | 0.9636 | 0.8083 |
 
-Ensemble lift 為 `+0.00079`。Value-change features 是主要貢獻，ensemble 是次要
+表 3.4：regime=`timestamp_merge`；split ratio=80/20 building-held-out。
+
+Ensemble lift 為 `+0.0009`。Value-change features 是主要貢獻，ensemble 是次要
 增益。補充的建物層級 bootstrap 檢查顯示 lift 方向為正，建物層級 CI 仍有重疊，
 細節見第 4 章。
 
@@ -173,8 +188,10 @@ readings。
 | Rule 2b: `dayofyear > 366.9583 -> 0` | 478 | 13 | -0.000052 |
 | Combined | - | - | -0.000054 |
 
-Pre-rule 集成模型 AUC 是 `0.9927886`；combined post-processing AUC 是
-`0.9927347`。舊規則在本資料設定下未帶來改善。
+表 3.5：regime=`timestamp_merge`；split ratio=80/20 building-held-out。
+
+Pre-rule 集成模型 AUC 是 `0.9933765`；combined post-processing AUC 是
+`0.9933226`。舊規則在本資料設定下未帶來改善。
 
 ---
 
@@ -214,16 +231,14 @@ Time-holdout 檢查提供額外敏感性資訊。由於它同時改變 value-cha
 
 ## 4.3 Feature implementation 限制
 
-M3 的 value-change features 以 row-offset shift 實作，用相鄰列近似時間變化，
-沒有進行精確的 timestamp join。GEPIII default 以 `building_id` 分組；在多電表
-資料中，這會讓不同 meter 的讀值進入同一個 shift 序列，形成 meter-crossing。
+buds-lab 原作的 value-change 對齊方式是 `timestamp + timedelta` 後 merge。
+M3 現以 `timestamp_merge` 作為忠實基準，並由 frozen API
+`add_value_change_features(..., value_change_regime="timestamp_merge")` 產生所有
+canonical value-change 數字。`row_offset` 與 `row_offset_meter_aware` 是歷史近似；
+前者以相鄰列近似時間變化，後者修正 multi-meter row-offset 的 meter-crossing，但
+兩者都不再是 M3/M4/M5 的 canonical baseline。其影響集中收錄於 M5 §7 regime ladder。
 
-補充檢查顯示，`row_offset_meter_aware` 能修正 meter-crossing，且分數略高於原始
-`row_offset` 版本。為了維持與凍結版 GEPIII reproduction baseline 的一致性，M3
-headline result 仍回報原始 row-offset implementation；後續 cross-model comparison
-則固定採用 meter-aware implementation。
-
-Past-only 50/50 結果只比 offline batch labeling 低 `0.0010` AUC，顯示 M3 在即時
+Past-only 50/50 結果只比 offline batch labeling 低 `0.0005` AUC，顯示 M3 在即時
 FDD 設定下仍保有接近 offline batch labeling 的表現。實際部署時，模型輸入應限制為
 當下以前可取得的特徵。
 
@@ -231,7 +246,7 @@ FDD 設定下仍保有接近 offline batch labeling 的表現。實際部署時�
 building-held-out split，以及 offline batch labeling 設定。在目前檢查範圍內，
 未觀察到會系統性推高 headline result 的明顯 leakage pattern。後續比較應固定
 split、label source 與 feature availability，並另外回報 cross-site、steam meter、
-meter-aware feature implementation 與抽樣穩定度結果。
+歷史行偏移近似與抽樣穩定度結果。
 
 ---
 
@@ -250,10 +265,12 @@ ordering 對照。
 
 | 電表類型 | III2 prediction-error pattern | M3 anomaly AUC |
 |---|---|---:|
-| Electricity | 最容易 / 預測最好 | 0.9991 |
-| Chilled water | 比 electricity 困難 | 0.9888 |
-| Steam | 比 electricity 困難 | 0.9553 |
-| Hot water | III2 中最難，good fit 約四成 | 0.9863 |
+| Electricity | 最容易 / 預測最好 | 0.9994 |
+| Chilled water | 比 electricity 困難 | 0.9890 |
+| Steam | 比 electricity 困難 | 0.9536 |
+| Hot water | III2 中最難，good fit 約四成 | 0.9876 |
+
+表 5.1：regime=`timestamp_merge`；split ratio=80/20 building-held-out。
 
 ---
 
@@ -262,15 +279,15 @@ ordering 對照。
 M3 已完成，主要結論如下。
 
 第一，完整 GEPIII 訓練資料上，50/50 建物留出的集成模型取得穩定的異常排序能力；
-回溯標註 AUC 為 `0.9921`，僅用過去資訊 AUC 為 `0.9911`。
+回溯標註 AUC 為 `0.9918`，僅用過去資訊 AUC 為 `0.9913`。
 
 第二，值變化特徵是主要效能來源；從 17 個基礎特徵加入值變化特徵後，AUC 由
-`0.9562` 提升到 `0.9920`。
+`0.9562` 提升到 `0.9925`。
 
 第三，僅用過去資訊的版本只小幅低於回溯標註版本，表示線上評分設定仍具可行性；
 線上評分時需排除未來電表讀值。
 
-第四，跨站泛化、蒸氣表、行偏移近似、標籤打亂殘餘結構與建物層級變異仍是後續階段
+第四，跨站泛化、蒸氣表、歷史行偏移近似、標籤打亂殘餘結構與建物層級變異仍是後續階段
 需要保留的限制。
 
 因此，M3 的角色是建立 GEPIII 上的穩定基準線；後續比較應以相同切分、相同標籤橋接
@@ -302,4 +319,4 @@ M3 已完成，主要結論如下。
   [scripts/run_inv8_sampling_fragility.py](../../scripts/run_inv8_sampling_fragility.py)；
   對應 JSON 皆位於 [data/processed/](../../data/processed/)。
 
-*Last updated: 2026-07-02 (M3 report structure and check evidence links)*
+*Last updated: 2026-07-04 (timestamp_merge canonical re-baseline)*

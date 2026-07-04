@@ -1,0 +1,36 @@
+from __future__ import annotations
+
+import json
+import unittest
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+PRIMARY_JSON = ROOT / "data/processed/m6_phaseD_50_50_full_models_timestamp_merge.json"
+REPORT = ROOT / "docs/reports/m5-foundation-vs-gbdt.md"
+
+
+class TestM5TimestampMergeRegime(unittest.TestCase):
+    def test_primary_json_uses_timestamp_merge(self) -> None:
+        data = json.loads(PRIMARY_JSON.read_text(encoding="utf-8"))
+
+        self.assertEqual(data["value_change_regime"], "timestamp_merge")
+        for axis in ("in_domain", "label_scarcity", "minimal_fe", "site_transfer"):
+            self.assertEqual(
+                data["axes"][axis]["split"]["value_change_regime"],
+                "timestamp_merge",
+            )
+
+    def test_report_primary_matrix_uses_timestamp_merge_json(self) -> None:
+        report = REPORT.read_text(encoding="utf-8")
+
+        self.assertIn("Feature basis**：`timestamp_merge`", report)
+        self.assertIn("Feature regime | `timestamp_merge`", report)
+        self.assertIn(
+            "data/processed/m6_phaseD_50_50_full_models_timestamp_merge.json",
+            report,
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -31,8 +31,8 @@ from run_m3_4_ensemble import (
 )
 
 
-M3_2_REFERENCE_AUC = 0.9920
-M3_4_REFERENCE_AUC = 0.9928
+M3_2_REFERENCE_AUC = 0.9924831086743003
+M3_4_REFERENCE_AUC = 0.9933764865287564
 LEGACY_RULE_2B_DAYOFYEAR_THRESHOLD = 366.9583
 SHUFFLE_SEEDS = (42, 123, 999)
 GEPIII_METER_NAMES = {
@@ -51,6 +51,7 @@ BDG2_METER_NAMES = {
     "irrigation": "irrigation",
     "solar": "solar",
 }
+VALUE_CHANGE_REGIME = "timestamp_merge"
 
 
 def apply_rules(
@@ -214,8 +215,12 @@ def run_site_heldout_ensemble(
     if building_overlap:
         raise AssertionError(f"building overlap: {sorted(building_overlap)[:5]}")
 
-    train_full = add_value_change_features(df.loc[~mask_val], list(SHIFTS))
-    val_full = add_value_change_features(df.loc[mask_val], list(SHIFTS))
+    train_full = add_value_change_features(
+        df.loc[~mask_val], list(SHIFTS), value_change_regime=VALUE_CHANGE_REGIME
+    )
+    val_full = add_value_change_features(
+        df.loc[mask_val], list(SHIFTS), value_change_regime=VALUE_CHANGE_REGIME
+    )
     if any(col not in train_full.columns for col in feature_cols):
         raise AssertionError("Site-held-out features do not match canonical features")
     y_train = train_full["anomaly"]
@@ -422,8 +427,12 @@ def main() -> None:
         raise AssertionError(f"building overlap: {sorted(overlap)[:5]}")
 
     log("Adding M3.2 offline value-change features")
-    train_full = add_value_change_features(df.loc[~mask_val], list(SHIFTS))
-    val_full = add_value_change_features(df.loc[mask_val], list(SHIFTS))
+    train_full = add_value_change_features(
+        df.loc[~mask_val], list(SHIFTS), value_change_regime=VALUE_CHANGE_REGIME
+    )
+    val_full = add_value_change_features(
+        df.loc[mask_val], list(SHIFTS), value_change_regime=VALUE_CHANGE_REGIME
+    )
     value_cols = [c for c in train_full.columns if c.startswith("lag_value_")]
     feature_cols = BASELINE_FEATURE_COLS + value_cols
     if len(feature_cols) != 137:
@@ -599,6 +608,7 @@ def main() -> None:
         "experiment": "m3_5_postprocessing",
         "canonical_line": "80_20_mod5_offline",
         "feature_set": "m3_2_137_features",
+        "provenance": {"value_change_regime": VALUE_CHANGE_REGIME},
         "random_state": RANDOM_STATE,
         "downsampling_seeds": list(DOWNSAMPLE_SEEDS),
         "postprocessing_base": "m3_4_seed_42_equal_weight_4_model_ensemble",
