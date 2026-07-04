@@ -289,10 +289,11 @@ def render_confusion_figure(
         return ""
 
     matrix = np.asarray(rows, dtype=float)
-    fig_height = max(3.2, 0.45 * len(labels) + 1.8)
-    fig, ax = plt.subplots(figsize=(8.5, fig_height), constrained_layout=True)
+    fig_height = max(3.6, 0.5 * len(labels) + 2.0)
+    title_width = max(10.5, 0.12 * len(title))
+    fig, ax = plt.subplots(figsize=(title_width, fig_height))
     im = ax.imshow(matrix, cmap="Blues")
-    ax.set_title(title)
+    ax.set_title(title, pad=12)
     ax.set_xticks(np.arange(4), labels=["TN", "FP", "FN", "TP"])
     ax.set_yticks(np.arange(len(labels)), labels=labels)
     ax.set_xlabel("Confusion-matrix cell")
@@ -312,9 +313,10 @@ def render_confusion_figure(
                 else "black",
                 fontsize=8,
             )
-    fig.colorbar(im, ax=ax, fraction=0.03, pad=0.02)
+    fig.colorbar(im, ax=ax, fraction=0.03, pad=0.04)
+    fig.tight_layout(pad=1.2)
     out.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out, dpi=180)
+    fig.savefig(out, dpi=180, bbox_inches="tight", pad_inches=0.15)
     plt.close(fig)
     return str(out.relative_to(ROOT))
 
