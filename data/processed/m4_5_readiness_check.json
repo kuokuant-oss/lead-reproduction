@@ -2,6 +2,7 @@
   "slice": "M4.5",
   "issue": 26,
   "purpose": "M5 readiness golden-gate confirmation before freezing M4.",
+  "superseded_by": "2026-07-04 timestamp_merge rebaseline; see tests/golden_metrics.json",
   "noise_floor_auc": 0.0005,
   "checks": {
     "m3_2_lightgbm_80_20_offline_auc": {

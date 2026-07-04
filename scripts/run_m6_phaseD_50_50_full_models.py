@@ -72,7 +72,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--out",
         type=Path,
-        default=PROC / "m6_phaseD_50_50_full_models.json",
+        default=None,
     )
     parser.add_argument("--fit-rows", type=int, default=10_000)
     parser.add_argument("--score-rows", type=int, default=4_000)
@@ -90,7 +90,10 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--skip-tabpfn", action="store_true")
     parser.add_argument("--model-path", type=Path, default=default_model_path)
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.out is None:
+        args.out = PROC / f"m6_phaseD_50_50_full_models_{args.value_change_regime}.json"
+    return args
 
 
 def torch_environment() -> dict[str, Any]:
