@@ -17,7 +17,7 @@
 | **M2** | LEAD competition subset reproduction | Closed | Kaggle Private AUC `0.98616`，與原始解法 `0.98661` 的差距為 `0.05%` |
 | **M3** | Full ASHRAE GEPIII reproduction | Complete | M3.4 ensemble AUC `0.9934`；PI 50/50 ensemble offline `0.9918` / causal `0.9913`；value-change canonical regime 為 `timestamp_merge`；post-processing 為 null result |
 | **M4** | Importable pipeline foundation | M4.0-M4.5 complete | `src/lead` public API frozen; M3.2/M3.4 regression gates pass; M4.2-M4.5 closed |
-| **M5** | GEPIII FDD model comparison | Complete | TabPFN 的主要優勢出現在低標註量 PR-AUC；full-feature in-domain 分數接近；raw 17 features 下 ranking metric 與 threshold `0.5` classification 給出不同訊號；site-transfer PR-AUC 由 tree family 較強。 |
+| **M5** | GEPIII FDD model comparison | Complete | TabPFN 優勢集中在低標註量 PR-AUC；full-feature in-domain 六模型接近；site-transfer 與 M5.x per-unit 切分粒度下皆由 tree family 領先 |
 
 Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-reproduction/milestones)。
 
@@ -96,8 +96,9 @@ HistGBT、Ensemble 與 TabPFN。
 - Full features 的 in-domain 50/50 test split 上，六個模型分數接近，無明確模型排序。
 - Raw 17 features 下，tree models 的 test PR-AUC 較高；TabPFN 在 threshold `0.5` 下 TN 最高、FP 最少，且 FP+FN 總錯誤數最低。
 - Site-transfer test PR-AUC 由 tree family 較強。
+- M5.x per-unit 切分粒度（C1 最細到 C3 最粗）下，tree ensemble 在四個粒度的 pooled PR-AUC 皆領先 TabPFN；C2（`site_id, meter`）對 TabPFN 最友善（PR 差最佳 tree 約 `0.03`、coverage `99.75%`），最細的 C1 因 fallback rate `84.75%`、coverage 僅 `15.25%` 而不具實用價值。
 
-詳細結果見 [docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)。
+詳細結果見 [docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)，per-unit 切分粒度見 [docs/reports/m5x-partition-granularity.md](./docs/reports/m5x-partition-granularity.md)。
 
 ## src/lead public API
 
@@ -148,7 +149,11 @@ docs/
 │   ├── m3-report.md
 │   ├── m4-evaluation-report.md
 │   ├── m5-foundation-vs-gbdt.md
+│   ├── m5-1-deep-comparison.md
+│   ├── m5x-partition-granularity.md
 │   ├── bdg2-eda.md
+│   ├── bdg2-data-reality.md
+│   ├── phaseE-step4-bdg2-transfer.md
 │   └── assets/
 │       └── m5/
 │           └── confusion matrix PNGs
@@ -190,6 +195,15 @@ scripts/
 ├── diagnose_phaseE_step3_smoke_attribution.py
 ├── explore_bdg2.py
 ├── phaseE_transfer.py
+├── run_bdg2_eda.py
+├── run_gate_label_join_integrity.py
+├── run_inv1_meter_aware_impact.py
+├── run_inv3_scarcity_unique_support.py
+├── run_inv4_shuffle_ablation.py
+├── run_inv5_time_holdout.py
+├── run_inv6_train_val_gap.py
+├── run_inv7_per_building_distribution.py
+├── run_inv8_sampling_fragility.py
 ├── run_m3_2_baseline.py
 ├── run_m3_3_budslab.py
 ├── run_m3_4_ensemble.py
@@ -198,7 +212,9 @@ scripts/
 ├── run_m3_split_causality.py
 ├── run_m4_3_timestamp_value_change.py
 ├── run_m5_phaseC_tabpfn_spike.py
+├── run_m5_phaseD_deep_comparison.py
 ├── run_m5_phaseD_foundation_vs_gbdt.py
+├── run_m5x_partition_granularity.py
 ├── run_m6_phaseD_50_50_full_models.py
 ├── run_phaseE_step3_bdg2_transfer_smoke.py
 ├── run_phaseE_step4a_bdg2_transfer.py
@@ -223,10 +239,12 @@ tests/
 ├── test_m5_phaseD_comparison.py
 ├── test_m5_tabpfn_spike.py
 ├── test_m5_timestamp_merge_regime.py
+├── test_m5x_partition_granularity.py
 ├── test_phaseE_step4_transfer.py
 ├── test_public_api.py
 ├── test_readme_freshness.py
 ├── test_refactor_regression.py
+├── test_report_metric_consistency.py
 ├── test_sampling_semantics.py
 ├── test_split_helpers.py
 ├── test_time_and_postprocessing_semantics.py
@@ -252,6 +270,15 @@ scripts/
   diagnose_phaseE_step3_smoke_attribution.py
   explore_bdg2.py
   phaseE_transfer.py
+  run_bdg2_eda.py
+  run_gate_label_join_integrity.py
+  run_inv1_meter_aware_impact.py
+  run_inv3_scarcity_unique_support.py
+  run_inv4_shuffle_ablation.py
+  run_inv5_time_holdout.py
+  run_inv6_train_val_gap.py
+  run_inv7_per_building_distribution.py
+  run_inv8_sampling_fragility.py
   run_m3_2_baseline.py
   run_m3_3_budslab.py
   run_m3_4_ensemble.py
@@ -260,7 +287,9 @@ scripts/
   run_m3_split_causality.py
   run_m4_3_timestamp_value_change.py
   run_m5_phaseC_tabpfn_spike.py
+  run_m5_phaseD_deep_comparison.py
   run_m5_phaseD_foundation_vs_gbdt.py
+  run_m5x_partition_granularity.py
   run_m6_phaseD_50_50_full_models.py
   run_phaseE_step3_bdg2_transfer_smoke.py
   run_phaseE_step4a_bdg2_transfer.py
@@ -285,10 +314,12 @@ tests/
   test_m5_phaseD_comparison.py
   test_m5_tabpfn_spike.py
   test_m5_timestamp_merge_regime.py
+  test_m5x_partition_granularity.py
   test_phaseE_step4_transfer.py
   test_public_api.py
   test_readme_freshness.py
   test_refactor_regression.py
+  test_report_metric_consistency.py
   test_sampling_semantics.py
   test_split_helpers.py
   test_time_and_postprocessing_semantics.py
@@ -372,6 +403,8 @@ M5 GEPIII 模型比較：
 uv run python scripts/run_m5_phaseC_tabpfn_spike.py
 uv run python scripts/run_m5_phaseD_foundation_vs_gbdt.py --value-change-regime timestamp_merge --out data/processed/m6_phaseD_timestamp_merge_multiseed.json
 uv run python scripts/run_m6_phaseD_50_50_full_models.py --out data/processed/m6_phaseD_50_50_full_models_timestamp_merge.json
+uv run python scripts/run_m5_phaseD_deep_comparison.py --out data/processed/m5_phaseD_deep_comparison.json
+uv run python scripts/run_m5x_partition_granularity.py --out data/processed/m5x_partition_granularity.json
 ```
 
 Golden regression values 記錄在 [tests/golden_metrics.json](./tests/golden_metrics.json)。
