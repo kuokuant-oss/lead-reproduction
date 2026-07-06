@@ -1,4 +1,4 @@
-# M5：TabPFN vs GBDT 於 GEPIII
+# M5：TabPFN 與 GBDT 跨部署情境總覽比較（in-domain／標註稀缺／minimal-FE／site-transfer）
 
 - **Issue**：[#35](https://github.com/kuokuant-oss/lead-reproduction/issues/35)、[#52](https://github.com/kuokuant-oss/lead-reproduction/issues/52)
 

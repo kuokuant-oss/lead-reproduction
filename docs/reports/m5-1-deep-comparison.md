@@ -1,4 +1,4 @@
-# M5.1：TabPFN 與 tree models 深入比較
+# M5.1：TabPFN 調參敏感度與小樣本標註效率深入比較
 
 - **資料來源**：ASHRAE GEPIII，來源：[Kaggle ASHRAE Energy Prediction](https://www.kaggle.com/competitions/ashrae-energy-prediction/data)。
 - **資料集**：`data/raw/m3/train.csv`、`data/raw/m3/bad_meter_readings.csv`、`data/raw/m3/building_metadata.csv`、`data/raw/m3/weather_train.csv`。

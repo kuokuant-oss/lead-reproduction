@@ -1,4 +1,4 @@
-# M5.x：切分粒度比較（timestamp_merge causal77）
+# M5.x：per-unit 建模切分粒度比較（timestamp_merge causal77）
 
 - **資料來源**：ASHRAE GEPIII，來源：[Kaggle ASHRAE Energy Prediction](https://www.kaggle.com/competitions/ashrae-energy-prediction/data)。
 - **資料集**：`data/raw/m3/train.csv`、`data/raw/m3/bad_meter_readings.csv`、`data/raw/m3/building_metadata.csv`、`data/raw/m3/weather_train.csv`。

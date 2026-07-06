@@ -26,9 +26,9 @@ Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-r
 - **M2 復現報告**：[docs/reports/reproduction-report.md](./docs/reports/reproduction-report.md)
 - **M3 完成報告**：[docs/reports/m3-report.md](./docs/reports/m3-report.md)
 - **M4 評估報告**：[docs/reports/m4-evaluation-report.md](./docs/reports/m4-evaluation-report.md)
-- **M5 GEPIII 模型比較報告**：[docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)
-- **M5.1 TabPFN vs tree models 深入比較**：[docs/reports/m5-1-deep-comparison.md](./docs/reports/m5-1-deep-comparison.md)
-- **M5.x 切分粒度比較**：[docs/reports/m5x-partition-granularity.md](./docs/reports/m5x-partition-granularity.md)
+- **M5 跨部署情境總覽比較**（in-domain／標註稀缺／minimal-FE／site-transfer）：[docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)
+- **M5.1 調參敏感度與小樣本標註效率深入比較**：[docs/reports/m5-1-deep-comparison.md](./docs/reports/m5-1-deep-comparison.md)
+- **M5.x per-unit 建模切分粒度比較**：[docs/reports/m5x-partition-granularity.md](./docs/reports/m5x-partition-granularity.md)
 - **BDG2 data descriptor reference**：[docs/reference/papers/bdg2-miller-2020.md](./docs/reference/papers/bdg2-miller-2020.md)
 
 ## Milestone 摘要
@@ -88,20 +88,28 @@ M4.0-M4.5 complete。
 
 ### M5 GEPIII 模型比較
 
-M5 已完成 GEPIII 上的 FDD 模型比較。比較線使用 `timestamp_merge`
-features、50% training / 50% testing split，並列出 LightGBM、XGBoost、CatBoost、
-HistGBT、Ensemble 與 TabPFN。
+M5 已完成 GEPIII 上的 FDD 模型比較，統一使用 `timestamp_merge` value-change
+features，比較 LightGBM、XGBoost、CatBoost、HistGBT、tree ensemble 與 TabPFN。
+以下三份報告各自著重不同的比較面向。
 
-主要結果：
+主要結果（三份報告各自的著重點）：
+
+**跨部署情境總覽** — [m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)：橫跨 in-domain、標註稀缺、minimal-FE、site-transfer 四軸的整體比較。
 
 - TabPFN 的主要優勢出現在低標註量 PR-AUC；support 200 與 500 時 test PR-AUC 最高。
 - Full features 的 in-domain 50/50 test split 上，六個模型分數接近，無明確模型排序。
 - Raw 17 features 下，tree models 的 test PR-AUC 較高；TabPFN 在 threshold `0.5` 下 TN 最高、FP 最少，且 FP+FN 總錯誤數最低。
 - Site-transfer test PR-AUC 由 tree family 較強。
-- M5.1 深入比較（TabPFN-3 local vs tree models）：小樣本（support `100`-`2,000`）與固定 fit rows `500` 的中低維設定下，TabPFN test PR-AUC 最高（`137` features 達 `0.8520`），run-to-run 穩定性佳；但在完整 fit budget 與 tuned trees 充分調參後，tuned ensemble `0.9109` 反超 TabPFN `0.9024`。結論為 TabPFN-3 local 是小樣本 tabular anomaly detection 的強基準。
-- M5.x per-unit 切分粒度（C1 最細到 C3 最粗）下，tree ensemble 在四個粒度的 pooled PR-AUC 皆領先 TabPFN；C2（`site_id, meter`）對 TabPFN 最友善（PR 差最佳 tree 約 `0.03`、coverage `99.75%`），最細的 C1 因 fallback rate `84.75%`、coverage 僅 `15.25%` 而不具實用價值。
 
-詳細結果見 [docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)，TabPFN vs tree models 深入比較見 [docs/reports/m5-1-deep-comparison.md](./docs/reports/m5-1-deep-comparison.md)，per-unit 切分粒度見 [docs/reports/m5x-partition-granularity.md](./docs/reports/m5x-partition-granularity.md)。
+**調參敏感度與小樣本標註效率深入** — [m5-1-deep-comparison.md](./docs/reports/m5-1-deep-comparison.md)：固定 50/50 building held-out，聚焦 tuning、label efficiency、feature capacity 與穩定性。
+
+- 小樣本（support `100`-`2,000`）與固定 fit rows `500` 的中低維設定下，TabPFN test PR-AUC 最高（`137` features 達 `0.8520`），run-to-run 穩定性佳。
+- 完整 fit budget 與 tuned trees 充分調參後，tuned ensemble `0.9109` 反超 TabPFN `0.9024`。結論為 TabPFN-3 local 是小樣本 tabular anomaly detection 的強基準。
+
+**per-unit 建模切分粒度** — [m5x-partition-granularity.md](./docs/reports/m5x-partition-granularity.md)：固定 `timestamp_merge(causal77)` 特徵，比較 C1（最細）到 C3（最粗）四種 per-unit 粒度。
+
+- tree ensemble 在四個粒度的 pooled PR-AUC 皆領先 TabPFN。
+- C2（`site_id, meter`）對 TabPFN 最友善（PR 差最佳 tree 約 `0.03`、coverage `99.75%`）；最細的 C1 因 fallback rate `84.75%`、coverage 僅 `15.25%` 而不具實用價值。
 
 ## src/lead public API
 
