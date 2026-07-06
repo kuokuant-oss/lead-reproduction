@@ -17,7 +17,7 @@
 | **M2** | LEAD competition subset reproduction | Closed | Kaggle Private AUC `0.98616`，與原始解法 `0.98661` 的差距為 `0.05%` |
 | **M3** | Full ASHRAE GEPIII reproduction | Complete | M3.4 ensemble AUC `0.9934`；PI 50/50 ensemble offline `0.9918` / causal `0.9913`；value-change canonical regime 為 `timestamp_merge`；post-processing 為 null result |
 | **M4** | Importable pipeline foundation | M4.0-M4.5 complete | `src/lead` public API frozen; M3.2/M3.4 regression gates pass; M4.2-M4.5 closed |
-| **M5** | GEPIII FDD model comparison | Complete | TabPFN 優勢集中在低標註量 PR-AUC；full-feature in-domain 六模型接近；site-transfer 與 M5.x per-unit 切分粒度下皆由 tree family 領先 |
+| **M5** | GEPIII FDD model comparison | Complete | TabPFN 在小樣本（support `100`-`2,000`）PR-AUC 領先、為小樣本強基準；full-feature in-domain 六模型接近；完整 fit budget、site-transfer 與 M5.x 切分粒度下皆由 tree family 領先 |
 
 Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-reproduction/milestones)。
 
