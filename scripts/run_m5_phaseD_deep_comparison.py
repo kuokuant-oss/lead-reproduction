@@ -45,7 +45,7 @@ from run_m6_phaseD_50_50_full_models import (
 )
 
 
-VALUE_CHANGE_REGIME = "row_offset_meter_aware"
+VALUE_CHANGE_REGIME = "timestamp_merge"
 MODEL_ORDER = (
     "lightgbm",
     "xgboost",
@@ -601,7 +601,7 @@ def axis_dimensionality(
                 "n_features": int(len(cols)),
                 "selection_rule": (
                     "BASELINE_FEATURE_COLS plus the first 33 lag_value_* columns "
-                    "from row_offset_meter_aware feature generation"
+                    "from timestamp_merge feature generation"
                     if key == "baseline_plus_first_33_value_change_50"
                     else "BASELINE_FEATURE_COLS"
                     if key == "raw_baseline_17"

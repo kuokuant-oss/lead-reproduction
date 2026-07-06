@@ -32,6 +32,14 @@ from lead import (
     load_m3_frame,
 )
 
+VALUE_CHANGE_REGIME = "timestamp_merge"
+M3_2_REFERENCE = {
+    "val_auc": 0.9924831086743003,
+    "precision_05": 0.6648118310669914,
+    "recall_05": 0.9687661905114351,
+    "f1_05": 0.7885111289234873,
+}
+
 
 def log(message: str) -> None:
     print(message, flush=True)
@@ -119,8 +127,12 @@ def main() -> None:
     val_base["gte_site_meter_anomaly"] = val_gte
 
     log("Adding offline value-change features")
-    train_full = add_value_change_features(train_base, SHIFTS)
-    val_full = add_value_change_features(val_base, SHIFTS)
+    train_full = add_value_change_features(
+        train_base, SHIFTS, value_change_regime=VALUE_CHANGE_REGIME
+    )
+    val_full = add_value_change_features(
+        val_base, SHIFTS, value_change_regime=VALUE_CHANGE_REGIME
+    )
     value_cols = [c for c in train_full.columns if c.startswith("lag_value_")]
     past_cols = [c for c in value_cols if "_-" not in c]
     future_cols = [c for c in value_cols if "_-" in c]
@@ -140,6 +152,7 @@ def main() -> None:
     results: dict[str, object] = {
         "experiment": "m3_3_budslab_alignment",
         "canonical_line": "80_20_mod5_offline",
+        "provenance": {"value_change_regime": VALUE_CHANGE_REGIME},
         "random_state": RANDOM_STATE,
         "downsampling_seeds": list(DOWNSAMPLE_SEEDS),
         "split": {
@@ -173,12 +186,7 @@ def main() -> None:
             "site0_meter0_correction": "meter_reading *= 0.2931 before value-change",
         },
         "target_encoder": gte_metadata,
-        "m3_2_reference": {
-            "val_auc": 0.9920,
-            "precision_05": 0.6409,
-            "recall_05": 0.9665,
-            "f1_05": 0.7707,
-        },
+        "m3_2_reference": M3_2_REFERENCE,
         "main": {},
         "sanity_checks": {},
         "label_shuffle_diagnostics": {},
@@ -189,10 +197,14 @@ def main() -> None:
     results["main"] = {
         **main_metrics,
         "n_features": int(len(full_cols)),
-        "delta_auc_vs_m3_2": float(main_metrics["val_auc"] - 0.9920),
-        "delta_precision_vs_m3_2": float(main_metrics["precision_05"] - 0.6409),
-        "delta_recall_vs_m3_2": float(main_metrics["recall_05"] - 0.9665),
-        "delta_f1_vs_m3_2": float(main_metrics["f1_05"] - 0.7707),
+        "delta_auc_vs_m3_2": float(main_metrics["val_auc"] - M3_2_REFERENCE["val_auc"]),
+        "delta_precision_vs_m3_2": float(
+            main_metrics["precision_05"] - M3_2_REFERENCE["precision_05"]
+        ),
+        "delta_recall_vs_m3_2": float(
+            main_metrics["recall_05"] - M3_2_REFERENCE["recall_05"]
+        ),
+        "delta_f1_vs_m3_2": float(main_metrics["f1_05"] - M3_2_REFERENCE["f1_05"]),
     }
     log(
         "M3.3 full: "

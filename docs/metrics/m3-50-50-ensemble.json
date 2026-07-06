@@ -13,16 +13,17 @@
   },
   "metrics": {
     "offline": {
-      "ensemble_auc": 0.9921,
-      "precision_at_0_5": 0.7175,
-      "recall_at_0_5": 0.9387,
-      "f1_at_0_5": 0.8133
+      "ensemble_auc": 0.9918,
+      "precision_at_0_5": 0.7317,
+      "recall_at_0_5": 0.9483,
+      "f1_at_0_5": 0.826
     },
     "causal": {
-      "ensemble_auc": 0.9911,
-      "precision_at_0_5": 0.7002,
-      "recall_at_0_5": 0.9311,
-      "f1_at_0_5": 0.7993
+      "ensemble_auc": 0.9913,
+      "precision_at_0_5": 0.7167,
+      "recall_at_0_5": 0.943,
+      "f1_at_0_5": 0.8144
     }
-  }
+  },
+  "value_change_regime": "timestamp_merge"
 }

@@ -29,7 +29,8 @@ from run_m3_4_ensemble import (
 
 PAST_SHIFTS = [n for n in SHIFTS if n > 0]
 FUTURE_SHIFTS = [n for n in SHIFTS if n < 0]
-M3_4_80_20_OFFLINE_ENSEMBLE_AUC = 0.9928
+M3_4_80_20_OFFLINE_ENSEMBLE_AUC = 0.9933764865287564
+VALUE_CHANGE_REGIME = "timestamp_merge"
 
 
 def run_regime(
@@ -114,8 +115,12 @@ def main() -> None:
         )
 
     log("Adding full offline value-change features once for both regimes")
-    train_full = add_value_change_features(df.loc[~mask_val], list(SHIFTS))
-    val_full = add_value_change_features(df.loc[mask_val], list(SHIFTS))
+    train_full = add_value_change_features(
+        df.loc[~mask_val], list(SHIFTS), value_change_regime=VALUE_CHANGE_REGIME
+    )
+    val_full = add_value_change_features(
+        df.loc[mask_val], list(SHIFTS), value_change_regime=VALUE_CHANGE_REGIME
+    )
     value_cols = [c for c in train_full.columns if c.startswith("lag_value_")]
     if len(value_cols) != 120:
         raise AssertionError(
@@ -137,6 +142,7 @@ def main() -> None:
     results: dict[str, object] = {
         "experiment": "m3_50_50_4_model_ensemble",
         "purpose": "PI-spec 50/50 building split ensemble follow-up",
+        "provenance": {"value_change_regime": VALUE_CHANGE_REGIME},
         "split": {
             "name": "50_50_mod2",
             "protocol": "validation buildings are building_id % 2 == 1",

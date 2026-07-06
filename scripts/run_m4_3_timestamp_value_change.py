@@ -24,7 +24,7 @@ from lead import (
     write_json_with_provenance,
 )
 
-M3_2_GOLDEN_AUC = 0.9920
+M3_2_GOLDEN_AUC = 0.9924831086743003
 NOISE_FLOOR_AUC = 0.0005
 REGIMES = ("row_offset", "timestamp_merge")
 
@@ -44,7 +44,13 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def fit_m3_2_regime(df, mask_val, value_change_regime: str) -> dict[str, object]:
+def fit_m3_2_regime(
+    df,
+    mask_val,
+    value_change_regime: str,
+    *,
+    include_feature_importance: bool = False,
+) -> dict[str, object]:
     log(f"Adding M3.2 value-change features: {value_change_regime}")
     t0 = time.time()
     train_full = add_value_change_features(
@@ -83,7 +89,7 @@ def fit_m3_2_regime(df, mask_val, value_change_regime: str) -> dict[str, object]
         f"P/R/F1={metrics['precision_05']:.4f}/"
         f"{metrics['recall_05']:.4f}/{metrics['f1_05']:.4f}"
     )
-    return {
+    result = {
         "value_change_regime": value_change_regime,
         **metrics,
         "n_features": int(len(feature_cols)),
@@ -91,6 +97,22 @@ def fit_m3_2_regime(df, mask_val, value_change_regime: str) -> dict[str, object]
         "n_train_downsampled": int(len(ds_idx)),
         "elapsed_minutes": round((time.time() - t0) / 60, 3),
     }
+    if include_feature_importance:
+        importances = dict(zip(feature_cols, model.feature_importances_, strict=True))
+        total_importance = sum(importances.values())
+        value_change_importance = sum(importances[col] for col in value_cols)
+        result.update(
+            {
+                "top_feature": max(importances, key=importances.get),
+                "top_value_change_feature": max(value_cols, key=importances.get),
+                "value_change_importance_pct": round(
+                    value_change_importance / total_importance * 100, 1
+                )
+                if total_importance
+                else 0.0,
+            }
+        )
+    return result
 
 
 def main() -> None:
@@ -112,8 +134,9 @@ def main() -> None:
     timestamp_merge_auc = runs["timestamp_merge"]["val_auc"]
     delta_regime = timestamp_merge_auc - row_offset_auc
     row_offset_delta_vs_golden = row_offset_auc - M3_2_GOLDEN_AUC
+    timestamp_merge_delta_vs_golden = timestamp_merge_auc - M3_2_GOLDEN_AUC
 
-    if abs(row_offset_delta_vs_golden) > NOISE_FLOOR_AUC:
+    if abs(timestamp_merge_delta_vs_golden) > NOISE_FLOOR_AUC:
         gate_status = "failed_environment_sanity"
     elif abs(delta_regime) > NOISE_FLOOR_AUC:
         gate_status = "outside_noise_floor"
@@ -148,7 +171,7 @@ def main() -> None:
             "timestamp_merge_auc": timestamp_merge_auc,
             "delta_regime_timestamp_minus_row": delta_regime,
             "row_offset_delta_vs_golden": row_offset_delta_vs_golden,
-            "timestamp_merge_delta_vs_golden": timestamp_merge_auc - M3_2_GOLDEN_AUC,
+            "timestamp_merge_delta_vs_golden": timestamp_merge_delta_vs_golden,
             "gate_status": gate_status,
         },
         "interpretation": {
@@ -156,7 +179,11 @@ def main() -> None:
             "nan_treatment": (
                 "No regime-specific fill is applied; LightGBM sees NaN natively."
             ),
-            "chosen_default_regime": "row_offset",
+            "chosen_default_regime": "timestamp_merge",
+            "default_change_note": (
+                "timestamp_merge is now the canonical buds-lab-faithful "
+                "value-change regime; row_offset remains for historical ablation."
+            ),
         },
         "elapsed_minutes": round((time.time() - t0) / 60, 3),
     }
@@ -177,7 +204,7 @@ def main() -> None:
 
     if gate_status == "failed_environment_sanity":
         raise RuntimeError(
-            "Row-offset M3.2 rerun does not match golden within the noise floor"
+            "Timestamp-merge M3.2 rerun does not match golden within the noise floor"
         )
 
 

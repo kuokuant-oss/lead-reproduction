@@ -488,7 +488,10 @@ def main() -> None:
             "Material if any split has |Delta AUC vs row_offset| > 0.0005 "
             "or any model ranking changes."
         ),
-        "default_change": "none; row_offset remains the frozen M3 default",
+        "default_change": (
+            "none in this ablation; timestamp_merge is the canonical M3 default, "
+            "while row_offset remains the historical comparison arm"
+        ),
         "follow_up_required": bool(material_splits),
     }
     results["elapsed_minutes"] = round((time.time() - t0) / 60, 3)

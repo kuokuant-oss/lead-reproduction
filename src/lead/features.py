@@ -45,13 +45,14 @@ def add_value_change_features(
     df: pd.DataFrame,
     shifts: list[int],
     *,
-    value_change_regime: ValueChangeRegime = "row_offset",
+    value_change_regime: ValueChangeRegime = "timestamp_merge",
 ) -> pd.DataFrame:
     """Add value-change features under an explicit offset regime.
 
-    The default preserves M3's `groupby().shift()` row-offset semantics.
-    `timestamp_merge` uses exact timestamp + n-hour joins and leaves merge
-    misses as NaN for LightGBM's native missing-value handling.
+    The default now uses the buds-lab-faithful timestamp + n-hour join.
+    `row_offset` and `row_offset_meter_aware` remain available for historical
+    ablation runs. Merge misses stay NaN for LightGBM's native missing-value
+    handling.
     """
     if value_change_regime not in (
         "row_offset",

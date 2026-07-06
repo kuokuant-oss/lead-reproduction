@@ -141,9 +141,10 @@ noise floor.
 
 **Done when**:
 
-+ [x] `add_value_change_features` supports the current row-offset regime and a
-  timestamp-merge regime.
-+ [x] M3.2 AUC change is measured against `0.9920` with +/- `0.0005` gate.
++ [x] `add_value_change_features` supports historical row-offset regimes and the
+  canonical timestamp-merge regime.
++ [x] M3.2 AUC change is measured against the timestamp-merge golden with +/-
+  `0.0005` gate.
 + [x] The M4 unknown about timestamp merge is resolved or carried with
   evidence.
 + [x] Offline and causal regime naming remains compatible with ADR 0007.

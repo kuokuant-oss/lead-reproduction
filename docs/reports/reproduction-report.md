@@ -552,12 +552,8 @@ Reproduction timeline (6-7 天):
 
 ## 5.6 M3: Full ASHRAE GEPIII (完成)
 
-M3 從 raw GEPIII 開始做 feature engineering；資料範圍對比見 Ch1.1，完整結果見
-[`docs/reports/m3-report.md`](./m3-report.md)。截至 2026-06-22:M3.1 `0.9562`,
-M3.2 `0.9920`(137 features),M3.3 `0.9913`,M3.4 `0.9928`,50/50 offline
-`0.9921`,causal `0.9911`,M3.5 ΔAUC `-0.000054`; carried limitations:
-site-held-out `0.9774`,steam `0.9553`,label-shuffle mean `0.519`,
-value-change gap `65.2%`.
+M3 的現行結果、regime 與限制說明以 [M3 report](m3-report.md) 為準；本 M2 報告不再
+複製 M3 數字快照，以避免 rebaseline 後產生 drift。
 
 ---
 

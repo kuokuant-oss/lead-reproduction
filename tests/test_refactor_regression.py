@@ -25,6 +25,7 @@ class TestRefactorRegression(unittest.TestCase):
         self.assertEqual(split_mask.__module__, "lead.split")
 
     def test_m4_1_refactor_check_matches_golden_auc(self) -> None:
+        """Opt-in gate for local M4.1 reruns against current golden metrics."""
         if not REFACTOR_CHECK.exists():
             self.skipTest(
                 "Run M4.1 reruns to create data/processed/m4_1_refactor_check.json"
@@ -35,11 +36,26 @@ class TestRefactorRegression(unittest.TestCase):
         noise_floor = golden["noise_floor_auc"]
 
         comparisons = {
-            "m3_2_lightgbm_80_20_offline_auc": check["checks"]["m3_2"]["actual_auc"],
-            "m3_4_ensemble_80_20_offline_auc": check["checks"]["m3_4"]["actual_auc"],
+            "m3_2_lightgbm_80_20_offline_auc": (
+                "m3_2",
+                check["checks"]["m3_2"]["actual_auc"],
+            ),
+            "m3_4_ensemble_80_20_offline_auc": (
+                "m3_4",
+                check["checks"]["m3_4"]["actual_auc"],
+            ),
         }
-        for metric_name, actual_auc in comparisons.items():
+        for metric_name, (check_key, actual_auc) in comparisons.items():
             expected_auc = golden["metrics"][metric_name]["value"]
+            check_record = check["checks"][check_key]
+            recorded_golden = check_record.get(
+                "golden_value", check_record.get("expected_auc")
+            )
+            self.assertEqual(
+                recorded_golden,
+                expected_auc,
+                f"{metric_name} must compare against current tests/golden_metrics.json",
+            )
             delta = actual_auc - expected_auc
             self.assertLessEqual(
                 abs(delta),

@@ -28,7 +28,7 @@ from lead import (
 )
 
 
-VALUE_CHANGE_REGIME = "row_offset_meter_aware"
+VALUE_CHANGE_REGIME = "timestamp_merge"
 SHUFFLE_SEEDS = (42, 123, 999, 2025, 7, 31415, 2718, 8080)
 SPLIT_NAME = "80_20_mod5"
 BUILDING_METADATA_COLS = (

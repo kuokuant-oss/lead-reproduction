@@ -47,12 +47,12 @@ M4 的 regression noise floor 固定為 AUC `0.0005`。M3.2 與 M3.4 是主要 g
 
 | Result | Golden AUC | Source |
 | --- | ---: | --- |
-| M3.2 LightGBM 80/20 offline | 0.9920 | `tests/golden_metrics.json` |
-| M3.4 4-model ensemble 80/20 offline | 0.9928 | `tests/golden_metrics.json` |
-| 50/50 offline ensemble | 0.9921 | `docs/metrics/m3-50-50-ensemble.json` |
-| 50/50 causal ensemble | 0.9911 | `docs/metrics/m3-50-50-ensemble.json` |
-| Site-held-out ensemble | 0.9774 | `tests/golden_metrics.json` |
-| Steam meter | 0.9553 | `tests/golden_metrics.json` |
+| M3.2 LightGBM 80/20 offline | 0.9925 | `tests/golden_metrics.json` |
+| M3.4 4-model ensemble 80/20 offline | 0.9934 | `tests/golden_metrics.json` |
+| 50/50 offline ensemble | 0.9918 | `tests/golden_metrics.json` |
+| 50/50 causal ensemble | 0.9913 | `tests/golden_metrics.json` |
+| Site-held-out ensemble | 0.9775 | `tests/golden_metrics.json` |
+| Steam meter | 0.9536 | `tests/golden_metrics.json` |
 
 ---
 
@@ -75,10 +75,10 @@ guard。ADR 0010 記錄此決策與限制：若 label-side 缺 key，reorder-plu
 
 ## 2.3 Value-change semantics
 
-M3 reproduction line 使用 `groupby("building_id").shift(n)`，其語意是 row offset，
-不一定等於 timestamp `n` hours offset。M4.3 新增 explicit regime：
-`row_offset` 與 `timestamp_merge`。`row_offset` 保持 default，以維持 M3
-reproduction line；`timestamp_merge` 作為 opt-in semantic alternative。
+M3 reproduction line 現以 `timestamp_merge` 作為 canonical value-change regime。
+這對應 buds-lab 原作的 timestamp `n` hours offset join。M4.3 保留 explicit
+regime：`row_offset` 與 `timestamp_merge`；`row_offset` 作為歷史近似 ablation，
+`timestamp_merge` 則是 2026-07-04 re-baseline 後的 default。
 
 M4.3 同一 harness 量測：
 
@@ -87,7 +87,8 @@ M4.3 同一 harness 量測：
 | `row_offset` | 0.9920119520500562 | 0 |
 | `timestamp_merge` | 0.9924831086743003 | +0.00047115662424412896 |
 
-差異仍在 `0.0005` noise floor 內，因此 M4 不替換 default。
+差異仍在 `0.0005` noise floor 內，因此 2026-07-04 re-baseline 將
+`timestamp_merge` 設為 canonical default，並保留 `row_offset` 供 ablation。
 
 ## 2.4 Sampling and scaler semantics
 
@@ -105,17 +106,19 @@ M4.4 review 後保留兩個 reproduction-compatibility 行為：
 
 # Ch3: Golden Gate Results
 
-M4.5 重新確認 M3.2 與 M3.4 golden gates。結果存於
-`data/processed/m4_5_readiness_check.json`。
+M4.5 readiness gate 於 2026-06-26 在 superseded 的 `row_offset` baseline 下通過。
+該 historical gate 的輸出仍保留於 `data/processed/m4_5_readiness_check.json`，但
+2026-07-04 rebaseline 後，現行 canonical regime 為 `timestamp_merge`。現行 golden
+值以 `tests/golden_metrics.json` 為準；rebaseline 說明見本報告 §2.3。
 
-| Gate | Rerun AUC | Golden AUC | Delta | 結論 |
+| Gate | Historical rerun AUC | Historical golden AUC | Delta | Status |
 | --- | ---: | ---: | ---: | --- |
-| M3.2 LightGBM 80/20 offline | 0.9920119520500562 | 0.9920 | +0.000011952050056218688 | Pass |
-| M3.4 ensemble 80/20 offline | 0.9927886432126508 | 0.9927886432126508 | +0.0 | Pass |
+| M3.2 LightGBM 80/20 offline | 0.9920119520500562 | 0.9920 | +0.000011952050056218688 | Superseded pass |
+| M3.4 ensemble 80/20 offline | 0.9927886432126508 | 0.9927886432126508 | +0.0 | Superseded pass |
 
-兩者皆在 `0.0005` AUC gate 內。M4 的 code extraction、label guard、
-feature-regime addition、sampling/scaler documentation、API freeze 均未破壞
-M3 accepted numeric line。
+以上 0.9920 / 0.99279 為 historical/superseded row_offset readiness evidence，
+不再是現行 timestamp_merge gate。本文不填入 timestamp_merge rerun AUC；若要更新
+rerun 欄位，需在具備 ASHRAE 原始資料的環境重新執行 gate。
 
 ---
 
@@ -149,7 +152,8 @@ surface 如下：
 23. `write_json_with_provenance`
 
 `add_value_change_features(df, shifts, value_change_regime=...)` 支援
-`row_offset` 與 `timestamp_merge`。M3 reproduction default 仍為 `row_offset`；
+`row_offset`、`row_offset_meter_aware` 與 `timestamp_merge`。M3 reproduction
+default 現為 `timestamp_merge`；
 任何 real-time FDD claim 必須使用 `PAST_SHIFTS`-only causal features。
 
 ---
@@ -164,7 +168,7 @@ M4 完成後，M5 的 entry interfaces 已明確化：
   M6 只允許在 ADR 0025/0026 定義的 GEPIII-overlap、2016、meters 0-3 子集上
   透過 keyed bridge 接上 rank-1 GEPIII annotations。
 + Split interface: 以 `split_mask` 與 `assert_no_building_overlap` 支援
-  building-level / site-held-out split。M3 site-held-out AUC `0.9774` 是
+  building-level / site-held-out split。M3 site-held-out AUC `0.9775` 是
   GEPIII internal generalization anchor，不是 BDG2 transfer result。
 + Evaluation interface: 使用 `classification_metrics` 記錄 AUC、precision、
   recall、F1；任何 real-time FDD claim 必須遵守 ADR 0007/0011 的 causal

@@ -31,7 +31,7 @@ from lead import (
     write_json_with_provenance,
 )
 
-VALUE_CHANGE_REGIME = "row_offset"
+DEFAULT_VALUE_CHANGE_REGIME = "timestamp_merge"
 SPLIT_NAME = "80_20_mod5"
 TABPFN3_LIMITS = [
     {"max_rows": 1_000_000, "max_features": 200},
@@ -87,6 +87,12 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=RANDOM_STATE,
         help="Seed used when reducing train/validation rows for local feasibility.",
+    )
+    parser.add_argument(
+        "--value-change-regime",
+        choices=["row_offset", "row_offset_meter_aware", "timestamp_merge"],
+        default=DEFAULT_VALUE_CHANGE_REGIME,
+        help="Value-change feature regime for the Phase C feature table.",
     )
     parser.add_argument(
         "--skip-tabpfn",
@@ -282,7 +288,7 @@ def fit_tabpfn(
     }
 
 
-def build_feature_table() -> dict[str, Any]:
+def build_feature_table(value_change_regime: str) -> dict[str, Any]:
     df = load_m3_frame(verbose=True)
     mask_val = (df["building_id"] % 5 == 4).to_numpy()
     train_buildings = set(df.loc[~mask_val, "building_id"].unique())
@@ -291,16 +297,16 @@ def build_feature_table() -> dict[str, Any]:
         train_buildings, val_buildings, split_name=SPLIT_NAME
     )
 
-    log(f"Adding M3.2 value-change features: {VALUE_CHANGE_REGIME}")
+    log(f"Adding M3.2 value-change features: {value_change_regime}")
     train_full = add_value_change_features(
         df.loc[~mask_val],
         list(SHIFTS),
-        value_change_regime=VALUE_CHANGE_REGIME,
+        value_change_regime=value_change_regime,
     )
     val_full = add_value_change_features(
         df.loc[mask_val],
         list(SHIFTS),
-        value_change_regime=VALUE_CHANGE_REGIME,
+        value_change_regime=value_change_regime,
     )
     value_cols = [c for c in train_full.columns if c.startswith("lag_value_")]
     feature_cols = BASELINE_FEATURE_COLS + value_cols
@@ -331,7 +337,7 @@ def main() -> None:
     t0 = time.perf_counter()
     model_path = args.model_path.resolve() if args.model_path is not None else None
     local_checkpoint_available = bool(model_path is not None and model_path.is_file())
-    table = build_feature_table()
+    table = build_feature_table(args.value_change_regime)
     train_full = table["train_full"]
     val_full = table["val_full"]
     feature_cols = table["feature_cols"]
@@ -452,12 +458,15 @@ def main() -> None:
         "experiment": "m5_phaseC_tabpfn_spike",
         "issue": 30,
         "scope": "LEAD/M3-only local feasibility spike; no BDG2 data used",
-        "canonical_line": f"{SPLIT_NAME}_offline_{VALUE_CHANGE_REGIME}",
+        "canonical_line": f"{SPLIT_NAME}_offline_{args.value_change_regime}",
+        "value_change_regime": args.value_change_regime,
+        "value_change_regime_default": DEFAULT_VALUE_CHANGE_REGIME,
         "random_state": RANDOM_STATE,
         "downsampling_seeds": list(DOWNSAMPLE_SEEDS),
         "feature_table": {
             "source": "load_m3_frame plus add_value_change_features",
-            "value_change_regime": VALUE_CHANGE_REGIME,
+            "value_change_regime": args.value_change_regime,
+            "value_change_regime_default": DEFAULT_VALUE_CHANGE_REGIME,
             "baseline_features": int(len(BASELINE_FEATURE_COLS)),
             "value_change_features": int(len(SHIFTS) * 2),
             "total_features": int(len(feature_cols)),
@@ -505,11 +514,13 @@ def main() -> None:
         results,
         root=ROOT,
         provenance={
+            "value_change_regime": args.value_change_regime,
             "command": (
                 "python scripts/run_m5_phaseC_tabpfn_spike.py "
                 f"--max-fit-rows {args.max_fit_rows} "
                 f"--max-val-rows {args.max_val_rows}"
                 f" --tabpfn-batch-size {args.tabpfn_batch_size}"
+                f" --value-change-regime {args.value_change_regime}"
                 + (f" --model-path {model_path}" if model_path is not None else "")
             ),
         },

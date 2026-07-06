@@ -37,6 +37,13 @@ M2_MODEL_AUCS = {
     "ensemble": 0.9830,
 }
 M2_RANKING = ["lightgbm", "hist_gradient_boosting", "catboost", "xgboost"]
+VALUE_CHANGE_REGIME = "timestamp_merge"
+M3_2_REFERENCE = {
+    "val_auc": 0.9924831086743003,
+    "precision_05": 0.6648118310669914,
+    "recall_05": 0.9687661905114351,
+    "f1_05": 0.7885111289234873,
+}
 
 
 def log(message: str) -> None:
@@ -129,7 +136,9 @@ def fit_predict_models(
         "ensemble": ensemble_metrics,
         "ranking": ranking,
         "ranking_matches_m2": ranking == M2_RANKING,
-        "ensemble_delta_vs_m3_2": float(ensemble_metrics["val_auc"] - 0.9920),
+        "ensemble_delta_vs_m3_2": float(
+            ensemble_metrics["val_auc"] - M3_2_REFERENCE["val_auc"]
+        ),
         "ensemble_delta_vs_best_model": float(
             ensemble_metrics["val_auc"]
             - max(m["val_auc"] for m in model_metrics.values())
@@ -181,8 +190,12 @@ def main() -> None:
     )
 
     log("Adding M3.2 offline value-change features")
-    train_full = add_value_change_features(df.loc[~mask_val], list(SHIFTS))
-    val_full = add_value_change_features(df.loc[mask_val], list(SHIFTS))
+    train_full = add_value_change_features(
+        df.loc[~mask_val], list(SHIFTS), value_change_regime=VALUE_CHANGE_REGIME
+    )
+    val_full = add_value_change_features(
+        df.loc[mask_val], list(SHIFTS), value_change_regime=VALUE_CHANGE_REGIME
+    )
     value_cols = [c for c in train_full.columns if c.startswith("lag_value_")]
     feature_cols = BASELINE_FEATURE_COLS + value_cols
     if len(feature_cols) != 137:
@@ -210,6 +223,7 @@ def main() -> None:
         "experiment": "m3_4_4_model_ensemble",
         "canonical_line": "80_20_mod5_offline",
         "feature_set": "m3_2_137_features",
+        "provenance": {"value_change_regime": VALUE_CHANGE_REGIME},
         "random_state": RANDOM_STATE,
         "model_seeds": [int(seed) for seed in args.model_seeds],
         "downsampling_seeds": list(DOWNSAMPLE_SEEDS),
@@ -229,12 +243,7 @@ def main() -> None:
             "total": int(len(feature_cols)),
         },
         "n_train_downsampled": int(len(ds_idx)),
-        "m3_2_reference": {
-            "val_auc": 0.9920,
-            "precision_05": 0.6409,
-            "recall_05": 0.9665,
-            "f1_05": 0.7707,
-        },
+        "m3_2_reference": M3_2_REFERENCE,
         "m2_reference": {
             "model_aucs": M2_MODEL_AUCS,
             "ranking": M2_RANKING,

@@ -44,11 +44,13 @@ def multi_meter_frame() -> pd.DataFrame:
 
 
 class TestValueChangeRegimes(unittest.TestCase):
-    def test_row_offset_is_default_regime(self) -> None:
+    def test_timestamp_merge_is_default_regime(self) -> None:
         df = gapped_frame()
 
         default = add_value_change_features(df, [1])
-        explicit = add_value_change_features(df, [1], value_change_regime="row_offset")
+        explicit = add_value_change_features(
+            df, [1], value_change_regime="timestamp_merge"
+        )
 
         pd.testing.assert_frame_equal(default, explicit)
 

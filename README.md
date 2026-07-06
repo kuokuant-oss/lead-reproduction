@@ -15,7 +15,7 @@
 | --- | --- | --- | --- |
 | **M1** | 閱讀 paper 與 buds-lab code，建立 unknowns register 與 ADR framework | Closed | 17 個 unknowns、ADR 0001-0006、169-feature 組成釐清 |
 | **M2** | LEAD competition subset reproduction | Closed | Kaggle Private AUC `0.98616`，與原始解法 `0.98661` 的差距為 `0.05%` |
-| **M3** | Full ASHRAE GEPIII reproduction | Complete | M3.4 ensemble AUC `0.9928`；PI 50/50 ensemble offline `0.9921` / causal `0.9911`；post-processing 為 null result |
+| **M3** | Full ASHRAE GEPIII reproduction | Complete | M3.4 ensemble AUC `0.9934`；PI 50/50 ensemble offline `0.9918` / causal `0.9913`；value-change canonical regime 為 `timestamp_merge`；post-processing 為 null result |
 | **M4** | Importable pipeline foundation | M4.0-M4.5 complete | `src/lead` public API frozen; M3.2/M3.4 regression gates pass; M4.2-M4.5 closed |
 | **M5** | GEPIII FDD model comparison | Complete | TabPFN 的主要優勢出現在低標註量 PR-AUC；full-feature in-domain 分數接近；raw 17 features 下 ranking metric 與 threshold `0.5` classification 給出不同訊號；site-transfer PR-AUC 由 tree family 較強。 |
 
@@ -59,14 +59,14 @@ M3 從 ASHRAE GEPIII raw CSV 重建 feature engineering pipeline，使用 buildi
 
 主要結果：
 
-- M3.2 LightGBM offline AUC：`0.9920`
-- M3.3 buds-lab alignment AUC：`0.9913`，判定為 no-lift。
-- M3.4 4-model ensemble AUC：`0.9928`
+- M3.2 LightGBM offline AUC：`0.9925`
+- M3.3 buds-lab alignment AUC：`0.9928`，未帶來穩定 lift。
+- M3.4 4-model ensemble AUC：`0.9934`
 - M3.5 hard-rule post-processing delta：`-0.000054`，判定為 null result。
-- PI 50/50 ensemble offline AUC：`0.9921`
-- PI 50/50 ensemble causal AUC：`0.9911`
+- PI 50/50 ensemble offline AUC：`0.9918`
+- PI 50/50 ensemble causal AUC：`0.9913`
 
-詳細結果見 [docs/reports/m3-report.md](./docs/reports/m3-report.md)。Machine-readable provenance 放在 `docs/metrics/`。
+上述 value-change 數字皆使用 `timestamp_merge`，也就是 buds-lab 原作 timestamp join 的忠實版；`row_offset` / `row_offset_meter_aware` 保留為歷史 ablation。詳細結果見 [docs/reports/m3-report.md](./docs/reports/m3-report.md)。Machine-readable provenance 放在 `docs/metrics/`。
 
 ### M4 Importable Pipeline Foundation
 
@@ -77,8 +77,8 @@ M4.0-M4.5 complete。
 主要結果：
 
 - `src/lead` public API 凍結。
-- M3.2 LightGBM golden AUC 維持 `0.9920`；M3.4 ensemble golden AUC 維持 `0.9928`。
-- Label alignment 已由 ADR 0010 Accepted 鎖定；timestamp/value-change regime 已由 ADR 0011 Accepted 鎖定。
+- M3.2 LightGBM golden AUC re-baseline 為 `0.9925`；M3.4 ensemble golden AUC re-baseline 為 `0.9934`。
+- Label alignment 已由 ADR 0010 Accepted 鎖定；timestamp/value-change regime 已由 ADR 0011 Accepted 鎖定，canonical default 為 `timestamp_merge`。
 - Sampling/scaler semantics 已由 ADR 0016 Accepted 鎖定。
 - M5 可直接重用 data、feature、split、sample、evaluation helpers。
 
@@ -86,7 +86,7 @@ M4.0-M4.5 complete。
 
 ### M5 GEPIII 模型比較
 
-M5 已完成 GEPIII 上的 FDD 模型比較。比較線使用 `row_offset_meter_aware`
+M5 已完成 GEPIII 上的 FDD 模型比較。比較線使用 `timestamp_merge`
 features、50% training / 50% testing split，並列出 LightGBM、XGBoost、CatBoost、
 HistGBT、Ensemble 與 TabPFN。
 
@@ -129,7 +129,7 @@ M4.5 freezes `lead.__all__` as:
 24. `classification_metrics`
 25. `write_json_with_provenance`
 
-`add_value_change_features(df, shifts, value_change_regime=...)` supports `row_offset`, `row_offset_meter_aware`, and `timestamp_merge`. `row_offset` remains the M3 reproduction default.
+`add_value_change_features(df, shifts, value_change_regime=...)` supports `row_offset`, `row_offset_meter_aware`, and `timestamp_merge`. `timestamp_merge` is the M3/M4/M5 canonical default; the row-offset regimes remain available for historical ablation and transfer-specific sensitivity checks.
 
 ## 專案結構
 
@@ -190,6 +190,7 @@ scripts/
 ├── diagnose_phaseE_step3_smoke_attribution.py
 ├── explore_bdg2.py
 ├── phaseE_transfer.py
+├── run_m3_2_baseline.py
 ├── run_m3_3_budslab.py
 ├── run_m3_4_ensemble.py
 ├── run_m3_5_postprocessing.py
@@ -221,6 +222,7 @@ tests/
 ├── test_label_join_integrity.py
 ├── test_m5_phaseD_comparison.py
 ├── test_m5_tabpfn_spike.py
+├── test_m5_timestamp_merge_regime.py
 ├── test_phaseE_step4_transfer.py
 ├── test_public_api.py
 ├── test_readme_freshness.py
@@ -250,6 +252,7 @@ scripts/
   diagnose_phaseE_step3_smoke_attribution.py
   explore_bdg2.py
   phaseE_transfer.py
+  run_m3_2_baseline.py
   run_m3_3_budslab.py
   run_m3_4_ensemble.py
   run_m3_5_postprocessing.py
@@ -281,6 +284,7 @@ tests/
   test_label_join_integrity.py
   test_m5_phaseD_comparison.py
   test_m5_tabpfn_spike.py
+  test_m5_timestamp_merge_regime.py
   test_phaseE_step4_transfer.py
   test_public_api.py
   test_readme_freshness.py
@@ -347,6 +351,7 @@ uv run jupyter notebook notebooks/05-m2-integration.ipynb
 M3 scripts：
 
 ```bash
+uv run python scripts/run_m3_2_baseline.py
 uv run python scripts/run_m3_3_budslab.py
 uv run python scripts/run_m3_4_ensemble.py
 uv run python scripts/run_m3_5_postprocessing.py --allow-null
@@ -365,8 +370,8 @@ M5 GEPIII 模型比較：
 
 ```bash
 uv run python scripts/run_m5_phaseC_tabpfn_spike.py
-uv run python scripts/run_m5_phaseD_foundation_vs_gbdt.py --value-change-regime row_offset_meter_aware --out data/processed/m6_phaseD_meter_aware.json
-uv run python scripts/run_m6_phaseD_50_50_full_models.py --out data/processed/m6_phaseD_50_50_full_models.json
+uv run python scripts/run_m5_phaseD_foundation_vs_gbdt.py --value-change-regime timestamp_merge --out data/processed/m6_phaseD_timestamp_merge_multiseed.json
+uv run python scripts/run_m6_phaseD_50_50_full_models.py --out data/processed/m6_phaseD_50_50_full_models_timestamp_merge.json
 ```
 
 Golden regression values 記錄在 [tests/golden_metrics.json](./tests/golden_metrics.json)。

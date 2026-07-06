@@ -3,7 +3,7 @@
 - **資料來源**：ASHRAE GEPIII，來源：[Kaggle ASHRAE Energy Prediction](https://www.kaggle.com/competitions/ashrae-energy-prediction/data)。
 - **資料集**：`data/raw/m3/train.csv`、`data/raw/m3/bad_meter_readings.csv`、`data/raw/m3/building_metadata.csv`、`data/raw/m3/weather_train.csv`。
 - **Anomaly labels**：來自 buds-lab `bad_meter_readings.zip`。
-- **Feature basis**：`row_offset_meter_aware` value-change features。
+- **Feature basis**：`timestamp_merge` value-change features。
 - **Split**：頂層使用 50/50 building held-out。Test half 為 `building_id % 2 == 1`；train half 內再切 fit buildings（`building_id % 4 == 0`）與 val buildings（`building_id % 4 == 2`）。
 - **輸出**：[data/processed/m5_phaseD_deep_comparison.json](../../data/processed/m5_phaseD_deep_comparison.json)。
 - **Handoff**：[docs/handoffs/m5-phaseD-deep-comparison.md](../handoffs/m5-phaseD-deep-comparison.md)。
@@ -14,15 +14,15 @@
 
 本比較使用 TabPFN-3 local，評估其在 ASHRAE GEPIII anomaly detection 任務中，與 LightGBM、XGBoost、CatBoost、HistGBT 與 tree ensemble 的表現差異。整體結果與 TabPFN 主流論文的大方向一致：TabPFN 的主要優勢出現在小樣本、中低維特徵與低調參負擔的設定下，而不是在所有資料量或所有 tree tuning 強度下全面勝出。
 
-在小樣本標註效率上，TabPFN-3 local 表現突出。Support 為 `20`、`50`、`150`、`300`、`500` 時，TabPFN 的 test PR-AUC 高於所有 tree models。這表示在 labeled support 很少時，TabPFN 較能維持 anomaly detection 的排序品質。
+在小樣本標註效率上，TabPFN-3 local 表現突出。Support 為 `100`、`150`、`300`、`500`、`1,000`、`2,000` 時，TabPFN 的 test PR-AUC 高於所有 tree models。Support 為 `20` 與 `50` 時，CatBoost 最高；這表示在極小 support 下，tree model 仍可能取得較高 PR-AUC，但 support 達 `100` 後 TabPFN 較能維持 anomaly detection 的排序品質。
 
-在 feature 維度承載能力上，TabPFN-3 local 也維持優勢。固定 fit rows 為 `500` 時，TabPFN 在 `17`、`50`、`137` features 三種設定下都取得最高 test PR-AUC。其中 `50` features 時，TabPFN test PR-AUC 達 `0.8443`，是本軸最高結果。
+在 feature 維度承載能力上，TabPFN-3 local 維持優勢。固定 fit rows 為 `500` 時，TabPFN 在 `17`、`50`、`137` features 三種設定下都取得最高 test PR-AUC。其中 `137` features 時，TabPFN test PR-AUC 達 `0.8520`，是本軸最高結果。
 
-在完整 fit budget 與 tree tuning 後，TabPFN-3 local 不再全面領先。Tuned LightGBM 的 test PR-AUC 為 `0.9140`，高於 TabPFN 的 `0.9071`。Support 為 `100`、`1,000`、`2,000` 時，最佳 tree model 也追過 TabPFN。
+在完整 fit budget 與 tree tuning 後，TabPFN-3 local 不再全面領先。Tuned ensemble 的 test PR-AUC 為 `0.9109`，高於 TabPFN 的 `0.9024`；tuned XGBoost 為 `0.9100`，default LightGBM 為 `0.9086`，也高於 TabPFN。
 
-穩定性方面，TabPFN-3 local 在六次 `DOWNSAMPLE_SEEDS x MODEL_SEEDS` 重跑中的 test PR-AUC mean 為 `0.9034`，高於所有 tree baselines，std 為 `0.0089`。同一批輸入重跑三次時，test PR-AUC std 為 `0.0008`，顯示 TabPFN 在固定輸入下的 run-to-run variation 很低。
+穩定性方面，TabPFN-3 local 在六次 `DOWNSAMPLE_SEEDS x MODEL_SEEDS` 重跑中的 test PR-AUC mean 為 `0.8984`，高於所有 tree baselines，std 為 `0.0119`。同一批輸入重跑三次時，test PR-AUC std 為 `0.0020`，顯示 TabPFN 在固定輸入下的 run-to-run variation 很低。
 
-總結，TabPFN-3 local 在本 anomaly detection 任務的小樣本與中低維特徵設定下具明顯競爭力，並呈現良好穩定性；但在較大 support 或 tuned tree models 充分調參後，tree models 仍可能取得更高 test PR-AUC。本比較認為「TabPFN-3 local 是小樣本 tabular anomaly detection 的強基準模型」。
+總結，TabPFN-3 local 在本 anomaly detection 任務的小樣本與中低維特徵設定下具明顯競爭力，並呈現良好穩定性；但在完整 fit budget 或 tuned tree models 充分調參後，tree models 仍可能取得更高 test PR-AUC。本比較認為「TabPFN-3 local 是小樣本 tabular anomaly detection 的強基準模型」。
 
 ---
 
@@ -33,7 +33,7 @@
 | 項目 | 設定 |
 |---|---|
 | Models | LightGBM、XGBoost、CatBoost、HistGBT、Ensemble、TabPFN |
-| Feature regime | `row_offset_meter_aware` |
+| Feature regime | `timestamp_merge` |
 | Full feature count | 137 features：17 baseline + 120 value-change |
 | Fit buildings | `building_id % 4 == 0` |
 | Val buildings | `building_id % 4 == 2` |
@@ -55,29 +55,29 @@ Test 的 `threshold_0_5` 與 `fixed_recall_0_90` 是 post-hoc operating points�
 
 | Model | Val PR-AUC | Test AUC | Test PR-AUC |
 |---|---:|---:|---:|
-| LightGBM | 0.8591 | 0.9881 | 0.9061 |
-| XGBoost | 0.8390 | 0.9877 | 0.8958 |
-| CatBoost | 0.8750 | 0.9861 | 0.8812 |
-| HistGBT | 0.8493 | 0.9873 | 0.9034 |
-| Ensemble | 0.8647 | 0.9877 | 0.9022 |
+| LightGBM | 0.8763 | 0.9866 | 0.9086 |
+| XGBoost | 0.8622 | 0.9837 | 0.8986 |
+| CatBoost | 0.8682 | 0.9875 | 0.8791 |
+| HistGBT | 0.8660 | 0.9832 | 0.8889 |
+| Ensemble | 0.8722 | 0.9882 | 0.9011 |
 
 ### 3.2 Tuned Trees
 
 | Model | Val PR-AUC | Test AUC | Test PR-AUC |
 |---|---:|---:|---:|
-| LightGBM | 0.8802 | 0.9865 | 0.9140 |
-| XGBoost | 0.8712 | 0.9880 | 0.8859 |
-| CatBoost | 0.8742 | 0.9883 | 0.8990 |
-| HistGBT | 0.8690 | 0.9844 | 0.8910 |
-| Ensemble | 0.8671 | 0.9888 | 0.9080 |
+| LightGBM | 0.8839 | 0.9856 | 0.9006 |
+| XGBoost | 0.8767 | 0.9869 | 0.9100 |
+| CatBoost | 0.8797 | 0.9865 | 0.8891 |
+| HistGBT | 0.8829 | 0.9852 | 0.9068 |
+| Ensemble | 0.8789 | 0.9879 | 0.9109 |
 
 ### 3.3 TabPFN
 
 | Model | Val PR-AUC | Test AUC | Test PR-AUC |
 |---|---:|---:|---:|
-| TabPFN | 0.8844 | 0.9876 | 0.9071 |
+| TabPFN | 0.8858 | 0.9852 | 0.9024 |
 
-Tuned LightGBM 取得本軸最高 test PR-AUC。TabPFN 取得最高 val PR-AUC，test PR-AUC 接近 tuned ensemble。
+Tuned ensemble 取得本軸最高 test PR-AUC。TabPFN 取得最高 val PR-AUC，test PR-AUC 接近 tuned HistGBT，但低於 tuned ensemble、tuned XGBoost 與 default LightGBM。
 
 ---
 
@@ -87,16 +87,16 @@ Tuned LightGBM 取得本軸最高 test PR-AUC。TabPFN 取得最高 val PR-AUC�
 
 | Support | LightGBM | XGBoost | CatBoost | HistGBT | Ensemble | TabPFN |
 |---:|---:|---:|---:|---:|---:|---:|
-| 20 | 0.0680 | 0.2701 | 0.7016 | 0.0680 | 0.6062 | 0.7465 |
-| 50 | 0.2117 | 0.3554 | 0.7511 | 0.2861 | 0.5730 | 0.7696 |
-| 100 | 0.6708 | 0.6025 | 0.7735 | 0.6744 | 0.7396 | 0.7494 |
-| 150 | 0.7015 | 0.6695 | 0.7766 | 0.7128 | 0.7578 | 0.8217 |
-| 300 | 0.7788 | 0.7156 | 0.7927 | 0.7625 | 0.7830 | 0.8227 |
-| 500 | 0.7678 | 0.7421 | 0.7783 | 0.7750 | 0.7839 | 0.8294 |
-| 1,000 | 0.8439 | 0.8556 | 0.8088 | 0.8269 | 0.8373 | 0.8506 |
-| 2,000 | 0.8592 | 0.8544 | 0.8103 | 0.8702 | 0.8328 | 0.8288 |
+| 20 | 0.0622 | 0.1654 | 0.7567 | 0.0622 | 0.7388 | 0.7456 |
+| 50 | 0.3994 | 0.5862 | 0.7525 | 0.4967 | 0.6176 | 0.7293 |
+| 100 | 0.6516 | 0.6924 | 0.7223 | 0.6524 | 0.7047 | 0.7570 |
+| 150 | 0.7075 | 0.6755 | 0.7316 | 0.6940 | 0.7228 | 0.7979 |
+| 300 | 0.7551 | 0.7574 | 0.7172 | 0.7681 | 0.7442 | 0.8194 |
+| 500 | 0.8000 | 0.7708 | 0.7350 | 0.7651 | 0.7550 | 0.8520 |
+| 1,000 | 0.8020 | 0.8228 | 0.7638 | 0.8189 | 0.8053 | 0.8473 |
+| 2,000 | 0.8487 | 0.8244 | 0.8535 | 0.8545 | 0.8651 | 0.8688 |
 
-Best tree 追平並超過 TabPFN 的第一個 support 為 `100`。該 cell 中 CatBoost test PR-AUC 為 `0.7735`，TabPFN 為 `0.7494`。
+Best tree 高於 TabPFN 的第一個 support 為 `20`。該 cell 中 CatBoost test PR-AUC 為 `0.7567`，TabPFN 為 `0.7456`。Support 為 `100` 後，TabPFN 在所有列出的 support 上取得最高 test PR-AUC。
 
 ---
 
@@ -106,11 +106,11 @@ Best tree 追平並超過 TabPFN 的第一個 support 為 `100`。該 cell 中 C
 
 | Feature Set | Features | LightGBM | XGBoost | CatBoost | HistGBT | Ensemble | TabPFN |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| Raw baseline | 17 | 0.6522 | 0.6600 | 0.7363 | 0.6481 | 0.7314 | 0.7821 |
-| Baseline + first 33 value-change | 50 | 0.7290 | 0.7141 | 0.7794 | 0.7361 | 0.7776 | 0.8443 |
-| Full value-change | 137 | 0.7678 | 0.7421 | 0.7783 | 0.7750 | 0.7839 | 0.8294 |
+| Raw baseline | 17 | 0.6649 | 0.6623 | 0.7077 | 0.6776 | 0.7070 | 0.7580 |
+| Baseline + first 33 value-change | 50 | 0.7791 | 0.7596 | 0.7519 | 0.7710 | 0.7772 | 0.8479 |
+| Full value-change | 137 | 0.8000 | 0.7708 | 0.7350 | 0.7651 | 0.7550 | 0.8520 |
 
-TabPFN 在三個 feature dimensions 都最高。`50` features 是本軸 TabPFN 的最高點。
+TabPFN 在三個 feature dimensions 都最高。`137` features 是本軸 TabPFN 的最高點。
 
 ---
 
@@ -120,16 +120,16 @@ TabPFN 在三個 feature dimensions 都最高。`50` features 是本軸 TabPFN �
 
 | Model | Test AUC mean/std | Test PR-AUC mean/std |
 |---|---:|---:|
-| LightGBM | 0.9884 / 0.0035 | 0.8968 / 0.0132 |
-| XGBoost | 0.9870 / 0.0039 | 0.8836 / 0.0131 |
-| CatBoost | 0.9859 / 0.0045 | 0.8776 / 0.0181 |
-| HistGBT | 0.9875 / 0.0032 | 0.8917 / 0.0120 |
-| Ensemble | 0.9878 / 0.0036 | 0.8932 / 0.0142 |
-| TabPFN | 0.9886 / 0.0033 | 0.9034 / 0.0089 |
+| LightGBM | 0.9879 / 0.0019 | 0.8913 / 0.0131 |
+| XGBoost | 0.9869 / 0.0024 | 0.8818 / 0.0138 |
+| CatBoost | 0.9857 / 0.0030 | 0.8743 / 0.0129 |
+| HistGBT | 0.9882 / 0.0020 | 0.8849 / 0.0138 |
+| Ensemble | 0.9877 / 0.0021 | 0.8871 / 0.0155 |
+| TabPFN | 0.9859 / 0.0018 | 0.8984 / 0.0119 |
 
-TabPFN 的 six-run test PR-AUC mean 最高，std 低於 tree ensemble 與各 tree model。
+TabPFN 的 six-run test PR-AUC mean 最高，std 低於 tree ensemble。
 
-同一批輸入下，TabPFN 重跑三次的 test PR-AUC 為 `0.9083`、`0.9063`、`0.9075`。Mean 為 `0.9074`，std 為 `0.0008`。
+同一批輸入下，TabPFN 重跑三次的 test PR-AUC 為 `0.9040`、`0.9049`、`0.9003`。Mean 為 `0.9031`，std 為 `0.0020`。
 
 ---
 
