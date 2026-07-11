@@ -6,6 +6,8 @@
 **Report issue**: [#52](https://github.com/kuokuant-oss/lead-reproduction/issues/52)
 **正式報告**: [docs/reports/m5-foundation-vs-gbdt.md](../reports/m5-foundation-vs-gbdt.md)
 
+**Runtime provenance follow-up**: [#58](https://github.com/kuokuant-oss/lead-reproduction/issues/58)；runner 觀測層已完成，正式重跑須等待人工確認。
+
 ## 定位
 
 M5 的範圍已收斂為 GEPIII 內部的 FDD 模型比較。它不是 BDG2 正式評估，也不宣稱 BDG2
@@ -91,5 +93,7 @@ Issue 對齊：
   TabPFN-vs-GBDT GEPIII comparison，已完成。
 + [#52](https://github.com/kuokuant-oss/lead-reproduction/issues/52)：M5 報告與
   meter-aware comparison line 的收斂紀錄。
++ [#58](https://github.com/kuokuant-oss/lead-reproduction/issues/58)：在不改模型條件與
+  預測邏輯下，補齊硬體與時間成本 provenance；runner 已就緒，正式重跑尚未開始。
 + [#27](https://github.com/kuokuant-oss/lead-reproduction/issues/27)、[#30](https://github.com/kuokuant-oss/lead-reproduction/issues/30)、[#32](https://github.com/kuokuant-oss/lead-reproduction/issues/32)
   是 M5 前置 planning、feasibility、metric audit 歷史；不再代表 active M5 待辦。

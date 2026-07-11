@@ -43,6 +43,7 @@ from run_m6_phaseD_50_50_full_models import (
     torch_environment,
     tree_models,
 )
+from experiment_observability import timing_protocol
 
 
 VALUE_CHANGE_REGIME = "timestamp_merge"
@@ -1051,6 +1052,7 @@ def main() -> None:
         "environment": env,
         "axes": run["axes"],
         "elapsed_seconds": float(time.perf_counter() - t0),
+        "timing_protocol": timing_protocol(),
     }
     results = merge_existing_results(
         args.out,

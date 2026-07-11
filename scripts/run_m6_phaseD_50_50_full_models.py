@@ -34,6 +34,7 @@ from lead import (
     load_m3_frame,
     write_json_with_provenance,
 )
+from experiment_observability import host_environment, timing_protocol
 
 
 DEFAULT_VALUE_CHANGE_REGIME = "timestamp_merge"
@@ -98,6 +99,7 @@ def parse_args() -> argparse.Namespace:
 
 def torch_environment() -> dict[str, Any]:
     env: dict[str, Any] = {
+        **host_environment(),
         "torch_installed": importlib.util.find_spec("torch") is not None,
         "tabpfn_installed": importlib.util.find_spec("tabpfn") is not None,
         "tabpfn_no_browser": bool(os.environ.get("TABPFN_NO_BROWSER")),
@@ -795,6 +797,7 @@ def main() -> None:
         "environment": env,
         "axes": axes,
         "elapsed_seconds": float(time.perf_counter() - t0),
+        "timing_protocol": timing_protocol(),
     }
     results["figures"] = render_confusion_figures(results)
     command = (

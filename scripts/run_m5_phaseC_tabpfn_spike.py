@@ -30,6 +30,7 @@ from lead import (
     load_m3_frame,
     write_json_with_provenance,
 )
+from experiment_observability import host_environment, timing_protocol
 
 DEFAULT_VALUE_CHANGE_REGIME = "timestamp_merge"
 SPLIT_NAME = "80_20_mod5"
@@ -160,6 +161,7 @@ def balanced_subsample_indices(
 
 def torch_environment() -> dict[str, Any]:
     env: dict[str, Any] = {
+        **host_environment(),
         "torch_installed": False,
         "tabpfn_installed": importlib.util.find_spec("tabpfn") is not None,
         "tabpfn_token_present": bool(os.environ.get("TABPFN_TOKEN")),
@@ -508,6 +510,7 @@ def main() -> None:
             "bdg2_used": False,
         },
         "elapsed_seconds": float(time.perf_counter() - t0),
+        "timing_protocol": timing_protocol(),
     }
     write_json_with_provenance(
         args.out,

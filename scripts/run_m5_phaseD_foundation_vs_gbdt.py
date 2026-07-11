@@ -55,6 +55,7 @@ from lead import (
     load_m3_frame,
     write_json_with_provenance,
 )
+from experiment_observability import host_environment, timing_protocol
 
 DEFAULT_VALUE_CHANGE_REGIME = "timestamp_merge"
 IN_DOMAIN_SPLIT = "80_20_mod5"  # building_id % 5 == 4
@@ -226,6 +227,7 @@ def random_val_indices(index: np.ndarray, max_rows: int, seed: int) -> np.ndarra
 # --------------------------------------------------------------------------- #
 def torch_environment() -> dict[str, Any]:
     env: dict[str, Any] = {
+        **host_environment(),
         "torch_installed": importlib.util.find_spec("torch") is not None,
         "tabpfn_installed": importlib.util.find_spec("tabpfn") is not None,
         "tabpfn_token_present": bool(os.environ.get("TABPFN_TOKEN")),
@@ -1121,6 +1123,7 @@ def main() -> None:
             "ignore_pretraining_limits": False,
         },
         "elapsed_seconds": float(time.perf_counter() - t0),
+        "timing_protocol": timing_protocol(),
     }
     cmd = (
         "uv run python scripts/run_m5_phaseD_foundation_vs_gbdt.py "
