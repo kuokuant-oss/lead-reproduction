@@ -6,7 +6,7 @@
 - **Feature basis**：`timestamp_merge` value-change features。
 - **Split**：頂層使用 50/50 building held-out。Test half 為 `building_id % 2 == 1`；train half 內再切 fit buildings（`building_id % 4 == 0`）與 val buildings（`building_id % 4 == 2`）。
 - **執行環境**：Intel Core i9-13980HX、31.6 GiB RAM、NVIDIA GeForce RTX 4070 Laptop GPU 8 GiB；所有模型在同一台機器上，使用各自預設且合理的設備 backend，由系統自由調度，並依序執行。
-- **時間成本**：表內時間為 model-local fit/predict wall-clock；tuned trees 使用完整 12-trial tuning time。Tree models 使用 CPU backend，TabPFN 使用單張 CUDA GPU；Ensemble 時間為四個 tree 基模型的對應時間合計。
+- **時間成本**：表內時間為各模型單一 cell 的合併等待時間，從 `model.fit` 前開始，到 fit-set、train、val 與 test scoring predictions 全部完成後結束；tuned trees 使用完整 12-trial tuning time。Tree models 使用 CPU backend，TabPFN 使用單張 CUDA GPU；Ensemble 時間為四個 tree 基模型的對應時間總和。
 - **輸出**：[data/processed/m5_phaseD_deep_comparison.json](../../data/processed/m5_phaseD_deep_comparison.json)。
 - **Handoff**：[docs/handoffs/m5-phaseD-deep-comparison.md](../handoffs/m5-phaseD-deep-comparison.md)。
 
@@ -26,7 +26,7 @@
 
 總結，TabPFN-3 local 在本 anomaly detection 任務的小樣本與中低維特徵設定下具明顯競爭力，並呈現良好穩定性；但在完整 fit budget 或 tuned tree models 充分調參後，tree models 仍可能取得更高 test PR-AUC。本比較認為「TabPFN-3 local 是小樣本 tabular anomaly detection 的強基準模型」。
 
-時間成本形成另一項明確排序。一般 fit/predict 平均一次耗時為 LightGBM `0.173`
+合併等待時間形成另一項明確排序。一般 cell 平均耗時為 LightGBM `0.173`
 秒、XGBoost `0.198` 秒、HistGBT `0.352` 秒、CatBoost `3.683` 秒與 TabPFN
 `194.781` 秒。TabPFN 的效能優勢伴隨較高的單機等待成本。
 
@@ -48,13 +48,17 @@
 | Scoring budget | 4,000 natural-prevalence train rows、4,000 val rows、4,000 test rows |
 | Tuning rule | tuned trees 只用 val PR-AUC 選 config |
 | Core metrics | ROC-AUC、PR-AUC |
-| Timing | `time.perf_counter`；model-local fit/predict，tree tuning 另計完整 search time |
+| Timing | `time.perf_counter`；fit 與所有 scoring-set predictions 的合併等待時間；tree tuning 另計完整 search time |
 
-表內 Ensemble 時間以 `*` 標記，代表四個基模型的對應時間合計；預測分數組合成本未單獨計時。
+表內 Ensemble 時間以 `*` 標記，代表四個基模型對應合併等待時間的總和；預測分數組合成本未單獨計時。
 
-資料表、137 個 features、split、sampling 和 scaling 準備完成後，表內時間記錄
-各模型在單一 comparison cell 內執行 fit/predict 所花的時間。矩陣型實驗另列
-「本軸合計」，呈現該實驗全部 cells 完成後各模型的累積時間。
+資料表、137 個 features、split、sampling 和 scaling 準備完成後，開始記錄模型
+合併等待時間。模型按列排列的表格，以最右側時間欄分別記錄每一列模型的單一 cell
+時間；模型按欄排列的時間表，以各模型欄記錄同一 cell 的時間。矩陣型實驗的
+「本軸合計」列呈現全部 cells 完成後各模型的累積合併等待時間。
+
+現有計時未拆分 fit 與 predict，各模型的推論延遲不由此欄位判定。部署 latency
+比較使用相同 query rows 下獨立記錄的 predict time 與每列時間。
 
 Test 的 `threshold_0_5` 與 `fixed_recall_0_90` 是 post-hoc operating points。`fixed_recall_0_90` 的 threshold 由同一 split 的 labels 求得，包含 test summary 的 test labels。這些數字只描述該 scoring subsample。模型比較使用 threshold-free ROC-AUC 與 PR-AUC。
 
@@ -66,7 +70,7 @@ Test 的 `threshold_0_5` 與 `fixed_recall_0_90` 是 post-hoc operating points�
 
 ### 3.1 Default Trees
 
-| Model | Val PR-AUC | Test AUC | Test PR-AUC | 分流後模型時間 (s) |
+| Model | Val PR-AUC | Test AUC | Test PR-AUC | Fit + scoring predicts (s) |
 |---|---:|---:|---:|---:|
 | LightGBM | 0.8763 | 0.9866 | 0.9086 | 0.930 |
 | XGBoost | 0.8622 | 0.9837 | 0.8986 | 1.149 |
@@ -86,7 +90,7 @@ Test 的 `threshold_0_5` 與 `fixed_recall_0_90` 是 post-hoc operating points�
 
 ### 3.3 TabPFN
 
-| Model | Val PR-AUC | Test AUC | Test PR-AUC | 分流後模型時間 (s) |
+| Model | Val PR-AUC | Test AUC | Test PR-AUC | Fit + scoring predicts (s) |
 |---|---:|---:|---:|---:|
 | TabPFN | 0.8858 | 0.9852 | 0.9024 | 348.998 |
 
@@ -95,7 +99,7 @@ Tuned ensemble 取得本軸最高 test PR-AUC。TabPFN 取得最高 val PR-AUC�
 TabPFN 本軸耗時 `349.00` 秒。四個 default trees 合計 `8.97` 秒，四組 12-trial
 tuning 合計 `69.69` 秒。
 
-表 3d：Default-vs-tuned 全軸各模型累積時間；單位為秒。
+表 3d：Default-vs-tuned 全軸各模型累積合併等待時間；單位為秒。
 
 | LightGBM | XGBoost | CatBoost | HistGBT | Ensemble | TabPFN |
 |---:|---:|---:|---:|---:|---:|
@@ -118,7 +122,7 @@ tuning 合計 `69.69` 秒。
 | 1,000 | 0.8020 | 0.8228 | 0.7638 | 0.8189 | 0.8053 | 0.8473 |
 | 2,000 | 0.8487 | 0.8244 | 0.8535 | 0.8545 | 0.8651 | 0.8688 |
 
-表 4b：Sample-efficiency model-local fit/predict time；單位為秒。
+表 4b：Sample-efficiency fit 與所有 scoring-set predictions 合併等待時間；單位為秒。
 
 | Support | LightGBM | XGBoost | CatBoost | HistGBT | Ensemble | TabPFN |
 |---:|---:|---:|---:|---:|---:|---:|
@@ -146,7 +150,7 @@ Best tree 高於 TabPFN 的第一個 support 為 `20`。該 cell 中 CatBoost te
 | Baseline + first 33 value-change | 50 | 0.7791 | 0.7596 | 0.7519 | 0.7710 | 0.7772 | 0.8479 |
 | Full value-change | 137 | 0.8000 | 0.7708 | 0.7350 | 0.7651 | 0.7550 | 0.8520 |
 
-表 5b：Dimensionality model-local fit/predict time；單位為秒。
+表 5b：Dimensionality fit 與所有 scoring-set predictions 合併等待時間；單位為秒。
 
 | Feature Set | Features | LightGBM | XGBoost | CatBoost | HistGBT | Ensemble | TabPFN |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -163,7 +167,7 @@ TabPFN 在三個 feature dimensions 都最高。`137` features 是本軸 TabPFN 
 
 本軸測量兩種穩定性。第一種是 fit subsample 與 model seed 改變時，模型分數的 seed-to-seed variation。第二種是 TabPFN 在完全相同輸入下重跑時的 run-to-run variation。本軸固定 full 137 features 與 `10,000` fit rows，使用 `DOWNSAMPLE_SEEDS x MODEL_SEEDS`，共六次重跑。表格列 test ROC-AUC 與 test PR-AUC 的 mean/std。
 
-| Model | Test AUC mean/std | Test PR-AUC mean/std | Six-run total time (s) |
+| Model | Test AUC mean/std | Test PR-AUC mean/std | Six-run combined time (s) |
 |---|---:|---:|---:|
 | LightGBM | 0.9879 / 0.0019 | 0.8913 / 0.0131 | 1.428 |
 | XGBoost | 0.9869 / 0.0024 | 0.8818 / 0.0138 | 1.721 |
@@ -179,7 +183,7 @@ TabPFN 的 six-run test PR-AUC mean 最高，std 低於 tree ensemble。
 六組 seed-grid 中，TabPFN 累積耗時 `2,099.10` 秒，四個 tree models 合計
 `40.05` 秒。同輸入三次 TabPFN 重跑另耗時 `1,175.42` 秒，平均每次 `391.81` 秒。
 
-表 6b：Stability 全軸各模型累積時間；單位為秒。
+表 6b：Stability 全軸各模型累積合併等待時間；單位為秒。
 
 | LightGBM | XGBoost | CatBoost | HistGBT | Ensemble | TabPFN |
 |---:|---:|---:|---:|---:|---:|
