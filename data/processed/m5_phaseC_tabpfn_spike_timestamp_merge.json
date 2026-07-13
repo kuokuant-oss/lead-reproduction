@@ -3,6 +3,8 @@
   "issue": 30,
   "scope": "LEAD/M3-only local feasibility spike; no BDG2 data used",
   "canonical_line": "80_20_mod5_offline_timestamp_merge",
+  "value_change_regime": "timestamp_merge",
+  "value_change_regime_default": "timestamp_merge",
   "random_state": 42,
   "downsampling_seeds": [
     10,
@@ -90,6 +92,46 @@
     "interpretation": "The full M3 downsample shape answers documented TabPFN-3 fit; the local paired shape is reduced for laptop feasibility."
   },
   "environment": {
+    "os": {
+      "system": "Windows",
+      "release": "11",
+      "version": "10.0.26200",
+      "machine": "AMD64"
+    },
+    "cpu": {
+      "name": "13th Gen Intel(R) Core(TM) i9-13980HX",
+      "logical_cores": 32,
+      "processor_architecture": "AMD64"
+    },
+    "memory": {
+      "total_bytes": 33959829504,
+      "total_gib": 31.628
+    },
+    "python": {
+      "version": "3.13.13",
+      "implementation": "CPython",
+      "executable": "C:\\Users\\tonykuo\\projects\\lead-reproduction\\.venv\\Scripts\\python.exe"
+    },
+    "dependency_versions": {
+      "catboost": "1.2.10",
+      "lightgbm": "4.6.0",
+      "numpy": "2.4.6",
+      "pandas": "3.0.3",
+      "scikit-learn": "1.8.0",
+      "scipy": "1.17.1",
+      "tabpfn": "8.0.8",
+      "torch": "2.7.1+cu128",
+      "xgboost": "3.2.0"
+    },
+    "execution_controls": {
+      "OMP_NUM_THREADS": null,
+      "MKL_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "NUMEXPR_NUM_THREADS": null
+    },
+    "nvidia_driver_versions": [
+      "566.07"
+    ],
     "torch_installed": true,
     "tabpfn_installed": true,
     "tabpfn_token_present": false,
@@ -125,7 +167,7 @@
       "threshold_05_false_negative": 48,
       "threshold_05_predicted_positive": 2307,
       "threshold_05_predicted_negative": 17693,
-      "fit_predict_seconds": 0.7580834999680519
+      "fit_predict_seconds": 1.1213957999998456
     },
     "tabpfn": {
       "status": "completed",
@@ -144,18 +186,18 @@
       "threshold_05_predicted_negative": 17764,
       "cold_start": true,
       "timing_note": "fit_predict_seconds includes local checkpoint model initialization, fit, and predict_proba in this process.",
-      "model_init_seconds": 42.11260579992086,
-      "fit_seconds": 0.9459587000310421,
-      "predict_proba_seconds": 26.240805300185457,
-      "fit_predict_seconds": 69.29937239992432
+      "model_init_seconds": 11.666707899999892,
+      "fit_seconds": 1.0691249999999854,
+      "predict_proba_seconds": 26.10409410000011,
+      "fit_predict_seconds": 38.83993080000073
     }
   },
   "latency_signal": {
-    "tabpfn_fit_predict_seconds": 69.29937239992432,
+    "tabpfn_fit_predict_seconds": 38.83993080000073,
     "tabpfn_cold_start": true,
-    "tabpfn_model_init_seconds": 42.11260579992086,
-    "tabpfn_fit_seconds": 0.9459587000310421,
-    "tabpfn_predict_proba_seconds": 26.240805300185457,
+    "tabpfn_model_init_seconds": 11.666707899999892,
+    "tabpfn_fit_seconds": 1.0691249999999854,
+    "tabpfn_predict_proba_seconds": 26.10409410000011,
     "train_rows": 1000,
     "feature_count": 137,
     "batch_size": 256,
@@ -166,13 +208,22 @@
     "cloud_client_used": false,
     "bdg2_used": false
   },
-  "elapsed_seconds": 680.2398731999565,
-  "provenance": {
-    "commit": "b7fd55b9c4d1c3a74f790b5c1553d03a0632fc2d",
-    "generated_at_utc": "2026-07-03T10:21:38.522310+00:00",
-    "command": "python scripts/run_m5_phaseC_tabpfn_spike.py --max-fit-rows 1000 --max-val-rows 20000 --tabpfn-batch-size 256 --value-change-regime timestamp_merge --model-path C:\\Users\\tonykuo\\projects\\lead-reproduction\\.tabpfn-cache\\tabpfn-v3-classifier-v3_default.ckpt",
-    "value_change_regime": "timestamp_merge"
+  "elapsed_seconds": 605.4616473999995,
+  "timing_protocol": {
+    "clock": "time.perf_counter",
+    "unit": "seconds",
+    "elapsed_seconds_scope": "runner main after argument parsing through result assembly before JSON write",
+    "fit_predict_seconds_scope": "model-local initialization/fit/predict region as recorded by each runner",
+    "includes_data_loading_and_feature_generation_in_elapsed": true,
+    "includes_json_write_in_elapsed": false,
+    "cuda_events_used": false,
+    "cuda_synchronization_added": false,
+    "note": "Observability only: model inputs, seeds, hyperparameters, execution order, and predictions are unchanged."
   },
-  "value_change_regime": "timestamp_merge",
-  "value_change_regime_default": "timestamp_merge"
+  "provenance": {
+    "commit": "15d64ad1cceb72cfd00f6eb63d0a9bcf04b43d2b",
+    "generated_at_utc": "2026-07-11T15:55:13.612705+00:00",
+    "value_change_regime": "timestamp_merge",
+    "command": "python scripts/run_m5_phaseC_tabpfn_spike.py --max-fit-rows 1000 --max-val-rows 20000 --tabpfn-batch-size 256 --value-change-regime timestamp_merge --model-path C:\\Users\\tonykuo\\projects\\lead-reproduction\\.tabpfn-cache\\tabpfn-v3-classifier-v3_default.ckpt"
+  }
 }

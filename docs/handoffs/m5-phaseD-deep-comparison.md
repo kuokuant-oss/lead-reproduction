@@ -6,7 +6,7 @@
 
 - Smoke mode: `False`
 - Requested axes this run: `default_vs_tuned sample_efficiency_fine dimensionality_at_small_n stability_multiseed`
-- JSON merge mode: `new`
+- JSON merge mode: `merge_preserve_unrequested_axes`
 - Executed command: `uv run python scripts/run_m5_phaseD_deep_comparison.py --out data\processed\m5_phaseD_deep_comparison.json --handoff docs\handoffs\m5-phaseD-deep-comparison.md --fit-rows 10000 --score-rows 4000 --scarcity-sizes 20 50 100 150 300 500 1000 2000 --tune-trials 12 --seed 42`
 - JSON: `data/processed/m5_phaseD_deep_comparison.json`
 - Full command for later real run: `uv run python scripts/run_m5_phaseD_deep_comparison.py --out data/processed/m5_phaseD_deep_comparison.json --handoff docs/handoffs/m5-phaseD-deep-comparison.md --fit-rows 10000 --score-rows 4000 --scarcity-sizes 20 50 100 150 300 500 1000 2000 --tune-trials 12 --seed 42 --axes default_vs_tuned sample_efficiency_fine dimensionality_at_small_n stability_multiseed`
@@ -41,7 +41,7 @@ Tuned trees:
 TabPFN:
 | model | status | train PR-AUC | val PR-AUC | test PR-AUC |
 |---|---:|---:|---:|---:|
-| tabpfn | completed | 0.972669 | 0.885758 | 0.902424 |
+| tabpfn | completed | 0.972691 | 0.889618 | 0.904514 |
 
 ### Axis 2: sample_efficiency_fine
 
@@ -166,7 +166,7 @@ full_137 (137 features):
 | catboost | 0.965787/0.005929 | 0.887365/0.026663 | 0.874326/0.012920 |
 | hist_gradient_boosting | 0.972226/0.004719 | 0.888351/0.016150 | 0.884867/0.013783 |
 | ensemble | 0.972914/0.004660 | 0.892585/0.019995 | 0.887107/0.015497 |
-| tabpfn | 0.972611/0.005502 | 0.904475/0.016459 | 0.898363/0.011946 |
+| tabpfn | 0.972920/0.005728 | 0.903943/0.016467 | 0.897656/0.012128 |
 
 ## Observations
 

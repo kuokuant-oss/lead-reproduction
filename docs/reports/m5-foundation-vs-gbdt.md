@@ -8,6 +8,8 @@
 
 - **Feature basis**：`timestamp_merge` value-change features。
 - **Split**：50% training / 50% testing。In-domain、label-scarcity、minimal-FE 使用 50/50 building split；site-transfer 使用 50/50 site split。
+- **執行環境**：Intel Core i9-13980HX、31.6 GiB RAM、NVIDIA GeForce RTX 4070 Laptop GPU 8 GiB；所有模型在同一台機器上，使用各自預設且合理的設備 backend，由系統自由調度，並依序執行。
+- **時間成本**：表內時間為各模型單一 cell 的 model-local fit/predict wall-clock。Tree models 使用 CPU backend，TabPFN 使用單張 CUDA GPU；Ensemble 時間為四個 tree 基模型的 fit/predict 時間合計。
 - **輸出**：[data/processed/m6_phaseD_50_50_full_models_timestamp_merge.json](../../data/processed/m6_phaseD_50_50_full_models_timestamp_merge.json)。
 
 ---
@@ -25,6 +27,10 @@ Minimal feature engineering 顯示，raw features 下不同指標給出的訊號
 
 在 site-transfer 設定下，TabPFN test AUC 最高，但 test PR-AUC 仍低於 XGBoost
 與 HistGBT。此軸以 anomaly ranking 來看，tree family 較強。
+
+時間成本呈現清楚差距。十個 comparison cells 中，TabPFN 平均每 cell 為
+`210.29` 秒；LightGBM、XGBoost、CatBoost 與 HistGBT 分別為 `0.244`、
+`0.217`、`4.430` 與 `0.456` 秒。
 
 ---
 
@@ -45,6 +51,13 @@ scoring rows 與 test scoring rows。唯一變因是模型。
 | Site-transfer split | `site_id_mod2_50_50`，依 `site_id % 2` 留出 |
 | AUC | AUC 指 ROC-AUC；PR-AUC 另列 |
 | Confusion matrix | threshold `0.5` 與 fixed recall `0.90` |
+| Timing | `time.perf_counter`；model-local fit/predict wall-clock，單位為秒 |
+
+表內 Ensemble 時間以 `*` 標記，代表四個基模型 fit/predict 時間合計；預測分數組合成本未單獨計時。
+
+資料表、137 個 features、split、sampling 和 scaling 準備完成後，表內時間記錄
+各模型在單一 comparison cell 內執行 fit/predict 所花的時間。矩陣型實驗另列
+「本軸合計」，呈現該實驗全部 cells 完成後各模型的累積時間。
 
 Train/test 指標與 confusion matrix 都使用 natural-prevalence scoring subsample。
 同一個 cell 內，六個模型使用同一批 scoring rows。JSON 內記錄 row-index fingerprint、
@@ -67,14 +80,16 @@ Train/test 欄位意義如下：
 
 表 3：In-domain full-feature scores；regime=`timestamp_merge`，split ratio=50/50 building split。
 
-| Model | Fit-set AUC | Train AUC | Test AUC | Test PR-AUC |
-|---|---:|---:|---:|---:|
-| LightGBM | 1.0000 | 0.9958 | 0.9871 | 0.9147 |
-| XGBoost | 1.0000 | 0.9963 | 0.9869 | 0.8994 |
-| CatBoost | 0.9995 | 0.9952 | 0.9884 | 0.9057 |
-| HistGBT | 1.0000 | 0.9959 | 0.9888 | 0.9226 |
-| Ensemble | 1.0000 | 0.9962 | 0.9895 | 0.9157 |
-| TabPFN | 0.9999 | 0.9954 | 0.9915 | 0.9160 |
+| Model | Fit-set AUC | Train AUC | Test AUC | Test PR-AUC | 分流後模型時間 (s) |
+|---|---:|---:|---:|---:|---:|
+| LightGBM | 1.0000 | 0.9958 | 0.9871 | 0.9147 | 0.835 |
+| XGBoost | 1.0000 | 0.9963 | 0.9869 | 0.8994 | 0.440 |
+| CatBoost | 0.9995 | 0.9952 | 0.9884 | 0.9057 | 5.921 |
+| HistGBT | 1.0000 | 0.9959 | 0.9888 | 0.9226 | 0.771 |
+| Ensemble | 1.0000 | 0.9962 | 0.9895 | 0.9157 | 7.967* |
+| TabPFN | 0.9999 | 0.9954 | 0.9915 | 0.9160 | 325.191 |
+
+TabPFN 在本軸耗時 `325.19` 秒；四個 tree models 合計 `7.97` 秒。
 
 Threshold `0.5` 下，所有模型都抓到超過 `95%` 的 test anomalies。TabPFN 抓到
 `262/273`，漏掉 `11`，false alarms 為 `165`。Ensemble 抓到 `263/273`，漏掉
@@ -121,6 +136,21 @@ Test AUC 在低 support 時也都偏高，因此本軸主要看 PR-AUC。
 | 5,000 | 0.9887 | 0.9881 | 0.9868 | 0.9889 | 0.9884 | 0.9916 |
 | 10,000 | 0.9871 | 0.9869 | 0.9884 | 0.9888 | 0.9895 | 0.9918 |
 
+表 4c：Label-scarcity model-local fit/predict time；單位為秒。
+
+| Support | LightGBM | XGBoost | CatBoost | HistGBT | Ensemble | TabPFN |
+|---:|---:|---:|---:|---:|---:|---:|
+| 200 | 0.034 | 0.043 | 1.979 | 0.170 | 2.225* | 22.238 |
+| 500 | 0.083 | 0.084 | 3.312 | 0.285 | 3.764* | 24.888 |
+| 1,000 | 0.125 | 0.108 | 3.404 | 0.394 | 4.031* | 27.706 |
+| 2,000 | 0.227 | 0.174 | 4.225 | 0.498 | 5.123* | 155.017 |
+| 5,000 | 0.215 | 0.245 | 4.463 | 0.485 | 5.408* | 238.632 |
+| 10,000 | 0.264 | 0.332 | 5.937 | 0.538 | 7.071* | 344.702 |
+| **本軸合計** | **0.948** | **0.985** | **23.320** | **2.368** | **27.621**\* | **813.183** |
+
+TabPFN 的時間由 support `200` 的 `22.24` 秒增加至 support `10,000` 的
+`344.70` 秒；同一 cell 的 tree models 皆在 `6` 秒內完成。
+
 Support `200` 的 confusion matrix 顯示，PR-AUC ranking 與 threshold `0.5`
 classification 給出不同訊號。TabPFN 抓到 `250/273`，漏掉 `23`，false alarms 為
 `181`；Ensemble 抓到 `251/273`，漏掉 `22`，false alarms 為 `214`。
@@ -139,27 +169,36 @@ Minimal-FE 比較 full 137 features 與 raw 17 features。
 
 表 5a：Minimal-FE full 137-feature scores；regime=`timestamp_merge`，split ratio=50/50 building split。
 
-| Model | Fit-set AUC | Train AUC | Test AUC | Test PR-AUC |
-|---|---:|---:|---:|---:|
-| LightGBM | 1.0000 | 0.9958 | 0.9871 | 0.9147 |
-| XGBoost | 1.0000 | 0.9963 | 0.9869 | 0.8994 |
-| CatBoost | 0.9995 | 0.9952 | 0.9884 | 0.9057 |
-| HistGBT | 1.0000 | 0.9959 | 0.9888 | 0.9226 |
-| Ensemble | 1.0000 | 0.9962 | 0.9895 | 0.9157 |
-| TabPFN | 0.9999 | 0.9957 | 0.9916 | 0.9188 |
+| Model | Fit-set AUC | Train AUC | Test AUC | Test PR-AUC | 分流後模型時間 (s) |
+|---|---:|---:|---:|---:|---:|
+| LightGBM | 1.0000 | 0.9958 | 0.9871 | 0.9147 | 0.239 |
+| XGBoost | 1.0000 | 0.9963 | 0.9869 | 0.8994 | 0.313 |
+| CatBoost | 0.9995 | 0.9952 | 0.9884 | 0.9057 | 5.597 |
+| HistGBT | 1.0000 | 0.9959 | 0.9888 | 0.9226 | 0.498 |
+| Ensemble | 1.0000 | 0.9962 | 0.9895 | 0.9157 | 6.647* |
+| TabPFN | 0.9999 | 0.9957 | 0.9916 | 0.9188 | 323.274 |
 
 ### 5.2 Raw 17 Features
 
 表 5b：Minimal-FE raw 17-feature scores；regime=`timestamp_merge`，split ratio=50/50 building split。
 
-| Model | Fit-set AUC | Train AUC | Test AUC | Test PR-AUC |
-|---|---:|---:|---:|---:|
-| LightGBM | 0.9985 | 0.9876 | 0.9624 | 0.8323 |
-| XGBoost | 1.0000 | 0.9880 | 0.9670 | 0.8286 |
-| CatBoost | 0.9966 | 0.9857 | 0.9614 | 0.8323 |
-| HistGBT | 0.9982 | 0.9877 | 0.9620 | 0.8318 |
-| Ensemble | 0.9992 | 0.9881 | 0.9660 | 0.8438 |
-| TabPFN | 1.0000 | 0.9934 | 0.9463 | 0.7746 |
+| Model | Fit-set AUC | Train AUC | Test AUC | Test PR-AUC | 分流後模型時間 (s) |
+|---|---:|---:|---:|---:|---:|
+| LightGBM | 0.9985 | 0.9876 | 0.9624 | 0.8323 | 0.115 |
+| XGBoost | 1.0000 | 0.9880 | 0.9670 | 0.8286 | 0.081 |
+| CatBoost | 0.9966 | 0.9857 | 0.9614 | 0.8323 | 3.345 |
+| HistGBT | 0.9982 | 0.9877 | 0.9620 | 0.8318 | 0.347 |
+| Ensemble | 0.9992 | 0.9881 | 0.9660 | 0.8438 | 3.888* |
+| TabPFN | 1.0000 | 0.9934 | 0.9463 | 0.7746 | 285.320 |
+
+TabPFN 在 full 137 features 與 raw 17 features 分別耗時 `323.27` 與 `285.32`
+秒；四個 tree models 的對應合計為 `6.65` 與 `3.89` 秒。
+
+表 5c：Minimal-FE 全軸各模型累積時間；單位為秒。
+
+| LightGBM | XGBoost | CatBoost | HistGBT | Ensemble | TabPFN |
+|---:|---:|---:|---:|---:|---:|
+| 0.354 | 0.394 | 8.941 | 0.845 | 10.535* | 608.595 |
 
 Raw 17 features 下，ranking metric 與 fixed-threshold classification 給出不同訊號。
 Tree models 的 test PR-AUC 較高；TabPFN 在 threshold 0.5 下 TN 最高、FP 最少。
@@ -176,14 +215,16 @@ Tree models 的 test PR-AUC 較高；TabPFN 在 threshold 0.5 下 TN 最高、FP
 
 表 6：Site-transfer full-feature scores；regime=`timestamp_merge`，split ratio=50/50 site split。
 
-| Model | Fit-set AUC | Train AUC | Test AUC | Test PR-AUC |
-|---|---:|---:|---:|---:|
-| LightGBM | 1.0000 | 0.9980 | 0.9609 | 0.6182 |
-| XGBoost | 1.0000 | 0.9979 | 0.9708 | 0.6778 |
-| CatBoost | 0.9996 | 0.9974 | 0.9749 | 0.6463 |
-| HistGBT | 1.0000 | 0.9976 | 0.9775 | 0.6739 |
-| Ensemble | 1.0000 | 0.9980 | 0.9774 | 0.6563 |
-| TabPFN | 1.0000 | 0.9963 | 0.9820 | 0.6392 |
+| Model | Fit-set AUC | Train AUC | Test AUC | Test PR-AUC | 分流後模型時間 (s) |
+|---|---:|---:|---:|---:|---:|
+| LightGBM | 1.0000 | 0.9980 | 0.9609 | 0.6182 | 0.305 |
+| XGBoost | 1.0000 | 0.9979 | 0.9708 | 0.6778 | 0.350 |
+| CatBoost | 0.9996 | 0.9974 | 0.9749 | 0.6463 | 6.113 |
+| HistGBT | 1.0000 | 0.9976 | 0.9775 | 0.6739 | 0.578 |
+| Ensemble | 1.0000 | 0.9980 | 0.9774 | 0.6563 | 7.346* |
+| TabPFN | 1.0000 | 0.9963 | 0.9820 | 0.6392 | 355.960 |
+
+TabPFN 在 site-transfer 耗時 `355.96` 秒；四個 tree models 合計 `7.35` 秒。
 
 Threshold `0.5` 下，TabPFN 抓到最多 anomalies，false alarms 也較高。
 
