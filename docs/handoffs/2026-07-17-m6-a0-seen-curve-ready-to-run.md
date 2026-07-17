@@ -36,28 +36,29 @@ Execution environment: Windows PowerShell,repo venv at `.venv\Scripts\python.exe
 
 ---
 
-## 2. 直接開跑
+## 2. 開跑
 
-**由使用者在自己的終端機執行。不要用排程工作,也不要用 agent 的背景 task。**
+**由 Claude Code 以背景 task 啟動(`run_in_background: true`),不要用排程工作。**
 
-- 排程工作在本專案反覆出事(BelowNormal/EcoQoS、`schtasks /Run` 被砍),使用者已明確排除。
-- Agent 的背景 task 在 2026-07-17 當天被砍過兩次(約 94 分鐘、約 3.5 小時),8–12 小時的無人值守幾乎必死。
+- **排程工作在本專案反覆出事**,使用者已明確排除:`schtasks` 預設 BelowNormal → EcoQoS,以及 `schtasks /Run` 由 tool call 觸發會在數十秒內被砍(`CONTROL_C_EXIT`)。
+- 背景 task 曾在 2026-07-17 被砍過兩次(約 94 分鐘、約 3.5 小時)。**這不是阻礙**:被砍時 agent 會收到 task-notification,直接重跑同一行指令即可;driver 是 cell 級 resume,已完成的 cell 會被 SKIP,最多損失執行中的那一個。只要 session 還在,這就是個自癒迴圈。
 
-先小規模驗證(2 cells,約 30–60 分鐘)。**fit 階段從未在 a0 折上實跑過**,只驗到 manifest,所以先確認這一步:
+**先小規模驗證再放全量。** 本檔的所有 a0 驗證都只到 `--prepare-only`;**fit 階段從未在 a0 折上實跑過**(trap 24)。先跑這個,約 30–60 分鐘:
 
 ```powershell
-Set-Location C:\Users\tonykuo\projects\lead-reproduction
 powershell.exe -NoProfile -ExecutionPolicy Bypass `
   -File .\.scratch\m6_autorun\m6_a0_curve.ps1 -Seeds 42 -MeterBudgets 50
 ```
 
-通過後放全量(30 cells,約 8–12 小時 @ Normal priority,cell 級 resume):
+log 出現兩行 `DONE ... status=completed` 才算通過。通過後放全量(30 cells,約 8–12 小時 @ Normal priority):
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\.scratch\m6_autorun\m6_a0_curve.ps1
 ```
 
-**跑之前關掉 Chrome 等吃記憶體的程式**(見 trap 21)。
+已完成的 cell 會被自動 SKIP,所以驗證用的那 2 個不會重跑。
+
+**跑之前提醒使用者關掉 Chrome 等吃記憶體的程式**(見 trap 21)。
 
 跑完直接產圖:
 
@@ -148,7 +149,7 @@ Observation JSON:`data/processed/m6_seen_vs_unseen.json`(gitignored,但圖可由
 - **Trap 22 — B1 的 NPZ 很大。** 每個約 250 MB;`a0odd`+`a0even` 兩折聯集時必須用 `with np.load(...)` 逐一釋放,否則 OOM(已如此實作)。
 - **Trap 23 — `pytest` 可跑,只是沒宣告。** `uv run --with pytest pytest tests/... -q` 可用。先前的 handoff 寫「tests 未跑」是因為我沒試這條路;**checklist 的 test gate 是跑得起來的,不要再跳過。**
 - **Trap 24 — 只驗到 manifest,fit 階段未驗。** 本檔的所有 a0 驗證都是 `--prepare-only`。fit 階段理論上和 a1/a2 走同一條路,但先跑 §2 的小規模版確認,不要直接放整晚。
-- **Trap 25 — 長時間執行只能由使用者自己的終端機啟動。** 排程工作與 agent 背景 task 在本專案都被證實會中途死掉,見 §2。
+- **Trap 25 — 用背景 task 啟動,不要用排程。** 排程在本專案反覆出事(EcoQoS、`schtasks /Run` 被砍),使用者已排除。背景 task 被砍不是問題:重跑同一行指令,cell 級 resume 會 SKIP 已完成的。見 §2。
 
 ---
 
