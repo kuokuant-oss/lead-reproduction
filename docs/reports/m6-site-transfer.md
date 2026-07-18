@@ -136,6 +136,10 @@ A5 用來解釋 per-site dispersion。例如 site 11 cross-site PR-AUC `0.1485` 
 ### B1：Training-meter learning curve
 
 - 固定 A1 與 A2 的 location split，分別在 source sites 內控制 labeled training meters。
+
+> **協議擴充（2026-07-18，執行後記錄）。** B1 原本只定義在 A1/A2 兩個 site-level splits 上。為建立 seen-site 對照臂，B1 的 direction 集合已擴充為
+> `a1, a2, a0odd, a0even`：後兩者依 `building_id % 2` 互補切分，**train/test 兩側都涵蓋全部 16 sites**，因此 `require_site_disjoint` 對 building 折豁免（a1/a2 仍強制 site-disjoint）。
+> Meter budget、seed grid、stratified nested manifest 與 scoring 契約全部沿用本節既有規則，未修改。此擴充**在 §12.10 的結果產生前寫入程式並凍結**，但仍屬跑模後才補記於協議的變更，依實情標示於此，不追溯宣稱為原始設計。
 - 建議 budgets：`50, 100, 200, 400, all available meters`；若最小 budget 無法維持雙類別，再記錄 unscorable，而不是重抽到成功。
 - Meter unit 定義為 source site 內唯一的 `(building_id, meter)` time series；不得把同一 meter 的 rows 拆成多個抽樣單位。
 - 每個 budget 都必須跨全部 source sites 分層配置：先保證每個 source site 至少取得一個 meter，再依各 site 可用 meter 數按比例配置剩餘名額。整數尾差使用預先定義的 deterministic largest-remainder rule，不因模型結果調整。
@@ -322,7 +326,12 @@ M6 完成 A1+A2+A3 後，才可對 cross-site robustness 下主要結論；per-s
 | A1 full site-transfer runner | [scripts/run_m3_full_site_transfer.py](../../scripts/run_m3_full_site_transfer.py) | Frozen Pipeline 2 |
 | A1 metrics | [data/processed/m3_full_site_transfer.json](../../data/processed/m3_full_site_transfer.json) | pooled/per-site metrics、curves、provenance |
 | M6 split/sampling protocol | [scripts/m6_site_transfer_protocol.py](../../scripts/m6_site_transfer_protocol.py) | A2/A3/A4/A5 masks、B1 frozen meter order、B2 matched anomaly support |
-| M6 additive runner | [scripts/run_m6_site_transfer.py](../../scripts/run_m6_site_transfer.py) | A2/A3/A4/A5/B1/B2；支援 `--prepare-only`。已執行 A2/A3/A5 與部分 B1（見 §12.1） |
+| M6 additive runner | [scripts/run_m6_site_transfer.py](../../scripts/run_m6_site_transfer.py) | A2/A3/A4/A5/B1/B2；支援 `--prepare-only`。已執行 A2/A3/A5/B1/B2（見 §12.1）；`--direction` 含 `a0odd`/`a0even`（見 §4 B1 的協議擴充） |
+| B1 learning-curve 圖 | [scripts/plot_m6_b1_curves.py](../../scripts/plot_m6_b1_curves.py) | `assets/m6/b1-training-meter-curves/`（28 張）；§8 Figure 9 |
+| Seen-vs-unseen 圖 | [scripts/plot_m6_seen_vs_unseen.py](../../scripts/plot_m6_seen_vs_unseen.py) | `assets/m6/seen-vs-unseen/`（16 張）；§12.10 的證據。列對齊 gate 不通過即不出圖 |
+| B2 matched-support 圖 | [scripts/plot_m6_b2_matched_support.py](../../scripts/plot_m6_b2_matched_support.py) | `assets/m6/b2-matched-support/`（1 張）；§12.9 |
+| Site 結構圖 | [scripts/plot_m6_site_structure.py](../../scripts/plot_m6_site_structure.py) | `assets/m6/site-structure/`（3 張）；§12.2、§12.3.1 的 anomaly 集中度 |
+| Seen-vs-unseen observation JSON | `data/processed/m6_seen_vs_unseen.json` | gitignored；由 `plot_m6_seen_vs_unseen.py` 重建，`--reuse` 可直接產圖 |
 | PowerShell suite orchestrator | [scripts/run_m6_site_transfer_suite.ps1](../../scripts/run_m6_site_transfer_suite.ps1) | Manifest-first 執行 A2/A3/A4/A5/B1/B2、source-calibrated variants、oracle pairing 與 plot-data aggregation |
 | A5 paired comparator | [scripts/compare_m6_site_oracle.py](../../scripts/compare_m6_site_oracle.py) | 在相同 oracle-test rows 比較 cross-site 與 in-site oracle |
 | Cross-cell plot-data aggregation | [scripts/aggregate_m6_site_transfer.py](../../scripts/aggregate_m6_site_transfer.py) | 將 metrics、curves、site slices、operating points、learning curves、oracle gaps 與 runtime 攤平為繪圖資料 |
@@ -345,11 +354,16 @@ M6 完成 A1+A2+A3 後，才可對 cross-site robustness 下主要結論；per-s
 | A2 reverse | **完成** | 2（canonical + sourcecal） |
 | A3 four-fold | **完成**，16 sites OOF coverage 100% | 8（四折 × canonical/sourcecal） |
 | A5 in-site oracle | **完成** | 16 + 16 個 paired-oracle 檔案 |
-| B1 learning curve | 執行中 | 9 / 30 |
-| B2 matched support | 未開始 | 0 / 9 |
+| B1 learning curve（a1/a2） | **完成（26 / 30）**，缺 seed 999 的 `m400`/`mall` | 26 |
+| B1 seen-site 折（a0odd/a0even） | **完成** | 30 / 30 |
+| B2 matched support | **完成** | 10 |
 | A4 LOSO | **未執行**（§9 stage gate；見 §12.5 的建議） | 0 |
 
 本節所有數值直接由 `data/processed/` 的 result JSON 讀出並複核，唯 A1 的 per-site 數字取自本報告 §7（A1 無獨立 M6 result JSON）。A5 的兩側比較使用相同 `paired_eval_key_sha256`。
+
+**B1 的 seed 數不足需明說。** §143 要求每個 budget 至少 3 個 frozen seeds。a1/a2 目前只有 seed 42 與 123 跑完全部五個 budgets（seed 999 的 `m400`/`mall` 未跑），故 §12.8 的 a1/a2 曲線是 **2 seeds**，§150 plateau criterion 所要求的「跨 seeds 95% interval 包含 0」**無法評估**，只能評估增量大小。a0odd/a0even 的 3 seeds 完整。補完那 4 個 cell 即可讓 a1/a2 升至協議要求。
+
+**交叉核對（provenance）。** B1 `a1` 在 `mall` 的 per-site PR-AUC 與 §7 的 A1 表逐 site 完全相同（site 1 `0.6504`、site 11 `0.1485`、site 13 `0.5225`、macro `0.7233`）。B1 的滿額 budget 重現了 A1 anchor，未漂移。
 
 ### 12.2 資料集與 per-site 支撐度
 
@@ -407,7 +421,11 @@ Sites 高度不均質，這是後續所有解讀的前提：rows 相差 23 倍�
 
 **（b）target labels 無法恢復：sites 13、10。** 判讀依據是 oracle 的絕對水準只有 0.6686 / 0.6274，為全部可解讀 sites 中最低兩名；其 gap 的模型間符號不穩定，本身即與 0 無異。Site 13 的 oracle 擁有 77 buildings、185,528 fit rows 且零 domain shift，仍停在 0.6686；cross-site 用 3,913,152 fit rows 停在 0.6191。兩個相差 21 倍的資料 regime 收斂到同一水準。內部對照：**site 1 的 oracle 資料比 site 13 更少**（154,576 vs 185,528 fit rows、25 vs 77 buildings）卻達 0.9828，故「資料量不足」無法解釋 sites 13/10。
 
-**（c）Anomalies 非 site-specific：sites 15、6（7 因 buildings < 10 記 unscorable，但落在同一族）。** In-site oracle 在**五個模型上全部**輸給 cross-site，幅度 −0.10 至 −0.17，paired-eval anomalies 有 17,989 / 28,654，非噪音。解讀不是「target labels 有害」，而是 cross-site 模型的 1,000+ buildings 多樣性勝過該 site 自身的 20–60 buildings；這些 sites 的 anomalies 不具 site 特異性，這正是其 cross-site PR 達 0.85–0.91 的原因。**部署意涵：sites 6、15 不應投入 target-site labelling，全域模型嚴格較優。**
+**（c）Sites 15、6：in-site oracle 輸給 cross-site（7 因 buildings < 10 記 unscorable，但落在同一族）。** In-site oracle 在**五個模型上全部**輸給 cross-site，幅度 −0.10 至 −0.17，paired-eval anomalies 有 17,989 / 28,654，非噪音。當時的解讀是 cross-site 模型的 1,000+ buildings 多樣性勝過該 site 自身的 20–60 buildings，並據此推論「這些 sites 的 anomalies 不具 site 特異性」。
+
+> **⚠️ 本段的推論與部署建議已被 §12.10 推翻，保留原文以存證。**
+> 原文的部署意涵為「sites 6、15 不應投入 target-site labelling，全域模型嚴格較優」。§12.10 的 seen-site 臂在**保持 building 多樣性不變**的條件下量到 site 6 `+0.0255`、site 15 `+0.0802`，**兩者皆為正**。
+> 因此負 gap 來自 **oracle 設計丟失 building 多樣性**，不是「anomalies 不具 site 特異性」。正確的陳述是：**把全域模型換成只用該 site 的模型會變差；在全域模型之上加入該 site 的 labels 仍有小幅增益。** 前者才是 A5 測到的東西。
 
 **（d）Unscorable：sites 3、4、12（低 prevalence 餓死 oracle）與 7（buildings < 10）。** 因 fit rows = 4 × train anomalies（§157 的 sampling shape），低 prevalence 的 sites 系統性地讓 oracle 挨餓：site 3（prevalence 0.174%）oracle 只有 5,732 fit rows、site 12（0.468%）只有 2,896。Sites 3、4、12 的 cross-site PR 為 0.88 / 0.76 / 0.999，**本無需此診斷**。Site 11 也記 unscorable，但成因與上述四者不同，見下節。
 
@@ -442,7 +460,9 @@ In-site oracle 以「同 site 的 20–77 buildings」置換「他 site 的 1,03
 - gap 與所有 support 變數的相關性都很弱（|r| < 0.37；gap vs oracle fit rows 僅 **+0.137**，gap vs oracle train buildings 為 **−0.070**），故「負 gap 源自 oracle 資料不足」不成立。
 - 決定性配對：**site 1（25 buildings / 154,576 fit rows）與 site 6（22 buildings / 152,016 fit rows）oracle 訓練規模幾乎相同，gap 卻為 `+0.2622` 與 `−0.1038`，且各自五個模型全部同號。**
 
-因此 §3 表中「Cross-site prediction vs paired in-site oracle」一列的「可回答的問題」應理解為受此限制約束：A5 能回答「使用 target-site labels 可恢復多少表現」，但不能將 gap 拆解為 site-shift 與 building-diversity 兩項。要分離需另設 arm（cross-site 全資料 + target-site 少量 labels），不在 M6 範圍。
+因此 §3 表中「Cross-site prediction vs paired in-site oracle」一列的「可回答的問題」應理解為受此限制約束：A5 能回答「使用 target-site labels 可恢復多少表現」，但不能將 gap 拆解為 site-shift 與 building-diversity 兩項。要分離需另設 arm（cross-site 全資料 + target-site 少量 labels）。
+
+> **更新（2026-07-18）：此限制已解除。** 上段所說的「另設 arm」正是 §12.10 的 seen-site 臂——它在**全部 16 sites 的一半 buildings** 上訓練，故 building 多樣性與 cross-site 臂相當（725 vs 613 buildings），唯一新增的是 target site 的可見性。以該臂取得的 penalty 才是**分離後的 site-identity 項**；A5 的 gap 則是 site-identity 與 building-diversity 兩項的淨和。兩者在 sites 6、15 上符號相反，這正是分離成功的證據（見 §12.10）。
 
 同時，A5 的 oracle 本身亦為 building-held-out 任務，故 sites 13/10 的結論僅能表述為「**目前測過的訓練配置（他 site 資料，或同 site 其他 buildings）皆無法使其超過 0.67**」，不可外推為「frozen contract 無法表達該 site 的 anomalies」——後者需要 within-building 設計，M6 未做。
 
@@ -493,23 +513,98 @@ A3 四折：
 
 八個 test sites 中僅四個達到 0.90 recall 目標，其中 site 8 是以 3.6 倍過度預測換得（115,420 個 false positives，precision `0.258`）。兩個大型 sites（2、14）的 recall 僅 `0.718` / `0.739`。**單一 global threshold 由 source sites 校準後，無法保證任何個別 unseen site 達到目標 recall。** Site 11 的 calibration 子集只有 3 個 anomalies（17,548 rows），支撐度極低。
 
-### 12.8 依 §10 的措辭裁定
+### 12.8 B1：labelling density 未飽和（與 §12.5 的 coverage 飽和相對）
+
+Ensemble macro-site PR-AUC 對 labeled source meters（a1/a2 為 2 seeds，見 §12.1；括號為 seed 的 min–max）：
+
+| Budget | Meters (a1) | a1 macro-PR | 增量 | Meters (a2) | a2 macro-PR | 增量 |
+|---|---:|---:|---:|---:|---:|---:|
+| 50 | 50 | 0.5500 (0.521–0.579) | — | 50 | 0.8006 (0.793–0.808) | — |
+| 100 | 100 | 0.6607 (0.653–0.668) | +0.1107 | 100 | 0.8503 (0.835–0.865) | +0.0497 |
+| 200 | 200 | 0.6761 (0.662–0.690) | +0.0154 | 200 | 0.8293 (0.810–0.848) | −0.0210 |
+| 400 | 400 | 0.6890 (0.687–0.691) | +0.0129 | 400 | 0.8754 (0.873–0.878) | +0.0461 |
+| all | 1,033 | 0.7233 | +0.0342 | 1,347 | 0.8892 | +0.0138 |
+
+**§150 的 plateau criterion 未達成，兩個方向都沒有。** 該條要求連續兩個 budget 的增量皆小於 `0.01`。a1 的增量序列為 `+0.1107, +0.0154, +0.0129, +0.0342`——沒有任何一個小於 0.01，且**最後一段（400 → 1,033 meters）反而是第二大的增量**。a2 為 `+0.0497, −0.0210, +0.0461, +0.0138`，同樣未達標。依 §310，只能描述為：**在本資料與 frozen pipeline 下，labeled meters 增加到全量仍未觀察到 plateau**，不外推為其他 datasets 的 sample complexity。
+
+**這與 §12.5 不矛盾，兩者測的是不同的東西。** §12.5 測「增加 source **sites**」（8 → 12 sites，Δ = `+0.002`，等於零）；本節測「在固定 sites 內增加 labeled **meters**」（50 → 1,033 meters，Δ = `+0.17`）。合起來的結論是可操作的：
+
+> **Site coverage 已飽和，labelling density 沒有。** 要改善 cross-site 表現，增加更多 source sites 買不到東西；把既有 source sites 標得更密則仍在持續獲益，且尚未看到報酬遞減的終點。
+
+a2 在 `m200` 出現 −0.0210 的回退，且該點的 seed 散佈（0.810–0.848）是全表最寬。這是 2 seeds 下的取樣噪音，不足以宣稱非單調；補上 seed 999 後應優先複核此點。
+
+**Per-site：site 11 是唯一隨 labelling 增加而下降的 site**（a1，`0.2570 → 0.1485`，單調遞減，Δ = `−0.1085`）。其餘 15 個 sites 的 Δ 皆為正。這**獨立確認了 §12.3.1** 在 B1 僅完成 9/30 時所下的判定：site 11 的病理不是資料量問題，加再多 labels 只會讓模型更確信 building 1028 的模式，而 test 側幾乎沒有 1028 的 anomalies。
+
+### 12.9 B2：A1/A2 的方向差不是 anomaly support 造成的
+
+§156 的共同下限取 `N_pos = 410,394`（A2 source side 的可用 anomaly rows）。**關鍵的契約事實：A2 的 source anomalies 恰好等於此下限，故 matching 對 A2 是 no-op**——三個 seeds 的 `fit_index_sha256` 完全相同，數值與 canonical 逐位一致。真正被削減的只有 A1，從 `904,080` 砍到 `410,394`（−54.6%）。
+
+| Arm | Source anomalies | Pooled PR | Macro-site PR |
+|---|---:|---:|---:|
+| A1 canonical | 904,080 | 0.6447 | 0.7233 |
+| **A1 matched** | **410,394** | **0.6514** (0.6506–0.6519) | **0.7232** (0.7209–0.7248) |
+| A2 canonical = matched | 410,394 | 0.8954 | 0.8892 |
+
+**把 A1 的 anomaly evidence 砍掉一半以上，macro-site PR 變動 `−0.0001`，pooled PR 甚至微幅上升 `+0.0067`。** 三個 seeds 的散佈（0.7209–0.7248）比這個變動大一個數量級。依 §160，matched-support 未改變 model ranking，也未縮小 A1/A2 gap。
+
+**裁定：§12.12 所列「A2 以 45% 的 source anomalies 取得更高 pooled PR」這個疑點已排除。** 它不是異常——anomaly 數量在 410k–904k 這個區間內對本 pipeline 根本不是有效變因（與 §12.8 並不衝突：B1 變動的是 meter 覆蓋的多樣性，B2 變動的是同一批 meters 上重複的 anomaly rows 數量）。A1/A2 的方向差因此**必須**由 test 側組成解釋，這正是 §12.6 已指出的 prevalence confound（3.601% vs 10.252%）。
+
+B2 隔離了兩個 blocker 中的一個。**prevalence confound 仍未解**，故 §306 的措辭依然未獲授權——但理由現在只剩一個，且該理由是設計上的不可比，不是缺資料。
+
+### 12.10 Seen vs unseen：分離後的 unseen-site penalty
+
+**設計。** unseen 臂直接取 B1 的 per-site 輸出，未重算、未取子集——就是 B1 的曲線。seen 臂把 `a0odd` 與 `a0even` 兩折的預測聯集，使每棟 building 都由一個沒有訓練過它的模型預測，因此 seen 臂覆蓋**整個 site**，與 unseen 臂比較的是**同一批列**。列對齊為硬性 gate：16 個 sites 的 `n_rows` 與 `n_anomalies` 與 B1 的 slice 全等（0 個 mismatch），否則不出圖。
+
+seen 臂 train 於 16 sites / 725 buildings，unseen 臂（a1）train 於 8 sites / 613 buildings。**兩者 building 多樣性相當（+18%），差別在 target site 是否可見。** 額外的 site 覆蓋依 §12.5 值約 `+0.002`，可忽略；此即本設計得以把 site-identity 與 building-diversity 分離的依據，也是 §12.4 原先聲明做不到的那件事。
+
+滿額 labelling（`mall`）下的 per-site penalty = seen − unseen：
+
+| Site | seen | unseen | penalty | | Site | seen | unseen | penalty |
+|---:|---:|---:|---:|---|---:|---:|---:|---:|
+| **1** | 0.9722 | 0.6504 | **+0.3218** | | 10 | 0.7996 | 0.7710 | +0.0286 |
+| 14 | 0.8962 | 0.8150 | +0.0812 | | 6 | 0.9010 | 0.8755 | +0.0255 |
+| 15 | 0.8642 | 0.7840 | +0.0802 | | 5 | 0.9970 | 0.9819 | +0.0152 |
+| 8 | 0.9465 | 0.8725 | +0.0740 | | 0 | 0.9992 | 0.9991 | +0.0001 |
+| 13 | 0.5934 | 0.5225 | +0.0709 | | 12 | 0.9980 | 0.9983 | −0.0002 |
+| 2 | 0.8543 | 0.7932 | +0.0610 | | 4 | 0.9877 | 0.9889 | −0.0012 |
+| 9 | 0.9842 | 0.9331 | +0.0512 | | 7 | 0.8928 | 0.9221 | −0.0293 |
+| 11 | 0.1822 | 0.1485 | +0.0337 | | 3 | 0.8077 | 0.8437 | −0.0361 |
+
+**平均 penalty = `+0.0485`；中位數約 `+0.04`；四個 sites 為負且皆在噪音範圍內。**
+
+**（a）Unseen-site penalty 整體很小，但極度集中。** 16 個 sites 裡有 15 個的 penalty 在 `−0.04` 到 `+0.09` 之間；site 1 一個站就是 `+0.3218`，是次高者的 4 倍。「看過這個 site」平均只值 0.05 PR-AUC——**除了 site 1**。
+
+**（b）Site 1 由兩個獨立設計確認，site 2 則明顯減弱。** Site 1：A5 的 paired oracle 給 `+0.2622`，本設計給 `+0.3218`；兩者資料切法、訓練集、評估列都不同，卻指向同一結論，§12.3(a) 的判定**成立且加強**。
+
+**但 site 2 不然**：A5 給 `+0.1632`，本設計只給 `+0.0610`，掉了近三分之二。§12.3(a) 把 sites 1、2 並列為「可由 target-site labels 恢復的 unseen-site penalty」，在 building 多樣性受控後，**只有 site 1 仍是強證據**。Site 2 的 A5 gap 有相當部分來自 oracle 專注於單一 site 的特化（其 oracle 有 68 buildings，是可解讀 sites 中第二多），而非 site 身分本身。**建議：site 2 降級為中等證據，不與 site 1 並列引用。** 兩者差 5 倍。
+
+**（c）Sites 13、10 確認為「target labels 無法恢復」。** penalty 僅 `+0.0709` / `+0.0286`，而 unseen 絕對值是全場最低的兩名（0.5225 / 0.7710）。看過這兩個 site 幾乎不改善它們——與 §12.3(b) 由 oracle 絕對水準得到的結論一致，且本設計不受 §12.4 的限制約束，故該結論現在站得更穩。
+
+**（d）Sites 6、15 的符號翻轉，推翻 §12.3(c)。** A5 gap 為 `−0.1038` / `−0.1478`（負），本設計為 `+0.0255` / `+0.0802`（正）。差別只有一項：A5 的 oracle **只**用該 site 的 20–60 buildings，本設計的 seen 臂保留全部 725 buildings 再加上該 site。**因此負號來自丟失 building 多樣性，不是 anomalies 缺乏 site 特異性。** §12.3(c) 的部署建議（「不應投入 target-site labelling」）據此撤回，改為：**target-site labels 應加在全域模型之上，不可用來取代全域模型。**
+
+**（e）Penalty 隨 labelling 密度擴大。** 8 個重疊 sites 的 macro penalty 依 budget 為 `+0.056 / −0.005 / +0.024 / +0.043 / +0.049`（m50 → mall）。低標註量下 seen 與 unseen 幾乎無異——資料太少時，看不看過這個 site 都一樣差；標得越密，看過 site 的優勢才顯現。這與 §12.8 的未飽和結論一致：**兩條線都還在爬，seen 那條爬得快一點。**
+
+### 12.11 依 §10 的措辭裁定
 
 **已獲授權：**
 
-- Sites 1、2：`該 site 存在可由 target-site labels 恢復的 unseen-site penalty`（§309），並依該條同報 paired oracle gap。
-- Sites 13、10：`該 site 在 frozen feature/model contract 下本質較難，不能把全部落差歸因為 unseen-site shift`（§308），但受 §12.4 的表述限制約束。
+- Site 1：`該 site 存在可由 target-site labels 恢復的 unseen-site penalty`（§309），並依該條同報 paired oracle gap。**已由 §12.10 的獨立設計二次確認（`+0.3218` vs A5 的 `+0.2622`）。**
+- Site 2：**授權降級為中等證據**。§12.10 在 building 多樣性受控下只量到 `+0.0610`（A5 為 `+0.1632`），故可引用該措辭但**必須同報兩個設計的數值**，且不得與 site 1 並列為同等強度。
+- Sites 13、10：`該 site 在 frozen feature/model contract 下本質較難，不能把全部落差歸因為 unseen-site shift`（§308）。**§12.4 的表述限制已由 §12.10 解除**：seen 臂在 building 多樣性受控下量到的 penalty 僅 `+0.0709` / `+0.0286`，故此判定不再依賴 A5 的混淆量。
+- **（新）B1 的 meter-budget 描述性結論**（§310）：`在本資料與 frozen pipeline 下，labeled meters 增加至全量仍未出現 plateau`。依 §310 僅作描述，不外推。**注意 §150 的 plateau criterion 是「未達成」，不是「已達成 plateau」——不可反向引用為飽和證據。**
 
 **未獲授權：**
 
-- `在全部 16 sites 的 grouped out-of-fold evaluation 下具有穩定 cross-site generalization`（§307）——該條要求 site dispersion 可接受，而 fold 3 的 macro-site PR min 為 `0.2349`，不可接受。
-- `在兩個互補 50/50 site directions 下方向一致`（§306）——A1/A2 的 prevalence confound（§12.6）未解，且 A2 的 source anomalies（410,394）僅為 A1（904,080）的 45%，該變因須待 B2 隔離。
-- Sites 3、4、7、11、12 的任何 A5 本質性結論——unscorable。
+- `在全部 16 sites 的 grouped out-of-fold evaluation 下具有穩定 cross-site generalization`（§307）——該條要求 site dispersion 可接受，而 fold 3 的 macro-site PR min 為 `0.2349`，不可接受。**§12.10 未改變此裁定**：unseen 臂的 site 11（`0.1485`）、site 13（`0.5225`）仍在不可接受區間。
+- `在兩個互補 50/50 site directions 下方向一致`（§306）——**B2 已排除 anomaly-support 這一項變因**（§12.9：A1 砍半後 macro PR 變動 `−0.0001`），但 §12.6 的 prevalence confound（3.601% vs 10.252%）未解，故仍未獲授權。**剩餘障礙是設計上的不可比，不是缺資料**；A1/A2 在不同 test 側 prevalence 下的 pooled PR 無論如何正規化都不可識別，此條可能永遠無法在 50/50 設計內獲授權。
+- Sites 3、4、7、11、12 的任何 A5 本質性結論——unscorable。**但 sites 6、15 的 A5 結論已被 §12.10 推翻**（見 §12.3(c) 的撤回聲明），不屬 unscorable，屬**已知錯誤**。
 - `cross-country transfer validated`（§311）——C1 未執行。
 
-### 12.9 尚未回答
+### 12.12 尚未回答
 
-- **B1/B2 未完成**：B1 執行中（9/30），B2 未開始。A2 以 410,394 個 source anomalies 取得高於 A1（904,080）的 raw pooled PR，此變因至今未隔離，是 §12.6 中 A1/A2 方向比較無法定案的直接原因。
-- ~~**Site 11 成因未知**~~ — **已解決**，見 §12.3.1：92.2% 的 anomalies 集中在單一 building 1028，屬 building 級退化案例，非 site 級難度。
-- **Sites 13/10 的失敗層級未定**：§12.4 已說明 A5 無法區分 site-level 與 building-level 的困難；within-building 設計不在 M6 範圍。
-- **Aggregate 未產出**：`data/processed/m6_site_transfer_plot_data.json` 待 B1/B2 完成後由 `scripts/aggregate_m6_site_transfer.py` 產生；§8 的 Figure 1–10 尚未繪製。
+- ~~**B1/B2 未完成**~~ — **已解決**。B2 見 §12.9：A2 以 45% 的 source anomalies 取得更高 pooled PR 並非異常，anomaly 數量在 410k–904k 區間內對本 pipeline 不是有效變因。B1 見 §12.8。
+- ~~**Site 11 成因未知**~~ — **已解決**，見 §12.3.1：92.2% 的 anomalies 集中在單一 building 1028，屬 building 級退化案例，非 site 級難度。**§12.8 的 per-site 曲線獨立確認**：site 11 是 16 個 sites 中唯一隨 labelling 增加而下降者。
+- ~~**Sites 13/10 的失敗層級未定**~~ — **部分解決**。§12.10 在 building 多樣性受控下量到 penalty 僅 `+0.07` / `+0.03`，故「看過該 site」不是其失敗主因。**但仍未定的是 within-building 層級**：seen 臂的訓練仍來自其他 buildings，故無法排除「困難出在 building 之間」；此需 within-building 設計，不在 M6 範圍。
+- **A1/A2 方向比較仍無法定案**：B2 已排除 anomaly support（§12.9），但 §12.6 的 test-side prevalence confound 無解於 50/50 設計內。若需定案，須改為對兩方向使用**共同 test 集**的設計。
+- **B1 的 a1/a2 僅 2 seeds**：缺 seed 999 的 `m400`/`mall`（4 cells）。不影響 §12.8 的定性結論（增量遠大於 seed 散佈），但 §150 的 95% interval 條件在補完前無法評估。
+- **Aggregate 未產出**：`data/processed/m6_site_transfer_plot_data.json` 尚未由 `scripts/aggregate_m6_site_transfer.py` 產生；§8 的 Figure 1–8、10 尚未繪製。**Figure 9（learning curves）已產出**，見 §11 的圖檔索引。
