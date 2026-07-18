@@ -43,6 +43,14 @@ MUTED = "#898781"
 GRID = "#e1e0d9"
 AXIS = "#c3c2b7"
 
+# Arm colors. Both arms are the same model (Tree Ensemble), so this is a
+# deliberate departure from plot-style-rules v0.3 §6/§7.2 (which encode the arm
+# by linestyle and keep colour for model identity): the seen/unseen arms are
+# distinguished by colour here, both drawn solid, at the owner's request. The
+# legend labels ("B1"/"A0") disambiguate so neither reads as a different model.
+UNSEEN_COLOR = "#2a78d6"  # site unseen (B1)
+SEEN_COLOR = "#e07a00"  # site seen (A0, two folds unioned)
+
 BUDGETS = ("50", "100", "200", "400", "all")
 SEEDS = (42, 123, 999)
 FOLDS = ("a0odd", "a0even")
@@ -202,17 +210,24 @@ def _complete_seeds(rows: list[dict[str, Any]]) -> tuple[int, ...]:
     )
 
 
-def _curve(rows: list[dict[str, Any]], key: str, seeds: tuple[int, ...]):
+def _curve(rows: list[dict[str, Any]], key: str, seeds: tuple[int, ...], all_x: int):
+    """x is the meter budget: real counts for 50-400 (identical across arms),
+    and a shared position `all_x` for the 'all' budget, whose true pool size
+    differs by arm (site split 1,347 vs building split 1,196) and so cannot
+    share a real meter x. The two 'all' points are the same budget level, so
+    they align here; the exact pool sizes live in the report."""
     xs, ys = [], []
-    for m in sorted({r["meters"] for r in rows if r["seed"] in seeds}):
-        vals = [r[key] for r in rows if r["meters"] == m and r["seed"] in seeds]
+    for b in BUDGETS:
+        vals = [r[key] for r in rows if r["budget"] == b and r["seed"] in seeds]
         if vals:
-            xs.append(m)
+            xs.append(all_x if b == "all" else int(b))
             ys.append(float(np.mean(vals)))
     return xs, ys
 
 
-def render_site(data: dict[str, Any], site: int, out_dir: Path, xlim) -> Path:
+def render_site(
+    data: dict[str, Any], site: int, out_dir: Path, xlim, all_x: int
+) -> Path:
     unseen = data["unseen_by_site"][str(site)]
     seen = data["seen_by_site"].get(str(site), [])
     direction = SITE_DIRECTION[site]
@@ -225,25 +240,37 @@ def render_site(data: dict[str, Any], site: int, out_dir: Path, xlim) -> Path:
     fig, axes = plt.subplots(1, 3, figsize=(10.7, 6.2), sharex=True, sharey=True)
     fig.patch.set_facecolor(SURFACE)
 
-    ticks = sorted({r["meters"] for r in unseen if r["seed"] in u_seeds})
+    present = [
+        b
+        for b in BUDGETS
+        if any(r["budget"] == b and r["seed"] in u_seeds for r in unseen)
+    ]
+    ticks = [all_x if b == "all" else int(b) for b in present]
     for idx, (ax, metric) in enumerate(zip(axes, METRICS, strict=True)):
         _style_axis(ax)
         k = metric["key"]
 
         if s_seeds:
-            xs, ys = _curve(seen, k, s_seeds)
+            xs, ys = _curve(seen, k, s_seeds, all_x)
             ax.plot(
                 xs,
                 ys,
-                color=INK,
+                color=SEEN_COLOR,
                 marker="p",
                 markersize=4.2,
                 linewidth=1.35,
-                linestyle=(0, (5, 3)),
                 zorder=2,
             )
-        xs, ys = _curve(unseen, k, u_seeds)
-        ax.plot(xs, ys, color=INK, marker="p", markersize=4.2, linewidth=1.35, zorder=3)
+        xs, ys = _curve(unseen, k, u_seeds, all_x)
+        ax.plot(
+            xs,
+            ys,
+            color=UNSEEN_COLOR,
+            marker="p",
+            markersize=4.2,
+            linewidth=1.35,
+            zorder=3,
+        )
 
         ax.set_title(
             metric["panel"],
@@ -255,9 +282,7 @@ def render_site(data: dict[str, Any], site: int, out_dir: Path, xlim) -> Path:
         )
         ax.set_xscale("log")
         ax.set_xticks(ticks)
-        ax.set_xticklabels(
-            [f"{m:,}\n(all)" if m == ticks[-1] else f"{m:,}" for m in ticks]
-        )
+        ax.set_xticklabels(["all" if m == all_x else f"{m:,}" for m in ticks])
         ax.minorticks_off()
         ax.set_xlim(*xlim)
         ax.set_ylim(0.0, 1.04)
@@ -329,7 +354,7 @@ def render_site(data: dict[str, Any], site: int, out_dir: Path, xlim) -> Path:
         plt.Line2D(
             [],
             [],
-            color=INK,
+            color=UNSEEN_COLOR,
             marker="p",
             markersize=4.2,
             linewidth=1.35,
@@ -338,11 +363,10 @@ def render_site(data: dict[str, Any], site: int, out_dir: Path, xlim) -> Path:
         plt.Line2D(
             [],
             [],
-            color=INK,
+            color=SEEN_COLOR,
             marker="p",
             markersize=4.2,
             linewidth=1.35,
-            linestyle=(0, (5, 3)),
             label="Site seen (A0, two folds unioned)",
         ),
     ]
@@ -367,7 +391,9 @@ def render_site(data: dict[str, Any], site: int, out_dir: Path, xlim) -> Path:
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument(
-        "--out-dir", type=Path, default=ROOT / "docs" / "reports" / "assets" / "m6"
+        "--out-dir",
+        type=Path,
+        default=ROOT / "docs" / "reports" / "assets" / "m6" / "seen-vs-unseen",
     )
     p.add_argument(
         "--reuse", action="store_true", help="plot from the existing observation JSON"
@@ -384,10 +410,17 @@ def main() -> None:
         OBSERVATION.write_text(json.dumps(data, indent=2), encoding="utf-8")
         print(f"wrote {OBSERVATION.relative_to(ROOT)}")
 
-    meters = [r["meters"] for rows in data["unseen_by_site"].values() for r in rows]
-    xlim = (min(meters) * 0.85, max(meters) * 1.18)
+    all_x = max(
+        r["meters"]
+        for arm in ("unseen_by_site", "seen_by_site")
+        for rows in data[arm].values()
+        for r in rows
+        if r["budget"] == "all"
+    )
+    reals = [int(b) for b in BUDGETS if b != "all"]
+    xlim = (min(reals) * 0.85, all_x * 1.18)
     for site in sorted(int(s) for s in data["unseen_by_site"]):
-        path = render_site(data, site, args.out_dir, xlim)
+        path = render_site(data, site, args.out_dir, xlim, all_x)
         print(f"wrote {path.relative_to(ROOT)}")
 
 

@@ -385,7 +385,9 @@ def render_scatter(data: dict, path: Path) -> Path:
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument(
-        "--out-dir", type=Path, default=ROOT / "docs" / "reports" / "assets" / "m6"
+        "--out-dir",
+        type=Path,
+        default=ROOT / "docs" / "reports" / "assets" / "m6" / "site-structure",
     )
     p.add_argument(
         "--reuse", action="store_true", help="plot from the existing observation JSON"

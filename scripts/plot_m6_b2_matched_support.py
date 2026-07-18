@@ -233,7 +233,9 @@ def render(out_dir: Path) -> Path:
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument(
-        "--out-dir", type=Path, default=ROOT / "docs" / "reports" / "assets" / "m6"
+        "--out-dir",
+        type=Path,
+        default=ROOT / "docs" / "reports" / "assets" / "m6" / "b2-matched-support",
     )
     return p.parse_args()
 

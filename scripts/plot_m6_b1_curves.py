@@ -528,7 +528,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--out-dir",
         type=Path,
-        default=ROOT / "docs" / "reports" / "assets" / "m6",
+        default=ROOT
+        / "docs"
+        / "reports"
+        / "assets"
+        / "m6"
+        / "b1-training-meter-curves",
         help="directory for rendered PNGs",
     )
     return parser.parse_args()
