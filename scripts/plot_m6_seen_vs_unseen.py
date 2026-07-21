@@ -17,6 +17,7 @@ rows, and differ only in whether the site was in training.
 Style contract: docs/reference/plot-style-rules.md v0.3.
 Source artifacts: data/processed/m6_site_transfer_b1_{a1,a2,a0odd,a0even}_*.json
                   and their _predictions.npz
+                  data/processed/m6_tabpfn_b1_{a1,a2}_*_context{10000,100000}.json
 """
 
 from __future__ import annotations
@@ -50,6 +51,19 @@ AXIS = "#c3c2b7"
 # legend labels ("B1"/"A0") disambiguate so neither reads as a different model.
 UNSEEN_COLOR = "#2a78d6"  # site unseen (B1)
 SEEN_COLOR = "#e07a00"  # site seen (A0, two folds unioned)
+TABPFN_COLOR = "#6f4aa8"
+TABPFN_CONTEXT_STYLES = {
+    "10000": {
+        "label": "TabPFN trained on 10,000 rows; site excluded",
+        "linestyle": "-",
+        "marker": "o",
+    },
+    "100000": {
+        "label": "TabPFN trained on 100,000 rows; site excluded",
+        "linestyle": "-",
+        "marker": "D",
+    },
+}
 
 BUDGETS = ("50", "100", "200", "400", "all")
 SEEDS = (42, 123, 999)
@@ -59,10 +73,6 @@ OBSERVATION = PROC / "m6_seen_vs_unseen.json"
 SITE_DIRECTION = {
     **{s: "a1" for s in (1, 3, 5, 7, 9, 11, 13, 15)},
     **{s: "a2" for s in (0, 2, 4, 6, 8, 10, 12, 14)},
-}
-FLOW = {
-    "a1": "Unseen arm trains on even sites, tests on odd sites",
-    "a2": "Unseen arm trains on odd sites, tests on even sites",
 }
 METRICS = (
     {"key": "pr_auc", "panel": "PR-AUC (threshold-free)"},
@@ -89,6 +99,68 @@ def _score(y: np.ndarray, p: np.ndarray) -> dict[str, float]:
         "recall": float(rec),
         "f1": float(f1),
     }
+
+
+def observe_tabpfn() -> dict[str, dict[str, list[dict[str, Any]]]]:
+    """Read only completed full-site TabPFN cells; partial chunks never plot."""
+    by_context: dict[str, dict[str, list[dict[str, Any]]]] = {}
+    expected = {
+        "1": {"rows": 553_357, "anomalies": 77_779},
+        "8": {"rows": 567_915, "anomalies": 43_504},
+    }
+    for context_rows in TABPFN_CONTEXT_STYLES:
+        context_sites: dict[str, list[dict[str, Any]]] = {}
+        for direction, site in (("a1", 1), ("a2", 8)):
+            sid = str(site)
+            for budget in BUDGETS:
+                for seed in SEEDS:
+                    stem = (
+                        f"m6_tabpfn_b1_{direction}_meters{budget}_seed{seed}"
+                        f"_context{context_rows}"
+                    )
+                    payload = _load(stem)
+                    if not payload:
+                        continue
+                    if int(payload.get("target_site", -1)) != site:
+                        raise SystemExit(f"{stem}: target site drift")
+                    query = payload["query"]
+                    want = expected[sid]
+                    if (
+                        int(query["rows"]) != want["rows"]
+                        or int(query["anomalies"]) != want["anomalies"]
+                    ):
+                        raise SystemExit(
+                            f"{stem}: TabPFN full-site support drifted from "
+                            f"{want['rows']:,} / {want['anomalies']:,}"
+                        )
+                    metric = payload["metrics"]["tabpfn"]
+                    threshold = metric["threshold_0_5"]
+                    context_sites.setdefault(sid, []).append(
+                        {
+                            "pr_auc": float(metric["pr_auc"]),
+                            "f1": float(threshold["f1"]),
+                            "recall": float(threshold["recall"]),
+                            "precision": float(threshold["precision"]),
+                            "budget": budget,
+                            "seed": seed,
+                            "meters": (
+                                int(payload["context"].get("selected_meters", budget))
+                                if budget != "all"
+                                else int(
+                                    payload["context"].get(
+                                        "available_meters",
+                                        payload["context"].get("selected_meters", 0),
+                                    )
+                                )
+                            ),
+                            "n_rows": int(query["rows"]),
+                            "n_anomalies": int(query["anomalies"]),
+                            "anomaly_rate": float(query["anomalies"] / query["rows"]),
+                            "context_rows": int(payload["context"]["context_rows"]),
+                        }
+                    )
+        by_context[context_rows] = context_sites
+    return by_context
 
 
 def observe() -> dict[str, Any]:
@@ -187,6 +259,7 @@ def observe() -> dict[str, Any]:
         ),
         "unseen_by_site": unseen,
         "seen_by_site": seen,
+        "tabpfn_unseen_by_context": observe_tabpfn(),
     }
 
 
@@ -225,13 +298,43 @@ def _curve(rows: list[dict[str, Any]], key: str, seeds: tuple[int, ...], all_x: 
     return xs, ys
 
 
+def _available_curve(
+    rows: list[dict[str, Any]], key: str, all_x: int
+) -> tuple[list[int], list[float], list[int]]:
+    """Plot completed full-site budget points; partial query chunks stay excluded."""
+    xs, ys, counts = [], [], []
+    for budget in BUDGETS:
+        values = [float(row[key]) for row in rows if row["budget"] == budget]
+        if not values:
+            continue
+        xs.append(all_x if budget == "all" else int(budget))
+        ys.append(float(np.mean(values)))
+        counts.append(len(values))
+    return xs, ys, counts
+
+
+def _complete_tabpfn_seeds(rows: list[dict[str, Any]]) -> tuple[int, ...]:
+    """A TabPFN seed is plottable only after all five budgets complete."""
+    return tuple(
+        seed
+        for seed in SEEDS
+        if all(
+            any(row["seed"] == seed and row["budget"] == budget for row in rows)
+            for budget in BUDGETS
+        )
+    )
+
+
 def render_site(
     data: dict[str, Any], site: int, out_dir: Path, xlim, all_x: int
 ) -> Path:
     unseen = data["unseen_by_site"][str(site)]
     seen = data["seen_by_site"].get(str(site), [])
-    direction = SITE_DIRECTION[site]
-
+    source_parity = "even-numbered" if SITE_DIRECTION[site] == "a1" else "odd-numbered"
+    tabpfn_by_context = {
+        context: sites.get(str(site), [])
+        for context, sites in data.get("tabpfn_unseen_by_context", {}).items()
+    }
     u_seeds = _complete_seeds(unseen)
     s_seeds = _complete_seeds(seen) if seen else ()
     if not u_seeds:
@@ -271,6 +374,21 @@ def render_site(
             linewidth=1.35,
             zorder=3,
         )
+        for context, rows in tabpfn_by_context.items():
+            if not rows:
+                continue
+            style = TABPFN_CONTEXT_STYLES[context]
+            tx, ty, _seed_counts = _available_curve(rows, k, all_x)
+            ax.plot(
+                tx,
+                ty,
+                color=TABPFN_COLOR,
+                linestyle=style["linestyle"],
+                marker=style["marker"],
+                markersize=4.5,
+                linewidth=1.45,
+                zorder=4,
+            )
 
         ax.set_title(
             metric["panel"],
@@ -300,36 +418,22 @@ def render_site(
         fontweight="bold",
         color=INK,
     )
-    # Subtitle width budget: canvas 10.7in, text starts at 0.59in, ~9.96in
-    # usable. At 10pt that is ~130 characters, at 9pt ~145. Stay under it.
+    subtitle_lines = [
+        f"All models are scored on every row at this site: {base['n_rows']:,} rows, "
+        f"{base['anomaly_rate']:.2%} anomalies.",
+        f"Tree models use every row from selected meters. Blue trains on "
+        f"{source_parity} sites; orange includes this site but holds out buildings.",
+        "Purple TabPFN samples 10,000 rows from the same selected meters, fits once, "
+        "then predicts this site in 4,000-row batches.",
+    ]
     fig.text(
         0.055,
-        0.897,
-        "How much worse a model that never saw this site is than one that has.",
+        0.905,
+        "\n".join(subtitle_lines),
         ha="left",
-        fontsize=10.5,
-        color=SECONDARY,
-    )
-    fig.text(
-        0.055,
-        0.866,
-        f"{FLOW[direction]}. Tree Ensemble, {len(u_seeds)} seeds.",
-        ha="left",
-        fontsize=10,
-        color=SECONDARY,
-    )
-    seen_note = (
-        f"Seen arm: A0's two building folds unioned, {len(s_seeds)} seeds."
-        if s_seeds
-        else "Seen arm not yet run."
-    )
-    fig.text(
-        0.055,
-        0.840,
-        f"{seen_note} Both on this site's {base['n_rows']:,} rows "
-        f"({base['anomaly_rate']:.2%} anomalies).",
-        ha="left",
-        fontsize=9,
+        va="top",
+        fontsize=9.5,
+        linespacing=1.5,
         color=SECONDARY,
     )
     fig.text(
@@ -358,7 +462,7 @@ def render_site(
             marker="p",
             markersize=4.2,
             linewidth=1.35,
-            label="Site unseen (B1)",
+            label="Tree model; training excluded this site",
         ),
         plt.Line2D(
             [],
@@ -367,19 +471,35 @@ def render_site(
             marker="p",
             markersize=4.2,
             linewidth=1.35,
-            label="Site seen (A0, two folds unioned)",
+            label="Tree model; training included this site",
         ),
     ]
+    for context, rows in tabpfn_by_context.items():
+        if not rows:
+            continue
+        style = TABPFN_CONTEXT_STYLES[context]
+        handles.append(
+            plt.Line2D(
+                [],
+                [],
+                color=TABPFN_COLOR,
+                linestyle=style["linestyle"],
+                marker=style["marker"],
+                markersize=4.5,
+                linewidth=1.45,
+                label=style["label"],
+            )
+        )
     fig.legend(
         handles=handles,
         loc="lower center",
         bbox_to_anchor=(0.5, 0.008),
-        ncol=2,
+        ncol=min(4, len(handles)),
         frameon=False,
         fontsize=9.5,
         labelcolor=SECONDARY,
     )
-    fig.subplots_adjust(left=0.075, right=0.985, top=0.766, bottom=0.169, wspace=0.07)
+    fig.subplots_adjust(left=0.075, right=0.985, top=0.720, bottom=0.169, wspace=0.07)
 
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / f"m6_seen_vs_unseen_site_{site}_pr_auc_f1_recall.png"
@@ -398,6 +518,12 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--reuse", action="store_true", help="plot from the existing observation JSON"
     )
+    p.add_argument(
+        "--sites",
+        type=int,
+        nargs="+",
+        help="Render only these site IDs. Defaults to every observed site.",
+    )
     return p.parse_args()
 
 
@@ -405,6 +531,8 @@ def main() -> None:
     args = parse_args()
     if args.reuse and OBSERVATION.exists():
         data = json.loads(OBSERVATION.read_text(encoding="utf-8"))
+        data["tabpfn_unseen_by_context"] = observe_tabpfn()
+        OBSERVATION.write_text(json.dumps(data, indent=2), encoding="utf-8")
     else:
         data = observe()
         OBSERVATION.write_text(json.dumps(data, indent=2), encoding="utf-8")
@@ -419,7 +547,14 @@ def main() -> None:
     )
     reals = [int(b) for b in BUDGETS if b != "all"]
     xlim = (min(reals) * 0.85, all_x * 1.18)
-    for site in sorted(int(s) for s in data["unseen_by_site"]):
+    sites = (
+        sorted(args.sites)
+        if args.sites
+        else sorted(int(s) for s in data["unseen_by_site"])
+    )
+    for site in sites:
+        if str(site) not in data["unseen_by_site"]:
+            raise SystemExit(f"site {site}: no unseen B1 observations")
         path = render_site(data, site, args.out_dir, xlim, all_x)
         print(f"wrote {path.relative_to(ROOT)}")
 

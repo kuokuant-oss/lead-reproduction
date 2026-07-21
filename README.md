@@ -15,7 +15,7 @@
 | --- | --- | --- | --- |
 | **M1** | 閱讀 paper 與 buds-lab code，建立 unknowns register 與 ADR framework | Closed | 17 個 unknowns、ADR 0001-0006、169-feature 組成釐清 |
 | **M2** | LEAD competition subset reproduction | Closed | Kaggle Private AUC `0.98616`，與原始解法 `0.98661` 的差距為 `0.05%` |
-| **M3** | Full ASHRAE GEPIII reproduction | Complete | M3.4 ensemble AUC `0.9934`；PI 50/50 ensemble offline `0.9918` / causal `0.9913`；value-change canonical regime 為 `timestamp_merge`；post-processing 為 null result |
+| **M3** | Full ASHRAE GEPIII reproduction | Complete | M3.4 ensemble AUC `0.9934`；PI 50/50 ensemble offline `0.9918` / causal `0.9913`；50/50 獨立報告圖表與 model-consensus importance 已完成；value-change canonical regime 為 `timestamp_merge` |
 | **M4** | Importable pipeline foundation | M4.0-M4.5 complete | `src/lead` public API frozen; M3.2/M3.4 regression gates pass; M4.2-M4.5 closed |
 | **M5** | GEPIII FDD model comparison | Complete | TabPFN 在小樣本（support `100`-`2,000`）PR-AUC 領先、為小樣本強基準；full-feature in-domain 六模型接近；完整 fit budget、site-transfer 與 M5.x 切分粒度下皆由 tree family 領先 |
 
@@ -41,6 +41,7 @@ M1 不訓練模型，目標是把論文與原始碼中的關鍵決策變成可�
 - `docs/adr/`：目前共有 27 份 ADR；M1 產出 ADR 0001-0006。
 - `docs/reference/paper-notes.md`：paper structured summary。
 - `docs/reference/feature-engineering-rules.md`：feature 與 model 規則整理。
+- `docs/reference/plot-style-rules.md`：研究圖、模型比較圖與 EDA 的統一作圖規範。
 
 ### M2 LEAD subset reproduction
 
@@ -67,8 +68,10 @@ M3 從 ASHRAE GEPIII raw CSV 重建 feature engineering pipeline，使用 buildi
 - M3.5 hard-rule post-processing delta：`-0.000054`，判定為 null result。
 - PI 50/50 ensemble offline AUC：`0.9918`
 - PI 50/50 ensemble causal AUC：`0.9913`
+- 50/50 offline ensemble PR-AUC：`0.9303`；threshold `0.5` recall：`0.9483`。
+- 四模型／ensemble permutation importance 與三組 targeted ablation 已完成；三組候選皆不符合安全移除條件，canonical 137-feature set 保持不變。
 
-上述 value-change 數字皆使用 `timestamp_merge`，也就是 buds-lab 原作 timestamp join 的忠實版；`row_offset` / `row_offset_meter_aware` 保留為歷史 ablation。詳細結果見 [docs/reports/m3-report.md](./docs/reports/m3-report.md)。Machine-readable provenance 放在 `docs/metrics/`。
+上述 value-change 數字皆使用 `timestamp_merge`，也就是 buds-lab 原作 timestamp join 的忠實版；`row_offset` / `row_offset_meter_aware` 保留為歷史 ablation。獨立圖表、圖說與 feature-removal 檢查見 [docs/reports/m3-report.md](./docs/reports/m3-report.md)，圖表 provenance 見 [docs/metrics/m3-figures.json](./docs/metrics/m3-figures.json)。
 
 ### M4 Importable Pipeline Foundation
 
@@ -174,6 +177,7 @@ docs/
 │   ├── unknowns.md
 │   ├── paper-notes.md
 │   ├── feature-engineering-rules.md
+│   ├── plot-style-rules.md
 │   ├── papers/
 │   │   └── bdg2-miller-2020.md
 │   └── notebooks-map.md

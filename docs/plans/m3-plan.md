@@ -256,10 +256,26 @@ trees and took ~3.6 min in the local environment.
 + [x] Rule 2a EDA documented as N/A for M3: Jan-1 has 467 rows, 101 anomalies, 70 anomalous buildings
 + [x] Post-processing Delta AUC recorded as null/negative: combined Delta AUC -0.000054
 + [x] Review-gate diagnostics added: label-shuffle, site-held-out ensemble, per-meter AUC, value-change gap
-+ [x] PI-spec 50/50 ensemble follow-up complete: offline AUC 0.9921, causal AUC 0.9911
++ [x] PI-spec 50/50 ensemble follow-up complete: offline AUC 0.9918, causal AUC 0.9913
 + [x] Final review decision for issue #17: close as documented null result
 
 **Depends on**: M3.4
+
+---
+
+### M3 report figures and feature-utility observation
+
+**GitHub Issue**: [#59](https://github.com/kuokuant-oss/lead-reproduction/issues/59)
+**Status**: Complete (2026-07-16) - observation-only 50/50 figure package
+
++ [x] Thirteen standalone report figures generated from the final 50/50 offline baseline.
++ [x] Confusion matrix uses only the final equal-weight Tree Ensemble.
++ [x] ROC/PR compares four component models, ensemble, and 17 vs 137 features.
++ [x] Four-model, consensus, and ensemble permutation importance recorded.
++ [x] Zero/negative importance treated as screening only; three grouped targeted ablations completed.
++ [x] All three targeted groups classified `harmful_to_remove`; canonical 137-feature set unchanged.
++ [x] Plot manifest, visual QA, report, README, plan, tests, and handoff updated.
++ [x] No changes to `src/lead`, existing M3 runners, splits, seeds, preprocessing, model parameters, predictions, ensemble, or threshold.
 
 ---
 
@@ -282,6 +298,7 @@ trees and took ~3.6 min in the local environment.
 | M3.3 buds-lab alignment | [#15](https://github.com/kuokuant-oss/lead-reproduction/issues/15) | ✅ Closed |
 | M3.4 4-model ensemble | [#16](https://github.com/kuokuant-oss/lead-reproduction/issues/16) | ✅ Closed |
 | M3.5 post-processing | [#17](https://github.com/kuokuant-oss/lead-reproduction/issues/17) | ✅ Closed |
+| M3 report figures and feature-utility observation | [#59](https://github.com/kuokuant-oss/lead-reproduction/issues/59) | ✅ Closed |
 
 ---
 
@@ -293,10 +310,11 @@ trees and took ~3.6 min in the local environment.
 + [x] M3 pipeline (baseline + value-change) complete and reproducible
 + [x] M3.4 ensemble complete; seed-42 AUC 0.9928, multi-seed mean 0.9930
 + [x] M3.5 post-processing complete; null result and limitations documented
-+ [x] PI-spec 50/50 ensemble follow-up complete; offline AUC 0.9921, causal AUC 0.9911
++ [x] PI-spec 50/50 ensemble follow-up complete; offline AUC 0.9918, causal AUC 0.9913
++ [x] Issue #59 observation-only five-figure package and feature-utility checks complete
 + [x] Handoff doc for each completed stage
 + [x] GitHub Issues closed for completed milestones
 
 ---
 
-**Last reviewed**: 2026-06-22 (M3 complete; M3.5 null result and PI 50/50 ensemble follow-up finalized)
+**Last reviewed**: 2026-07-16 (M3 Issue #59 figure package and feature-utility observation complete)

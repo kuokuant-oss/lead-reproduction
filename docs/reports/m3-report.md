@@ -17,7 +17,9 @@ reproduction；M3 驗證同一套方法論在完整 GEPIII train subset 上是�
 + M3.5 post-processing：[scripts/run_m3_5_postprocessing.py](https://github.com/kuokuant-oss/lead-reproduction/blob/main/scripts/run_m3_5_postprocessing.py)。
 + 50/50 offline/causal ensemble：[scripts/run_m3_50_50_ensemble.py](https://github.com/kuokuant-oss/lead-reproduction/blob/main/scripts/run_m3_50_50_ensemble.py)。
 + Split causality diagnostic：[scripts/run_m3_split_causality.py](../../scripts/run_m3_split_causality.py)。
++ 50/50 純觀測與出圖：[scripts/run_m3_figure_observations.py](../../scripts/run_m3_figure_observations.py)、[scripts/plot_m3_figures.py](../../scripts/plot_m3_figures.py)。
 + Golden gates 與 metrics：[tests/golden_metrics.json](../../tests/golden_metrics.json)、[docs/metrics/m3-50-50-ensemble.json](../metrics/m3-50-50-ensemble.json)。
++ 圖表 provenance：[docs/metrics/m3-figures.json](../metrics/m3-figures.json)；作圖規範：[docs/reference/plot-style-rules.md](../reference/plot-style-rules.md)。
 
 ---
 
@@ -87,6 +89,117 @@ Offline batch labeling 分數是 50/50 protocol 下的批次回溯標註結果�
 AUC 低 `0.0005`，量化了從 value-change features 中移除 future meter readings
 的成本。
 
+## 2.1 最終 50/50 模型圖表
+
+以下獨立圖表全部來自同一條 50/50 building-held-out offline baseline。觀測 runner
+只重建既有資料、特徵與模型並記錄 predictions、curves 與 permutation 結果；沒有
+修改 `src/lead`、既有 M3 runners、切分、seed、前處理、模型參數、ensemble 或
+threshold。
+
+### Ensemble 混淆矩陣
+
+![Tree Ensemble confusion matrix](./assets/m3/m3_tree_ensemble_confusion_threshold_0_5.png)
+
+在 threshold `0.5` 下，Tree Ensemble 的 `TN/FP/FN/TP` 為
+`9,278,088/221,670/32,982/604,415`。實際異常中有 `94.8%` 被偵測，漏報率為
+`5.2%`；混淆矩陣只呈現最終 ensemble，不將四個 component models 重複拆圖。
+
+### 數值變化特徵示意
+
+![Value-change feature illustration](./assets/m3/m3_value_change_difference_ratio_illustration.png)
+
+圖中使用真實 validation building/meter 時序，說明一小時
+`Difference = current - previous` 與 `Ratio = (current + 1) / (previous + 1)`。
+讀值突然降至零時，Difference 與 Ratio 同時偏離鄰近時段，顯示 value-change
+features 如何把突變轉成模型可使用的訊號；缺少精確一小時配對時保留空值，不以相鄰列
+替代。
+
+### ROC、Precision-Recall 與 feature engineering
+
+#### 四模型與 ensemble：Precision-Recall（局部放大）
+
+![Model precision-recall comparison](./assets/m3/m3_model_comparison_precision_recall_zoomed.png)
+
+#### 四模型與 ensemble：ROC（局部放大）
+
+![Model ROC comparison](./assets/m3/m3_model_comparison_roc_zoomed.png)
+
+#### Feature engineering：Precision-Recall
+
+![Feature-engineering precision-recall comparison](./assets/m3/m3_feature_engineering_precision_recall.png)
+
+#### Feature engineering：ROC
+
+![Feature-engineering ROC comparison](./assets/m3/m3_feature_engineering_roc.png)
+
+| 模型 | Features | ROC-AUC | PR-AUC |
+|---|---:|---:|---:|
+| M3.1 LightGBM | 17 | 0.9650 | 0.8235 |
+| LightGBM | 137 | 0.9910 | 0.9239 |
+| XGBoost | 137 | 0.9892 | 0.9277 |
+| CatBoost | 137 | 0.9883 | 0.9256 |
+| HistGBT | 137 | 0.9915 | 0.9262 |
+| Tree Ensemble | 137 | 0.9918 | 0.9303 |
+
+表 2.2：所有數字皆為 50/50 mod2、`timestamp_merge` offline validation；不是
+80/20 development artifact。137-feature LightGBM 相較 17-feature baseline 的
+ROC-AUC 與 PR-AUC 分別增加約 `0.0260` 與 `0.1004`。四個 component models 的
+ROC-AUC 接近，ensemble 的 PR-AUC 最高。
+
+### 四模型共識與 permutation importance
+
+#### LightGBM
+
+![LightGBM permutation importance](./assets/m3/m3_permutation_importance_lightgbm.png)
+
+#### XGBoost
+
+![XGBoost permutation importance](./assets/m3/m3_permutation_importance_xgboost.png)
+
+#### CatBoost
+
+![CatBoost permutation importance](./assets/m3/m3_permutation_importance_catboost.png)
+
+#### HistGBT
+
+![HistGBT permutation importance](./assets/m3/m3_permutation_importance_histgbt.png)
+
+#### Tree Ensemble
+
+![Tree Ensemble permutation importance](./assets/m3/m3_permutation_importance_tree_ensemble.png)
+
+#### Four-model consensus
+
+![Four-model consensus permutation importance](./assets/m3/m3_permutation_importance_four_model_consensus.png)
+
+四模型與 ensemble 都把 `meter_reading`、`meter` 排在前段；ensemble 前十名亦包含
+`floor_count`、`dayofyear`、`lag_value_diff_1`、building metadata 與 weather。
+這表示模型不只依賴單一 value-change feature，但一小時 Difference 確實進入主要
+判斷訊號。
+
+單欄 permutation screening 找到 44 個零、負值或與重複變異不可區分的候選。這只
+是篩選，不等同可刪除證據；觀測流程再做相關 feature group 檢查，並把前三組候選
+分別設為標準化後的常數零、重新訓練相同四模型與 ensemble：
+
+| Targeted group | Δ ROC-AUC | Δ PR-AUC | Δ Recall@0.5 | 判定 |
+|---|---:|---:|---:|---|
+| ratio -11；diff/ratio -10；ratio -9 | +0.000599 | +0.001346 | -0.002760 | harmful to remove |
+| diff -15/-14/-13；ratio -14 | -0.000307 | -0.002110 | -0.004664 | harmful to remove |
+| diff/ratio 120 | -0.000651 | -0.001777 | -0.004980 | harmful to remove |
+
+表 2.3：第一組排序指標雖上升，但 Recall@0.5 超出 `0.001` 容許退化，因此仍不符合
+移除條件；另外兩組同時降低 PR-AUC 與 Recall。結論是目前沒有足夠證據從 canonical
+137-feature set 移除這些候選，既有 feature engineering 保持不變。
+
+### 模型流程
+
+![M3 anomaly-detection workflow](./assets/m3/m3_anomaly_detection_workflow.png)
+
+流程圖區分 17 個 baseline features、120 個 `timestamp_merge` value-change
+features、50/50 建物留出、training-only downsampling、保留的 StandardScaler、
+四個 frozen tree models 與 equal-weight probability ensemble。Past-only 77-feature
+版本是另行評估的 companion，不混入本節 offline 圖表。
+
 既有 train/validation gap 檢查使用 80/20 development line 與 timestamp_merge
 value-change features，目的只在檢查是否出現明顯 fit-set memorization。
 
@@ -96,7 +209,7 @@ value-change features，目的只在檢查是否出現明顯 fit-set memorizatio
 | Full train-buildings AUC | 0.9984 | 0.9996 | 0.9999 | 0.9983 | 0.9996 |
 | Validation AUC | 0.9925 | 0.9923 | 0.9904 | 0.9916 | 0.9934 |
 
-表 2.2：regime=`timestamp_merge`；split ratio=80/20 building-held-out。
+表 2.4：regime=`timestamp_merge`；split ratio=80/20 building-held-out。
 
 Fit-set 與 full train-buildings AUC 接近，表示高分不是只來自重複 fit-set rows。
 Full train-buildings 對 validation 約有 `0.006` AUC gap，列為 capacity/stability
@@ -321,4 +434,4 @@ M3 已完成，主要結論如下。
   [scripts/run_inv8_sampling_fragility.py](../../scripts/run_inv8_sampling_fragility.py)；
   對應 JSON 皆位於 [data/processed/](../../data/processed/)。
 
-*Last updated: 2026-07-04 (timestamp_merge canonical re-baseline)*
+*Last updated: 2026-07-16 (Issue #59 50/50 observation-only figures)*
