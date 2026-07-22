@@ -20,6 +20,7 @@ import threading
 import time
 import traceback
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, Callable
 
 import numpy as np
@@ -430,7 +431,7 @@ class FakeTabPFNClassifier:
 
     def __init__(self) -> None:
         self.n_estimators = 1
-        self.inference_config_ = type("Config", (), {"SUBSAMPLE_SAMPLES": None})()
+        self.inference_config_ = SimpleNamespace(SUBSAMPLE_SAMPLES=None)
 
     def fit(self, x: np.ndarray, y: np.ndarray) -> "FakeTabPFNClassifier":
         self.n_train_samples_ = int(len(x))
@@ -633,6 +634,7 @@ def batched_predict(
     stop_requested: Callable[[], bool],
     heartbeat: Heartbeat,
     stage: str,
+    position_offset: int = 0,
 ) -> tuple[np.ndarray, int]:
     for batch_size in prediction_batch_sizes(initial_batch_size, minimum_batch_size):
         predictions: list[np.ndarray] = []
@@ -640,7 +642,7 @@ def batched_predict(
             for start in range(0, len(matrix), batch_size):
                 if stop_requested():
                     raise InterruptedError("resource watchdog requested graceful stop")
-                heartbeat.update(stage, start)
+                heartbeat.update(stage, position_offset + start)
                 predictions.append(
                     np.asarray(
                         model.predict_proba(matrix[start : start + batch_size])[:, 1],

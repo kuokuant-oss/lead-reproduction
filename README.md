@@ -231,6 +231,7 @@ scripts/
 ├── run_m5_phaseC_tabpfn_spike.py
 ├── run_m5_phaseD_deep_comparison.py
 ├── run_m5_phaseD_foundation_vs_gbdt.py
+├── run_m5_tabpfn_canonical_full_test.py
 ├── run_m5_tabpfn_single_context_scaling.py
 ├── run_m5x_partition_granularity.py
 ├── run_m6_phaseD_50_50_full_models.py
@@ -257,6 +258,7 @@ tests/
 ├── test_label_join_integrity.py
 ├── test_m5_phaseD_comparison.py
 ├── test_m5_tabpfn_spike.py
+├── test_tabpfn_canonical_full_test.py
 ├── test_tabpfn_single_context_scaling.py
 ├── test_m5_timestamp_merge_regime.py
 ├── test_m5x_partition_granularity.py
@@ -310,6 +312,7 @@ scripts/
   run_m5_phaseC_tabpfn_spike.py
   run_m5_phaseD_deep_comparison.py
   run_m5_phaseD_foundation_vs_gbdt.py
+  run_m5_tabpfn_canonical_full_test.py
   run_m5_tabpfn_single_context_scaling.py
   run_m5x_partition_granularity.py
   run_m6_phaseD_50_50_full_models.py
@@ -336,6 +339,7 @@ tests/
   test_label_join_integrity.py
   test_m5_phaseD_comparison.py
   test_m5_tabpfn_spike.py
+  test_tabpfn_canonical_full_test.py
   test_tabpfn_single_context_scaling.py
   test_m5_timestamp_merge_regime.py
   test_m5x_partition_granularity.py
@@ -426,6 +430,7 @@ M5 GEPIII 模型比較：
 ```bash
 uv run python scripts/run_m5_phaseC_tabpfn_spike.py
 uv run python scripts/run_m5_tabpfn_single_context_scaling.py --preflight-only
+uv run python scripts/run_m5_tabpfn_canonical_full_test.py --context-rows 100000 --resume
 uv run python scripts/plot_m5_tabpfn_single_context_curves.py
 uv run python scripts/run_m5_phaseD_foundation_vs_gbdt.py --value-change-regime timestamp_merge --out data/processed/m6_phaseD_timestamp_merge_multiseed.json
 uv run python scripts/run_m6_phaseD_50_50_full_models.py --out data/processed/m6_phaseD_50_50_full_models_timestamp_merge.json

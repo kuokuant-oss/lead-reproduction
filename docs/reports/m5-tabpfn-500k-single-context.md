@@ -6,8 +6,9 @@ Can one TabPFN-3 classifier on a single RTX 4070 Laptop GPU (8 GiB) use the
 same complete context of 500,000 unique training rows for every prediction
 batch with the 17 raw baseline features?
 
-This additive experiment does not replace accepted M3/M5 metrics. The formal
-100K--500K run has not been started.
+This additive experiment does not replace accepted M3/M5 metrics. A bounded
+100K feasibility probe has completed, but the canonical 100K full-test run and
+the later 200K--500K contexts have not been started.
 
 ## Single-context contract
 
@@ -86,11 +87,63 @@ only.
   low-memory mode, memory-saving mode, and inference config overrides.
 + Current venv reports `torch 2.12.1+cu126`; CUDA is available on the RTX 4070
   Laptop GPU. The minimal CUDA allocation test passed and released its context.
-+ Twenty-two unit/mock/fake-subprocess tests pass.
++ Thirty focused unit/mock/fake-subprocess tests pass, including fitted
+  state reload and full prediction-checkpoint reuse.
 + Fake smoke budgets 200 and 500 complete without initializing CUDA.
 + Fake-smoke artifacts successfully render all four offline figure types.
 
 These checks do not establish any formal 100K--500K result.
+
+## 100K feasibility and query-batch gate
+
+The first 100K run was deliberately bounded to 4,000 validation plus 4,000
+test queries under the older mod-4 feasibility split. It established that one
+100,000-row, 17-feature context fits and predicts without internal context
+subsampling, but it is not the canonical M3 comparison result:
+
++ fit: 0.84 seconds;
++ validation: 355.27 seconds, 11.26 rows/second;
++ test: 366.98 seconds, 10.90 rows/second;
++ Torch peak allocated/reserved: 3,431.7/3,826.0 MiB;
++ watchdog peak device GPU: 4,712 MiB;
++ watchdog peak worker process-tree RSS: 4,981.2 MiB.
+
+A separate capacity gate rejected query microbatch 1,024 after it crossed the
+GPU hard limit. Microbatch 512 completed at 23.67 validation rows/second and
+23.19 test rows/second, with 5,986 MiB Torch reserved, 6,770 MiB peak device
+GPU, and 4,947.3 MiB worker RSS. Therefore the canonical run uses query
+microbatch 512. At the observed rate, 10,137,155 rows require approximately
+121 hours; this is an estimate, not a completed result.
+
+## Canonical full-test resumability
+
+`run_m5_tabpfn_canonical_full_test.py` separates GPU query microbatches from
+durable disk checkpoints:
+
++ context source: the exact M3 training half, `building_id % 2 == 0`, with a
+  deterministic 100K balanced sample after reserving fixed validation rows;
++ prediction target: every row of the exact M3 test half,
+  `building_id % 2 == 1` (10,137,155 rows). Target order comes from the M6 A0
+  artifact, whose raw row IDs correctly map back to features and whose labels
+  and ensemble scores are row-for-row identical to M3. The older M3 artifact's
+  `validation_raw_index` is intentionally not used because it is known not to
+  align with its saved labels/scores;
++ query microbatch: 512 rows; durable checkpoint: 20,000 rows;
++ immediately after fit, the official TabPFN
+  `save_fitted_tabpfn_model` API atomically stores `model.tabpfn_fit`; the fitted
+  `StandardScaler` and a context/model manifest are also atomically stored;
++ restart validates the manifest, calls `load_fitted_tabpfn_model`, and skips
+  the saved validation result plus every already-complete prediction
+  checkpoint. An interruption during one unfinished checkpoint loses at most
+  that checkpoint; an interruption before the fitted model archive is
+  committed requires refitting.
+
+The parent watchdog has no wall-time limit. It continues to protect GPU and
+RAM, and worker exit remains the fast whole-process memory-release boundary.
+The contract also verifies the 17-feature by-site artifact, the 137-feature M3
+artifact, and the A0 site artifact are row-aligned. The resulting TabPFN scores
+can therefore be added to the two feature-engineering ROC/PR figures and the
+two tree-ensemble-by-site ROC/PR figures named in the research request.
 
 ## Full no-fit preflight
 
@@ -140,7 +193,7 @@ is expected; the formal 500K budget enables the separate stratified site rows.
 
 | Context rows | Status | Validation ROC/PR | Test ROC/PR | Peak GPU |
 | ---: | --- | --- | --- | ---: |
-| 100,000 | Not run | -- | -- | -- |
+| 100,000 | Bounded feasibility only; canonical full test not run | -- | -- | 4,712 MiB (batch 256 probe) |
 | 200,000 | Not run | -- | -- | -- |
 | 300,000 | Not run | -- | -- | -- |
 | 400,000 | Not run | -- | -- | -- |
@@ -191,6 +244,19 @@ python scripts/run_m5_tabpfn_single_context_scaling.py `
   --resume
 ```
 
+Canonical 100K context against the complete M3 test half, resumable without a
+wall-time limit:
+
+```powershell
+python scripts/run_m5_tabpfn_canonical_full_test.py `
+  --context-rows 100000 `
+  --query-microbatch-size 512 --min-query-microbatch-size 256 `
+  --checkpoint-rows 20000 `
+  --gpu-soft-limit-fraction 0.86 --gpu-hard-limit-fraction 0.92 `
+  --ram-soft-limit-fraction 0.85 --ram-hard-limit-fraction 0.92 `
+  --resume
+```
+
 ## Limitations
 
 + TabPFN behavior is version-specific; rerun preflight after upgrades.
@@ -198,5 +264,7 @@ python scripts/run_m5_tabpfn_single_context_scaling.py `
 + WDDM device-total monitoring is conservative.
 + Formal results must come from generated artifacts, never smoke or fit-only
   completion.
++ The older bounded 100K mod-4 probe cannot be plotted as the canonical M3
+  comparison and must never be reported as that result.
 + `--max-budgets-this-run 1` exits as `paused_after_budget_limit` after one
   successful budget; invoke the same command with `--resume` for the next one.
