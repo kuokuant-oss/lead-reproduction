@@ -98,9 +98,9 @@ threshold。
 
 ### Ensemble 混淆矩陣
 
-![Tree Ensemble confusion matrix](./assets/m3/m3_tree_ensemble_confusion_threshold_0_5.png)
+![Tree Ensemble confusion matrix](./assets/m3/m3_tree_ensemble_confusion_matrix.png)
 
-在 threshold `0.5` 下，Tree Ensemble 的 `TN/FP/FN/TP` 為
+原始 M3 Tree Ensemble run 記錄的 `TN/FP/FN/TP` 為
 `9,278,088/221,670/32,982/604,415`。實際異常中有 `94.8%` 被偵測，漏報率為
 `5.2%`；混淆矩陣只呈現最終 ensemble，不將四個 component models 重複拆圖。
 

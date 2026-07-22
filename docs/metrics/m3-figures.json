@@ -5,9 +5,9 @@
   "baseline": "50_50_mod2_offline_137_timestamp_merge",
   "figures": {
     "confusion": {
-      "path": "docs/reports/assets/m3/m3_tree_ensemble_confusion_threshold_0_5.png",
-      "sha256": "b5bd0b56351449aabc4525e222dad2c3d7ed04405f1a84af68200078db7ab0e1",
-      "size_bytes": 89982
+      "path": "docs/reports/assets/m3/m3_tree_ensemble_confusion_matrix.png",
+      "sha256": "1081e29d7edf8666e350e7e71030e8c6de8752bcfe8d7ac8e5b03afa8f99ec5f",
+      "size_bytes": 68494
     },
     "value_change": {
       "path": "docs/reports/assets/m3/m3_value_change_difference_ratio_illustration.png",
@@ -369,8 +369,8 @@
     "canonical_feature_set_changed": false
   },
   "provenance": {
-    "commit": "955f65ea3be1dadd4904138c742cffac434d67fd",
-    "generated_at_utc": "2026-07-16T10:21:45.904441+00:00",
+    "commit": "ed608448aa6027635275e6e010e10f8af9eb9bb2",
+    "generated_at_utc": "2026-07-22T07:09:08.930483+00:00",
     "plot_style": "docs/reference/plot-style-rules.md v0.2"
   }
 }

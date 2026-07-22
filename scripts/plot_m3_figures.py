@@ -93,10 +93,14 @@ def render_confusion(data: dict[str, Any], path: Path) -> None:
         counts, row_totals, out=np.zeros_like(counts), where=row_totals != 0
     )
     fig, ax = plt.subplots(figsize=(7.2, 6.1), facecolor=SURFACE)
-    _title(
-        fig,
-        "Tree Ensemble: Misses and False Alarms",
-        "Final 50/50 building holdout · threshold 0.5 · color normalized within each actual class",
+    fig.suptitle(
+        "137-Feature Tree Ensemble Confusion Matrix",
+        x=0.06,
+        y=0.95,
+        ha="left",
+        fontsize=16,
+        fontweight="bold",
+        color=INK,
     )
     image = ax.imshow(normalized, cmap="Blues", vmin=0, vmax=1)
     labels = (("TN", "FP"), ("FN", "TP"))
@@ -114,17 +118,15 @@ def render_confusion(data: dict[str, Any], path: Path) -> None:
                 fontweight="normal",
                 color="white" if value > 0.55 else INK,
             )
-    ax.set_xticks([0, 1], labels=["Normal (0)", "Anomaly (1)"])
-    ax.set_yticks([0, 1], labels=["Normal (0)", "Anomaly (1)"])
-    ax.set_xlabel("Model prediction", color=INK, labelpad=10)
-    ax.set_ylabel("Ground truth", color=INK, labelpad=10)
+    ax.set_xticks([0, 1], labels=["Normal", "Anomaly"])
+    ax.set_yticks([0, 1], labels=["Normal", "Anomaly"])
     ax.tick_params(colors=SECONDARY)
     for spine in ax.spines.values():
         spine.set_visible(False)
     colorbar = fig.colorbar(image, ax=ax, fraction=0.032, pad=0.045)
     colorbar.set_label("Within-class share", color=SECONDARY)
     colorbar.ax.tick_params(colors=SECONDARY)
-    fig.subplots_adjust(left=0.19, right=0.86, top=0.82, bottom=0.14)
+    fig.subplots_adjust(left=0.19, right=0.86, top=0.86, bottom=0.14)
     _save(fig, path)
 
 
@@ -1044,7 +1046,7 @@ def main() -> None:
     if data["frozen_contract"]["split"] != "50_50_mod2":
         raise RuntimeError("M3 headline figures require the frozen 50/50 baseline")
     figures = {
-        "confusion": args.asset_dir / "m3_tree_ensemble_confusion_threshold_0_5.png",
+        "confusion": args.asset_dir / "m3_tree_ensemble_confusion_matrix.png",
         "value_change": args.asset_dir
         / "m3_value_change_difference_ratio_illustration.png",
         "workflow": args.asset_dir / "m3_anomaly_detection_workflow.png",
