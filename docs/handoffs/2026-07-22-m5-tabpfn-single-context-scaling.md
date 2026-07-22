@@ -28,3 +28,8 @@ only the fixed validation/test scoring rows. These make pooled and by-site
 ROC/PR plots reproducible without another TabPFN fit. Use
 `scripts/plot_m5_tabpfn_single_context_curves.py`; rare sites lacking both
 classes in the natural-prevalence sample are reported as not estimable.
+
+For operator-gated execution, pass `--max-budgets-this-run 1` and resume after
+inspecting each completed budget. Optional `--site-curve-rows-per-class 16`
+adds 512 balanced query rows only at `--site-curve-budget 500000`; these rows
+are used solely for by-site curves and never replace natural-prevalence metrics.

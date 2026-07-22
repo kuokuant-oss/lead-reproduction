@@ -104,6 +104,22 @@ class TestTabPFNSingleContextScaling(unittest.TestCase):
             [500],
         )
 
+    def test_budget_limit_pauses_after_requested_count(self) -> None:
+        selected, paused = self.m.select_budgets_for_invocation([100, 200, 300], 1)
+        self.assertEqual(selected, [100])
+        self.assertTrue(paused)
+
+    def test_site_curve_rows_cover_every_site_and_class(self) -> None:
+        frame = self.m.synthetic_frame()
+        test = frame.loc[frame["building_id"] % 2 == 1]
+        first = self.m.stratified_site_curve_indices(test, rows_per_class=2, seed=123)
+        second = self.m.stratified_site_curve_indices(test, rows_per_class=2, seed=123)
+        np.testing.assert_array_equal(first, second)
+        selected = test.loc[first]
+        counts = selected.groupby(["site_id", "anomaly"]).size()
+        self.assertEqual(len(first), 16 * 2 * 2)
+        self.assertTrue((counts == 2).all())
+
     def test_previous_dead_worker_is_detected(self) -> None:
         state = {"running_budget": 200, "worker_pid": 999_999, "failed_budgets": []}
         summary = {"budget_results": {}}
@@ -231,6 +247,10 @@ class TestTabPFNSingleContextScaling(unittest.TestCase):
                     "100",
                     "--predict-batch-size",
                     "32",
+                    "--site-curve-rows-per-class",
+                    "2",
+                    "--site-curve-budget",
+                    "500",
                     "--smoke",
                     "--out",
                     str(out),
@@ -270,6 +290,9 @@ class TestTabPFNSingleContextScaling(unittest.TestCase):
                     "test_y",
                     "test_score",
                     "test_site_id",
+                    "site_curve_y",
+                    "site_curve_score",
+                    "site_curve_site_id",
                 }
                 self.assertEqual(required - set(arrays.files), set())
             plot_dir = root / "plots"
@@ -293,6 +316,47 @@ class TestTabPFNSingleContextScaling(unittest.TestCase):
             self.assertTrue(
                 (plot_dir / "m5_tabpfn_by_site_precision_recall.png").is_file()
             )
+
+    def test_fake_controller_pauses_after_one_budget(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            out = root / "result.json"
+            state = root / "state.json"
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPT),
+                    "--budgets",
+                    "200",
+                    "500",
+                    "--score-rows",
+                    "100",
+                    "--predict-batch-size",
+                    "32",
+                    "--max-budgets-this-run",
+                    "1",
+                    "--smoke",
+                    "--out",
+                    str(out),
+                    "--state-out",
+                    str(state),
+                    "--events-out",
+                    str(root / "events.jsonl"),
+                    "--poll-seconds",
+                    "0.01",
+                ],
+                cwd=ROOT,
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            summary = json.loads(out.read_text(encoding="utf-8"))
+            saved_state = json.loads(state.read_text(encoding="utf-8"))
+            self.assertEqual(set(summary["budget_results"]), {"200"})
+            self.assertEqual(saved_state["status"], "paused_after_budget_limit")
+            self.assertEqual(saved_state["pending_budgets"], [500])
 
 
 if __name__ == "__main__":

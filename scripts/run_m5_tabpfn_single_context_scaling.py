@@ -62,6 +62,18 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--budgets", type=int, nargs="+", default=DEFAULT_BUDGETS)
     parser.add_argument("--score-rows", type=int, default=4_000)
+    parser.add_argument(
+        "--site-curve-rows-per-class",
+        type=int,
+        default=0,
+        help="Optional extra rows per class/site for reliable by-site curves",
+    )
+    parser.add_argument(
+        "--site-curve-budget",
+        type=int,
+        default=500_000,
+        help="Only this context budget performs the optional site-curve queries",
+    )
     parser.add_argument("--predict-batch-size", type=int, default=256)
     parser.add_argument("--min-predict-batch-size", type=int, default=32)
     parser.add_argument("--seed", type=int, default=RANDOM_STATE)
@@ -100,6 +112,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--restart-budget", type=int)
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--continue-after-failure", action="store_true")
+    parser.add_argument(
+        "--max-budgets-this-run",
+        type=int,
+        help="Pause cleanly after at most this many budgets; resume later",
+    )
     parser.add_argument("--preflight-only", action="store_true")
     parser.add_argument("--smoke", action="store_true")
     parser.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)
@@ -115,6 +132,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         raise ValueError("minimum prediction batch must be in (0, initial batch]")
     if args.restart_budget is not None and args.restart_budget not in args.budgets:
         raise ValueError("restart budget must appear in --budgets")
+    if args.max_budgets_this_run is not None and args.max_budgets_this_run < 1:
+        raise ValueError("max budgets this run must be positive")
+    if args.site_curve_rows_per_class < 0:
+        raise ValueError("site curve rows per class must be non-negative")
+    if args.site_curve_rows_per_class and args.site_curve_budget not in args.budgets:
+        raise ValueError("site curve budget must appear in --budgets when enabled")
     if args.predictions_dir is None:
         args.predictions_dir = args.out.with_name(args.out.stem + ".predictions")
     return args
@@ -164,6 +187,31 @@ def fixed_score_indices(row_index: np.ndarray, rows: int, *, seed: int) -> np.nd
         .choice(values, rows, replace=False)
         .astype("int64", copy=False)
     )
+
+
+def stratified_site_curve_indices(
+    frame: Any, *, rows_per_class: int, seed: int
+) -> np.ndarray:
+    """Select deterministic, disjoint test rows for every site/class cell."""
+    if rows_per_class <= 0:
+        return np.asarray([], dtype="int64")
+    selected: list[np.ndarray] = []
+    sites = sorted(int(value) for value in frame["site_id"].unique())
+    if sites != list(range(16)):
+        raise ValueError(f"expected site_id 0..15, got {sites}")
+    for site in sites:
+        for label in (0, 1):
+            candidates = frame.index[
+                (frame["site_id"] == site) & (frame["anomaly"] == label)
+            ].to_numpy(dtype="int64")
+            if len(candidates) < rows_per_class:
+                raise ValueError(
+                    f"site {site} class {label} has {len(candidates)} rows; "
+                    f"need {rows_per_class}"
+                )
+            rng = np.random.RandomState(seed + site * 2 + label)
+            selected.append(rng.permutation(candidates)[:rows_per_class])
+    return np.concatenate(selected).astype("int64", copy=False)
 
 
 def index_record(indices: np.ndarray, labels_by_row: dict[int, int]) -> dict[str, Any]:
@@ -240,6 +288,11 @@ def prepare_row_contract(frame: Any, args: argparse.Namespace) -> dict[str, Any]
     test_indices = fixed_score_indices(
         test.index.to_numpy(), args.score_rows, seed=args.seed + 30_000
     )
+    site_curve_indices = stratified_site_curve_indices(
+        test,
+        rows_per_class=args.site_curve_rows_per_class,
+        seed=args.seed + 40_000,
+    )
     label_map = {
         int(row): int(label)
         for row, label in zip(fit.index, fit["anomaly"], strict=True)
@@ -249,6 +302,8 @@ def prepare_row_contract(frame: Any, args: argparse.Namespace) -> dict[str, Any]
         "fit_indices": fit_indices,
         "validation_indices": val_indices,
         "test_indices": test_indices,
+        "site_curve_indices": site_curve_indices,
+        "site_curve_budget": args.site_curve_budget,
         "budget_records": {
             str(budget): index_record(indices, label_map)
             for budget, indices in fit_indices.items()
@@ -256,6 +311,9 @@ def prepare_row_contract(frame: Any, args: argparse.Namespace) -> dict[str, Any]
         "score_records": {
             "validation": score_record(val_indices, validation),
             "test": score_record(test_indices, test),
+            "site_curve": score_record(site_curve_indices, test)
+            if len(site_curve_indices)
+            else {"count": 0, "rows_per_class": 0},
         },
     }
 
@@ -281,8 +339,8 @@ def synthetic_frame(rows_per_building: int = 200) -> Any:
     size = len(building_id)
     data: dict[str, Any] = {
         "building_id": building_id,
-        "site_id": building_id % 16,
-        "anomaly": np.arange(size) % 2,
+        "site_id": np.resize(np.arange(16, dtype="int8"), size),
+        "anomaly": (np.arange(size) // 16) % 2,
     }
     for position, feature in enumerate(BASELINE_FEATURE_COLS):
         data[feature] = (rng.normal(size=size) + position / 20).astype("float32")
@@ -309,11 +367,12 @@ def make_matrices(frame: Any, contract: dict[str, Any], budget: int) -> dict[str
         dtype="float32", copy=True
     )
     y_test = frame.loc[test_idx, "anomaly"].to_numpy(dtype="int64", copy=True)
+    site_curve_idx = contract["site_curve_indices"]
     scaler = StandardScaler(copy=False)
     x_fit = scaler.fit_transform(x_fit).astype("float32", copy=False)
     x_val = scaler.transform(x_val).astype("float32", copy=False)
     x_test = scaler.transform(x_test).astype("float32", copy=False)
-    return {
+    matrices = {
         "x_fit": x_fit,
         "y_fit": y_fit,
         "x_validation": x_val,
@@ -335,6 +394,28 @@ def make_matrices(frame: Any, contract: dict[str, Any], budget: int) -> dict[str
             dtype="int8", copy=True
         ),
     }
+    if len(site_curve_idx) and budget == contract["site_curve_budget"]:
+        x_site_curve = frame.loc[site_curve_idx, BASELINE_FEATURE_COLS].to_numpy(
+            dtype="float32", copy=True
+        )
+        matrices.update(
+            {
+                "x_site_curve": scaler.transform(x_site_curve).astype(
+                    "float32", copy=False
+                ),
+                "site_curve_y": frame.loc[site_curve_idx, "anomaly"].to_numpy(
+                    dtype="int64", copy=True
+                ),
+                "site_curve_row_index": np.asarray(site_curve_idx, dtype="int64"),
+                "site_curve_building_id": frame.loc[
+                    site_curve_idx, "building_id"
+                ].to_numpy(dtype="int16", copy=True),
+                "site_curve_site_id": frame.loc[site_curve_idx, "site_id"].to_numpy(
+                    dtype="int8", copy=True
+                ),
+            }
+        )
+    return matrices
 
 
 class FakeTabPFNClassifier:
@@ -794,6 +875,7 @@ def run_budget_worker(args: argparse.Namespace) -> int:
     stage = "data_loading"
     torch_module = None
     frame = contract = matrices = model = val_scores = test_scores = None
+    site_curve_scores = None
     try:
         frame = load_experiment_frame(smoke=args.smoke)
         contract = prepare_row_contract(frame, args)
@@ -878,24 +960,56 @@ def run_budget_worker(args: argparse.Namespace) -> int:
                 stage=stage,
             )
             test_seconds = time.perf_counter() - prediction_started
+            site_curve_seconds = 0.0
+            site_curve_batch = None
+            if "x_site_curve" in matrices:
+                stage = "site_curve_predict"
+                prediction_started = time.perf_counter()
+                site_curve_scores, site_curve_batch = batched_predict(
+                    model,
+                    matrices["x_site_curve"],
+                    initial_batch_size=min(args.predict_batch_size, test_batch),
+                    minimum_batch_size=args.min_predict_batch_size,
+                    stop_requested=lambda: bool(
+                        args.stop_request and args.stop_request.exists()
+                    ),
+                    heartbeat=heartbeat,
+                    stage=stage,
+                )
+                site_curve_seconds = time.perf_counter() - prediction_started
             threshold = fixed_recall_threshold(matrices["y_validation"], val_scores)
             total_seconds = time.perf_counter() - started
             stage = "persist_predictions"
             heartbeat.update(stage, len(matrices["x_test"]))
             predictions_path = prediction_artifact_path(args, budget)
+            prediction_arrays = {
+                "budget": np.asarray([budget], dtype="int64"),
+                "validation_y": matrices["y_validation"],
+                "validation_score": val_scores.astype("float32", copy=False),
+                "validation_row_index": matrices["validation_row_index"],
+                "validation_building_id": matrices["validation_building_id"],
+                "validation_site_id": matrices["validation_site_id"],
+                "test_y": matrices["y_test"],
+                "test_score": test_scores.astype("float32", copy=False),
+                "test_row_index": matrices["test_row_index"],
+                "test_building_id": matrices["test_building_id"],
+                "test_site_id": matrices["test_site_id"],
+            }
+            if site_curve_scores is not None:
+                prediction_arrays.update(
+                    {
+                        "site_curve_y": matrices["site_curve_y"],
+                        "site_curve_score": site_curve_scores.astype(
+                            "float32", copy=False
+                        ),
+                        "site_curve_row_index": matrices["site_curve_row_index"],
+                        "site_curve_building_id": matrices["site_curve_building_id"],
+                        "site_curve_site_id": matrices["site_curve_site_id"],
+                    }
+                )
             atomic_write_npz(
                 predictions_path,
-                budget=np.asarray([budget], dtype="int64"),
-                validation_y=matrices["y_validation"],
-                validation_score=val_scores.astype("float32", copy=False),
-                validation_row_index=matrices["validation_row_index"],
-                validation_building_id=matrices["validation_building_id"],
-                validation_site_id=matrices["validation_site_id"],
-                test_y=matrices["y_test"],
-                test_score=test_scores.astype("float32", copy=False),
-                test_row_index=matrices["test_row_index"],
-                test_building_id=matrices["test_building_id"],
-                test_site_id=matrices["test_site_id"],
+                **prediction_arrays,
             )
             result = {
                 "status": "completed",
@@ -906,9 +1020,16 @@ def run_budget_worker(args: argparse.Namespace) -> int:
                 "fit_seconds": float(fit_seconds),
                 "validation_prediction_seconds": float(val_seconds),
                 "test_prediction_seconds": float(test_seconds),
+                "site_curve_prediction_seconds": float(site_curve_seconds),
                 "total_seconds": float(total_seconds),
                 "rows_per_second": float(budget / total_seconds),
-                "effective_prediction_batch_size": int(min(val_batch, test_batch)),
+                "effective_prediction_batch_size": int(
+                    min(
+                        value
+                        for value in (val_batch, test_batch, site_curve_batch)
+                        if value is not None
+                    )
+                ),
                 "validation": evaluation_metrics(matrices["y_validation"], val_scores),
                 "test": {
                     **evaluation_metrics(matrices["y_test"], test_scores),
@@ -926,6 +1047,9 @@ def run_budget_worker(args: argparse.Namespace) -> int:
                     "rows_saved": {
                         "validation": int(len(val_scores)),
                         "test": int(len(test_scores)),
+                        "site_curve": int(len(site_curve_scores))
+                        if site_curve_scores is not None
+                        else 0,
                     },
                     "contains_training_matrix": False,
                     "curve_inputs_complete": True,
@@ -958,6 +1082,7 @@ def run_budget_worker(args: argparse.Namespace) -> int:
         # Drop every potentially large reference before CUDA cleanup. Process
         # exit remains the definitive VRAM/RAM release boundary.
         model = matrices = contract = val_scores = test_scores = None
+        site_curve_scores = None
         gc.collect()
         if torch_module is not None:
             try:
@@ -1059,12 +1184,23 @@ def budgets_to_run(args: argparse.Namespace, state: dict[str, Any]) -> list[int]
     return [budget for budget in budgets if budget not in completed]
 
 
+def select_budgets_for_invocation(
+    budgets: list[int], maximum: int | None
+) -> tuple[list[int], bool]:
+    selected = budgets[:maximum] if maximum is not None else budgets
+    return selected, len(selected) < len(budgets)
+
+
 def public_worker_arguments(args: argparse.Namespace) -> list[str]:
     values = [
         "--budgets",
         *[str(value) for value in args.budgets],
         "--score-rows",
         str(args.score_rows),
+        "--site-curve-rows-per-class",
+        str(args.site_curve_rows_per_class),
+        "--site-curve-budget",
+        str(args.site_curve_budget),
         "--predict-batch-size",
         str(args.predict_batch_size),
         "--min-predict-batch-size",
@@ -1108,6 +1244,8 @@ def public_worker_arguments(args: argparse.Namespace) -> list[str]:
             values.extend(["--" + name.replace("_", "-"), str(value)])
     if args.smoke:
         values.append("--smoke")
+    if args.max_budgets_this_run is not None:
+        values.extend(["--max-budgets-this-run", str(args.max_budgets_this_run)])
     return values
 
 
@@ -1419,7 +1557,12 @@ def controller(args: argparse.Namespace) -> int:
     if args.restart_budget is not None:
         for budget in args.budgets[args.budgets.index(args.restart_budget) :]:
             summary["budget_results"].pop(str(budget), None)
-    for budget in budgets_to_run(args, state):
+    remaining_budgets = budgets_to_run(args, state)
+    selected_budgets, paused_by_budget_limit = select_budgets_for_invocation(
+        remaining_budgets, args.max_budgets_this_run
+    )
+    stopped_by_failure = False
+    for budget in selected_budgets:
         result = monitor_budget(args, budget, state)
         summary["budget_results"][str(budget)] = result
         if result.get("status") == "completed":
@@ -1454,10 +1597,16 @@ def controller(args: argparse.Namespace) -> int:
         atomic_write_json(args.out, summary)
         atomic_write_json(args.state_out, state)
         if result.get("status") != "completed" and not args.continue_after_failure:
+            stopped_by_failure = True
             break
-    state["status"] = (
-        "completed" if not state["pending_budgets"] else "stopped_after_failure"
-    )
+    if not state["pending_budgets"]:
+        state["status"] = "completed"
+    elif stopped_by_failure or state.get("failed_budgets"):
+        state["status"] = "stopped_after_failure"
+    elif paused_by_budget_limit:
+        state["status"] = "paused_after_budget_limit"
+    else:
+        state["status"] = "paused"
     state["updated_at"] = time.time()
     summary["headline_500k_success"] = headline_500k_success(summary)
     atomic_write_json(args.out, summary)

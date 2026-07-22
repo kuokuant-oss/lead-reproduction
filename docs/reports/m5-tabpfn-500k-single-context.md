@@ -70,8 +70,12 @@ analogs of the referenced M3 figures: pooled scaling ROC/PR comparisons and
 largest-completed-budget ROC/PR panels by site. It does not load TabPFN or make
 new predictions. A 4,000-row natural-prevalence sample can leave a rare site
 without both classes; such a panel is explicitly marked `Not estimable`
-instead of inventing a curve. Exact M3 feature-engineering semantics cannot be
-claimed because this experiment intentionally uses raw 17 features only.
+instead of inventing a curve. To guarantee estimable site panels, enable
+`--site-curve-rows-per-class`; those extra stratified queries run only for
+`--site-curve-budget` (500K by default), remain separate from pooled metrics,
+and are saved in the same artifact. Exact M3 feature-engineering semantics
+cannot be claimed because this experiment intentionally uses raw 17 features
+only.
 
 ## Current lightweight verification
 
@@ -80,7 +84,7 @@ claimed because this experiment intentionally uses raw 17 features only.
   low-memory mode, memory-saving mode, and inference config overrides.
 + Current venv reports `torch 2.12.1+cpu`; a formal GPU run is therefore blocked
   until a CUDA-enabled Torch build is installed and preflight passes.
-+ Sixteen unit/mock/fake-subprocess tests pass.
++ Nineteen unit/mock/fake-subprocess tests pass.
 + Fake smoke budgets 200 and 500 complete without initializing CUDA.
 + Fake-smoke artifacts successfully render all four offline figure types.
 
@@ -126,6 +130,8 @@ Formal run, to be invoked only after explicit operator approval:
 python scripts/run_m5_tabpfn_single_context_scaling.py `
   --budgets 100000 200000 300000 400000 500000 `
   --score-rows 4000 --predict-batch-size 256 `
+  --max-budgets-this-run 1 `
+  --site-curve-rows-per-class 16 --site-curve-budget 500000 `
   --gpu-soft-limit-fraction 0.86 --gpu-hard-limit-fraction 0.92 `
   --ram-soft-limit-fraction 0.85 --ram-hard-limit-fraction 0.92 `
   --resume
@@ -138,3 +144,5 @@ python scripts/run_m5_tabpfn_single_context_scaling.py `
 + WDDM device-total monitoring is conservative.
 + Formal results must come from generated artifacts, never smoke or fit-only
   completion.
++ `--max-budgets-this-run 1` exits as `paused_after_budget_limit` after one
+  successful budget; invoke the same command with `--resume` for the next one.

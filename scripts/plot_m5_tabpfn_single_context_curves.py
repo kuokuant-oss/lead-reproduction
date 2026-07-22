@@ -42,6 +42,10 @@ class Predictions:
     y: np.ndarray
     score: np.ndarray
     site_id: np.ndarray
+    site_y: np.ndarray
+    site_score: np.ndarray
+    site_curve_site_id: np.ndarray
+    site_curve_source: str
 
 
 def sha256_file(path: Path) -> str:
@@ -76,11 +80,38 @@ def load_predictions(summary_path: Path) -> list[Predictions]:
             y = np.asarray(artifact["test_y"], dtype="int8")
             score = np.asarray(artifact["test_score"], dtype="float32")
             site_id = np.asarray(artifact["test_site_id"], dtype="int8")
+            if {
+                "site_curve_y",
+                "site_curve_score",
+                "site_curve_site_id",
+            }.issubset(artifact.files):
+                site_y = np.asarray(artifact["site_curve_y"], dtype="int8")
+                site_score = np.asarray(artifact["site_curve_score"], dtype="float32")
+                site_curve_site_id = np.asarray(
+                    artifact["site_curve_site_id"], dtype="int8"
+                )
+                site_curve_source = "stratified per-site scoring rows"
+            else:
+                site_y, site_score, site_curve_site_id = y, score, site_id
+                site_curve_source = "fixed natural-prevalence test rows"
         if not (len(y) == len(score) == len(site_id)) or not len(y):
             raise ValueError(f"unaligned or empty prediction artifact: {path}")
         if not set(np.unique(y)).issubset({0, 1}) or not np.isfinite(score).all():
             raise ValueError(f"invalid labels or scores in {path}")
-        loaded.append(Predictions(int(budget_text), y, score, site_id))
+        if not (len(site_y) == len(site_score) == len(site_curve_site_id)):
+            raise ValueError(f"unaligned site-curve arrays in {path}")
+        loaded.append(
+            Predictions(
+                int(budget_text),
+                y,
+                score,
+                site_id,
+                site_y,
+                site_score,
+                site_curve_site_id,
+                site_curve_source,
+            )
+        )
     if not loaded:
         raise ValueError("summary contains no completed budgets with predictions")
     return sorted(loaded, key=lambda item: item.budget)
@@ -164,8 +195,8 @@ def render_by_site(item: Predictions, output: Path, *, curve_type: str) -> list[
     unavailable: list[int] = []
     for site, ax in enumerate(axes.ravel()):
         _style_axis(ax)
-        mask = item.site_id == site
-        y_site, score_site = item.y[mask], item.score[mask]
+        mask = item.site_curve_site_id == site
+        y_site, score_site = item.site_y[mask], item.site_score[mask]
         ax.set_title(
             f"{names[site]} (site {site})",
             loc="left",
@@ -216,7 +247,7 @@ def render_by_site(item: Predictions, output: Path, *, curve_type: str) -> list[
     fig.text(
         0.06,
         0.945,
-        "Curves use only saved fixed test-scoring rows",
+        f"Curves use {item.site_curve_source}",
         color=SECONDARY,
         fontsize=10,
     )
