@@ -145,6 +145,13 @@ artifact, and the A0 site artifact are row-aligned. The resulting TabPFN scores
 can therefore be added to the two feature-engineering ROC/PR figures and the
 two tree-ensemble-by-site ROC/PR figures named in the research request.
 
+A real-CUDA 200-row persistence gate then exercised the official archive path
+end to end. The first call reported `fitted`; after dropping the estimator and
+clearing CUDA caches, the second call reported `loaded`. Probabilities for 32
+fixed queries were identical before and after reload (maximum absolute delta
+`0.0`). The `.tabpfn_fit` archive SHA-256 was
+`6f49aa97f74b83fbd9c2700040b4a91836a1b65b006ba8af32f2888a57100bfe`.
+
 ## Full no-fit preflight
 
 The full-data preflight completed with `status = ready`; it did not call
