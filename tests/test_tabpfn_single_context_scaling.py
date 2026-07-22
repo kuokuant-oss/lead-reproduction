@@ -5,6 +5,7 @@ import json
 import subprocess
 import sys
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
@@ -18,6 +19,7 @@ from lead.resource_guard import (
     ResourceLimits,
     ResourceSample,
     atomic_write_json,
+    sample_resources,
     terminate_process_tree,
 )
 
@@ -96,6 +98,54 @@ class TestTabPFNSingleContextScaling(unittest.TestCase):
                 {"rows": 500_000, "status": "second"},
             )
             self.assertFalse(path.with_name("state.json.tmp").exists())
+
+    def test_heartbeat_writes_are_thread_safe(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            heartbeat = self.m.Heartbeat(Path(directory) / "heartbeat.json", 200)
+            errors: list[BaseException] = []
+
+            def update(prefix: int) -> None:
+                try:
+                    for position in range(40):
+                        heartbeat.update(f"stage-{prefix}", position)
+                except BaseException as error:
+                    errors.append(error)
+
+            threads = [
+                threading.Thread(target=update, args=(value,)) for value in range(4)
+            ]
+            for thread in threads:
+                thread.start()
+            for thread in threads:
+                thread.join()
+            self.assertEqual(errors, [])
+            self.assertEqual(
+                json.loads(heartbeat.path.read_text(encoding="utf-8"))["budget"],
+                200,
+            )
+
+    def test_resource_sample_sums_worker_process_tree_rss(self) -> None:
+        child = SimpleNamespace(memory_info=lambda: SimpleNamespace(rss=2 * 1024**2))
+        parent = SimpleNamespace(
+            memory_info=lambda: SimpleNamespace(rss=3 * 1024**2),
+            children=lambda recursive: [child],
+        )
+        memory = SimpleNamespace(
+            used=10 * 1024**2,
+            available=20 * 1024**2,
+            total=30 * 1024**2,
+        )
+        observed = sample_resources(
+            123,
+            process_factory=lambda pid: parent,
+            virtual_memory=lambda: memory,
+            gpu_query=lambda pid: {
+                "used_mib": 1,
+                "total_mib": 8,
+                "monitoring_scope": "process",
+            },
+        )
+        self.assertEqual(observed.worker_rss_mib, 5)
 
     def test_resume_skips_completed_budgets(self) -> None:
         args = SimpleNamespace(budgets=[100, 200, 500], restart_budget=None)

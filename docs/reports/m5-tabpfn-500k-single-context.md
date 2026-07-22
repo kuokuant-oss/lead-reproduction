@@ -86,7 +86,7 @@ only.
   low-memory mode, memory-saving mode, and inference config overrides.
 + Current venv reports `torch 2.12.1+cu126`; CUDA is available on the RTX 4070
   Laptop GPU. The minimal CUDA allocation test passed and released its context.
-+ Twenty unit/mock/fake-subprocess tests pass.
++ Twenty-two unit/mock/fake-subprocess tests pass.
 + Fake smoke budgets 200 and 500 complete without initializing CUDA.
 + Fake-smoke artifacts successfully render all four offline figure types.
 

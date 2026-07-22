@@ -280,9 +280,20 @@ def sample_resources(
     process = process_factory(worker_pid)
     memory = virtual_memory()
     gpu = gpu_query(worker_pid)
+    processes = [process]
+    try:
+        processes.extend(process.children(recursive=True))
+    except psutil.Error:
+        pass
+    worker_rss = 0
+    for item in processes:
+        try:
+            worker_rss += int(item.memory_info().rss)
+        except psutil.Error:
+            continue
     return ResourceSample(
         timestamp=float(clock()),
-        worker_rss_mib=float(process.memory_info().rss / MIB),
+        worker_rss_mib=float(worker_rss / MIB),
         system_used_mib=float(memory.used / MIB),
         system_available_mib=float(memory.available / MIB),
         system_total_mib=float(memory.total / MIB),

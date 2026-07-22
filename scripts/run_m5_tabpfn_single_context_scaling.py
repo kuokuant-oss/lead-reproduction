@@ -562,6 +562,7 @@ class Heartbeat:
         self.stage = "starting"
         self.position = 0
         self._stop = threading.Event()
+        self._write_lock = threading.Lock()
         self._thread: threading.Thread | None = None
 
     def update(self, stage: str, position: int = 0) -> None:
@@ -571,22 +572,23 @@ class Heartbeat:
     def write(self) -> None:
         if self.path is None:
             return
-        allocated = reserved = None
-        if self.torch is not None and self.torch.cuda.is_available():
-            allocated = int(self.torch.cuda.memory_allocated())
-            reserved = int(self.torch.cuda.memory_reserved())
-        atomic_write_json(
-            self.path,
-            {
-                "pid": os.getpid(),
-                "budget": self.budget,
-                "stage": self.stage,
-                "timestamp": time.time(),
-                "prediction_batch_position": self.position,
-                "torch_allocated_bytes": allocated,
-                "torch_reserved_bytes": reserved,
-            },
-        )
+        with self._write_lock:
+            allocated = reserved = None
+            if self.torch is not None and self.torch.cuda.is_available():
+                allocated = int(self.torch.cuda.memory_allocated())
+                reserved = int(self.torch.cuda.memory_reserved())
+            atomic_write_json(
+                self.path,
+                {
+                    "pid": os.getpid(),
+                    "budget": self.budget,
+                    "stage": self.stage,
+                    "timestamp": time.time(),
+                    "prediction_batch_position": self.position,
+                    "torch_allocated_bytes": allocated,
+                    "torch_reserved_bytes": reserved,
+                },
+            )
 
     def __enter__(self) -> "Heartbeat":
         def pulse() -> None:
