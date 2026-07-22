@@ -30,6 +30,7 @@ dev = [
     "ruff>=0.4",
 ]
 m5 = [
+    "psutil>=5.9",
     "torch>=2.3",
     "tabpfn>=3.0",
 ]

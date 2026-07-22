@@ -6,7 +6,8 @@ param(
 
     [int]$QueryChunkSize = 4000,
     [int[]]$Seeds = @(42, 123, 999),
-    [string[]]$MeterBudgets = @("50", "100", "200", "400", "all")
+    [string[]]$MeterBudgets = @("50", "100", "200", "400", "all"),
+    [int[]]$TargetSites = @(1, 8)
 )
 
 $ErrorActionPreference = "Stop"
@@ -89,10 +90,23 @@ function Invoke-CellWithoutTimeout {
 Push-Location $RepoRoot
 try {
     Assert-NoLiveDuplicate
+    $explicitTargetSites = $PSBoundParameters.ContainsKey("TargetSites")
+    foreach ($TargetSite in $TargetSites) {
+        if ($TargetSite -lt 0 -or $TargetSite -gt 15) {
+            throw "TargetSites must be in 0..15: $TargetSite"
+        }
+    }
     foreach ($Budget in $MeterBudgets) {
         foreach ($Seed in $Seeds) {
-            foreach ($Direction in @("a1", "a2")) {
-                $Stem = "m6_tabpfn_b1_${Direction}_meters${Budget}_seed${Seed}_context${ContextRows}"
+            foreach ($TargetSite in $TargetSites) {
+                $Direction = if (($TargetSite % 2) -eq 1) { "a1" } else { "a2" }
+                $SiteSuffix = if ($explicitTargetSites) {
+                    "_site${TargetSite}"
+                }
+                else {
+                    ""
+                }
+                $Stem = "m6_tabpfn_b1_${Direction}${SiteSuffix}_meters${Budget}_seed${Seed}_context${ContextRows}"
                 $Result = Join-Path $Processed "${Stem}.json"
                 if (Test-CompletedResult -Path $Result) {
                     Write-Host "SKIP completed: $Stem" -ForegroundColor DarkGray
@@ -102,9 +116,14 @@ try {
                 if (-not (Test-Path -LiteralPath $Manifest)) {
                     throw "Prepared B1 manifest is missing: $Manifest"
                 }
-                Invoke-CellWithoutTimeout -Stem $Stem -Arguments @(
+                $RunnerArguments = @(
                     $Runner
                     "--direction", $Direction
+                )
+                if ($explicitTargetSites) {
+                    $RunnerArguments += @("--target-site", [string]$TargetSite)
+                }
+                $RunnerArguments += @(
                     "--meter-budget", $Budget
                     "--selection-seed", [string]$Seed
                     "--context-rows", [string]$ContextRows
@@ -113,6 +132,7 @@ try {
                     "--out", $Result
                     "--predictions-out", (Join-Path $Processed "${Stem}_predictions.npz")
                 )
+                Invoke-CellWithoutTimeout -Stem $Stem -Arguments $RunnerArguments
             }
         }
     }

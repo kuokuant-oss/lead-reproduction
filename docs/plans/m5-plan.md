@@ -76,6 +76,15 @@ Site-transfer split 下，TabPFN test AUC 仍高，但 test PR-AUC 是六個模�
 
 ## 相關 commits 與 issue 對齊
 
+## Additive follow-up: TabPFN 500K single context
+
+The resource-guarded scaling line is specified in
+[`m5-tabpfn-500k-single-context.md`](../reports/m5-tabpfn-500k-single-context.md)
+and ADR 0028. It is additive: raw 17 features, unique balanced nested contexts,
+isolated workers, and resumable 100K--500K budgets do not change accepted M5
+metrics or golden fixtures. Formal GPU execution remains pending explicit
+operator invocation.
+
 | Commit | 用途 |
 | --- | --- |
 | `bfd6664` | 啟動 M5 TabPFN feasibility spike。 |

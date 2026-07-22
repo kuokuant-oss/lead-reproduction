@@ -65,7 +65,10 @@ TABPFN_CONTEXT_STYLES = {
     },
 }
 
+# Tree curves currently start at 50 meters. TabPFN also has a completed
+# 25-meter point, so keep its sweep separate from the tree completeness gate.
 BUDGETS = ("50", "100", "200", "400", "all")
+TABPFN_BUDGETS = ("25", "50", "100", "200", "400", "all")
 SEEDS = (42, 123, 999)
 FOLDS = ("a0odd", "a0even")
 OBSERVATION = PROC / "m6_seen_vs_unseen.json"
@@ -112,7 +115,7 @@ def observe_tabpfn() -> dict[str, dict[str, list[dict[str, Any]]]]:
         context_sites: dict[str, list[dict[str, Any]]] = {}
         for direction, site in (("a1", 1), ("a2", 8)):
             sid = str(site)
-            for budget in BUDGETS:
+            for budget in TABPFN_BUDGETS:
                 for seed in SEEDS:
                     stem = (
                         f"m6_tabpfn_b1_{direction}_meters{budget}_seed{seed}"
@@ -303,7 +306,7 @@ def _available_curve(
 ) -> tuple[list[int], list[float], list[int]]:
     """Plot completed full-site budget points; partial query chunks stay excluded."""
     xs, ys, counts = [], [], []
-    for budget in BUDGETS:
+    for budget in TABPFN_BUDGETS:
         values = [float(row[key]) for row in rows if row["budget"] == budget]
         if not values:
             continue
@@ -314,13 +317,13 @@ def _available_curve(
 
 
 def _complete_tabpfn_seeds(rows: list[dict[str, Any]]) -> tuple[int, ...]:
-    """A TabPFN seed is plottable only after all five budgets complete."""
+    """A TabPFN seed is plottable only after all six budgets complete."""
     return tuple(
         seed
         for seed in SEEDS
         if all(
             any(row["seed"] == seed and row["budget"] == budget for row in rows)
-            for budget in BUDGETS
+            for budget in TABPFN_BUDGETS
         )
     )
 
@@ -345,8 +348,9 @@ def render_site(
 
     present = [
         b
-        for b in BUDGETS
+        for b in TABPFN_BUDGETS
         if any(r["budget"] == b and r["seed"] in u_seeds for r in unseen)
+        or any(r["budget"] == b for rows in tabpfn_by_context.values() for r in rows)
     ]
     ticks = [all_x if b == "all" else int(b) for b in present]
     for idx, (ax, metric) in enumerate(zip(axes, METRICS, strict=True)):
@@ -545,7 +549,7 @@ def main() -> None:
         for r in rows
         if r["budget"] == "all"
     )
-    reals = [int(b) for b in BUDGETS if b != "all"]
+    reals = [int(b) for b in TABPFN_BUDGETS if b != "all"]
     xlim = (min(reals) * 0.85, all_x * 1.18)
     sites = (
         sorted(args.sites)

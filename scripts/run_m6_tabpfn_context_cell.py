@@ -1,4 +1,4 @@
-"""Run one Site 1/Site 8 M6 B1 TabPFN context-size cell.
+"""Run one M6 B1 TabPFN context-size cell for an unseen target site.
 
 This additive runner reuses a prepared B1 meter manifest, keeps the target site
 fully unseen, fits TabPFN once, and scores the complete target site in
@@ -55,6 +55,9 @@ DIRECTION_CONTRACT = {
 EXPECTED_TARGET_SUPPORT = {
     1: {"rows": 553_357, "anomalies": 77_779},
     8: {"rows": 567_915, "anomalies": 43_504},
+    11: {"rows": 119_459, "anomalies": 4_978},
+    13: {"rows": 2_711_763, "anomalies": 105_665},
+    14: {"rows": 2_501_506, "anomalies": 216_881},
 }
 
 
@@ -86,6 +89,12 @@ def atomic_json(path: Path, payload: dict[str, Any]) -> None:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--direction", choices=tuple(DIRECTION_CONTRACT), required=True)
+    parser.add_argument(
+        "--target-site",
+        type=int,
+        choices=tuple(range(16)),
+        help="Unseen target site. Defaults to Site 1 for a1 and Site 8 for a2.",
+    )
     parser.add_argument("--meter-budget", required=True)
     parser.add_argument("--selection-seed", type=int, required=True)
     parser.add_argument(
@@ -111,8 +120,10 @@ def parse_args() -> argparse.Namespace:
 
 
 def cell_stem(args: argparse.Namespace) -> str:
+    site_suffix = f"_site{args.target_site}" if args.target_site is not None else ""
     return (
-        f"m6_tabpfn_b1_{args.direction}_meters{str(args.meter_budget).lower()}"
+        f"m6_tabpfn_b1_{args.direction}{site_suffix}"
+        f"_meters{str(args.meter_budget).lower()}"
         f"_seed{args.selection_seed}_context{args.context_rows}"
     )
 
@@ -289,7 +300,17 @@ def main() -> None:
     if args.query_chunk_size <= 0:
         raise ValueError("--query-chunk-size must be positive")
     contract = DIRECTION_CONTRACT[args.direction]
-    target_site = int(contract["target_site"])
+    target_site = (
+        int(args.target_site)
+        if args.target_site is not None
+        else int(contract["target_site"])
+    )
+    expected_parity = 1 if args.direction == "a1" else 0
+    if target_site % 2 != expected_parity:
+        raise ValueError(
+            f"{args.direction} requires an {'odd' if expected_parity else 'even'} "
+            f"target site, got {target_site}"
+        )
     stem = cell_stem(args)
     args.manifest_in = resolve(args.manifest_in)
     args.model_path = resolve(args.model_path)

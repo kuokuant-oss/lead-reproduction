@@ -29,6 +29,7 @@ Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-r
 - **M5 跨部署情境總覽比較**（in-domain／標註稀缺／minimal-FE／site-transfer）：[docs/reports/m5-foundation-vs-gbdt.md](./docs/reports/m5-foundation-vs-gbdt.md)
 - **M5.1 調參敏感度與小樣本標註效率深入比較**：[docs/reports/m5-1-deep-comparison.md](./docs/reports/m5-1-deep-comparison.md)
 - **M5.x per-unit 建模切分粒度比較**：[docs/reports/m5x-partition-granularity.md](./docs/reports/m5x-partition-granularity.md)
+- **M5 TabPFN 100K–500K 單一 context 可行性實驗**：[docs/reports/m5-tabpfn-500k-single-context.md](./docs/reports/m5-tabpfn-500k-single-context.md)
 - **BDG2 data descriptor reference**：[docs/reference/papers/bdg2-miller-2020.md](./docs/reference/papers/bdg2-miller-2020.md)
 
 ## Milestone 摘要
@@ -38,7 +39,7 @@ Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-r
 M1 不訓練模型，目標是把論文與原始碼中的關鍵決策變成可追蹤文件。
 
 - `docs/reference/unknowns.md`：17 個 paper 或 code 未說清楚的地方。
-- `docs/adr/`：目前共有 27 份 ADR；M1 產出 ADR 0001-0006。
+- `docs/adr/`：目前共有 28 份 ADR；M1 產出 ADR 0001-0006。
 - `docs/reference/paper-notes.md`：paper structured summary。
 - `docs/reference/feature-engineering-rules.md`：feature 與 model 規則整理。
 - `docs/reference/plot-style-rules.md`：研究圖、模型比較圖與 EDA 的統一作圖規範。
@@ -185,7 +186,7 @@ docs/
 │   ├── m3-50-50-ensemble.json
 │   └── m3-primary-use-auc.json
 ├── adr/
-│   └── 0001-0027 decision records
+│   └── 0001-0028 decision records
 ├── handoffs/
 │   └── historical session handoffs
 ├── agents/
@@ -206,6 +207,7 @@ notebooks/
 └── 10-m3-postprocessing.ipynb
 
 scripts/
+├── plot_m5_tabpfn_single_context_curves.py
 ├── diagnose_bdg2_timezone_alignment.py
 ├── diagnose_phaseE_step3_smoke_attribution.py
 ├── explore_bdg2.py
@@ -229,6 +231,7 @@ scripts/
 ├── run_m5_phaseC_tabpfn_spike.py
 ├── run_m5_phaseD_deep_comparison.py
 ├── run_m5_phaseD_foundation_vs_gbdt.py
+├── run_m5_tabpfn_single_context_scaling.py
 ├── run_m5x_partition_granularity.py
 ├── run_m6_phaseD_50_50_full_models.py
 ├── run_phaseE_step3_bdg2_transfer_smoke.py
@@ -244,6 +247,7 @@ src/lead/
 ├── split.py
 ├── sample.py
 ├── evaluate.py
+├── resource_guard.py
 └── io.py
 
 tests/
@@ -253,6 +257,7 @@ tests/
 ├── test_label_join_integrity.py
 ├── test_m5_phaseD_comparison.py
 ├── test_m5_tabpfn_spike.py
+├── test_tabpfn_single_context_scaling.py
 ├── test_m5_timestamp_merge_regime.py
 ├── test_m5x_partition_granularity.py
 ├── test_phaseE_step4_transfer.py
@@ -281,6 +286,7 @@ Tracked code tree (`git ls-files src scripts tests`, summarized):
 
 ```text
 scripts/
+  plot_m5_tabpfn_single_context_curves.py
   diagnose_bdg2_timezone_alignment.py
   diagnose_phaseE_step3_smoke_attribution.py
   explore_bdg2.py
@@ -304,6 +310,7 @@ scripts/
   run_m5_phaseC_tabpfn_spike.py
   run_m5_phaseD_deep_comparison.py
   run_m5_phaseD_foundation_vs_gbdt.py
+  run_m5_tabpfn_single_context_scaling.py
   run_m5x_partition_granularity.py
   run_m6_phaseD_50_50_full_models.py
   run_phaseE_step3_bdg2_transfer_smoke.py
@@ -318,6 +325,7 @@ src/lead/
   evaluate.py
   features.py
   io.py
+  resource_guard.py
   sample.py
   split.py
 
@@ -328,6 +336,7 @@ tests/
   test_label_join_integrity.py
   test_m5_phaseD_comparison.py
   test_m5_tabpfn_spike.py
+  test_tabpfn_single_context_scaling.py
   test_m5_timestamp_merge_regime.py
   test_m5x_partition_granularity.py
   test_phaseE_step4_transfer.py
@@ -416,6 +425,8 @@ M5 GEPIII 模型比較：
 
 ```bash
 uv run python scripts/run_m5_phaseC_tabpfn_spike.py
+uv run python scripts/run_m5_tabpfn_single_context_scaling.py --preflight-only
+uv run python scripts/plot_m5_tabpfn_single_context_curves.py
 uv run python scripts/run_m5_phaseD_foundation_vs_gbdt.py --value-change-regime timestamp_merge --out data/processed/m6_phaseD_timestamp_merge_multiseed.json
 uv run python scripts/run_m6_phaseD_50_50_full_models.py --out data/processed/m6_phaseD_50_50_full_models_timestamp_merge.json
 uv run python scripts/run_m5_phaseD_deep_comparison.py --out data/processed/m5_phaseD_deep_comparison.json

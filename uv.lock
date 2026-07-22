@@ -1389,6 +1389,7 @@ dev = [
     { name = "ruff" },
 ]
 m5 = [
+    { name = "psutil" },
     { name = "tabpfn" },
     { name = "torch" },
 ]
@@ -1414,6 +1415,7 @@ dev = [
     { name = "ruff", specifier = ">=0.4" },
 ]
 m5 = [
+    { name = "psutil", specifier = ">=5.9" },
     { name = "tabpfn", specifier = ">=3.0" },
     { name = "torch", specifier = ">=2.3" },
 ]
