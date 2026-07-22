@@ -43,8 +43,10 @@ event log preserve completed work.
 GPU monitoring prefers per-process `nvidia-smi` readings and falls back to
 device-total WDDM readings, which include desktop and unrelated processes.
 `psutil` records worker RSS and system RAM. Consecutive soft-limit samples write
-a stop request checked between prediction batches. Hard limits, timeout, stale
-heartbeat, or expired grace terminate and then kill the process tree.
+a stop request checked between prediction batches. Hard limits, stale heartbeat,
+or expired grace terminate and then kill the process tree. Model wall-time is
+unlimited by default (`--budget-timeout-minutes 0`); a positive value remains
+available only for an explicitly requested run.
 
 A watchdog cannot guarantee interception of an instantaneous CUDA OOM. Query
 OOM may halve only query batch size down to the configured minimum. Training
@@ -82,9 +84,9 @@ only.
 + TabPFN version observed: `8.0.8`.
 + Required constructor parameters are present, including estimator scaling,
   low-memory mode, memory-saving mode, and inference config overrides.
-+ Current venv reports `torch 2.12.1+cpu`; a formal GPU run is therefore blocked
-  until a CUDA-enabled Torch build is installed and preflight passes.
-+ Nineteen unit/mock/fake-subprocess tests pass.
++ Current venv reports `torch 2.12.1+cu126`; CUDA is available on the RTX 4070
+  Laptop GPU. The minimal CUDA allocation test passed and released its context.
++ Twenty unit/mock/fake-subprocess tests pass.
 + Fake smoke budgets 200 and 500 complete without initializing CUDA.
 + Fake-smoke artifacts successfully render all four offline figure types.
 
@@ -104,6 +106,13 @@ Last safe formal budget: **not established**. 500K success: **not
 established**. `headline_500k_success` remains false.
 
 ## Commands
+
+Machine-local CUDA Torch installation used for this run environment:
+
+```powershell
+uv pip install --python .venv\Scripts\python.exe --reinstall `
+  "torch==2.12.1+cu126" --index-url https://download.pytorch.org/whl/cu126
+```
 
 Lightweight fake-model smoke:
 
@@ -130,6 +139,7 @@ Formal run, to be invoked only after explicit operator approval:
 python scripts/run_m5_tabpfn_single_context_scaling.py `
   --budgets 100000 200000 300000 400000 500000 `
   --score-rows 4000 --predict-batch-size 256 `
+  --budget-timeout-minutes 0 `
   --max-budgets-this-run 1 `
   --site-curve-rows-per-class 16 --site-curve-budget 500000 `
   --gpu-soft-limit-fraction 0.86 --gpu-hard-limit-fraction 0.92 `

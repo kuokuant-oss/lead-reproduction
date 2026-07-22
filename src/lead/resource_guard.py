@@ -27,7 +27,7 @@ class ResourceLimits:
     ram_soft_mib: float
     ram_hard_mib: float
     soft_limit_consecutive_polls: int = 4
-    timeout_seconds: float = 180 * 60
+    timeout_seconds: float | None = None
 
     def __post_init__(self) -> None:
         for soft, hard, name in (
@@ -38,7 +38,7 @@ class ResourceLimits:
                 raise ValueError(f"{name} soft limit must be below hard limit")
         if self.soft_limit_consecutive_polls < 1:
             raise ValueError("soft-limit consecutive polls must be positive")
-        if self.timeout_seconds <= 0:
+        if self.timeout_seconds is not None and self.timeout_seconds <= 0:
             raise ValueError("worker timeout must be positive")
 
 
@@ -95,7 +95,7 @@ def resolve_limits(
     ram_soft_mib: float | None,
     ram_hard_mib: float | None,
     soft_limit_consecutive_polls: int,
-    timeout_seconds: float,
+    timeout_seconds: float | None,
 ) -> ResourceLimits:
     """Resolve limits with explicit MiB values taking precedence."""
     for fraction, name in (
@@ -146,7 +146,10 @@ class LimitTracker:
     def observe(
         self, sample: ResourceSample, *, elapsed_seconds: float
     ) -> LimitDecision:
-        if elapsed_seconds >= self.limits.timeout_seconds:
+        if (
+            self.limits.timeout_seconds is not None
+            and elapsed_seconds >= self.limits.timeout_seconds
+        ):
             return LimitDecision("terminate", "worker timeout")
         if (
             self.limits.gpu_hard_mib is not None

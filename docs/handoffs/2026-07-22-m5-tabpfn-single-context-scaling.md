@@ -19,7 +19,9 @@ point, and a dead prior PID becomes `interrupted_previous_run`.
 ## Verification and next step
 
 Unit/mock/fake-smoke verification does not initialize CUDA. Current Torch is
-CPU-only, so install a CUDA build and run preflight before any formal attempt.
+The local venv was updated to `torch 2.12.1+cu126`; CUDA availability and a
+minimal RTX 4070 allocation were verified. Run the full no-fit preflight before
+any formal attempt.
 Do not infer 500K success from smoke or `.fit()` alone. Formal execution still
 requires explicit operator approval.
 
@@ -33,3 +35,7 @@ For operator-gated execution, pass `--max-budgets-this-run 1` and resume after
 inspecting each completed budget. Optional `--site-curve-rows-per-class 16`
 adds 512 balanced query rows only at `--site-curve-budget 500000`; these rows
 are used solely for by-site curves and never replace natural-prevalence metrics.
+
+Per operator decision, real model runs have no wall-time limit. The CLI default
+is `--budget-timeout-minutes 0`; resource hard limits and stale-heartbeat
+termination remain enabled.

@@ -107,7 +107,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--ram-hard-limit-mib", type=float)
     parser.add_argument("--soft-limit-consecutive-polls", type=int, default=4)
     parser.add_argument("--termination-grace-seconds", type=float, default=10)
-    parser.add_argument("--budget-timeout-minutes", type=float, default=180)
+    parser.add_argument(
+        "--budget-timeout-minutes",
+        type=float,
+        default=0,
+        help="Model wall-time limit; 0 disables it (default)",
+    )
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--restart-budget", type=int)
     parser.add_argument("--force", action="store_true")
@@ -136,6 +141,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         raise ValueError("max budgets this run must be positive")
     if args.site_curve_rows_per_class < 0:
         raise ValueError("site curve rows per class must be non-negative")
+    if args.budget_timeout_minutes < 0:
+        raise ValueError("budget timeout minutes must be non-negative")
     if args.site_curve_rows_per_class and args.site_curve_budget not in args.budgets:
         raise ValueError("site curve budget must appear in --budgets when enabled")
     if args.predictions_dir is None:
@@ -834,7 +841,11 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
             ram_soft_mib=args.ram_soft_limit_mib,
             ram_hard_mib=args.ram_hard_limit_mib,
             soft_limit_consecutive_polls=args.soft_limit_consecutive_polls,
-            timeout_seconds=args.budget_timeout_minutes * 60,
+            timeout_seconds=(
+                args.budget_timeout_minutes * 60
+                if args.budget_timeout_minutes > 0
+                else None
+            ),
         )
         margin_ok = (
             limits.gpu_hard_mib is None
@@ -1345,7 +1356,11 @@ def monitor_budget(
         ram_soft_mib=args.ram_soft_limit_mib,
         ram_hard_mib=args.ram_hard_limit_mib,
         soft_limit_consecutive_polls=args.soft_limit_consecutive_polls,
-        timeout_seconds=args.budget_timeout_minutes * 60,
+        timeout_seconds=(
+            args.budget_timeout_minutes * 60
+            if args.budget_timeout_minutes > 0
+            else None
+        ),
     )
     tracker = LimitTracker(limits)
     peak_gpu = peak_rss = peak_system = 0.0

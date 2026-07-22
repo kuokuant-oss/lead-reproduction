@@ -149,6 +149,11 @@ class TestTabPFNSingleContextScaling(unittest.TestCase):
         self.assertEqual(decision.action, "terminate")
         self.assertEqual(decision.reason, "GPU hard limit exceeded")
 
+    def test_disabled_timeout_never_stops_a_model(self) -> None:
+        tracker = LimitTracker(ResourceLimits(800, 900, 3_000, 3_500))
+        decision = tracker.observe(sample(gpu=100), elapsed_seconds=10**12)
+        self.assertEqual(decision.action, "continue")
+
     def test_process_tree_termination_kills_survivor(self) -> None:
         class Process:
             def __init__(self, pid: int, children=()):
