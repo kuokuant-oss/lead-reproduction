@@ -112,6 +112,30 @@ The full-data preflight completed with `status = ready`; it did not call
 The preflight process tree exited normally and device memory returned to the
 desktop baseline. This establishes readiness only, not model feasibility.
 
+## Small real-GPU gate
+
+A separate 200-row context gate completed on the real checkpoint and GPU. The
+first attempt exposed a Windows heartbeat temporary-file race after fit and
+both predictions had already succeeded. A write lock fixed the race; worker
+RSS monitoring was also corrected to sum the Windows launcher process tree.
+The repeated gate then completed end to end:
+
++ requested/effective context rows: 200/200;
++ effective estimators: 1; sample subsampling disabled;
++ fit / validation / test prediction: 0.82 / 6.47 / 0.62 seconds;
++ validation ROC-AUC / PR-AUC: 0.9939 / 0.9406;
++ test ROC-AUC / PR-AUC: 0.9579 / 0.6530;
++ Torch peak allocated/reserved: 232.6/252.0 MiB;
++ watchdog peak device GPU: 1,203 MiB;
++ watchdog peak worker process-tree RSS: 4,840.6 MiB;
++ scoring artifact: 4,614 bytes, SHA-256
+  `b22e060de7012e16d9648c8dbec98e4a0eabebe737631fab8ce10c9ff07afd5`.
+
+The worker exited, GPU memory returned to the desktop baseline, and all four
+offline figure types rendered from the artifact without reloading TabPFN. The
+gate used natural-prevalence rows only, so rare site panels being not estimable
+is expected; the formal 500K budget enables the separate stratified site rows.
+
 ## Scaling results
 
 | Context rows | Status | Validation ROC/PR | Test ROC/PR | Peak GPU |

@@ -44,3 +44,9 @@ The full-data no-fit preflight later completed `ready` with all nine checks
 passing. It verified CUDA Torch 2.12.1+cu126, TabPFN 8.0.8, the local checkpoint
 hash, disabled sample subsampling, the balanced unique 500K contract, 512
 site-stratified scoring rows, and null model timeout. No model was fit.
+
+A separate real-GPU 200-row gate completed after fixing a Windows heartbeat
+atomic-write race and changing RSS monitoring to sum the launcher process tree.
+It verified 200 effective context rows, one estimator, completed validation/test
+predictions, atomic NPZ output, offline four-figure rendering, and full GPU
+release after worker exit. Peak device GPU was 1,203 MiB.
