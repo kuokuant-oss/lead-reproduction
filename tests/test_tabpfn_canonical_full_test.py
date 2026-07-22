@@ -256,6 +256,30 @@ class TestTabPFNCanonicalFullTest(unittest.TestCase):
     def test_parent_has_no_top_level_torch_or_tabpfn_import(self) -> None:
         self.assertFalse(self.m.parent_has_forbidden_imports())
 
+    def test_new_invocation_clears_only_transient_worker_files(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            args = self.make_args(Path(directory))
+            args.work_dir.mkdir(parents=True)
+            transient = [
+                args.work_dir / "worker_result.json",
+                args.work_dir / "heartbeat.json",
+                args.work_dir / "stop.json",
+            ]
+            durable = [
+                args.work_dir / "model.tabpfn_fit",
+                args.work_dir / "scaler.joblib",
+                args.work_dir / "validation.npz",
+                args.work_dir / "chunks" / "chunk_000000.npz",
+            ]
+            for path in [*transient, *durable]:
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(b"saved")
+
+            self.m.prepare_worker_invocation(args.work_dir)
+
+            self.assertTrue(all(not path.exists() for path in transient))
+            self.assertTrue(all(path.is_file() for path in durable))
+
 
 if __name__ == "__main__":
     unittest.main()

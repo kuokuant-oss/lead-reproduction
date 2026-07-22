@@ -698,6 +698,12 @@ def worker(args: argparse.Namespace) -> int:
                 pass
 
 
+def prepare_worker_invocation(work_dir: Path) -> None:
+    """Clear prior process signals while preserving every durable checkpoint."""
+    for name in ("worker_result.json", "heartbeat.json", "stop.json"):
+        (work_dir / name).unlink(missing_ok=True)
+
+
 def controller(args: argparse.Namespace) -> int:
     args.work_dir.mkdir(parents=True, exist_ok=True)
     worker_result = args.work_dir / "worker_result.json"
@@ -720,8 +726,7 @@ def controller(args: argparse.Namespace) -> int:
             return 0
     elif args.state_out.exists() and not args.resume:
         raise FileExistsError("existing state; pass --resume")
-    worker_result.unlink(missing_ok=True)
-    stop_request.unlink(missing_ok=True)
+    prepare_worker_invocation(args.work_dir)
     process = subprocess.Popen(
         [sys.executable, str(Path(__file__).resolve()), *sys.argv[1:], "--worker"]
     )

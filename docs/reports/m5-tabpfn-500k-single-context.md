@@ -87,7 +87,7 @@ only.
   low-memory mode, memory-saving mode, and inference config overrides.
 + Current venv reports `torch 2.12.1+cu126`; CUDA is available on the RTX 4070
   Laptop GPU. The minimal CUDA allocation test passed and released its context.
-+ Thirty focused unit/mock/fake-subprocess tests pass, including fitted
++ Thirty-one focused unit/mock/fake-subprocess tests pass, including fitted
   state reload and full prediction-checkpoint reuse.
 + Fake smoke budgets 200 and 500 complete without initializing CUDA.
 + Fake-smoke artifacts successfully render all four offline figure types.
@@ -137,6 +137,9 @@ durable disk checkpoints:
   checkpoint. An interruption during one unfinished checkpoint loses at most
   that checkpoint; an interruption before the fitted model archive is
   committed requires refitting.
++ every worker invocation removes stale process-only heartbeat, stop, and
+  worker-result signals before launch, while preserving the fitted model,
+  scaler, validation artifact, and prediction chunks.
 
 The parent watchdog has no wall-time limit. It continues to protect GPU and
 RAM, and worker exit remains the fast whole-process memory-release boundary.
