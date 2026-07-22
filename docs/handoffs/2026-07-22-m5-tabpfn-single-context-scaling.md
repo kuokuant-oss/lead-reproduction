@@ -39,3 +39,8 @@ are used solely for by-site curves and never replace natural-prevalence metrics.
 Per operator decision, real model runs have no wall-time limit. The CLI default
 is `--budget-timeout-minutes 0`; resource hard limits and stale-heartbeat
 termination remain enabled.
+
+The full-data no-fit preflight later completed `ready` with all nine checks
+passing. It verified CUDA Torch 2.12.1+cu126, TabPFN 8.0.8, the local checkpoint
+hash, disabled sample subsampling, the balanced unique 500K contract, 512
+site-stratified scoring rows, and null model timeout. No model was fit.

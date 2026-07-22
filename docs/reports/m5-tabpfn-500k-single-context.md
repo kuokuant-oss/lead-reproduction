@@ -92,6 +92,26 @@ only.
 
 These checks do not establish any formal 100K--500K result.
 
+## Full no-fit preflight
+
+The full-data preflight completed with `status = ready`; it did not call
+`.fit()` or `predict_proba()`. All nine gates passed:
+
++ CUDA: `torch 2.12.1+cu126`, RTX 4070 Laptop GPU, 8,187.5 MiB;
++ TabPFN: `8.0.8`, local checkpoint SHA-256
+  `d0d865d54dfbc524f5703104be90620182dca7e5fb2c16de72e9959ea18f3988`;
++ context API: `SUBSAMPLE_SAMPLES=None` and source routing verified;
++ split rows: 5,035,406 fit / 5,043,539 validation / 10,137,155 test,
+  with zero building overlap;
++ 500K context: 250,000 unique positives plus 250,000 unique negatives;
++ fixed scoring: 4,000 validation and 4,000 natural-prevalence test rows;
++ by-site scoring: 512 rows, 16 positives and 16 negatives per site;
++ WDDM monitoring: device-total scope; preflight GPU baseline 574 MiB;
++ limits: GPU soft/hard 7,041.68/7,532.96 MiB and no wall-time limit.
+
+The preflight process tree exited normally and device memory returned to the
+desktop baseline. This establishes readiness only, not model feasibility.
+
 ## Scaling results
 
 | Context rows | Status | Validation ROC/PR | Test ROC/PR | Peak GPU |
