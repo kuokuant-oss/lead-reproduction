@@ -256,6 +256,25 @@ class TestTabPFNCanonicalFullTest(unittest.TestCase):
     def test_parent_has_no_top_level_torch_or_tabpfn_import(self) -> None:
         self.assertFalse(self.m.parent_has_forbidden_imports())
 
+    def test_heartbeat_stale_termination_is_disabled_without_opt_in(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            args = self.make_args(Path(directory))
+            self.assertEqual(args.heartbeat_stale_seconds, 0)
+            self.assertFalse(
+                self.m.heartbeat_stale_timeout_reached(
+                    last_write_time=100.0,
+                    now=10_000.0,
+                    timeout_seconds=args.heartbeat_stale_seconds,
+                )
+            )
+            self.assertTrue(
+                self.m.heartbeat_stale_timeout_reached(
+                    last_write_time=100.0,
+                    now=221.0,
+                    timeout_seconds=120.0,
+                )
+            )
+
     def test_new_invocation_clears_only_transient_worker_files(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             args = self.make_args(Path(directory))

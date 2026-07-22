@@ -104,6 +104,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--ram-hard-limit-mib", type=float)
     parser.add_argument("--soft-limit-consecutive-polls", type=int, default=4)
     parser.add_argument("--termination-grace-seconds", type=float, default=10)
+    parser.add_argument(
+        "--heartbeat-stale-seconds",
+        type=float,
+        default=0,
+        help=(
+            "Opt-in stale-heartbeat termination threshold; 0 disables it so a "
+            "long model call is never treated as a wall-time timeout."
+        ),
+    )
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--smoke", action="store_true")
@@ -117,6 +126,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         raise ValueError("invalid query microbatch range")
     if args.checkpoint_rows < args.query_microbatch_size:
         raise ValueError("checkpoint rows must be at least one query microbatch")
+    if args.heartbeat_stale_seconds < 0:
+        raise ValueError("heartbeat stale seconds cannot be negative")
     prefix = f"m5_tabpfn_canonical_full_test_context{args.context_rows}"
     args.out = args.out or PROC / f"{prefix}.json"
     args.state_out = args.state_out or PROC / f"{prefix}.state.json"
@@ -704,6 +715,13 @@ def prepare_worker_invocation(work_dir: Path) -> None:
         (work_dir / name).unlink(missing_ok=True)
 
 
+def heartbeat_stale_timeout_reached(
+    *, last_write_time: float, now: float, timeout_seconds: float
+) -> bool:
+    """Return true only when stale-heartbeat termination is explicitly enabled."""
+    return timeout_seconds > 0 and now - last_write_time >= timeout_seconds
+
+
 def controller(args: argparse.Namespace) -> int:
     args.work_dir.mkdir(parents=True, exist_ok=True)
     worker_result = args.work_dir / "worker_result.json"
@@ -800,8 +818,10 @@ def controller(args: argparse.Namespace) -> int:
                             "position": current.get("prediction_batch_position"),
                         },
                     )
-                if time.time() - heartbeat.stat().st_mtime >= max(
-                    5.0, args.termination_grace_seconds
+                if heartbeat_stale_timeout_reached(
+                    last_write_time=heartbeat.stat().st_mtime,
+                    now=time.time(),
+                    timeout_seconds=args.heartbeat_stale_seconds,
                 ):
                     termination_reason = "worker no longer responsive"
             except (OSError, json.JSONDecodeError):
