@@ -210,7 +210,10 @@ scripts/
 ├── plot_m5_tabpfn_single_context_curves.py
 ├── diagnose_bdg2_timezone_alignment.py
 ├── diagnose_phaseE_step3_smoke_attribution.py
+├── export_m5_tabpfn_colab_tail.py
 ├── explore_bdg2.py
+├── merge_m5_tabpfn_distributed_predictions.py
+├── monitor_m5_tabpfn_local_head.ps1
 ├── phaseE_transfer.py
 ├── run_bdg2_eda.py
 ├── run_gate_label_join_integrity.py
@@ -232,6 +235,7 @@ scripts/
 ├── run_m5_phaseD_deep_comparison.py
 ├── run_m5_phaseD_foundation_vs_gbdt.py
 ├── run_m5_tabpfn_canonical_full_test.py
+├── run_m5_tabpfn_portable_shard.py
 ├── run_m5_tabpfn_single_context_scaling.py
 ├── run_m5x_partition_granularity.py
 ├── run_m6_phaseD_50_50_full_models.py
@@ -259,6 +263,7 @@ tests/
 ├── test_m5_phaseD_comparison.py
 ├── test_m5_tabpfn_spike.py
 ├── test_tabpfn_canonical_full_test.py
+├── test_tabpfn_portable_shard.py
 ├── test_tabpfn_single_context_scaling.py
 ├── test_m5_timestamp_merge_regime.py
 ├── test_m5x_partition_granularity.py
@@ -291,7 +296,10 @@ scripts/
   plot_m5_tabpfn_single_context_curves.py
   diagnose_bdg2_timezone_alignment.py
   diagnose_phaseE_step3_smoke_attribution.py
+  export_m5_tabpfn_colab_tail.py
   explore_bdg2.py
+  merge_m5_tabpfn_distributed_predictions.py
+  monitor_m5_tabpfn_local_head.ps1
   phaseE_transfer.py
   run_bdg2_eda.py
   run_gate_label_join_integrity.py
@@ -313,6 +321,7 @@ scripts/
   run_m5_phaseD_deep_comparison.py
   run_m5_phaseD_foundation_vs_gbdt.py
   run_m5_tabpfn_canonical_full_test.py
+  run_m5_tabpfn_portable_shard.py
   run_m5_tabpfn_single_context_scaling.py
   run_m5x_partition_granularity.py
   run_m6_phaseD_50_50_full_models.py
@@ -340,6 +349,7 @@ tests/
   test_m5_phaseD_comparison.py
   test_m5_tabpfn_spike.py
   test_tabpfn_canonical_full_test.py
+  test_tabpfn_portable_shard.py
   test_tabpfn_single_context_scaling.py
   test_m5_timestamp_merge_regime.py
   test_m5x_partition_granularity.py

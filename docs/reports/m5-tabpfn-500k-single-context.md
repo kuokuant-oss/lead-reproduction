@@ -87,7 +87,7 @@ only.
   low-memory mode, memory-saving mode, and inference config overrides.
 + Current venv reports `torch 2.12.1+cu126`; CUDA is available on the RTX 4070
   Laptop GPU. The minimal CUDA allocation test passed and released its context.
-+ Thirty-one focused unit/mock/fake-subprocess tests pass, including fitted
++ Thirty-seven focused unit/mock/fake-subprocess tests pass, including fitted
   state reload and full prediction-checkpoint reuse.
 + Fake smoke budgets 200 and 500 complete without initializing CUDA.
 + Fake-smoke artifacts successfully render all four offline figure types.
@@ -147,6 +147,18 @@ The contract also verifies the 17-feature by-site artifact, the 137-feature M3
 artifact, and the A0 site artifact are row-aligned. The resulting TabPFN scores
 can therefore be added to the two feature-engineering ROC/PR figures and the
 two tree-ensemble-by-site ROC/PR figures named in the research request.
+
+For optional two-machine inference, the canonical target remains ordered by
+ascending building ID and meets at the absolute 20K checkpoint boundary
+5,060,000. The local worker moves forward through the first 253 checkpoints;
+the portable Colab worker starts at the final row and moves backward to that
+boundary. The meeting point lies inside building 893, avoiding both a partial
+disk checkpoint and any gap/overlap. The tail bundle contains a pre-scaled
+float32 17-feature memory map, aligned labels/row/site/building metadata, and
+the same fitted-state archive with only its foundation checkpoint path
+relocated to POSIX `/content`. Each side writes to an isolated work directory;
+the merger validates every absolute row span and row identity before producing
+one curve-ready artifact.
 
 A real-CUDA 200-row persistence gate then exercised the official archive path
 end to end. The first call reported `fitted`; after dropping the estimator and
