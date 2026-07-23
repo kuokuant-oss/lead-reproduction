@@ -555,7 +555,7 @@ def _inspect_colab() -> dict[str, Any] | None:
 
 
 def launch_and_verify_colab(sleep: Callable[[float], None] = time.sleep) -> bool:
-    if not _remote_exec(ROOT / ".scratch" / "launch_colab_tail.py", 120):
+    if not _remote_exec(ROOT / "scripts" / "launch_m5_tabpfn_colab_tail.py", 120):
         return False
     durable_rows = _tail_durable_rows()
     durable_chunks = len(_valid_local_tail_chunks())

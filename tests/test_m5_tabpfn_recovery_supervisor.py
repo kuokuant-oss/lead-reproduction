@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "supervise_m5_tabpfn_recovery.py"
 LAUNCHER = ROOT / "scripts" / "launch_m5_colab_recovery_supervisor.ps1"
 ENSURE_LAUNCHER = ROOT / "scripts" / "ensure_m5_colab_recovery_supervisor.ps1"
+COLAB_WORKER_LAUNCHER = ROOT / "scripts" / "launch_m5_tabpfn_colab_tail.py"
 
 
 def load_script():
@@ -83,6 +84,12 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
         self.assertIn('TABPFN_COLAB_HOME = "/home/tonykuo/.colab-hank"', launcher)
         self.assertIn('TABPFN_COLAB_AUTH = "oauth2"', launcher)
         self.assertIn('TABPFN_COLAB_ACCELERATOR = "L4"', launcher)
+
+    def test_colab_worker_launcher_uses_verified_microbatch(self) -> None:
+        launcher = COLAB_WORKER_LAUNCHER.read_text(encoding="utf-8")
+        self.assertIn('"--query-microbatch-size",\n    "1024"', launcher)
+        self.assertIn('"--min-query-microbatch-size",\n    "64"', launcher)
+        self.assertIn('"--resume"', launcher)
 
     def test_ensure_launcher_uses_persistent_singleton_task(self) -> None:
         launcher = ENSURE_LAUNCHER.read_text(encoding="utf-8")
