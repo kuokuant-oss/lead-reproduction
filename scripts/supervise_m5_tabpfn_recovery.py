@@ -35,6 +35,7 @@ KEEPALIVE_SCRIPT = ROOT / "scripts" / "monitor_m5_tabpfn_colab_keepalive.ps1"
 SESSION = "lead-tabpfn-tail"
 COLAB = "/home/tonykuo/.local/bin/colab"
 COLAB_PYTHON = "/home/tonykuo/.local/share/uv/tools/google-colab-cli/bin/python"
+COLAB_CREATE_HELPER = ROOT / "scripts" / "create_colab_session_adc.py"
 REMOTE_ROOT = "/content/lead_tabpfn_tail"
 EXPECTED_LOCAL_ROWS = 5_060_000
 EXPECTED_LOCAL_CHECKPOINTS = 253
@@ -194,6 +195,15 @@ def _sessions() -> tuple[str, list[str]]:
     return text, endpoints
 
 
+def _named_session_endpoint(text: str, session: str = SESSION) -> str | None:
+    match = re.search(
+        rf"^\[{re.escape(session)}\]\s+(gpu-[a-z0-9-]+)\s+\|",
+        text,
+        re.MULTILINE,
+    )
+    return match.group(1) if match else None
+
+
 def _release_exact_endpoint(endpoint: str) -> bool:
     if not ENDPOINT_RE.fullmatch(endpoint):
         raise RecoveryInvariantError(f"unsafe Colab endpoint: {endpoint}")
@@ -230,19 +240,43 @@ def ensure_fresh_colab_session() -> bool:
         )
     if endpoints and not _release_exact_endpoint(endpoints[0]):
         return False
-    result = _colab("new", "-s", SESSION, "--gpu", "T4")
+    result = _run(
+        [
+            "wsl.exe",
+            "-d",
+            "Ubuntu",
+            "--",
+            COLAB_PYTHON,
+            _wsl_path(COLAB_CREATE_HELPER),
+            "--session",
+            SESSION,
+            "--gpu",
+            "T4",
+        ]
+    )
     if result.returncode == 0:
         log("colab_session_ready=true accelerator=T4")
         return True
-    category = classify_colab_failure(_output_text(result))
-    log(f"colab_session_create_failed=true category={category}")
+    output = _output_text(result)
+    category = classify_colab_failure(output)
+    detail = next(
+        (line for line in output.splitlines() if line.startswith("{")),
+        "{}",
+    )
+    log(f"colab_session_create_failed=true category={category} detail={detail}")
     return False
 
 
 def colab_session_transport_healthy() -> bool:
-    """Return true when the named backend accepts CLI requests."""
-    result = _colab("status", "-s", SESSION)
-    return result.returncode == 0
+    """Return true only when the named assignment exists on the server.
+
+    colab-cli 0.6.0 exits zero for ``status -s NAME`` even when NAME is not
+    found.  The server-backed sessions listing is therefore the authoritative
+    transport check; an exit code alone would create an infinite upload loop
+    against a missing runtime.
+    """
+    text, _ = _sessions()
+    return _named_session_endpoint(text) is not None
 
 
 def _remote_exec(script: Path, setup_timeout: int = 900) -> bool:

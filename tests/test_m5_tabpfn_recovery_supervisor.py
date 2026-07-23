@@ -109,12 +109,26 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
             with self.subTest(message=message):
                 self.assertEqual(self.m.classify_colab_failure(message), "retry")
 
+    def test_transport_health_rejects_zero_exit_missing_session(self) -> None:
+        missing = "[colab] Session 'lead-tabpfn-tail' not found."
+        with patch.object(self.m, "_sessions", return_value=(missing, [])):
+            self.assertFalse(self.m.colab_session_transport_healthy())
+
+    def test_transport_health_requires_named_server_assignment(self) -> None:
+        listing = f"[{self.m.SESSION}] gpu-live-runtime | Hardware: T4 | Variant: GPU"
+        with patch.object(
+            self.m,
+            "_sessions",
+            return_value=(listing, ["gpu-live-runtime"]),
+        ):
+            self.assertTrue(self.m.colab_session_transport_healthy())
+
     def test_colab_failure_with_missing_output_stream_does_not_crash(self) -> None:
         with (
             patch.object(self.m, "_sessions", return_value=("", [])),
             patch.object(
                 self.m,
-                "_colab",
+                "_run",
                 return_value=subprocess.CompletedProcess(
                     (), 1, "Service Unavailable", None
                 ),
@@ -137,8 +151,8 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
             events.append(("release", endpoint))
             return True
 
-        def colab(*arguments: str):
-            events.append(("colab", *arguments))
+        def run(arguments):
+            events.append(("run", *arguments))
             return subprocess.CompletedProcess(arguments, 0, "", "")
 
         sessions_output = (
@@ -148,7 +162,7 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
         with (
             patch.object(self.m, "_sessions", return_value=sessions_output),
             patch.object(self.m, "_release_exact_endpoint", side_effect=release),
-            patch.object(self.m, "_colab", side_effect=colab),
+            patch.object(self.m, "_run", side_effect=run),
         ):
             self.assertTrue(self.m.ensure_fresh_colab_session())
 
@@ -156,7 +170,19 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
             events,
             [
                 ("release", "gpu-stale-runtime"),
-                ("colab", "new", "-s", self.m.SESSION, "--gpu", "T4"),
+                (
+                    "run",
+                    "wsl.exe",
+                    "-d",
+                    "Ubuntu",
+                    "--",
+                    self.m.COLAB_PYTHON,
+                    self.m._wsl_path(self.m.COLAB_CREATE_HELPER),
+                    "--session",
+                    self.m.SESSION,
+                    "--gpu",
+                    "T4",
+                ),
             ],
         )
 
