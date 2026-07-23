@@ -115,6 +115,22 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
             finally:
                 self.m.TAIL_RESULTS = original_results
 
+    def test_completed_shard_is_checked_before_remote_health_probe(self) -> None:
+        events = []
+        with (
+            patch.object(self.m, "colab_formal_shard_complete", return_value=True),
+            patch.object(
+                self.m,
+                "_inspect_colab",
+                side_effect=AssertionError("completed shard must not probe remote"),
+            ),
+            patch.object(self.m, "log", side_effect=events.append),
+        ):
+            self.m.recover_colab_until_healthy()
+        self.assertTrue(
+            any("colab_formal_shard_complete=true" in value for value in events)
+        )
+
     def test_ensure_launcher_uses_persistent_singleton_task(self) -> None:
         launcher = ENSURE_LAUNCHER.read_text(encoding="utf-8")
         self.assertIn("CodexTabPFNColabRecoverySupervisor", launcher)
@@ -441,6 +457,16 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
                         self.m,
                         "_inspect_colab",
                         side_effect=[None, {"alive": True}],
+                    ),
+                    patch.object(
+                        self.m,
+                        "synced_heartbeat_fresh",
+                        return_value=False,
+                    ),
+                    patch.object(
+                        self.m,
+                        "local_sync_reports_missing_remote_work",
+                        return_value=False,
                     ),
                     patch.object(
                         self.m,

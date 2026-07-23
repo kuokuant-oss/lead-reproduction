@@ -439,6 +439,13 @@ def recovery_episode_advanced(episode: dict[str, Any]) -> bool:
     )
 
 
+def colab_formal_shard_complete() -> bool:
+    return (
+        len(_valid_local_tail_chunks()) >= EXPECTED_COLAB_CHECKPOINTS
+        and (TAIL_RESULTS / "result.json").is_file()
+    )
+
+
 def close_recovery_episode(episode: dict[str, Any]) -> None:
     rows, chunks = _durable_frontier()
     completed = dict(episode)
@@ -631,6 +638,22 @@ def synced_heartbeat_fresh(
     return timestamp > 0 and now() - timestamp <= max_age_seconds
 
 
+def local_sync_reports_missing_remote_work() -> bool:
+    """Detect a reclaimed remote work tree without probing a stuck exec call."""
+    path = TAIL_RESULTS / "sync.log"
+    if not path.is_file():
+        return False
+    try:
+        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return False
+    recent = "\n".join(lines[-20:]).lower()
+    return ("session '" in recent and "not found" in recent) or (
+        "file or directory not found" in recent
+        and f"{REMOTE_ROOT}/work/chunks".lower() in recent
+    )
+
+
 def rebuild_colab_from_checkpoints() -> bool:
     """Create a fresh runtime, restore all durable inputs, and verify resume."""
     if not colab_session_transport_healthy():
@@ -654,7 +677,16 @@ def recover_colab_until_healthy(
         if candidate.get("status") == "active":
             episode = candidate
     while True:
-        status = _inspect_colab()
+        if colab_formal_shard_complete():
+            log(f"colab_formal_shard_complete=true shard={COLAB_SHARD}")
+            return
+        if local_sync_reports_missing_remote_work():
+            status = None
+            log(f"remote_work_missing_from_sync=true shard={COLAB_SHARD}")
+        elif synced_heartbeat_fresh():
+            status = {"alive": True, "source": "recent_synced_heartbeat"}
+        else:
+            status = _inspect_colab()
         if (not status or not status.get("alive")) and not synced_heartbeat_fresh():
             if episode is None:
                 episode = load_or_start_recovery_episode()
@@ -667,12 +699,6 @@ def recover_colab_until_healthy(
             episode = None
             if return_after_episode_success:
                 return
-        if (
-            len(_valid_local_tail_chunks()) >= EXPECTED_COLAB_CHECKPOINTS
-            and (TAIL_RESULTS / "result.json").is_file()
-        ):
-            log("colab_formal_shard_complete=true")
-            return
         sleep(60)
 
 
