@@ -91,6 +91,30 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
         self.assertIn('"--min-query-microbatch-size",\n    "64"', launcher)
         self.assertIn('"--resume"', launcher)
 
+    def test_synced_heartbeat_can_prove_recent_health(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            original_results = self.m.TAIL_RESULTS
+            self.m.TAIL_RESULTS = Path(directory)
+            try:
+                (self.m.TAIL_RESULTS / "heartbeat.json").write_text(
+                    json.dumps({"timestamp": 900.0}),
+                    encoding="utf-8",
+                )
+                self.assertTrue(
+                    self.m.synced_heartbeat_fresh(
+                        now=lambda: 1000.0,
+                        max_age_seconds=101,
+                    )
+                )
+                self.assertFalse(
+                    self.m.synced_heartbeat_fresh(
+                        now=lambda: 1000.0,
+                        max_age_seconds=99,
+                    )
+                )
+            finally:
+                self.m.TAIL_RESULTS = original_results
+
     def test_ensure_launcher_uses_persistent_singleton_task(self) -> None:
         launcher = ENSURE_LAUNCHER.read_text(encoding="utf-8")
         self.assertIn("CodexTabPFNColabRecoverySupervisor", launcher)
@@ -210,6 +234,59 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
                 ),
             ],
         )
+
+    def test_other_named_sessions_are_never_released(self) -> None:
+        events = []
+        listing = (
+            "[other-worker] gpu-other-runtime | Hardware: L4 | Variant: GPU",
+            ["gpu-other-runtime"],
+        )
+
+        def run(arguments):
+            events.append(("run", *arguments))
+            return subprocess.CompletedProcess(arguments, 0, "", "")
+
+        with (
+            patch.object(self.m, "_sessions", return_value=listing),
+            patch.object(
+                self.m,
+                "_release_exact_endpoint",
+                side_effect=AssertionError("must not release another worker"),
+            ),
+            patch.object(self.m, "_run", side_effect=run),
+        ):
+            self.assertTrue(self.m.ensure_fresh_colab_session())
+
+        self.assertEqual(len(events), 1)
+
+    def test_target_release_preserves_other_named_sessions(self) -> None:
+        events = []
+        listing = (
+            "\n".join(
+                (
+                    f"[{self.m.SESSION}] gpu-target-runtime | Hardware: L4 | Variant: GPU",
+                    "[other-worker] gpu-other-runtime | Hardware: L4 | Variant: GPU",
+                )
+            ),
+            ["gpu-target-runtime", "gpu-other-runtime"],
+        )
+
+        def release(endpoint: str) -> bool:
+            events.append(("release", endpoint))
+            return True
+
+        with (
+            patch.object(self.m, "_sessions", return_value=listing),
+            patch.object(self.m, "_release_exact_endpoint", side_effect=release),
+            patch.object(
+                self.m,
+                "_run",
+                return_value=subprocess.CompletedProcess((), 0, "", ""),
+            ),
+        ):
+            self.assertTrue(self.m.ensure_fresh_colab_session())
+
+        self.assertEqual(events, [("release", "gpu-target-runtime")])
 
     def test_colab_rebuild_reuploads_checkpoints_before_launch(self) -> None:
         events = []

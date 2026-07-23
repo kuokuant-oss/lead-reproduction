@@ -16,6 +16,9 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 PROC = ROOT / "data" / "processed"
+COLAB_SHARD = os.environ.get("TABPFN_COLAB_SHARD", "tail")
+if COLAB_SHARD not in {"head", "tail"}:
+    raise ValueError(f"unsupported Colab shard: {COLAB_SHARD}")
 LOCAL_WORK = PROC / "m5_tabpfn_canonical_full_test_context100000.work"
 LOCAL_STATE = PROC / "m5_tabpfn_canonical_full_test_context100000.state.json"
 LOCAL_STDOUT = (
@@ -24,26 +27,54 @@ LOCAL_STDOUT = (
 LOCAL_STDERR = (
     PROC / "m5_tabpfn_canonical_full_test_context100000.controller.stderr.log"
 )
-TAIL_INPUT = PROC / "m5_tabpfn_distributed_context100000" / "tail"
-TAIL_RESULTS = PROC / "m5_tabpfn_distributed_context100000" / "tail-results"
+TAIL_INPUT = PROC / "m5_tabpfn_distributed_context100000" / COLAB_SHARD
+TAIL_RESULTS = PROC / "m5_tabpfn_distributed_context100000" / f"{COLAB_SHARD}-results"
 UPLOAD_PARTS = PROC / "m5_tabpfn_upload_parts"
-LOCK_PATH = PROC / "m5_tabpfn_recovery_supervisor.lock"
-LOG_PATH = PROC / "m5_tabpfn_recovery_supervisor.log"
-EPISODE_PATH = PROC / "m5_tabpfn_recovery_episode.json"
-MONITORS_PATH = PROC / "m5_tabpfn_recovery_monitors.json"
-SYNC_SCRIPT = ROOT / "scripts" / "sync_m5_tabpfn_colab_tail.ps1"
-KEEPALIVE_SCRIPT = ROOT / "scripts" / "monitor_m5_tabpfn_colab_keepalive.ps1"
-SESSION = "lead-tabpfn-tail"
+HEAD_UPLOAD_PARTS = PROC / "m5_tabpfn_head_upload_parts"
+STATE_STEM = (
+    "m5_tabpfn_recovery" if COLAB_SHARD == "tail" else "m5_tabpfn_colab_head_recovery"
+)
+LOCK_PATH = PROC / f"{STATE_STEM}_supervisor.lock"
+LOG_PATH = PROC / f"{STATE_STEM}_supervisor.log"
+EPISODE_PATH = PROC / f"{STATE_STEM}_episode.json"
+MONITORS_PATH = PROC / f"{STATE_STEM}_monitors.json"
+SYNC_SCRIPT = (
+    ROOT / "scripts" / "sync_m5_tabpfn_colab_tail.ps1"
+    if COLAB_SHARD == "tail"
+    else ROOT / "scripts" / "sync_m5_tabpfn_colab_head.ps1"
+)
+KEEPALIVE_SCRIPT = (
+    ROOT / "scripts" / "monitor_m5_tabpfn_colab_keepalive.ps1"
+    if COLAB_SHARD == "tail"
+    else ROOT / "scripts" / "monitor_m5_tabpfn_colab_head_keepalive.ps1"
+)
+SESSION = "lead-tabpfn-tail" if COLAB_SHARD == "tail" else "lead-tabpfn-tail-2"
 COLAB = "/home/tonykuo/.local/bin/colab"
 COLAB_PYTHON = "/home/tonykuo/.local/share/uv/tools/google-colab-cli/bin/python"
 COLAB_CREATE_HELPER = ROOT / "scripts" / "create_colab_session.py"
 COLAB_HOME = os.environ.get("TABPFN_COLAB_HOME", "/home/tonykuo")
 COLAB_AUTH = os.environ.get("TABPFN_COLAB_AUTH", "adc")
 COLAB_ACCELERATOR = os.environ.get("TABPFN_COLAB_ACCELERATOR", "T4")
-REMOTE_ROOT = "/content/lead_tabpfn_tail"
+REMOTE_ROOT = f"/content/lead_tabpfn_{COLAB_SHARD}"
 EXPECTED_LOCAL_ROWS = 5_060_000
 EXPECTED_LOCAL_CHECKPOINTS = 253
-EXPECTED_COLAB_CHECKPOINTS = 254
+EXPECTED_COLAB_CHECKPOINTS = 254 if COLAB_SHARD == "tail" else 253
+REMOTE_DIR_SCRIPT = (
+    ROOT / ".scratch" / "create_colab_tail_dirs.py"
+    if COLAB_SHARD == "tail"
+    else ROOT / "scripts" / "create_m5_tabpfn_colab_head_dirs.py"
+)
+REASSEMBLE_SCRIPT = (
+    ROOT / ".scratch" / "reassemble_colab_tail.py"
+    if COLAB_SHARD == "tail"
+    else ROOT / "scripts" / "reassemble_m5_tabpfn_colab_head.py"
+)
+INSPECT_SCRIPT = (
+    ROOT / ".scratch" / "inspect_colab_tail_status.py"
+    if COLAB_SHARD == "tail"
+    else ROOT / "scripts" / "inspect_m5_tabpfn_colab_head.py"
+)
+WORKER_LAUNCHER = ROOT / "scripts" / f"launch_m5_tabpfn_colab_{COLAB_SHARD}.py"
 ENDPOINT_RE = re.compile(r"^gpu-[a-z0-9-]+$")
 
 
@@ -274,13 +305,10 @@ def _release_exact_endpoint(endpoint: str) -> bool:
 
 
 def ensure_fresh_colab_session() -> bool:
-    """Discard any unusable assignment before allocating a brand-new T4."""
-    _, endpoints = _sessions()
-    if len(endpoints) > 1:
-        raise RecoveryInvariantError(
-            "multiple Colab assignments; refusing broad cleanup"
-        )
-    if endpoints and not _release_exact_endpoint(endpoints[0]):
+    """Replace only this supervisor's named assignment, preserving all others."""
+    text, _ = _sessions()
+    endpoint = _named_session_endpoint(text)
+    if endpoint and not _release_exact_endpoint(endpoint):
         return False
     result = _run(
         [
@@ -489,13 +517,18 @@ def ensure_colab_monitors(sleep: Callable[[float], None] = time.sleep) -> None:
 
 
 def restore_colab_files() -> bool:
-    if not _remote_exec(ROOT / ".scratch" / "create_colab_tail_dirs.py", 120):
+    if not _remote_exec(REMOTE_DIR_SCRIPT, 120):
         return False
     uploads: list[tuple[Path, str]] = []
+    if COLAB_SHARD == "tail":
+        part_paths = sorted(UPLOAD_PARTS.iterdir())
+    else:
+        part_paths = [
+            *sorted(HEAD_UPLOAD_PARTS.glob("features.float32.npy.part*")),
+            *sorted(UPLOAD_PARTS.glob("tabpfn-v3-classifier-v3_default.ckpt.part*")),
+        ]
     uploads.extend(
-        (path, f"{REMOTE_ROOT}/{path.name}")
-        for path in sorted(UPLOAD_PARTS.iterdir())
-        if path.is_file()
+        (path, f"{REMOTE_ROOT}/{path.name}") for path in part_paths if path.is_file()
     )
     uploads.extend(
         (
@@ -520,7 +553,7 @@ def restore_colab_files() -> bool:
         if not _upload(local, remote):
             log(f"upload_failed=true file={local.name}")
             return False
-    if not _remote_exec(ROOT / ".scratch" / "reassemble_colab_tail.py", 300):
+    if not _remote_exec(REASSEMBLE_SCRIPT, 300):
         raise RecoveryInvariantError("Colab input SHA-256 verification failed")
     for script in (
         "install_colab_tabpfn.py",
@@ -539,7 +572,7 @@ def _inspect_colab() -> dict[str, Any] | None:
         "-s",
         SESSION,
         "-f",
-        _wsl_path(ROOT / ".scratch" / "inspect_colab_tail_status.py"),
+        _wsl_path(INSPECT_SCRIPT),
         "--timeout",
         "120",
     )
@@ -555,7 +588,7 @@ def _inspect_colab() -> dict[str, Any] | None:
 
 
 def launch_and_verify_colab(sleep: Callable[[float], None] = time.sleep) -> bool:
-    if not _remote_exec(ROOT / "scripts" / "launch_m5_tabpfn_colab_tail.py", 120):
+    if not _remote_exec(WORKER_LAUNCHER, 120):
         return False
     durable_rows = _tail_durable_rows()
     durable_chunks = len(_valid_local_tail_chunks())
@@ -582,6 +615,22 @@ def launch_and_verify_colab(sleep: Callable[[float], None] = time.sleep) -> bool
     return True
 
 
+def synced_heartbeat_fresh(
+    *,
+    now: Callable[[], float] = time.time,
+    max_age_seconds: float = 600,
+) -> bool:
+    path = TAIL_RESULTS / "heartbeat.json"
+    if not path.is_file():
+        return False
+    try:
+        heartbeat = _read_json(path)
+        timestamp = float(heartbeat.get("timestamp", 0))
+    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        return False
+    return timestamp > 0 and now() - timestamp <= max_age_seconds
+
+
 def rebuild_colab_from_checkpoints() -> bool:
     """Create a fresh runtime, restore all durable inputs, and verify resume."""
     if not colab_session_transport_healthy():
@@ -606,12 +655,12 @@ def recover_colab_until_healthy(
             episode = candidate
     while True:
         status = _inspect_colab()
-        if not status or not status.get("alive"):
+        if (not status or not status.get("alive")) and not synced_heartbeat_fresh():
             if episode is None:
                 episode = load_or_start_recovery_episode()
             retry_until_success(rebuild_colab_from_checkpoints)
         else:
-            log("colab_worker_already_healthy=true")
+            log(f"colab_worker_already_healthy=true shard={COLAB_SHARD}")
         ensure_colab_monitors()
         if episode is not None and recovery_episode_advanced(episode):
             close_recovery_episode(episode)

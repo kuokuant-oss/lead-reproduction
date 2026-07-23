@@ -3,6 +3,7 @@ param(
     [int]$PollSeconds = 60,
     [int]$ExpectedCheckpointCount = 254,
     [string]$LocalDirectory = "C:\Users\tonykuo\projects\lead-reproduction\data\processed\m5_tabpfn_distributed_context100000\tail-results",
+    [string]$RemoteRoot = "/content/lead_tabpfn_tail",
     [string]$ColabCli = "/home/tonykuo/.local/bin/colab",
     [ValidateSet("adc", "oauth2")]
     [string]$Auth = "oauth2",
@@ -10,7 +11,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$remoteWork = "/content/lead_tabpfn_tail/work"
+$remoteWork = "$RemoteRoot/work"
 $remoteChunks = "$remoteWork/chunks"
 $allowedRoot = [System.IO.Path]::GetFullPath("C:\Users\tonykuo\projects\lead-reproduction\data\processed")
 $resolvedLocal = [System.IO.Path]::GetFullPath($LocalDirectory)

@@ -1,4 +1,4 @@
-"""Export a CPU-only, portable tail shard for parallel Colab inference."""
+"""Export a CPU-only, portable shard for parallel Colab inference."""
 
 from __future__ import annotations
 
@@ -27,6 +27,11 @@ DEFAULT_REMOTE_ROOT = PurePosixPath("/content/lead_tabpfn_tail")
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--global-start", type=int, default=5_060_000)
+    parser.add_argument("--global-end", type=int)
+    parser.add_argument("--shard", choices=("head", "tail"), default="tail")
+    parser.add_argument(
+        "--direction", choices=("forward", "reverse"), default="reverse"
+    )
     parser.add_argument("--source-work-dir", type=Path, default=DEFAULT_SOURCE_WORK)
     parser.add_argument(
         "--site-predictions", type=Path, default=DEFAULT_SITE_PREDICTIONS
@@ -38,8 +43,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--export-block-rows", type=int, default=100_000)
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args(argv)
-    if args.global_start <= 0:
-        raise ValueError("global start must be positive")
+    if args.global_start < 0:
+        raise ValueError("global start must be nonnegative")
+    if args.global_end is not None and args.global_end <= args.global_start:
+        raise ValueError("global end must be greater than global start")
     if args.export_block_rows <= 0:
         raise ValueError("export block rows must be positive")
     return args
@@ -110,7 +117,7 @@ def main(argv: list[str] | None = None) -> int:
         path.exists()
         for path in (features_path, metadata_path, portable_fit_path, manifest_path)
     ):
-        raise FileExistsError("tail export already exists; pass --force to replace")
+        raise FileExistsError("shard export already exists; pass --force to replace")
 
     source_fit = args.source_work_dir / "model.tabpfn_fit"
     scaler_path = args.source_work_dir / "scaler.joblib"
@@ -138,11 +145,14 @@ def main(argv: list[str] | None = None) -> int:
     shard_start = args.global_start
     if shard_start >= len(full_building):
         raise ValueError("global start selects no rows")
-    raw_index = full_raw_index[shard_start:]
-    y = full_y[shard_start:]
-    site_id = full_site[shard_start:]
-    building_id = full_building[shard_start:]
-    global_position = np.arange(shard_start, len(full_building), dtype="int64")
+    shard_end = len(full_building) if args.global_end is None else args.global_end
+    if shard_end > len(full_building):
+        raise ValueError("global end exceeds canonical rows")
+    raw_index = full_raw_index[shard_start:shard_end]
+    y = full_y[shard_start:shard_end]
+    site_id = full_site[shard_start:shard_end]
+    building_id = full_building[shard_start:shard_end]
+    global_position = np.arange(shard_start, shard_end, dtype="int64")
     if not np.array_equal(frame.loc[raw_index, "anomaly"].to_numpy(dtype="int8"), y):
         raise AssertionError("raw row IDs do not map to canonical labels")
     if not np.array_equal(
@@ -192,12 +202,12 @@ def main(argv: list[str] | None = None) -> int:
         raise AssertionError("foundation checkpoint SHA-256 drifted")
     manifest = {
         "status": "ready",
-        "shard": "tail",
-        "direction": "reverse",
+        "shard": args.shard,
+        "direction": args.direction,
         "min_building_id": int(building_id[0]),
         "max_building_id": int(building_id[-1]),
         "global_start": shard_start,
-        "global_end": len(full_building),
+        "global_end": shard_end,
         "rows": len(raw_index),
         "features": {
             "path": str(features_path.resolve()),

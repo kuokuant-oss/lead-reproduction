@@ -13,7 +13,7 @@ from lead import PROC
 
 
 DEFAULT_CANONICAL = PROC / "m6_site_transfer_b2_a0_pos677077_seed42_predictions.npz"
-DEFAULT_HEAD = PROC / "m5_tabpfn_canonical_full_test_context100000.work" / "chunks"
+DEFAULT_HEAD = PROC / "m5_tabpfn_distributed_context100000" / "head-results" / "chunks"
 DEFAULT_TAIL = PROC / "m5_tabpfn_distributed_context100000" / "tail-results"
 DEFAULT_OUT = PROC / "m5_tabpfn_distributed_context100000_predictions.npz"
 
@@ -105,7 +105,9 @@ def main(argv: list[str] | None = None) -> int:
         if start < args.boundary:
             if end > args.boundary:
                 raise AssertionError("head checkpoint crosses distributed boundary")
-            path = head_checkpoint_path(args.head_chunks, start, args.checkpoint_rows)
+            portable = tail_checkpoint_path(args.head_chunks, start, end)
+            legacy = head_checkpoint_path(args.head_chunks, start, args.checkpoint_rows)
+            path = portable if portable.is_file() else legacy
         else:
             path = tail_checkpoint_path(args.tail_chunks, start, end)
         score[start:end] = load_score_checkpoint(

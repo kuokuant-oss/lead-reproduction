@@ -97,6 +97,24 @@ class TestTabPFNPortableShard(unittest.TestCase):
             self.assertEqual(relocated["fit_mode"], original["fit_mode"])
             self.assertEqual(relocated["__class_name__"], original["__class_name__"])
 
+    def test_exporter_accepts_forward_head_bounds(self) -> None:
+        args = self.exporter.parse_args(
+            [
+                "--global-start",
+                "0",
+                "--global-end",
+                "5060000",
+                "--shard",
+                "head",
+                "--direction",
+                "forward",
+            ]
+        )
+        self.assertEqual(args.global_start, 0)
+        self.assertEqual(args.global_end, 5_060_000)
+        self.assertEqual(args.shard, "head")
+        self.assertEqual(args.direction, "forward")
+
     def test_worker_has_no_top_level_torch_or_tabpfn_import(self) -> None:
         self.assertFalse(self.worker.parent_has_forbidden_imports())
 
