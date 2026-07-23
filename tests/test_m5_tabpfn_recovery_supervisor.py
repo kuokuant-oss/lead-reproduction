@@ -64,6 +64,17 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
         self.assertEqual(attempts, [1, 2, 3, 4, 5, 6, 7])
         self.assertEqual(sleeps, [1, 2, 5, 5, 5, 5])
 
+    def test_colab_allocation_uses_jittered_exponential_backoff(self) -> None:
+        delays = [
+            self.m.colab_allocation_delay(
+                attempt,
+                uniform=lambda lower, upper: (lower + upper) / 2,
+            )
+            for attempt in range(1, 8)
+        ]
+        self.assertEqual(delays[:5], [60, 120, 240, 480, 960])
+        self.assertEqual(delays[5:], [1350, 1350])
+
     def test_host_launcher_is_colab_only(self) -> None:
         launcher = LAUNCHER.read_text(encoding="utf-8")
         self.assertIn("--scope colab", launcher)
@@ -198,6 +209,11 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
                 self.m,
                 "ensure_fresh_colab_session",
                 side_effect=lambda: events.append("new") or True,
+            ),
+            patch.object(
+                self.m,
+                "retry_until_success",
+                side_effect=lambda operation, **kwargs: operation(),
             ),
             patch.object(
                 self.m,

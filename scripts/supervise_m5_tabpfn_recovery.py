@@ -4,6 +4,7 @@ import argparse
 import ctypes
 import json
 import os
+import random
 import re
 import subprocess
 import time
@@ -129,17 +130,37 @@ def retry_until_success(
     *,
     sleep: Callable[[float], None] = time.sleep,
     delays: Sequence[float] = (30, 60, 60, 60),
+    delay_for_attempt: Callable[[int], float] | None = None,
 ) -> None:
-    if not delays or any(delay < 0 for delay in delays):
+    if delay_for_attempt is None and (not delays or any(delay < 0 for delay in delays)):
         raise ValueError("delays must contain nonnegative values")
     attempt = 0
     while True:
         attempt += 1
         if operation():
             return
-        delay = delays[min(attempt - 1, len(delays) - 1)]
+        if delay_for_attempt is None:
+            delay = delays[min(attempt - 1, len(delays) - 1)]
+        else:
+            delay = delay_for_attempt(attempt)
+            if delay < 0:
+                raise ValueError("delay_for_attempt returned a negative delay")
         log(f"retry_pending=true attempt={attempt} delay_seconds={delay}")
         sleep(delay)
+
+
+def colab_allocation_delay(
+    attempt: int,
+    *,
+    uniform: Callable[[float, float], float] = random.uniform,
+) -> float:
+    """Back off T4 allocation without slowing post-allocation repair steps."""
+    if attempt <= 0:
+        raise ValueError("attempt must be positive")
+    exponential_minutes = (1, 2, 4, 8, 16)
+    if attempt <= len(exponential_minutes):
+        return float(exponential_minutes[attempt - 1] * 60)
+    return float(round(uniform(15 * 60, 30 * 60)))
 
 
 def classify_colab_failure(message: str) -> str:
@@ -540,8 +561,11 @@ def launch_and_verify_colab(sleep: Callable[[float], None] = time.sleep) -> bool
 
 def rebuild_colab_from_checkpoints() -> bool:
     """Create a fresh runtime, restore all durable inputs, and verify resume."""
-    if not colab_session_transport_healthy() and not ensure_fresh_colab_session():
-        return False
+    if not colab_session_transport_healthy():
+        retry_until_success(
+            ensure_fresh_colab_session,
+            delay_for_attempt=colab_allocation_delay,
+        )
     if not restore_colab_files():
         return False
     return launch_and_verify_colab()
