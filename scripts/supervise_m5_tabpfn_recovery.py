@@ -7,6 +7,7 @@ import os
 import re
 import subprocess
 import time
+import zipfile
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any
@@ -27,6 +28,10 @@ TAIL_RESULTS = PROC / "m5_tabpfn_distributed_context100000" / "tail-results"
 UPLOAD_PARTS = PROC / "m5_tabpfn_upload_parts"
 LOCK_PATH = PROC / "m5_tabpfn_recovery_supervisor.lock"
 LOG_PATH = PROC / "m5_tabpfn_recovery_supervisor.log"
+EPISODE_PATH = PROC / "m5_tabpfn_recovery_episode.json"
+MONITORS_PATH = PROC / "m5_tabpfn_recovery_monitors.json"
+SYNC_SCRIPT = ROOT / "scripts" / "sync_m5_tabpfn_colab_tail.ps1"
+KEEPALIVE_SCRIPT = ROOT / "scripts" / "monitor_m5_tabpfn_colab_keepalive.ps1"
 SESSION = "lead-tabpfn-tail"
 COLAB = "/home/tonykuo/.local/bin/colab"
 COLAB_PYTHON = "/home/tonykuo/.local/share/uv/tools/google-colab-cli/bin/python"
@@ -262,11 +267,147 @@ def _local_tail_chunks() -> list[Path]:
     return sorted((TAIL_RESULTS / "chunks").glob("rows_*.npz"))
 
 
+def _valid_local_tail_chunks() -> list[Path]:
+    required = {
+        "raw_index.npy",
+        "anomaly.npy",
+        "score.npy",
+        "site_id.npy",
+        "building_id.npy",
+    }
+    valid = []
+    for path in _local_tail_chunks():
+        try:
+            with zipfile.ZipFile(path) as archive:
+                if set(archive.namelist()) == required and archive.testzip() is None:
+                    valid.append(path)
+        except (OSError, zipfile.BadZipFile):
+            continue
+    return valid
+
+
 def _tail_durable_rows() -> int:
     path = TAIL_RESULTS / "progress.json"
     if not path.exists():
         return 0
     return int(json.loads(path.read_text(encoding="utf-8-sig"))["completed_rows"])
+
+
+def _atomic_write_json(path: Path, payload: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    os.replace(temporary, path)
+
+
+def _durable_frontier() -> tuple[int, int]:
+    return _tail_durable_rows(), len(_valid_local_tail_chunks())
+
+
+def load_or_start_recovery_episode() -> dict[str, Any]:
+    if EPISODE_PATH.exists():
+        episode = _read_json(EPISODE_PATH)
+        if episode.get("status") == "active":
+            return episode
+    rows, chunks = _durable_frontier()
+    episode = {
+        "status": "active",
+        "baseline_completed_rows": rows,
+        "baseline_valid_chunks": chunks,
+        "started_at": time.time(),
+    }
+    _atomic_write_json(EPISODE_PATH, episode)
+    log(f"recovery_episode_started=true baseline_rows={rows} baseline_chunks={chunks}")
+    return episode
+
+
+def recovery_episode_advanced(episode: dict[str, Any]) -> bool:
+    rows, chunks = _durable_frontier()
+    return rows > int(episode["baseline_completed_rows"]) and chunks > int(
+        episode["baseline_valid_chunks"]
+    )
+
+
+def close_recovery_episode(episode: dict[str, Any]) -> None:
+    rows, chunks = _durable_frontier()
+    completed = dict(episode)
+    completed.update(
+        status="completed",
+        completed_at=time.time(),
+        completed_rows=rows,
+        completed_valid_chunks=chunks,
+    )
+    _atomic_write_json(EPISODE_PATH, completed)
+    log(f"recovery_episode_completed=true durable_rows={rows} valid_chunks={chunks}")
+
+
+def _monitor_command(script: Path) -> list[str]:
+    return [
+        "powershell.exe",
+        "-NoProfile",
+        "-NonInteractive",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        str(script),
+    ]
+
+
+def _launch_detached_monitor(script: Path) -> subprocess.Popen[Any]:
+    if not script.is_file():
+        raise RecoveryInvariantError(f"missing recovery monitor: {script}")
+    creation_flags = 0
+    if os.name == "nt":
+        creation_flags = (
+            subprocess.CREATE_NEW_PROCESS_GROUP
+            | subprocess.DETACHED_PROCESS
+            | subprocess.CREATE_NO_WINDOW
+        )
+    return subprocess.Popen(
+        _monitor_command(script),
+        cwd=ROOT,
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        creationflags=creation_flags,
+        close_fds=True,
+    )
+
+
+def ensure_colab_monitors(sleep: Callable[[float], None] = time.sleep) -> None:
+    state: dict[str, Any] = {}
+    if MONITORS_PATH.exists():
+        try:
+            state = _read_json(MONITORS_PATH)
+        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+            state = {}
+    specifications = {
+        "sync_pid": SYNC_SCRIPT,
+        "keepalive_pid": KEEPALIVE_SCRIPT,
+    }
+    launched: dict[str, subprocess.Popen[Any]] = {}
+    for key, script in specifications.items():
+        pid = int(state.get(key, 0))
+        if pid and _pid_alive(pid):
+            continue
+        launched[key] = _launch_detached_monitor(script)
+        state[key] = launched[key].pid
+    state.update(session=SESSION, verified_at=time.time())
+    _atomic_write_json(MONITORS_PATH, state)
+    if launched:
+        sleep(3)
+        for key, process in launched.items():
+            if process.poll() is not None or not _pid_alive(process.pid):
+                raise RecoveryInvariantError(
+                    f"Colab monitor failed to stay alive: {key}"
+                )
+        log(
+            "colab_monitors_verified=true "
+            + " ".join(f"{key}={state[key]}" for key in sorted(specifications))
+        )
 
 
 def restore_colab_files() -> bool:
@@ -293,7 +434,7 @@ def restore_colab_files() -> bool:
     )
     uploads.extend(
         (path, f"{REMOTE_ROOT}/work/chunks/{path.name}")
-        for path in _local_tail_chunks()
+        for path in _valid_local_tail_chunks()
     )
     for local, remote in uploads:
         if not local.is_file():
@@ -339,7 +480,7 @@ def launch_and_verify_colab(sleep: Callable[[float], None] = time.sleep) -> bool
     if not _remote_exec(ROOT / ".scratch" / "launch_colab_tail.py", 120):
         return False
     durable_rows = _tail_durable_rows()
-    durable_chunks = len(_local_tail_chunks())
+    durable_chunks = len(_valid_local_tail_chunks())
     sleep(45)
     first = _inspect_colab()
     if not first or not first.get("alive"):
@@ -372,12 +513,37 @@ def rebuild_colab_from_checkpoints() -> bool:
     return launch_and_verify_colab()
 
 
-def recover_colab_until_healthy() -> None:
-    status = _inspect_colab()
-    if status and status.get("alive"):
-        log("colab_worker_already_healthy=true")
-        return
-    retry_until_success(rebuild_colab_from_checkpoints)
+def recover_colab_until_healthy(
+    *,
+    return_after_episode_success: bool = False,
+    sleep: Callable[[float], None] = time.sleep,
+) -> None:
+    episode: dict[str, Any] | None = None
+    if EPISODE_PATH.exists():
+        candidate = _read_json(EPISODE_PATH)
+        if candidate.get("status") == "active":
+            episode = candidate
+    while True:
+        status = _inspect_colab()
+        if not status or not status.get("alive"):
+            if episode is None:
+                episode = load_or_start_recovery_episode()
+            retry_until_success(rebuild_colab_from_checkpoints)
+        else:
+            log("colab_worker_already_healthy=true")
+        ensure_colab_monitors()
+        if episode is not None and recovery_episode_advanced(episode):
+            close_recovery_episode(episode)
+            episode = None
+            if return_after_episode_success:
+                return
+        if (
+            len(_valid_local_tail_chunks()) >= EXPECTED_COLAB_CHECKPOINTS
+            and (TAIL_RESULTS / "result.json").is_file()
+        ):
+            log("colab_formal_shard_complete=true")
+            return
+        sleep(60)
 
 
 def _read_json(path: Path) -> dict[str, Any]:

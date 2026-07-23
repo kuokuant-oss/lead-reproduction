@@ -1,16 +1,19 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import subprocess
 import sys
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "supervise_m5_tabpfn_recovery.py"
+LAUNCHER = ROOT / "scripts" / "launch_m5_colab_recovery_supervisor.ps1"
 
 
 def load_script():
@@ -59,6 +62,12 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
 
         self.assertEqual(attempts, [1, 2, 3, 4, 5, 6, 7])
         self.assertEqual(sleeps, [1, 2, 5, 5, 5, 5])
+
+    def test_host_launcher_is_colab_only(self) -> None:
+        launcher = LAUNCHER.read_text(encoding="utf-8")
+        self.assertIn("--scope colab", launcher)
+        self.assertNotIn("--scope both", launcher)
+        self.assertNotIn("--scope local", launcher)
 
     def test_singleton_lock_rejects_a_duplicate_supervisor(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -227,6 +236,99 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
 
         self.assertEqual(checks, [1, 2, 3, 4, 5, 6, 7])
         self.assertEqual(sleeps, [1, 2, 5, 5, 5, 5])
+
+    def test_recovery_episode_reuses_persisted_baseline_until_advanced(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            original_episode_path = self.m.EPISODE_PATH
+            self.m.EPISODE_PATH = Path(directory) / "episode.json"
+            frontiers = iter(((237155, 12), (257155, 13)))
+            try:
+                with patch.object(
+                    self.m, "_durable_frontier", return_value=(237155, 12)
+                ):
+                    first = self.m.load_or_start_recovery_episode()
+                with patch.object(
+                    self.m, "_durable_frontier", return_value=(999999, 99)
+                ):
+                    second = self.m.load_or_start_recovery_episode()
+                self.assertEqual(first["baseline_completed_rows"], 237155)
+                self.assertEqual(first["baseline_valid_chunks"], 12)
+                self.assertEqual(second["baseline_completed_rows"], 237155)
+                self.assertEqual(second["baseline_valid_chunks"], 12)
+                with patch.object(self.m, "_durable_frontier", side_effect=frontiers):
+                    self.assertFalse(self.m.recovery_episode_advanced(first))
+                    self.assertTrue(self.m.recovery_episode_advanced(first))
+            finally:
+                self.m.EPISODE_PATH = original_episode_path
+
+    def test_valid_chunk_count_rejects_incomplete_npz(self) -> None:
+        required = (
+            "raw_index.npy",
+            "anomaly.npy",
+            "score.npy",
+            "site_id.npy",
+            "building_id.npy",
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            chunks = Path(directory)
+            valid = chunks / "rows_00000000_00020000.npz"
+            invalid = chunks / "rows_00020000_00040000.npz"
+            with zipfile.ZipFile(valid, "w") as archive:
+                for name in required:
+                    archive.writestr(name, b"test")
+            with zipfile.ZipFile(invalid, "w") as archive:
+                archive.writestr("score.npy", b"test")
+            with patch.object(
+                self.m, "_local_tail_chunks", return_value=[valid, invalid]
+            ):
+                self.assertEqual(self.m._valid_local_tail_chunks(), [valid])
+
+    def test_monitors_start_only_after_worker_is_healthy(self) -> None:
+        events = []
+        episode = {
+            "status": "active",
+            "baseline_completed_rows": 237155,
+            "baseline_valid_chunks": 12,
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            original_episode_path = self.m.EPISODE_PATH
+            self.m.EPISODE_PATH = Path(directory) / "episode.json"
+            self.m.EPISODE_PATH.write_text(json.dumps(episode), encoding="utf-8")
+            try:
+                with (
+                    patch.object(
+                        self.m,
+                        "_inspect_colab",
+                        side_effect=[None, {"alive": True}],
+                    ),
+                    patch.object(
+                        self.m,
+                        "retry_until_success",
+                        side_effect=lambda operation: events.append("rebuild"),
+                    ),
+                    patch.object(
+                        self.m,
+                        "ensure_colab_monitors",
+                        side_effect=lambda: events.append("monitors"),
+                    ),
+                    patch.object(
+                        self.m,
+                        "recovery_episode_advanced",
+                        return_value=True,
+                    ),
+                    patch.object(
+                        self.m,
+                        "close_recovery_episode",
+                        side_effect=lambda value: events.append("close"),
+                    ),
+                ):
+                    self.m.recover_colab_until_healthy(
+                        return_after_episode_success=True
+                    )
+            finally:
+                self.m.EPISODE_PATH = original_episode_path
+
+        self.assertEqual(events, ["rebuild", "monitors", "close"])
 
 
 if __name__ == "__main__":
