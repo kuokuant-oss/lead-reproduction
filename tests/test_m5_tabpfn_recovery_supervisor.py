@@ -148,6 +148,11 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
         with (
             patch.object(
                 self.m,
+                "colab_session_transport_healthy",
+                return_value=False,
+            ),
+            patch.object(
+                self.m,
                 "ensure_fresh_colab_session",
                 side_effect=lambda: events.append("new") or True,
             ),
@@ -165,6 +170,34 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
             self.assertTrue(self.m.rebuild_colab_from_checkpoints())
 
         self.assertEqual(events, ["new", "restore", "launch"])
+
+    def test_live_new_session_is_reused_after_interrupted_upload(self) -> None:
+        events = []
+        with (
+            patch.object(
+                self.m,
+                "colab_session_transport_healthy",
+                return_value=True,
+            ),
+            patch.object(
+                self.m,
+                "ensure_fresh_colab_session",
+                side_effect=AssertionError("live session must not be released"),
+            ),
+            patch.object(
+                self.m,
+                "restore_colab_files",
+                side_effect=lambda: events.append("restore") or True,
+            ),
+            patch.object(
+                self.m,
+                "launch_and_verify_colab",
+                side_effect=lambda: events.append("launch") or True,
+            ),
+        ):
+            self.assertTrue(self.m.rebuild_colab_from_checkpoints())
+
+        self.assertEqual(events, ["restore", "launch"])
 
     def test_local_startup_wait_has_no_fixed_health_deadline(self) -> None:
         checks = []

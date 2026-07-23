@@ -234,6 +234,12 @@ def ensure_fresh_colab_session() -> bool:
     return False
 
 
+def colab_session_transport_healthy() -> bool:
+    """Return true when the named backend accepts CLI requests."""
+    result = _colab("status", "-s", SESSION)
+    return result.returncode == 0
+
+
 def _remote_exec(script: Path, setup_timeout: int = 900) -> bool:
     result = _colab(
         "exec",
@@ -359,7 +365,7 @@ def launch_and_verify_colab(sleep: Callable[[float], None] = time.sleep) -> bool
 
 def rebuild_colab_from_checkpoints() -> bool:
     """Create a fresh runtime, restore all durable inputs, and verify resume."""
-    if not ensure_fresh_colab_session():
+    if not colab_session_transport_healthy() and not ensure_fresh_colab_session():
         return False
     if not restore_colab_files():
         return False
