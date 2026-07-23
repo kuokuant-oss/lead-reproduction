@@ -14,6 +14,7 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "supervise_m5_tabpfn_recovery.py"
 LAUNCHER = ROOT / "scripts" / "launch_m5_colab_recovery_supervisor.ps1"
+ENSURE_LAUNCHER = ROOT / "scripts" / "ensure_m5_colab_recovery_supervisor.ps1"
 
 
 def load_script():
@@ -68,6 +69,13 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
         self.assertIn("--scope colab", launcher)
         self.assertNotIn("--scope both", launcher)
         self.assertNotIn("--scope local", launcher)
+
+    def test_ensure_launcher_uses_persistent_singleton_task(self) -> None:
+        launcher = ENSURE_LAUNCHER.read_text(encoding="utf-8")
+        self.assertIn("CodexTabPFNColabRecoverySupervisor", launcher)
+        self.assertIn("m5_tabpfn_recovery_supervisor.lock", launcher)
+        self.assertIn("ExecutionTimeLimit ([TimeSpan]::Zero)", launcher)
+        self.assertIn("Start-ScheduledTask", launcher)
 
     def test_singleton_lock_rejects_a_duplicate_supervisor(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
