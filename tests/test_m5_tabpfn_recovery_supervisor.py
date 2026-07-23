@@ -80,6 +80,9 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
         self.assertIn("--scope colab", launcher)
         self.assertNotIn("--scope both", launcher)
         self.assertNotIn("--scope local", launcher)
+        self.assertIn('TABPFN_COLAB_HOME = "/home/tonykuo/.colab-hank"', launcher)
+        self.assertIn('TABPFN_COLAB_AUTH = "oauth2"', launcher)
+        self.assertIn('TABPFN_COLAB_ACCELERATOR = "L4"', launcher)
 
     def test_ensure_launcher_uses_persistent_singleton_task(self) -> None:
         launcher = ENSURE_LAUNCHER.read_text(encoding="utf-8")
@@ -187,12 +190,16 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
                     "-d",
                     "Ubuntu",
                     "--",
+                    "env",
+                    f"HOME={self.m.COLAB_HOME}",
                     self.m.COLAB_PYTHON,
                     self.m._wsl_path(self.m.COLAB_CREATE_HELPER),
                     "--session",
                     self.m.SESSION,
                     "--gpu",
-                    "T4",
+                    self.m.COLAB_ACCELERATOR,
+                    "--auth",
+                    self.m.COLAB_AUTH,
                 ),
             ],
         )
@@ -379,6 +386,15 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
                 self.m.EPISODE_PATH = original_episode_path
 
         self.assertEqual(events, ["rebuild", "monitors", "close"])
+
+    def test_monitor_children_remain_attached_to_persistent_supervisor(self) -> None:
+        source = SCRIPT.read_text(encoding="utf-8")
+        monitor_launcher = source.split("def _launch_detached_monitor", 1)[1].split(
+            "def ensure_colab_monitors", 1
+        )[0]
+        self.assertIn("CREATE_NEW_PROCESS_GROUP", monitor_launcher)
+        self.assertIn("CREATE_NO_WINDOW", monitor_launcher)
+        self.assertNotIn("DETACHED_PROCESS", monitor_launcher)
 
 
 if __name__ == "__main__":

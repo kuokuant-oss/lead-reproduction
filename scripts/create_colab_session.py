@@ -37,9 +37,12 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--session", required=True)
     parser.add_argument("--gpu", default="T4")
+    parser.add_argument("--auth", choices=("adc", "oauth2"), default="adc")
     args = parser.parse_args()
 
-    state.auth_provider = AuthProvider.ADC
+    state.auth_provider = (
+        AuthProvider.ADC if args.auth == "adc" else AuthProvider.OAUTH2
+    )
     try:
         session_commands.new(session=args.session, tpu=None, gpu=args.gpu)
     except ColabRequestError as error:

@@ -36,7 +36,10 @@ KEEPALIVE_SCRIPT = ROOT / "scripts" / "monitor_m5_tabpfn_colab_keepalive.ps1"
 SESSION = "lead-tabpfn-tail"
 COLAB = "/home/tonykuo/.local/bin/colab"
 COLAB_PYTHON = "/home/tonykuo/.local/share/uv/tools/google-colab-cli/bin/python"
-COLAB_CREATE_HELPER = ROOT / "scripts" / "create_colab_session_adc.py"
+COLAB_CREATE_HELPER = ROOT / "scripts" / "create_colab_session.py"
+COLAB_HOME = os.environ.get("TABPFN_COLAB_HOME", "/home/tonykuo")
+COLAB_AUTH = os.environ.get("TABPFN_COLAB_AUTH", "adc")
+COLAB_ACCELERATOR = os.environ.get("TABPFN_COLAB_ACCELERATOR", "T4")
 REMOTE_ROOT = "/content/lead_tabpfn_tail"
 EXPECTED_LOCAL_ROWS = 5_060_000
 EXPECTED_LOCAL_CHECKPOINTS = 253
@@ -202,7 +205,20 @@ def _wsl_path(path: Path) -> str:
 
 
 def _colab(*arguments: str) -> subprocess.CompletedProcess[str]:
-    return _run(["wsl.exe", "-d", "Ubuntu", "--", COLAB, "--auth", "adc", *arguments])
+    return _run(
+        [
+            "wsl.exe",
+            "-d",
+            "Ubuntu",
+            "--",
+            "env",
+            f"HOME={COLAB_HOME}",
+            COLAB,
+            "--auth",
+            COLAB_AUTH,
+            *arguments,
+        ]
+    )
 
 
 def _sessions() -> tuple[str, list[str]]:
@@ -228,10 +244,13 @@ def _named_session_endpoint(text: str, session: str = SESSION) -> str | None:
 def _release_exact_endpoint(endpoint: str) -> bool:
     if not ENDPOINT_RE.fullmatch(endpoint):
         raise RecoveryInvariantError(f"unsafe Colab endpoint: {endpoint}")
+    if COLAB_AUTH not in {"adc", "oauth2"}:
+        raise RecoveryInvariantError(f"unsupported Colab auth provider: {COLAB_AUTH}")
+    provider = "AuthProvider.ADC" if COLAB_AUTH == "adc" else "AuthProvider.OAUTH2"
     code = (
         "from colab_cli.auth import AuthProvider; "
         "from colab_cli.common import state; "
-        "state.auth_provider=AuthProvider.ADC; "
+        f"state.auth_provider={provider}; "
         f"state.client.unassign('{endpoint}')"
     )
     result = _run(
@@ -240,6 +259,8 @@ def _release_exact_endpoint(endpoint: str) -> bool:
             "-d",
             "Ubuntu",
             "--",
+            "env",
+            f"HOME={COLAB_HOME}",
             COLAB_PYTHON,
             "-c",
             code,
@@ -267,16 +288,20 @@ def ensure_fresh_colab_session() -> bool:
             "-d",
             "Ubuntu",
             "--",
+            "env",
+            f"HOME={COLAB_HOME}",
             COLAB_PYTHON,
             _wsl_path(COLAB_CREATE_HELPER),
             "--session",
             SESSION,
             "--gpu",
-            "T4",
+            COLAB_ACCELERATOR,
+            "--auth",
+            COLAB_AUTH,
         ]
     )
     if result.returncode == 0:
-        log("colab_session_ready=true accelerator=T4")
+        log(f"colab_session_ready=true accelerator={COLAB_ACCELERATOR}")
         return True
     output = _output_text(result)
     category = classify_colab_failure(output)
@@ -417,9 +442,7 @@ def _launch_detached_monitor(script: Path) -> subprocess.Popen[Any]:
     creation_flags = 0
     if os.name == "nt":
         creation_flags = (
-            subprocess.CREATE_NEW_PROCESS_GROUP
-            | subprocess.DETACHED_PROCESS
-            | subprocess.CREATE_NO_WINDOW
+            subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW
         )
     return subprocess.Popen(
         _monitor_command(script),

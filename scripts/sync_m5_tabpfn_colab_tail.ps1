@@ -3,7 +3,10 @@ param(
     [int]$PollSeconds = 60,
     [int]$ExpectedCheckpointCount = 254,
     [string]$LocalDirectory = "C:\Users\tonykuo\projects\lead-reproduction\data\processed\m5_tabpfn_distributed_context100000\tail-results",
-    [string]$ColabCli = "/home/tonykuo/.local/bin/colab"
+    [string]$ColabCli = "/home/tonykuo/.local/bin/colab",
+    [ValidateSet("adc", "oauth2")]
+    [string]$Auth = "oauth2",
+    [string]$ColabHome = "/home/tonykuo/.colab-hank"
 )
 
 $ErrorActionPreference = "Stop"
@@ -33,7 +36,7 @@ function Convert-ToWslPath([string]$WindowsPath) {
 }
 
 function Invoke-Colab([string[]]$Arguments) {
-    $output = & wsl.exe -d Ubuntu -- $ColabCli --auth adc @Arguments 2>&1
+    $output = & wsl.exe -d Ubuntu -- env "HOME=$ColabHome" $ColabCli --auth $Auth @Arguments 2>&1
     if ($LASTEXITCODE -ne 0) {
         throw ($output -join [Environment]::NewLine)
     }

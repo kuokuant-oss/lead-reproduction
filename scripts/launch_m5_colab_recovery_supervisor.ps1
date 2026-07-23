@@ -8,5 +8,8 @@ $stdout = Join-Path $processed "m5_tabpfn_recovery_supervisor.stdout.log"
 $stderr = Join-Path $processed "m5_tabpfn_recovery_supervisor.stderr.log"
 
 Set-Location -LiteralPath $repoRoot
+$env:TABPFN_COLAB_HOME = "/home/tonykuo/.colab-hank"
+$env:TABPFN_COLAB_AUTH = "oauth2"
+$env:TABPFN_COLAB_ACCELERATOR = "L4"
 & $python $supervisor --scope colab 1>> $stdout 2>> $stderr
 exit $LASTEXITCODE
