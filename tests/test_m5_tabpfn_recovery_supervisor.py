@@ -28,6 +28,15 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.m = load_script()
 
+    def setUp(self) -> None:
+        self.log_directory = tempfile.TemporaryDirectory()
+        self.original_log_path = self.m.LOG_PATH
+        self.m.LOG_PATH = Path(self.log_directory.name) / "supervisor.log"
+
+    def tearDown(self) -> None:
+        self.m.LOG_PATH = self.original_log_path
+        self.log_directory.cleanup()
+
     def test_retry_does_not_stop_after_five_failures(self) -> None:
         attempts = []
         sleeps = []
@@ -82,6 +91,27 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
         ):
             with self.subTest(message=message):
                 self.assertEqual(self.m.classify_colab_failure(message), "retry")
+
+    def test_colab_failure_with_missing_output_stream_does_not_crash(self) -> None:
+        with (
+            patch.object(self.m, "_sessions", return_value=("", [])),
+            patch.object(
+                self.m,
+                "_colab",
+                return_value=subprocess.CompletedProcess(
+                    (), 1, "Service Unavailable", None
+                ),
+            ),
+        ):
+            self.assertFalse(self.m.ensure_fresh_colab_session())
+
+    def test_subprocess_output_is_decoded_as_utf8(self) -> None:
+        completed = subprocess.CompletedProcess((), 0, "", "")
+        with patch.object(self.m.subprocess, "run", return_value=completed) as run:
+            self.m._run(["example"])
+
+        self.assertEqual(run.call_args.kwargs["encoding"], "utf-8")
+        self.assertEqual(run.call_args.kwargs["errors"], "replace")
 
     def test_stale_named_colab_assignment_is_released_before_new_session(self) -> None:
         events = []

@@ -155,9 +155,14 @@ def _run(command: Sequence[str]) -> subprocess.CompletedProcess[str]:
         list(command),
         cwd=ROOT,
         capture_output=True,
-        text=True,
+        encoding="utf-8",
+        errors="replace",
         check=False,
     )
+
+
+def _output_text(result: subprocess.CompletedProcess[str]) -> str:
+    return (result.stdout or "") + (result.stderr or "")
 
 
 def _wsl_path(path: Path) -> str:
@@ -175,7 +180,7 @@ def _colab(*arguments: str) -> subprocess.CompletedProcess[str]:
 
 def _sessions() -> tuple[str, list[str]]:
     result = _colab("sessions")
-    text = result.stdout + result.stderr
+    text = _output_text(result)
     endpoints = []
     for line in text.splitlines():
         match = re.search(r"\[(?:[^]]*)\]\s+(gpu-[a-z0-9-]+)\s+\|", line)
@@ -224,7 +229,7 @@ def ensure_fresh_colab_session() -> bool:
     if result.returncode == 0:
         log("colab_session_ready=true accelerator=T4")
         return True
-    category = classify_colab_failure(result.stdout + result.stderr)
+    category = classify_colab_failure(_output_text(result))
     log(f"colab_session_create_failed=true category={category}")
     return False
 
@@ -315,7 +320,7 @@ def _inspect_colab() -> dict[str, Any] | None:
     )
     if result.returncode != 0:
         return None
-    for line in result.stdout.splitlines():
+    for line in (result.stdout or "").splitlines():
         if line.startswith("{"):
             try:
                 return json.loads(line)
