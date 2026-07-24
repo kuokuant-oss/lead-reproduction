@@ -17,6 +17,12 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 from matplotlib.ticker import MaxNLocator
+from sklearn.metrics import (
+    average_precision_score,
+    precision_recall_curve,
+    roc_auc_score,
+    roc_curve,
+)
 
 from lead import PROC, ROOT, write_json_with_provenance
 
@@ -45,6 +51,14 @@ MODEL_ORDER = (
     "catboost",
     "hist_gradient_boosting",
     "ensemble",
+)
+FEATURE_BASELINE_KEY = "m3_1_ensemble"
+TABPFN_KEY = "tabpfn"
+DEFAULT_17_FEATURE_ENSEMBLE_PREDICTIONS = (
+    PROC / "m3_17_feature_ensemble_predictions.npz"
+)
+DEFAULT_TABPFN_PREDICTIONS = (
+    PROC / "m5_tabpfn_distributed_context100000_predictions.npz"
 )
 
 
@@ -631,6 +645,72 @@ def _plot_curve(
     )
 
 
+def add_17_feature_ensemble_comparison(
+    data: dict[str, Any], predictions_path: Path
+) -> None:
+    """Add the matched 17-feature Tree Ensemble metrics and curves."""
+    with np.load(predictions_path) as predictions:
+        required = {"anomaly", "ensemble"}
+        missing = required - set(predictions.files)
+        if missing:
+            raise ValueError(f"missing 17-feature ensemble arrays: {sorted(missing)}")
+        y_true = np.asarray(predictions["anomaly"])
+        score = np.asarray(predictions["ensemble"])
+
+    expected_rows = data.get("split", {}).get("validation_rows")
+    if expected_rows is not None and len(y_true) != expected_rows:
+        raise ValueError(
+            "17-feature ensemble validation rows do not match the M3 observations: "
+            f"{len(y_true)} != {expected_rows}"
+        )
+
+    fpr, tpr, _ = roc_curve(y_true, score)
+    precision, recall, _ = precision_recall_curve(y_true, score)
+    data["metrics"][FEATURE_BASELINE_KEY] = {
+        "roc_auc": float(roc_auc_score(y_true, score)),
+        "pr_auc": float(average_precision_score(y_true, score)),
+    }
+    data["curves"][FEATURE_BASELINE_KEY] = {
+        "roc": {"x": fpr, "y": tpr},
+        "precision_recall": {"x": recall, "y": precision},
+    }
+
+
+def add_tabpfn_comparison(data: dict[str, Any], predictions_path: Path) -> None:
+    """Add the merged distributed TabPFN metrics and curves.
+
+    TabPFN scores the same 17 baseline features as ``FEATURE_BASELINE_KEY``, so
+    the gray curve -- not the 137-feature blue one -- is its matched comparison.
+    """
+    with np.load(predictions_path) as predictions:
+        required = {"anomaly", "tabpfn"}
+        missing = required - set(predictions.files)
+        if missing:
+            raise ValueError(f"missing TabPFN arrays: {sorted(missing)}")
+        y_true = np.asarray(predictions["anomaly"])
+        score = np.asarray(predictions["tabpfn"])
+
+    expected_rows = data.get("split", {}).get("validation_rows")
+    if expected_rows is not None and len(y_true) != expected_rows:
+        raise ValueError(
+            "TabPFN validation rows do not match the M3 observations: "
+            f"{len(y_true)} != {expected_rows}"
+        )
+    if not np.isfinite(score).all():
+        raise ValueError("TabPFN scores contain non-finite values")
+
+    fpr, tpr, _ = roc_curve(y_true, score)
+    precision, recall, _ = precision_recall_curve(y_true, score)
+    data["metrics"][TABPFN_KEY] = {
+        "roc_auc": float(roc_auc_score(y_true, score)),
+        "pr_auc": float(average_precision_score(y_true, score)),
+    }
+    data["curves"][TABPFN_KEY] = {
+        "roc": {"x": fpr, "y": tpr},
+        "precision_recall": {"x": recall, "y": precision},
+    }
+
+
 def render_discrimination_curve(
     data: dict[str, Any],
     path: Path,
@@ -642,7 +722,11 @@ def render_discrimination_curve(
     is_roc = curve_type == "roc"
     if curve_type not in {"roc", "precision_recall"}:
         raise ValueError(f"Unsupported curve type: {curve_type}")
-    if comparison not in {"models", "feature_engineering"}:
+    if comparison not in {
+        "models",
+        "feature_engineering",
+        "feature_engineering_tabpfn",
+    }:
         raise ValueError(f"Unsupported comparison: {comparison}")
 
     fig, ax = plt.subplots(figsize=(7.2, 7.2), facecolor=SURFACE)
@@ -661,13 +745,13 @@ def render_discrimination_curve(
         )
     else:
         series = [
-            ("m3_1_lightgbm", "17 baseline features", "#898781"),
-            ("lightgbm", "137 features", "#2a78d6"),
+            (FEATURE_BASELINE_KEY, "17 baseline features", "#898781"),
+            ("ensemble", "137 features", "#2a78d6"),
         ]
+        if comparison == "feature_engineering_tabpfn":
+            series.append((TABPFN_KEY, "TabPFN (17 features, context 100k)", "#d1580f"))
         title_prefix = "Feature-Engineering Contribution"
-        subtitle = (
-            "LightGBM on the same final 50/50 building holdout · 17 versus 137 features"
-        )
+        subtitle = "Tree Ensemble on the same final 50/50 building holdout · 17 versus 137 features"
 
     metric_key = "roc_auc" if is_roc else "pr_auc"
     score_name = "AUC" if is_roc else "PR-AUC"
@@ -716,7 +800,13 @@ def render_discrimination_curve(
         columnspacing=1.4,
         handlelength=2.4,
     )
-    fig.subplots_adjust(left=0.14, right=0.96, top=0.78, bottom=0.24)
+    # A third stacked legend row needs a little more room beneath the axes.
+    fig.subplots_adjust(
+        left=0.14,
+        right=0.96,
+        top=0.78,
+        bottom=0.26 if len(series) == 3 and comparison != "models" else 0.24,
+    )
     _save(fig, path)
 
 
@@ -752,6 +842,25 @@ def render_discrimination_figures(
         comparison="feature_engineering",
         curve_type="roc",
     )
+    if TABPFN_KEY in data["curves"]:
+        figures["feature_precision_recall_with_tabpfn"] = (
+            asset_dir / "m3_feature_engineering_precision_recall_with_tabpfn.png"
+        )
+        figures["feature_roc_with_tabpfn"] = (
+            asset_dir / "m3_feature_engineering_roc_with_tabpfn.png"
+        )
+        render_discrimination_curve(
+            data,
+            figures["feature_precision_recall_with_tabpfn"],
+            comparison="feature_engineering_tabpfn",
+            curve_type="precision_recall",
+        )
+        render_discrimination_curve(
+            data,
+            figures["feature_roc_with_tabpfn"],
+            comparison="feature_engineering_tabpfn",
+            curve_type="roc",
+        )
     return figures
 
 
@@ -1037,6 +1146,21 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=ROOT / "docs" / "metrics" / "m3-figures.json",
     )
+    parser.add_argument(
+        "--baseline-ensemble-predictions",
+        type=Path,
+        default=DEFAULT_17_FEATURE_ENSEMBLE_PREDICTIONS,
+    )
+    parser.add_argument(
+        "--tabpfn-predictions",
+        type=Path,
+        default=DEFAULT_TABPFN_PREDICTIONS,
+    )
+    parser.add_argument(
+        "--skip-tabpfn",
+        action="store_true",
+        help="render only the two-series feature-engineering figures",
+    )
     return parser.parse_args()
 
 
@@ -1045,6 +1169,9 @@ def main() -> None:
     data = json.loads(args.observations.read_text(encoding="utf-8"))
     if data["frozen_contract"]["split"] != "50_50_mod2":
         raise RuntimeError("M3 headline figures require the frozen 50/50 baseline")
+    add_17_feature_ensemble_comparison(data, args.baseline_ensemble_predictions)
+    if not args.skip_tabpfn and args.tabpfn_predictions.is_file():
+        add_tabpfn_comparison(data, args.tabpfn_predictions)
     figures = {
         "confusion": args.asset_dir / "m3_tree_ensemble_confusion_matrix.png",
         "value_change": args.asset_dir
@@ -1061,6 +1188,15 @@ def main() -> None:
         "source_observation": str(args.observations.relative_to(ROOT)),
         "source_observation_sha256": file_sha256(args.observations),
         "baseline": "50_50_mod2_offline_137_timestamp_merge",
+        "feature_comparison": {
+            "model": "equal-weight four-model Tree Ensemble",
+            "baseline_predictions": str(
+                args.baseline_ensemble_predictions.relative_to(ROOT)
+            ),
+            "baseline_predictions_sha256": file_sha256(
+                args.baseline_ensemble_predictions
+            ),
+        },
         "figures": {
             name: {
                 "path": path.relative_to(ROOT).as_posix(),

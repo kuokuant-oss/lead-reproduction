@@ -151,7 +151,10 @@ class TestM3FigureRendering(unittest.TestCase):
         x = np.linspace(0, 1, 30).tolist()
         roc = {"x": x, "y": np.sqrt(np.linspace(0, 1, 30)).tolist()}
         pr = {"x": x, "y": (1 - 0.35 * np.linspace(0, 1, 30)).tolist()}
-        keys = [*TestM3FigureRendering.m.MODEL_ORDER, "m3_1_lightgbm"]
+        keys = [
+            *TestM3FigureRendering.m.MODEL_ORDER,
+            TestM3FigureRendering.m.FEATURE_BASELINE_KEY,
+        ]
         metrics = {
             key: {
                 "roc_auc": 0.99,
@@ -272,6 +275,23 @@ class TestM3FigureRendering(unittest.TestCase):
             self.m._importance_feature_order(rows, "roc_auc_decrease_mean"),
             ["model_first", "middle", "consensus_first"],
         )
+
+    def test_feature_comparison_uses_tree_ensemble_predictions(self) -> None:
+        data = {"metrics": {}, "curves": {}, "split": {"validation_rows": 4}}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "predictions.npz"
+            np.savez(
+                path,
+                anomaly=np.array([0, 0, 1, 1]),
+                ensemble=np.array([0.1, 0.2, 0.8, 0.9]),
+            )
+            self.m.add_17_feature_ensemble_comparison(data, path)
+
+        baseline = self.m.FEATURE_BASELINE_KEY
+        self.assertEqual(data["metrics"][baseline]["roc_auc"], 1.0)
+        self.assertEqual(data["metrics"][baseline]["pr_auc"], 1.0)
+        self.assertIn("roc", data["curves"][baseline])
+        self.assertIn("precision_recall", data["curves"][baseline])
 
     def test_importance_panel_has_no_error_bars(self) -> None:
         import matplotlib.pyplot as plt

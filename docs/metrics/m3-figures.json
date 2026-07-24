@@ -3,6 +3,11 @@
   "source_observation": "data\\processed\\m3_figure_observations_50_50.json",
   "source_observation_sha256": "87790dd2abb0ff8bf7e494ec052e531c278f0e2d8c3cacac2d37787b9b70a462",
   "baseline": "50_50_mod2_offline_137_timestamp_merge",
+  "feature_comparison": {
+    "model": "equal-weight four-model Tree Ensemble",
+    "baseline_predictions": "data\\processed\\m3_17_feature_ensemble_predictions.npz",
+    "baseline_predictions_sha256": "194b76d7bc66c3900ded6bdccba677edd3474d7592b920883d86f95e27c16c5b"
+  },
   "figures": {
     "confusion": {
       "path": "docs/reports/assets/m3/m3_tree_ensemble_confusion_matrix.png",
@@ -31,13 +36,23 @@
     },
     "feature_precision_recall": {
       "path": "docs/reports/assets/m3/m3_feature_engineering_precision_recall.png",
-      "sha256": "7c3f7f68af14b410d69115f28ce7dce7775396af96f6a0243b7edbefce4a7f82",
-      "size_bytes": 86282
+      "sha256": "99b00d94d374ade83835e7dbe0452c88b2f13c5fc7faf21571c9f9827d075d5b",
+      "size_bytes": 83178
     },
     "feature_roc": {
       "path": "docs/reports/assets/m3/m3_feature_engineering_roc.png",
-      "sha256": "c1477d45719742f0ec2a912980ca72bff9775a817bacbaf42472b8fdfec7767f",
-      "size_bytes": 76418
+      "sha256": "82e23ee185b4793385c47edf6e0e868ad8f33fc7c0bb211f83338cb70ee74417",
+      "size_bytes": 77186
+    },
+    "feature_precision_recall_with_tabpfn": {
+      "path": "docs/reports/assets/m3/m3_feature_engineering_precision_recall_with_tabpfn.png",
+      "sha256": "018c09e471a5f8f0561e865c641838cc9e6a5839733e6efa6b809471204e877f",
+      "size_bytes": 104982
+    },
+    "feature_roc_with_tabpfn": {
+      "path": "docs/reports/assets/m3/m3_feature_engineering_roc_with_tabpfn.png",
+      "sha256": "fa8d2bf58513540df4903a9e0658bb7051d4e82b88ad438a6ae9a161c8968325",
+      "size_bytes": 94055
     },
     "importance_lightgbm": {
       "path": "docs/reports/assets/m3/m3_permutation_importance_lightgbm.png",
@@ -369,8 +384,8 @@
     "canonical_feature_set_changed": false
   },
   "provenance": {
-    "commit": "ed608448aa6027635275e6e010e10f8af9eb9bb2",
-    "generated_at_utc": "2026-07-22T07:09:08.930483+00:00",
+    "commit": "2196b677a2829a2eeffb1c1438b805b436a2b48f",
+    "generated_at_utc": "2026-07-24T04:30:12.338272+00:00",
     "plot_style": "docs/reference/plot-style-rules.md v0.2"
   }
 }
