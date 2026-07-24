@@ -8,6 +8,12 @@ the head and tail shards are written from that single matrix.
 
 Feature order is taken verbatim from the 137 fit_manifest so the exported matrix
 matches the fitted state column-for-column.
+
+The n_estimators sweep exports one shard root per estimator count, because the
+Colab worker and its supervisor address a fixed ``model.portable.tabpfn_fit``
+inside the shard root. Only the fitted state differs between those roots, so
+``--reuse-features-from`` hard-links the already-built feature matrix and copies
+its metadata after re-proving both digests, instead of rebuilding the matrix.
 """
 
 from __future__ import annotations
@@ -16,6 +22,7 @@ import argparse
 import hashlib
 import json
 import os
+import shutil
 import zipfile
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -25,11 +32,9 @@ import numpy as np
 
 from lead import PROC, SHIFTS, add_value_change_features, load_m3_frame
 
-DEFAULT_SOURCE_WORK = PROC / "m5_tabpfn_137_full_test_context100000.work"
 DEFAULT_SITE_PREDICTIONS = (
     PROC / "m6_site_transfer_b2_a0_pos677077_seed42_predictions.npz"
 )
-DEFAULT_OUT_ROOT = PROC / "m5_tabpfn_137_distributed_context100000"
 BOUNDARY = 5_060_000
 VALUE_CHANGE_REGIME = "timestamp_merge"
 
@@ -47,6 +52,21 @@ SHARDS = {
         "remote_root": PurePosixPath("/content/lead_tabpfn_137_tail"),
     },
 }
+
+
+def estimator_suffix(n_estimators: int) -> str:
+    """n=1 keeps the unsuffixed paths the first 137 fit already wrote."""
+    return "" if n_estimators == 1 else f"_n{n_estimators}"
+
+
+def default_source_work(n_estimators: int) -> Path:
+    suffix = estimator_suffix(n_estimators)
+    return PROC / f"m5_tabpfn_137_full_test_context100000{suffix}.work"
+
+
+def default_out_root(n_estimators: int) -> Path:
+    suffix = estimator_suffix(n_estimators)
+    return PROC / f"m5_tabpfn_137_distributed_context100000{suffix}"
 
 
 def sha256_file(path: Path) -> str:
@@ -102,6 +122,78 @@ def relocate_fitted_archive(
     os.replace(temporary, destination)
 
 
+def link_or_copy(source: Path, destination: Path) -> str:
+    """Hard-link the 2.7 GB matrix when possible; fall back to a real copy."""
+    temporary = destination.with_name(destination.name + ".tmp")
+    temporary.unlink(missing_ok=True)
+    try:
+        os.link(source, temporary)
+        mode = "hardlink"
+    except OSError:
+        shutil.copyfile(source, temporary)
+        mode = "copy"
+    os.replace(temporary, destination)
+    return mode
+
+
+def reuse_shard_inputs(
+    name: str,
+    reuse_root: Path,
+    features_path: Path,
+    metadata_path: Path,
+    rows: int,
+    n_features: int,
+) -> dict[str, Any]:
+    """Adopt an earlier estimator's matrix after re-proving both digests."""
+    source_dir = reuse_root / name
+    source_manifest = json.loads(
+        (source_dir / "manifest.json").read_text(encoding="utf-8")
+    )
+    if source_manifest["rows"] != rows:
+        raise AssertionError(
+            f"{name}: reuse source has {source_manifest['rows']} rows, expected {rows}"
+        )
+    if source_manifest["n_features"] != n_features:
+        raise AssertionError(f"{name}: reuse source feature count differs")
+
+    source_features = source_dir / "features.float32.npy"
+    source_metadata = source_dir / "metadata.npz"
+    if sha256_file(source_features) != source_manifest["features"]["sha256"]:
+        raise AssertionError(f"{name}: reuse source feature matrix digest drifted")
+    if sha256_file(source_metadata) != source_manifest["metadata"]["sha256"]:
+        raise AssertionError(f"{name}: reuse source metadata digest drifted")
+
+    mode = link_or_copy(source_features, features_path)
+    link_or_copy(source_metadata, metadata_path)
+    return {"root": str(source_dir.resolve()), "mode": mode}
+
+
+def verify_reuse_compatibility(
+    reuse_root: Path, fit_manifest: dict[str, Any], scaler: Any
+) -> None:
+    """Prove the reused matrix was scaled by an equivalent context scaler."""
+    source_manifest = json.loads(
+        (reuse_root / "head" / "manifest.json").read_text(encoding="utf-8")
+    )
+    source_fit_state = source_manifest["fit_state"]
+    if source_fit_state["context_sha256"] != fit_manifest["context_sha256"]:
+        raise AssertionError("reuse source was fit on a different context")
+    source_work = Path(source_fit_state["source_work_dir"])
+    source_fit_manifest = json.loads(
+        (source_work / "fit_manifest.json").read_text(encoding="utf-8")
+    )
+    if list(source_fit_manifest["feature_names"]) != list(
+        fit_manifest["feature_names"]
+    ):
+        raise AssertionError("reuse source has a different feature order")
+    source_scaler = joblib.load(source_work / "scaler.joblib")
+    for attribute in ("mean_", "scale_"):
+        if not np.array_equal(
+            getattr(source_scaler, attribute), getattr(scaler, attribute)
+        ):
+            raise AssertionError(f"reuse source scaler {attribute} differs")
+
+
 def write_shard(
     name: str,
     spec: dict[str, Any],
@@ -114,6 +206,7 @@ def write_shard(
     out_root: Path,
     block_rows: int,
     force: bool,
+    reuse_root: Path | None = None,
 ) -> dict[str, Any]:
     out_dir = out_root / name
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -135,37 +228,50 @@ def write_shard(
     building_id = full["building_id"][start:end]
     global_position = np.arange(start, end, dtype="int64")
 
-    missing = set(raw_index.tolist()) - set(vframe.index.tolist())
-    if missing:
-        raise AssertionError(f"{name}: {len(missing)} shard rows outside value frame")
-
-    temporary_features = features_path.with_name(features_path.name + ".tmp")
-    matrix = np.lib.format.open_memmap(
-        temporary_features,
-        mode="w+",
-        dtype="float32",
-        shape=(len(raw_index), len(feature_names)),
-    )
-    for s in range(0, len(raw_index), block_rows):
-        e = min(len(raw_index), s + block_rows)
-        block = vframe.loc[raw_index[s:e], feature_names].to_numpy(
-            dtype="float32", copy=True
+    reused: dict[str, Any] | None = None
+    if reuse_root is not None:
+        reused = reuse_shard_inputs(
+            name,
+            reuse_root,
+            features_path,
+            metadata_path,
+            len(raw_index),
+            len(feature_names),
         )
-        matrix[s:e] = scaler.transform(block).astype("float32", copy=False)
-        matrix.flush()
-    del matrix
-    with temporary_features.open("rb+") as stream:
-        os.fsync(stream.fileno())
-    os.replace(temporary_features, features_path)
+    else:
+        missing = set(raw_index.tolist()) - set(vframe.index.tolist())
+        if missing:
+            raise AssertionError(
+                f"{name}: {len(missing)} shard rows outside value frame"
+            )
 
-    atomic_write_npz(
-        metadata_path,
-        raw_index=raw_index,
-        anomaly=y,
-        site_id=site_id,
-        building_id=building_id,
-        global_position=global_position,
-    )
+        temporary_features = features_path.with_name(features_path.name + ".tmp")
+        matrix = np.lib.format.open_memmap(
+            temporary_features,
+            mode="w+",
+            dtype="float32",
+            shape=(len(raw_index), len(feature_names)),
+        )
+        for s in range(0, len(raw_index), block_rows):
+            e = min(len(raw_index), s + block_rows)
+            block = vframe.loc[raw_index[s:e], feature_names].to_numpy(
+                dtype="float32", copy=True
+            )
+            matrix[s:e] = scaler.transform(block).astype("float32", copy=False)
+            matrix.flush()
+        del matrix
+        with temporary_features.open("rb+") as stream:
+            os.fsync(stream.fileno())
+        os.replace(temporary_features, features_path)
+
+        atomic_write_npz(
+            metadata_path,
+            raw_index=raw_index,
+            anomaly=y,
+            site_id=site_id,
+            building_id=building_id,
+            global_position=global_position,
+        )
 
     remote_checkpoint = spec["remote_root"] / "tabpfn-v3-classifier-v3_default.ckpt"
     relocate_fitted_archive(
@@ -201,11 +307,14 @@ def write_shard(
             "site_sha256": array_sha256(site_id),
             "building_sha256": array_sha256(building_id.astype("<i2")),
         },
+        "reused_inputs": reused,
         "fit_state": {
             "path": str(portable_fit_path.resolve()),
             "sha256": sha256_file(portable_fit_path),
             "context_rows": fit_manifest["context_rows"],
             "context_sha256": fit_manifest["context_sha256"],
+            "n_estimators": int(fit_manifest.get("n_estimators", 1)),
+            "source_work_dir": str(source_work.resolve()),
             "remote_model_path": str(remote_checkpoint),
         },
         "foundation_checkpoint": {
@@ -221,20 +330,42 @@ def write_shard(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source-work-dir", type=Path, default=DEFAULT_SOURCE_WORK)
+    parser.add_argument(
+        "--n-estimators",
+        type=int,
+        default=1,
+        help="selects the fitted state and the default source/output paths",
+    )
+    parser.add_argument("--source-work-dir", type=Path, default=None)
     parser.add_argument(
         "--site-predictions", type=Path, default=DEFAULT_SITE_PREDICTIONS
     )
-    parser.add_argument("--out-root", type=Path, default=DEFAULT_OUT_ROOT)
+    parser.add_argument("--out-root", type=Path, default=None)
+    parser.add_argument(
+        "--reuse-features-from",
+        type=Path,
+        default=None,
+        help="shard root whose feature matrix and metadata this export adopts",
+    )
     parser.add_argument("--export-block-rows", type=int, default=100_000)
     parser.add_argument("--shard", choices=("head", "tail", "both"), default="both")
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args(argv)
 
-    source_work = args.source_work_dir
+    if args.n_estimators < 1:
+        raise ValueError(f"n_estimators must be >= 1, got {args.n_estimators}")
+    source_work = args.source_work_dir or default_source_work(args.n_estimators)
+    out_root = args.out_root or default_out_root(args.n_estimators)
+
     fit_manifest = json.loads(
         (source_work / "fit_manifest.json").read_text(encoding="utf-8")
     )
+    fitted_estimators = int(fit_manifest.get("n_estimators", 1))
+    if fitted_estimators != args.n_estimators:
+        raise AssertionError(
+            f"{source_work} was fit with n_estimators={fitted_estimators}, "
+            f"but --n-estimators={args.n_estimators}"
+        )
     feature_names = list(fit_manifest["feature_names"])
     if len(feature_names) != 137:
         raise AssertionError(f"expected 137 feature names, got {len(feature_names)}")
@@ -250,32 +381,42 @@ def main(argv: list[str] | None = None) -> int:
     if not np.all(full["building_id"][1:] >= full["building_id"][:-1]):
         raise AssertionError("canonical target is not ordered by building ID")
 
-    frame = load_m3_frame(verbose=True)
-    # Shard rows are the test split; build its value-change features once, keeping
-    # the original frame index so shard raw_index lookups land on the right rows.
-    test_mask = (frame["building_id"] % 2 == 1).to_numpy()
-    test_df = frame.loc[test_mask].copy()
-    test_df["_orig_index"] = test_df.index.to_numpy()
-    print("building 137-feature value-change matrix on the test split", flush=True)
-    vframe = add_value_change_features(
-        test_df, list(SHIFTS), value_change_regime=VALUE_CHANGE_REGIME
-    ).set_index("_orig_index")
-    missing_cols = set(feature_names) - set(vframe.columns)
-    if missing_cols:
-        raise AssertionError(
-            f"value frame missing feature columns: {sorted(missing_cols)}"
-        )
+    vframe = None
+    if args.reuse_features_from is not None:
+        # Only the fitted state may differ from the reused export; the matrix is
+        # a function of the context scaler and the feature order, so both must
+        # match before this export can adopt someone else's rows.
+        verify_reuse_compatibility(args.reuse_features_from, fit_manifest, scaler)
+    else:
+        frame = load_m3_frame(verbose=True)
+        # Shard rows are the test split; build its value-change features once,
+        # keeping the original frame index so shard raw_index lookups land on the
+        # right rows.
+        test_mask = (frame["building_id"] % 2 == 1).to_numpy()
+        test_df = frame.loc[test_mask].copy()
+        test_df["_orig_index"] = test_df.index.to_numpy()
+        print("building 137-feature value-change matrix on the test split", flush=True)
+        vframe = add_value_change_features(
+            test_df, list(SHIFTS), value_change_regime=VALUE_CHANGE_REGIME
+        ).set_index("_orig_index")
+        missing_cols = set(feature_names) - set(vframe.columns)
+        if missing_cols:
+            raise AssertionError(
+                f"value frame missing feature columns: {sorted(missing_cols)}"
+            )
 
-    # Label/identity alignment proof against the canonical target.
-    if not np.array_equal(
-        frame.loc[full["raw_index"], "anomaly"].to_numpy(dtype="int8"), full["anomaly"]
-    ):
-        raise AssertionError("raw row IDs do not map to canonical labels")
-    if not np.array_equal(
-        frame.loc[full["raw_index"], "site_id"].to_numpy(dtype="int8"), full["site_id"]
-    ):
-        raise AssertionError("raw row IDs do not map to canonical sites")
-    del frame
+        # Label/identity alignment proof against the canonical target.
+        if not np.array_equal(
+            frame.loc[full["raw_index"], "anomaly"].to_numpy(dtype="int8"),
+            full["anomaly"],
+        ):
+            raise AssertionError("raw row IDs do not map to canonical labels")
+        if not np.array_equal(
+            frame.loc[full["raw_index"], "site_id"].to_numpy(dtype="int8"),
+            full["site_id"],
+        ):
+            raise AssertionError("raw row IDs do not map to canonical sites")
+        del frame
 
     names = ("head", "tail") if args.shard == "both" else (args.shard,)
     for name in names:
@@ -289,9 +430,10 @@ def main(argv: list[str] | None = None) -> int:
             source_work,
             fit_manifest,
             full,
-            args.out_root,
+            out_root,
             args.export_block_rows,
             args.force,
+            reuse_root=args.reuse_features_from,
         )
         print(json.dumps(manifest, indent=2, sort_keys=True), flush=True)
     return 0

@@ -32,6 +32,7 @@ class TestTabPFNPortableShard(unittest.TestCase):
         cls.worker = load_script("run_m5_tabpfn_portable_shard")
         cls.exporter = load_script("export_m5_tabpfn_colab_tail")
         cls.merger = load_script("merge_m5_tabpfn_distributed_predictions")
+        cls.exporter_137 = load_script("export_m5_tabpfn_137_shards")
 
     def test_reverse_checkpoint_spans_cover_every_row_once(self) -> None:
         spans = self.worker.checkpoint_spans(45, 20, "reverse")
@@ -117,6 +118,110 @@ class TestTabPFNPortableShard(unittest.TestCase):
 
     def test_worker_has_no_top_level_torch_or_tabpfn_import(self) -> None:
         self.assertFalse(self.worker.parent_has_forbidden_imports())
+
+    def _worker_args(self, *extra: str):
+        return self.worker.parse_args(
+            [
+                "--features",
+                "features.npy",
+                "--metadata",
+                "metadata.npz",
+                "--fit-state",
+                "model.tabpfn_fit",
+                "--work-dir",
+                "work",
+                *extra,
+            ]
+        )
+
+    def test_worker_defaults_stay_on_the_17_feature_contract(self) -> None:
+        args = self._worker_args()
+        self.assertEqual(args.n_features, 17)
+        self.assertEqual(args.n_estimators, 1)
+
+    def test_worker_accepts_137_features_and_larger_ensembles(self) -> None:
+        args = self._worker_args("--n-features", "137", "--n-estimators", "8")
+        self.assertEqual(args.n_features, 137)
+        self.assertEqual(args.n_estimators, 8)
+
+    def test_fitted_model_verification_follows_requested_estimators(self) -> None:
+        class FakeConfig:
+            SUBSAMPLE_SAMPLES = None
+
+        class FakeModel:
+            n_train_samples_ = 100_000
+            n_estimators_ = 4
+            inference_config_ = FakeConfig()
+
+        model = FakeModel()
+        self.worker.verify_fitted_model(model, 100_000, 4)
+        with self.assertRaisesRegex(AssertionError, "contract drifted"):
+            self.worker.verify_fitted_model(model, 100_000)
+
+    def _write_reuse_source(self, root: Path, context_sha: str, mean: float) -> Path:
+        """Build the minimum an earlier 137 export must expose to be reused."""
+        import joblib
+        from sklearn.preprocessing import StandardScaler
+
+        work = root / "source.work"
+        work.mkdir(parents=True, exist_ok=True)
+        (work / "fit_manifest.json").write_text(
+            json.dumps({"feature_names": ["a", "b"], "context_sha256": context_sha}),
+            encoding="utf-8",
+        )
+        scaler = StandardScaler().fit(np.array([[mean - 1.0, 0.0], [mean + 1.0, 2.0]]))
+        joblib.dump(scaler, work / "scaler.joblib")
+
+        shard = root / "reuse" / "head"
+        shard.mkdir(parents=True, exist_ok=True)
+        (shard / "manifest.json").write_text(
+            json.dumps(
+                {
+                    "fit_state": {
+                        "context_sha256": context_sha,
+                        "source_work_dir": str(work),
+                    }
+                }
+            ),
+            encoding="utf-8",
+        )
+        return root / "reuse"
+
+    def test_reuse_requires_the_same_context_and_scaler(self) -> None:
+        import joblib
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            reuse_root = self._write_reuse_source(root, "ctx-sha", 5.0)
+            manifest = {"feature_names": ["a", "b"], "context_sha256": "ctx-sha"}
+            scaler = joblib.load(root / "source.work" / "scaler.joblib")
+
+            self.exporter_137.verify_reuse_compatibility(reuse_root, manifest, scaler)
+
+            other_context = {**manifest, "context_sha256": "different"}
+            with self.assertRaisesRegex(AssertionError, "different context"):
+                self.exporter_137.verify_reuse_compatibility(
+                    reuse_root, other_context, scaler
+                )
+
+            drifted = joblib.load(root / "source.work" / "scaler.joblib")
+            drifted.mean_ = drifted.mean_ + 1.0
+            with self.assertRaisesRegex(AssertionError, "scaler mean_ differs"):
+                self.exporter_137.verify_reuse_compatibility(
+                    reuse_root, manifest, drifted
+                )
+
+    def test_137_export_paths_key_off_the_estimator_count(self) -> None:
+        self.assertTrue(
+            str(self.exporter_137.default_source_work(1)).endswith(
+                "m5_tabpfn_137_full_test_context100000.work"
+            )
+        )
+        self.assertTrue(
+            str(self.exporter_137.default_out_root(8)).endswith(
+                "m5_tabpfn_137_distributed_context100000_n8"
+            )
+        )
 
     def test_merge_reconstructs_exact_head_and_tail_order(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

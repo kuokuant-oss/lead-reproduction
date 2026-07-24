@@ -61,9 +61,16 @@ def main() -> int:
     parser.add_argument("--context-rows", type=int, default=100_000)
     parser.add_argument("--seed", type=int, default=RANDOM_STATE)
     parser.add_argument(
+        "--n-estimators",
+        type=int,
+        default=1,
+        help="TabPFN internal ensemble size; members are built during fit",
+    )
+    parser.add_argument(
         "--work-dir",
         type=Path,
-        default=PROC / "m5_tabpfn_137_full_test_context100000.work",
+        default=None,
+        help="default: m5_tabpfn_137_full_test_context100000[_n<k>].work",
     )
     parser.add_argument(
         "--model-path",
@@ -71,6 +78,12 @@ def main() -> int:
         default=ROOT / ".tabpfn-cache" / "tabpfn-v3-classifier-v3_default.ckpt",
     )
     args = parser.parse_args()
+    if args.n_estimators < 1:
+        raise ValueError(f"n_estimators must be >= 1, got {args.n_estimators}")
+    if args.work_dir is None:
+        # n=1 keeps the original path so the existing fit stays addressable.
+        suffix = "" if args.n_estimators == 1 else f"_n{args.n_estimators}"
+        args.work_dir = PROC / f"m5_tabpfn_137_full_test_context100000{suffix}.work"
     args.work_dir.mkdir(parents=True, exist_ok=True)
 
     mod = load_canonical_module()
@@ -138,11 +151,17 @@ def main() -> int:
     x_context = scaler.fit_transform(x_context).astype("float32", copy=False)
 
     print("creating foundation model and fitting", flush=True)
-    model = mod.create_real_model(args.model_path, args.seed)
+    model = mod.create_real_model(args.model_path, args.seed, args.n_estimators)
     model.fit(x_context, y_context)
-    context = mod.verify_fitted_context(model, args.context_rows)
+    context = mod.verify_fitted_context(model, args.context_rows, args.n_estimators)
     if context["status"] != "verified":
         raise RuntimeError("new 137-feature fitted state failed context verification")
+    if context["effective_estimators"] != args.n_estimators:
+        raise RuntimeError(
+            "fitted state carries "
+            f"{context['effective_estimators']} estimators, expected "
+            f"{args.n_estimators}"
+        )
 
     mod.atomic_joblib_dump(scaler, args.work_dir / "scaler.joblib")
     mod.atomic_save_fitted_model(model, args.work_dir / "model.tabpfn_fit")
@@ -155,6 +174,7 @@ def main() -> int:
         "n_features": len(feature_cols),
         "model_path": str(args.model_path.resolve()),
         "model_sha256": sha256_file(args.model_path),
+        "n_estimators": args.n_estimators,
         "seed": args.seed,
         "value_change_regime": VALUE_CHANGE_REGIME,
     }

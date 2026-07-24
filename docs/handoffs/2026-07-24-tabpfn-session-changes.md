@@ -46,8 +46,14 @@
 
 ## 7. 兩個未執行的後續計畫
 
-1. **137-feature 全 test 推論**：fit 已就緒，尚未建 portable inputs、尚未上 Colab。目標是把 137-feature TabPFN 當第四條線加到同樣四張圖。使用者要求 17-feature 全部收工後自動啟動、不等人；連不上新帳號就用 hank。
-2. **17-feature estimator sweep（Site 1/2/3 全列、n ∈ {4,8}）**：見專屬 handoff。核心紀律：全列量測、不得用抽樣宣稱增益；因 ~103 小時遠超 L4 壽命，必須用 runbook 可續跑基建。
+> **2026-07-24 稍後修訂**：兩個計畫都依使用者指示調整過，以各自 handoff 的最新版為準。
+
+1. **137-feature 全 test 推論**：範圍擴為 `n_estimators ∈ {1, 4, 8}` 三個模型，加上既有的 17-feature n=1，圖上共四條 TabPFN 相關線。
+   **本機準備已完成**（三份 fit、三組共用矩陣的 portable shard、worker 參數化、驗證腳本），依指示停在「可開始推論之前」，未上傳、未啟動。
+   見 `docs/handoffs/2026-07-24-tabpfn-137feature-full-test-plan.md`。
+2. **17-feature estimator sweep（Site 1/2/3、n ∈ {4,8}）**：評測列釘死為 `building_id % 2 == 1` holdout 內各 site 的全列；
+   Site 1（tonykuo 帳號）與 Site 2（hank 帳號）各兩張 A100 同時並行，開跑前先做 microbatch 校準；Site 3 排在其後。
+   見 `docs/handoffs/2026-07-24-tabpfn-17feature-estimator-sweep-plan.md`。核心紀律不變：全列量測、不得用抽樣宣稱增益。
 
 ## 8. 現況快照
 

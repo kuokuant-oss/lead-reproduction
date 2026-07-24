@@ -7,6 +7,9 @@ param(
     [ValidateSet("adc", "oauth2")]
     [string]$Auth = "oauth2",
     [string]$ColabHome = "/home/tonykuo/.colab-hank",
+    # The tonykuo account only receives the drive.file scope when this is set;
+    # without it the CLI aborts before writing anything.
+    [switch]$RelaxTokenScope,
     [switch]$Once
 )
 
@@ -24,13 +27,19 @@ if ($TouchSeconds -lt 300) {
     throw "TouchSeconds must be at least 300"
 }
 
+# Explicitly typed: PowerShell unrolls a single-element array returned from an
+# if-expression into a scalar, and splatting a string passes it one char at a
+# time ("env: 'O': No such file or directory").
+[string[]]$extraEnv = @()
+if ($RelaxTokenScope) { $extraEnv = @("OAUTHLIB_RELAX_TOKEN_SCOPE=1") }
+$relaxAssignment = if ($RelaxTokenScope) { "OAUTHLIB_RELAX_TOKEN_SCOPE=1 " } else { "" }
 $lastTouch = 0
 
 while ($true) {
     $timestamp = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
     try {
         $pythonCode = "import json,pathlib; d=json.loads(pathlib.Path('$sessionsPath').read_text()); print(d.get('$Session',{}).get('endpoint',''))"
-        $endpoint = (& wsl.exe -d Ubuntu -- env "HOME=$ColabHome" $cliPython -c $pythonCode 2>$null | Select-Object -First 1).Trim()
+        $endpoint = (& wsl.exe -d Ubuntu -- env "HOME=$ColabHome" @extraEnv $cliPython -c $pythonCode 2>$null | Select-Object -First 1).Trim()
         if (-not $endpoint) {
             Add-Content -LiteralPath $LogPath -Value "$timestamp session_missing=true"
         }
@@ -41,7 +50,7 @@ while ($true) {
             $pattern = "colab_cli.cli --auth=$Auth keep-alive $endpoint $Session"
             $existing = @(& wsl.exe -d Ubuntu -- pgrep -f -- $pattern 2>$null)
             if ($existing.Count -eq 0) {
-                $launch = "nohup env HOME=$ColabHome $cliPython -m colab_cli.cli --auth=$Auth keep-alive $endpoint $Session >/dev/null 2>&1 &"
+                $launch = "nohup env HOME=$ColabHome $relaxAssignment$cliPython -m colab_cli.cli --auth=$Auth keep-alive $endpoint $Session >/dev/null 2>&1 &"
                 & wsl.exe -d Ubuntu -- bash -lc $launch | Out-Null
                 Start-Sleep -Seconds 2
                 $existing = @(& wsl.exe -d Ubuntu -- pgrep -f -- $pattern 2>$null)
@@ -55,7 +64,7 @@ while ($true) {
             }
 
             if ($lastTouch -eq 0 -or ($timestamp - $lastTouch) -ge $TouchSeconds) {
-                $touchOutput = & wsl.exe -d Ubuntu -- env "HOME=$ColabHome" $colabCli --auth $Auth ls -s $Session "$RemoteRoot/work" 2>&1
+                $touchOutput = & wsl.exe -d Ubuntu -- env "HOME=$ColabHome" @extraEnv $colabCli --auth $Auth ls -s $Session "$RemoteRoot/work" 2>&1
                 if ($LASTEXITCODE -ne 0) {
                     throw "Work touch failed: $($touchOutput -join ' ')"
                 }

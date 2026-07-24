@@ -18,6 +18,58 @@
   - lead-tabpfn-tail
   - lead-tabpfn-tail-2
 
+### 1.1 並行實驗線（2026-07-24 使用者核准）
+
+§1 的契約描述的是**正式 17-feature / n_estimators=1 全 test 產物**，該契約不變、不得原地修改：正式產物
+`m5_tabpfn_distributed_context100000_predictions.npz` 已完成，任何重跑或改參數都不得覆蓋它。
+
+在此之外另有兩條並行實驗線，各自獨立 fit、獨立產物、只做並排比較，**不與正式產物合併**：
+
+| 線 | 變動 | 產物根目錄 | 計畫 |
+|---|---|---|---|
+| 137-feature | features 17 → 137；`n_estimators ∈ {1,4,8}` | `m5_tabpfn_137_distributed_context100000[_n4/_n8]/` | `docs/handoffs/2026-07-24-tabpfn-137feature-full-test-plan.md` |
+| estimator sweep | `n_estimators ∈ {4,8}`，只跑 Site 1/2/3 | 待建 | `docs/handoffs/2026-07-24-tabpfn-17feature-estimator-sweep-plan.md` |
+
+兩條線共用 §1 的其他所有契約（100k context、同一 foundation checkpoint、20k checkpoint、microbatch 下限 64、不可 CPU/TPU fallback、
+canonical row order 與 identity）。`run_m5_tabpfn_portable_shard.py` 的 `--n-features` / `--n-estimators` 預設值仍是 17 / 1，
+因此不帶旗標執行時完全等同正式契約。實驗線可使用 A100 與較大的 microbatch（見 estimator sweep handoff §3.2），
+但仍受 `--checkpoint-rows` 20,000 的上界限制。
+
+### 1.2 A100 併行運行的實戰教訓（2026-07-24 estimator sweep）
+
+以下每一條都是這次實際踩到才修的，寫在這裡是為了不要再踩第二次。
+
+1. **只掛 sync 與 keep-alive 等於沒有自癒能力。** 這兩者只負責觀測與保活，**不會重建**被 Google 回收的 session。
+   少了 recovery supervisor，掉線的 shard 會靜止不動，而那個 assignment 仍在燒 CU。
+   任何長跑 shard 都必須三件齊備：**supervisor（自癒）+ sync（下載與收工停機）+ keep-alive（保活）**。
+2. **keep-alive 必須在上傳「之前」啟動。** 137-feature 的矩陣每半約 350 MB，上傳要數分鐘；期間若沒保活，
+   session 會被回收，而部署流程仍會「成功」跑完，留下一個沒有 worker 的 assignment。
+   正確順序固化在 `scripts/queue_m5_tabpfn_site_shard.ps1`：**配置 → keep-alive → 部署 → sync + supervisor**。
+3. **釋放 assignment 要用 endpoint，不能用 session 名稱。** CLI 對已失效的 session 收到 404/401 時會自行刪掉本機
+   name→token 記錄，此後 `colab stop -s <name>` 永遠失敗，`sessions` 只剩無名的 `[?]`。
+   唯一可靠的方式是 `state.client.unassign('<endpoint>')`（`supervise_m5_tabpfn_recovery.py` 一直都是這樣做的）。
+   無名孤兒會佔滿帳號並行額度，讓新 session 直接回 `TooManyAssignmentsError`。
+4. **remote root 必須含 estimator 數與 feature 數。** 不同 estimator／不同 feature set 跑的是**同一組列**，
+   若共用遠端目錄，`--resume` 會把另一條線的 checkpoint 當成已完成而跳過，**產出別條線的分數卻標成本條線**，
+   且所有列身分檢查都會通過（因為列真的相同）。命名規則：`/content/lead_tabpfn_s<site>_<shard>[_f<feat>]_n<est>`。
+5. **`--resume` 曾會蓋掉命令列的 microbatch**（見 estimator sweep handoff §3.4），已修。
+6. **microbatch 是最大的效能槓桿，且幾乎不吃記憶體。** A100 上 1024 → 16384/20000 約 10 倍吞吐，
+   torch 峰值保留量從 3,578 MiB 只升到 3,608 MiB（卡有 40 GB），因為記憶體由 100k context 主導。
+   `--checkpoint-rows` 20,000 是硬上界（worker 要求 `checkpoint_rows >= microbatch`）。
+7. **`Service Unavailable` / `Precondition Failed` 是可重試的容量問題**，不是設定錯誤；用退避重試處理，
+   不要當成失敗中止。`TooManyAssignmentsError` 則多半代表有孤兒沒被回收，先查 `[?]`。
+8. **單次上傳超過 64 MB 會失敗，且與 VM 無關。** 一個 79 MB 的 features 檔在兩台不同 VM 上都失敗（500 接著 400 Bad Request），
+   重試五次全滅；切成 64 MB 分段後**零重試一次成功**。foundation checkpoint 一直以 64 MB 分段上傳、12–46 MB 的 shard 整檔上傳，
+   兩者從未出問題 —— 64 MB 是唯一被實證可靠的單次傳輸大小。`deploy_m5_tabpfn_site_shard.ps1` 的分段門檻因此設為 64 MB。
+   分段安全性由遠端 reassemble 的 SHA-256 比對保證（335 MB / 6 段實測 verified）。
+9. **背景程序一律要重導輸出。** 用 `Start-Process -WindowStyle Hidden` 而不接 log 檔，失敗會完全靜默：
+   本次有一格「上傳全部完成、SHA 全過，但 worker 從未啟動」，因為部署在啟動前中斷而訊息消失，
+   從外部看起來與「正在部署」無法區分，白等了一段時間。**判斷卡住與否要看遠端 `work/` 是否有 launcher.json 與 worker.log，
+   以及 WSL 內是否真的有 `colab upload` 行程**，不能只看本機 chunk 數。
+10. **上傳完成後中斷不必整批重傳。** 直接補跑 reassemble → 安裝 → launch 三步即可（本次省下 335 MB 重傳）。
+11. **process 過濾要排除自己**：以 `CommandLine` 比對關鍵字來 `Stop-Process` 時，該關鍵字往往也出現在自己的命令列裡，
+    會把執行中的 shell 一併殺掉。務必加上 `$_.ProcessId -ne $PID`。
+
 ## 2. shard 與邊界
 
 | shard | session | remote root | global rows | local rows | direction | expected chunks |

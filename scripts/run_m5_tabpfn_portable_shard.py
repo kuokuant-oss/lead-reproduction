@@ -21,6 +21,9 @@ from typing import Any
 import numpy as np
 
 
+PORTABLE_DEFAULT_MICROBATCH = 1_024
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--features", type=Path, required=True)
@@ -28,7 +31,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--fit-state", type=Path, required=True)
     parser.add_argument("--work-dir", type=Path, required=True)
     parser.add_argument("--context-rows", type=int, default=100_000)
-    parser.add_argument("--query-microbatch-size", type=int, default=1_024)
+    # The defaults are the canonical 17-feature contract. The 137-feature line
+    # and the estimator sweep override them, and the fitted state must agree.
+    parser.add_argument("--n-features", type=int, default=17)
+    parser.add_argument("--n-estimators", type=int, default=1)
+    parser.add_argument(
+        "--query-microbatch-size", type=int, default=PORTABLE_DEFAULT_MICROBATCH
+    )
     parser.add_argument("--min-query-microbatch-size", type=int, default=256)
     parser.add_argument("--checkpoint-rows", type=int, default=20_000)
     parser.add_argument(
@@ -42,6 +51,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     args = parser.parse_args(argv)
     if args.context_rows <= 0:
         raise ValueError("context rows must be positive")
+    if args.n_features <= 0:
+        raise ValueError("feature count must be positive")
+    if args.n_estimators <= 0:
+        raise ValueError("estimator count must be positive")
     if not 0 < args.min_query_microbatch_size <= args.query_microbatch_size:
         raise ValueError("invalid query microbatch range")
     if args.checkpoint_rows < args.query_microbatch_size:
@@ -153,7 +166,7 @@ def is_oom(error: BaseException) -> bool:
     )
 
 
-def verify_fitted_model(model: Any, context_rows: int) -> None:
+def verify_fitted_model(model: Any, context_rows: int, estimators: int = 1) -> None:
     config = getattr(model, "inference_config_", None)
     observed = {
         "context_rows": getattr(model, "n_train_samples_", None),
@@ -162,7 +175,7 @@ def verify_fitted_model(model: Any, context_rows: int) -> None:
     }
     expected = {
         "context_rows": context_rows,
-        "estimators": 1,
+        "estimators": estimators,
         "subsample_samples": None,
     }
     if observed != expected:
@@ -276,8 +289,11 @@ def main(argv: list[str] | None = None) -> int:
         metadata = load_metadata(args.metadata)
         if len(features) != len(metadata["raw_index"]):
             raise ValueError("feature and metadata row counts differ")
-        if features.shape[1] != 17:
-            raise ValueError("portable shard requires exactly 17 features")
+        if features.shape[1] != args.n_features:
+            raise ValueError(
+                f"portable shard requires exactly {args.n_features} features, "
+                f"got {features.shape[1]}"
+            )
 
         stage = "load_fitted_state"
         atomic_write_json(
@@ -285,7 +301,7 @@ def main(argv: list[str] | None = None) -> int:
             {"status": stage, "timestamp": time.time(), "pid": os.getpid()},
         )
         model = load_fitted_tabpfn_model(args.fit_state, device="cuda")
-        verify_fitted_model(model, args.context_rows)
+        verify_fitted_model(model, args.context_rows, args.n_estimators)
 
         spans = checkpoint_spans(len(features), args.checkpoint_rows, args.direction)
         previous_progress = (
@@ -296,8 +312,15 @@ def main(argv: list[str] | None = None) -> int:
         completed_rows = 0
         completed_spans: list[list[int]] = []
         timings: dict[str, Any] = dict(previous_progress.get("timings", {}))
+        # The requested microbatch wins on resume. Inheriting the previous value
+        # was meant to remember a pressure-driven downshift, but it also silently
+        # discards a deliberately raised value, pinning a resumed shard to the
+        # old size forever. Re-discovering a downshift costs one halving step,
+        # which the soft/hard limit checks below apply within the first batch.
         effective_batch = int(
-            previous_progress.get(
+            args.query_microbatch_size
+            if args.query_microbatch_size != PORTABLE_DEFAULT_MICROBATCH
+            else previous_progress.get(
                 "effective_microbatch_size", args.query_microbatch_size
             )
         )
@@ -392,6 +415,8 @@ def main(argv: list[str] | None = None) -> int:
             "rows": len(features),
             "completed_rows": completed_rows,
             "checkpoint_count": len(spans),
+            "n_features": int(features.shape[1]),
+            "n_estimators": args.n_estimators,
             "effective_microbatch_size": effective_batch,
             "elapsed_seconds_this_session": time.perf_counter() - started,
             "fit_state_sha256": sha256_file(args.fit_state),

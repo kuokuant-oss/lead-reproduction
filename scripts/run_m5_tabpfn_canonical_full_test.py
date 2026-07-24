@@ -337,11 +337,17 @@ def atomic_save_fitted_model(model: Any, path: Path) -> None:
     os.replace(temporary, path)
 
 
-def create_real_model(model_path: Path, seed: int) -> Any:
+def create_real_model(model_path: Path, seed: int, n_estimators: int = 1) -> Any:
     from tabpfn import TabPFNClassifier
 
+    # n_estimators is fixed at 1 for the canonical 17-feature contract. The
+    # estimator sweep and the 137-feature line pass 4 or 8; the ensemble members
+    # are built during fit, so each value needs its own fitted state.
+    if n_estimators < 1:
+        raise ValueError(f"n_estimators must be >= 1, got {n_estimators}")
+
     return TabPFNClassifier(
-        n_estimators=1,
+        n_estimators=n_estimators,
         auto_scale_n_estimators=False,
         model_path=str(model_path.resolve()),
         device="cuda",

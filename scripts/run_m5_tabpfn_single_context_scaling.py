@@ -531,20 +531,23 @@ def tabpfn_constructor(model_path: Path, seed: int) -> tuple[Any, dict[str, Any]
     return TabPFNClassifier(**kwargs), kwargs
 
 
-def verify_fitted_context(model: Any, requested_rows: int) -> dict[str, Any]:
+def verify_fitted_context(
+    model: Any, requested_rows: int, requested_estimators: int = 1
+) -> dict[str, Any]:
     rows = getattr(model, "n_train_samples_", None)
     estimators = getattr(model, "n_estimators_", None)
     config = getattr(model, "inference_config_", None)
     subsampling = getattr(config, "SUBSAMPLE_SAMPLES", "unavailable")
     verified = (
         rows == requested_rows
-        and estimators == 1
+        and estimators == requested_estimators
         and subsampling is None
-        and getattr(model, "n_estimators", None) == 1
+        and getattr(model, "n_estimators", None) == requested_estimators
     )
     return {
         "status": "verified" if verified else "blocked_unverified_context",
         "requested_context_rows": int(requested_rows),
+        "requested_estimators": int(requested_estimators),
         "effective_context_rows": int(rows) if rows is not None else None,
         "external_sharding": False,
         "sample_subsampling": subsampling,

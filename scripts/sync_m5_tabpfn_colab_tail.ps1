@@ -7,7 +7,10 @@ param(
     [string]$ColabCli = "/home/tonykuo/.local/bin/colab",
     [ValidateSet("adc", "oauth2")]
     [string]$Auth = "oauth2",
-    [string]$ColabHome = "/home/tonykuo/.colab-hank"
+    [string]$ColabHome = "/home/tonykuo/.colab-hank",
+    # The tonykuo account only receives the drive.file scope when this is set;
+    # without it the CLI aborts before writing anything.
+    [switch]$RelaxTokenScope
 )
 
 $ErrorActionPreference = "Stop"
@@ -36,8 +39,14 @@ function Convert-ToWslPath([string]$WindowsPath) {
     return "/mnt/$drive/$tail"
 }
 
+# Explicitly typed: PowerShell unrolls a single-element array returned from an
+# if-expression into a scalar, and splatting a string passes it one char at a
+# time ("env: 'O': No such file or directory").
+[string[]]$extraEnv = @()
+if ($RelaxTokenScope) { $extraEnv = @("OAUTHLIB_RELAX_TOKEN_SCOPE=1") }
+
 function Invoke-Colab([string[]]$Arguments) {
-    $output = & wsl.exe -d Ubuntu -- env "HOME=$ColabHome" $ColabCli --auth $Auth @Arguments 2>&1
+    $output = & wsl.exe -d Ubuntu -- env "HOME=$ColabHome" @extraEnv $ColabCli --auth $Auth @Arguments 2>&1
     if ($LASTEXITCODE -ne 0) {
         throw ($output -join [Environment]::NewLine)
     }
