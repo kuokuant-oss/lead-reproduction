@@ -65,6 +65,37 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
         self.assertEqual(attempts, [1, 2, 3, 4, 5, 6, 7])
         self.assertEqual(sleeps, [1, 2, 5, 5, 5, 5])
 
+    def test_retry_keeps_supervisor_alive_after_transient_operation_exception(
+        self,
+    ) -> None:
+        attempts = []
+        sleeps = []
+
+        def operation() -> bool:
+            attempts.append(len(attempts) + 1)
+            if len(attempts) == 1:
+                raise RuntimeError("temporary upload transport error")
+            return True
+
+        with (
+            patch.object(self.m, "write_supervisor_status") as status,
+            patch.object(self.m, "log"),
+        ):
+            self.m.retry_until_success(operation, sleep=sleeps.append, delays=(1,))
+
+        self.assertEqual(attempts, [1, 2])
+        self.assertEqual(sleeps, [1])
+        self.assertTrue(
+            any(
+                call.args
+                and call.args[0] == "operation_exception"
+                and call.kwargs.get("attempt") == 1
+                and "temporary upload transport error"
+                in call.kwargs.get("last_error", "")
+                for call in status.mock_calls
+            )
+        )
+
     def test_colab_allocation_uses_jittered_exponential_backoff(self) -> None:
         delays = [
             self.m.colab_allocation_delay(
@@ -196,6 +227,45 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
             ),
         ):
             self.assertFalse(self.m.ensure_fresh_colab_session())
+
+    def test_remote_exec_failure_records_return_code_and_sanitized_detail(self) -> None:
+        events = []
+        result = subprocess.CompletedProcess(
+            (), 503, "", "Service Unavailable authorization=secret-value"
+        )
+        with (
+            patch.object(self.m, "_colab", return_value=result),
+            patch.object(self.m, "log", side_effect=events.append),
+            patch.object(self.m, "write_supervisor_status") as status,
+        ):
+            self.assertFalse(self.m._remote_exec(self.m.ROOT / ".scratch" / "probe.py"))
+
+        self.assertTrue(any("remote_exec_failed=true" in value for value in events))
+        message = next(value for value in events if "remote_exec_failed=true" in value)
+        self.assertIn("returncode=503", message)
+        self.assertNotIn("secret-value", message)
+        self.assertTrue(
+            any(
+                call.args
+                and call.args[0] == "remote_exec_failed"
+                and call.kwargs.get("returncode") == 503
+                for call in status.mock_calls
+            )
+        )
+
+    def test_dependency_inspection_failure_is_non_blocking(self) -> None:
+        events = []
+        with (
+            patch.object(self.m, "_remote_exec", side_effect=[True, True, False]),
+            patch.object(self.m, "log", side_effect=events.append),
+            patch.object(self.m, "write_supervisor_status"),
+        ):
+            self.assertTrue(self.m.run_runtime_setup())
+
+        self.assertTrue(
+            any("runtime_inspect_warning=true" in value for value in events)
+        )
+        self.assertFalse(any("runtime_setup_failed=true" in value for value in events))
 
     def test_subprocess_output_is_decoded_as_utf8(self) -> None:
         completed = subprocess.CompletedProcess((), 0, "", "")
@@ -364,6 +434,141 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
             self.assertTrue(self.m.rebuild_colab_from_checkpoints())
 
         self.assertEqual(events, ["restore", "launch"])
+
+    def test_forced_rebuild_replaces_transport_even_when_assignment_lists(self) -> None:
+        events = []
+        with (
+            patch.object(self.m, "colab_session_transport_healthy", return_value=True),
+            patch.object(
+                self.m,
+                "ensure_fresh_colab_session",
+                side_effect=lambda: events.append("new") or True,
+            ),
+            patch.object(
+                self.m,
+                "restore_colab_files",
+                side_effect=lambda: events.append("restore") or True,
+            ),
+            patch.object(
+                self.m,
+                "launch_and_verify_colab",
+                side_effect=lambda: events.append("launch") or True,
+            ),
+            patch.object(
+                self.m,
+                "retry_until_success",
+                side_effect=lambda operation, **kwargs: operation(),
+            ),
+        ):
+            self.assertTrue(
+                self.m.rebuild_colab_from_checkpoints(force_fresh_session=True)
+            )
+
+        self.assertEqual(events, ["new", "restore", "launch"])
+
+    def test_failed_rebuild_accepts_durable_progress_before_retry(self) -> None:
+        episode = {
+            "status": "active",
+            "baseline_completed_rows": 1_197_155,
+            "baseline_valid_chunks": 60,
+        }
+        with (
+            patch.object(self.m, "rebuild_colab_from_checkpoints", return_value=False),
+            patch.object(self.m, "recovery_episode_advanced", return_value=True),
+            patch.object(self.m, "log") as log,
+        ):
+            accepted = self.m.rebuild_once_or_accept_durable_progress(
+                episode,
+                lambda: self.m.rebuild_colab_from_checkpoints(force_fresh_session=True),
+            )
+
+        self.assertTrue(accepted)
+        self.assertTrue(
+            any(
+                call.args
+                and "rebuild_failed_after_durable_advance=true" in call.args[0]
+                for call in log.mock_calls
+            )
+        )
+
+    def test_remote_exec_waits_longer_than_the_remote_deadline(self) -> None:
+        captured: dict[str, object] = {}
+
+        def run(command, *, timeout_seconds=180):
+            captured["command"] = list(command)
+            captured["timeout_seconds"] = timeout_seconds
+            return subprocess.CompletedProcess(list(command), 0, "", "")
+
+        with patch.object(self.m, "_run", side_effect=run):
+            self.assertTrue(
+                self.m._remote_exec(self.m.ROOT / ".scratch" / "install.py", 900)
+            )
+
+        self.assertIn("--timeout", captured["command"])
+        remote_deadline = captured["command"][
+            captured["command"].index("--timeout") + 1
+        ]
+        self.assertEqual(remote_deadline, "900")
+        self.assertGreater(captured["timeout_seconds"], float(remote_deadline))
+
+    def test_upload_is_not_killed_by_the_default_command_budget(self) -> None:
+        captured: dict[str, object] = {}
+
+        def run(command, *, timeout_seconds=180):
+            captured["timeout_seconds"] = timeout_seconds
+            return subprocess.CompletedProcess(list(command), 0, "", "")
+
+        with patch.object(self.m, "_run", side_effect=run):
+            self.assertTrue(self.m._upload(SCRIPT, "/content/probe.py"))
+
+        self.assertEqual(captured["timeout_seconds"], self.m.UPLOAD_TIMEOUT_SECONDS)
+        self.assertGreater(self.m.UPLOAD_TIMEOUT_SECONDS, 180)
+
+    def test_failed_rebuild_rechecks_durable_progress_after_sync_interval(self) -> None:
+        episode = {
+            "status": "active",
+            "baseline_completed_rows": 1_777_155,
+            "baseline_valid_chunks": 89,
+        }
+        sleeps: list[float] = []
+        with (
+            patch.object(self.m, "rebuild_colab_from_checkpoints", return_value=False),
+            patch.object(
+                self.m, "recovery_episode_advanced", side_effect=[False, True]
+            ),
+            patch.object(self.m, "_durable_frontier", return_value=(1_797_155, 90)),
+            patch.object(self.m, "write_supervisor_status"),
+            patch.object(self.m, "log"),
+        ):
+            accepted = self.m.rebuild_once_or_accept_durable_progress(
+                episode,
+                lambda: self.m.rebuild_colab_from_checkpoints(force_fresh_session=True),
+                sleep=sleeps.append,
+            )
+
+        self.assertTrue(accepted)
+        self.assertEqual(sleeps, [90])
+
+    def test_failed_rebuild_without_durable_progress_still_fails(self) -> None:
+        episode = {
+            "status": "active",
+            "baseline_completed_rows": 1_777_155,
+            "baseline_valid_chunks": 89,
+        }
+        sleeps: list[float] = []
+        with (
+            patch.object(self.m, "rebuild_colab_from_checkpoints", return_value=False),
+            patch.object(self.m, "recovery_episode_advanced", return_value=False),
+            patch.object(self.m, "log"),
+        ):
+            accepted = self.m.rebuild_once_or_accept_durable_progress(
+                episode,
+                lambda: self.m.rebuild_colab_from_checkpoints(force_fresh_session=True),
+                sleep=sleeps.append,
+            )
+
+        self.assertFalse(accepted)
+        self.assertEqual(sleeps, [90])
 
     def test_local_startup_wait_has_no_fixed_health_deadline(self) -> None:
         checks = []

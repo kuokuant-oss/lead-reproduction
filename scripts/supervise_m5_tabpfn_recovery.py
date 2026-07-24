@@ -38,6 +38,7 @@ LOCK_PATH = PROC / f"{STATE_STEM}_supervisor.lock"
 LOG_PATH = PROC / f"{STATE_STEM}_supervisor.log"
 EPISODE_PATH = PROC / f"{STATE_STEM}_episode.json"
 MONITORS_PATH = PROC / f"{STATE_STEM}_monitors.json"
+STATUS_PATH = PROC / f"{STATE_STEM}_status.json"
 SYNC_SCRIPT = (
     ROOT / "scripts" / "sync_m5_tabpfn_colab_tail.ps1"
     if COLAB_SHARD == "tail"
@@ -76,6 +77,11 @@ INSPECT_SCRIPT = (
 )
 WORKER_LAUNCHER = ROOT / "scripts" / f"launch_m5_tabpfn_colab_{COLAB_SHARD}.py"
 ENDPOINT_RE = re.compile(r"^gpu-[a-z0-9-]+$")
+# The local subprocess must outlive the deadline handed to the remote command,
+# so a slow-but-healthy step is not reported as a deterministic failure.
+LOCAL_TIMEOUT_MARGIN_SECONDS = 120
+UPLOAD_TIMEOUT_SECONDS = 900
+INSPECT_TIMEOUT_SECONDS = 120
 
 
 class SupervisorAlreadyRunning(RuntimeError):
@@ -92,6 +98,37 @@ def log(message: str) -> None:
     with LOG_PATH.open("a", encoding="utf-8") as handle:
         handle.write(line + "\n")
     print(line, flush=True)
+
+
+def write_supervisor_status(phase: str, **fields: Any) -> None:
+    """Publish an atomic, machine-readable status so a stuck loop is visible."""
+    payload: dict[str, Any] = {
+        "phase": phase,
+        "timestamp": time.time(),
+        "pid": os.getpid(),
+        "shard": COLAB_SHARD,
+        "session": SESSION,
+    }
+    if STATUS_PATH.is_file():
+        try:
+            previous = json.loads(STATUS_PATH.read_text(encoding="utf-8"))
+            if isinstance(previous, dict):
+                payload.update(
+                    {
+                        key: value
+                        for key, value in previous.items()
+                        if key not in {"phase", "timestamp", "pid"}
+                    }
+                )
+        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+            pass
+    payload.update(fields)
+    STATUS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    temporary = STATUS_PATH.with_suffix(STATUS_PATH.suffix + ".tmp")
+    temporary.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    os.replace(temporary, STATUS_PATH)
 
 
 def _pid_alive(pid: int) -> bool:
@@ -171,7 +208,22 @@ def retry_until_success(
     attempt = 0
     while True:
         attempt += 1
-        if operation():
+        write_supervisor_status("attempting", attempt=attempt, last_error=None)
+        try:
+            succeeded = operation()
+        except RecoveryInvariantError:
+            raise
+        except Exception as error:  # keep the persistent supervisor alive on transient CLI/runtime bugs
+            detail = f"{type(error).__name__}: {error}".replace("\n", " ")[:500]
+            write_supervisor_status(
+                "operation_exception",
+                attempt=attempt,
+                last_error=detail,
+            )
+            log(f"operation_exception=true attempt={attempt} detail={detail}")
+            succeeded = False
+        if succeeded:
+            write_supervisor_status("step_succeeded", attempt=attempt)
             return
         if delay_for_attempt is None:
             delay = delays[min(attempt - 1, len(delays) - 1)]
@@ -179,6 +231,12 @@ def retry_until_success(
             delay = delay_for_attempt(attempt)
             if delay < 0:
                 raise ValueError("delay_for_attempt returned a negative delay")
+        next_retry_at = time.time() + delay
+        write_supervisor_status(
+            "retrying",
+            attempt=attempt,
+            next_retry_at=next_retry_at,
+        )
         log(f"retry_pending=true attempt={attempt} delay_seconds={delay}")
         sleep(delay)
 
@@ -211,15 +269,26 @@ def classify_colab_failure(message: str) -> str:
     return "retry" if any(value in lowered for value in expected) else "investigate"
 
 
-def _run(command: Sequence[str]) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        list(command),
-        cwd=ROOT,
-        capture_output=True,
-        encoding="utf-8",
-        errors="replace",
-        check=False,
-    )
+def _run(
+    command: Sequence[str], *, timeout_seconds: float = 180
+) -> subprocess.CompletedProcess[str]:
+    try:
+        return subprocess.run(
+            list(command),
+            cwd=ROOT,
+            capture_output=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+            timeout=timeout_seconds,
+        )
+    except subprocess.TimeoutExpired as error:
+        return subprocess.CompletedProcess(
+            list(command),
+            124,
+            error.stdout or "",
+            f"supervisor subprocess timeout after {timeout_seconds:g}s",
+        )
 
 
 def _output_text(result: subprocess.CompletedProcess[str]) -> str:
@@ -235,7 +304,16 @@ def _wsl_path(path: Path) -> str:
     return f"/mnt/{drive}/{tail}"
 
 
-def _colab(*arguments: str) -> subprocess.CompletedProcess[str]:
+def _colab(
+    *arguments: str, timeout_seconds: float = 180
+) -> subprocess.CompletedProcess[str]:
+    """Run one Colab CLI command.
+
+    ``timeout_seconds`` bounds the local subprocess.  Callers that also grant
+    the remote side a budget must pass a larger value here, otherwise the
+    supervisor kills a healthy command before the remote deadline it asked
+    for and a transient slow step looks like a deterministic failure.
+    """
     return _run(
         [
             "wsl.exe",
@@ -248,7 +326,8 @@ def _colab(*arguments: str) -> subprocess.CompletedProcess[str]:
             "--auth",
             COLAB_AUTH,
             *arguments,
-        ]
+        ],
+        timeout_seconds=timeout_seconds,
     )
 
 
@@ -362,12 +441,43 @@ def _remote_exec(script: Path, setup_timeout: int = 900) -> bool:
         _wsl_path(script),
         "--timeout",
         str(setup_timeout),
+        timeout_seconds=setup_timeout + LOCAL_TIMEOUT_MARGIN_SECONDS,
     )
-    return result.returncode == 0
+    if result.returncode == 0:
+        return True
+    # Keep the failure actionable.  Previously a non-zero remote exec was
+    # silently collapsed into ``False``, so a transient Colab transport error
+    # looked identical to a deterministic setup bug.
+    detail = " ".join(_output_text(result).split())
+    detail = re.sub(
+        r"(?i)(authorization|access[_-]?token|refresh[_-]?token|client_secret)\s*[:=]\s*\S+",
+        r"\1=<redacted>",
+        detail,
+    )[:800]
+    log(
+        "remote_exec_failed=true "
+        f"script={script.name} returncode={result.returncode} detail={detail or '<empty>'}"
+    )
+    write_supervisor_status(
+        "remote_exec_failed",
+        script=script.name,
+        returncode=result.returncode,
+        last_error=detail or f"remote exec exited {result.returncode}",
+    )
+    return False
 
 
 def _upload(local: Path, remote: str) -> bool:
-    result = _colab("upload", "-s", SESSION, _wsl_path(local), remote)
+    # A 64 MiB features/foundation part can legitimately exceed the default
+    # command budget on a slow link; killing it discards a verified restore.
+    result = _colab(
+        "upload",
+        "-s",
+        SESSION,
+        _wsl_path(local),
+        remote,
+        timeout_seconds=UPLOAD_TIMEOUT_SECONDS,
+    )
     return result.returncode == 0
 
 
@@ -523,8 +633,34 @@ def ensure_colab_monitors(sleep: Callable[[float], None] = time.sleep) -> None:
         )
 
 
+def run_runtime_setup() -> bool:
+    """Install the pinned runtime; dependency inspection is diagnostic only."""
+    for script in (
+        "install_colab_tabpfn.py",
+        "install_colab_exact_runtime.py",
+        "inspect_colab_python_deps.py",
+    ):
+        if _remote_exec(ROOT / ".scratch" / script, 900):
+            log(f"runtime_setup_complete=true script={script}")
+            continue
+        if script == "inspect_colab_python_deps.py":
+            # This script only prints versions.  A transient exec failure here
+            # must not discard a verified upload or force a full rebuild.
+            log(f"runtime_inspect_warning=true script={script}")
+            write_supervisor_status("runtime_inspect_warning", script=script)
+            continue
+        log(f"runtime_setup_failed=true script={script}")
+        write_supervisor_status("restore_failed", step="runtime_setup", script=script)
+        return False
+    return True
+
+
 def restore_colab_files() -> bool:
+    write_supervisor_status("restore_start")
+    log(f"restore_start=true shard={COLAB_SHARD} session={SESSION}")
     if not _remote_exec(REMOTE_DIR_SCRIPT, 120):
+        write_supervisor_status("restore_failed", step="create_remote_dirs")
+        log("restore_failed=true step=create_remote_dirs")
         return False
     uploads: list[tuple[Path, str]] = []
     if COLAB_SHARD == "tail":
@@ -554,22 +690,26 @@ def restore_colab_files() -> bool:
         (path, f"{REMOTE_ROOT}/work/chunks/{path.name}")
         for path in _valid_local_tail_chunks()
     )
+    log(
+        f"restore_upload_plan=true files={len(uploads)} durable_chunks={len(_valid_local_tail_chunks())}"
+    )
     for local, remote in uploads:
         if not local.is_file():
             raise RecoveryInvariantError(f"missing recovery input: {local}")
+        write_supervisor_status("uploading", file=local.name)
         if not _upload(local, remote):
             log(f"upload_failed=true file={local.name}")
+            write_supervisor_status("restore_failed", step="upload", file=local.name)
             return False
+        log(f"upload_complete=true file={local.name}")
     if not _remote_exec(REASSEMBLE_SCRIPT, 300):
+        write_supervisor_status("restore_failed", step="sha256_reassemble")
         raise RecoveryInvariantError("Colab input SHA-256 verification failed")
-    for script in (
-        "install_colab_tabpfn.py",
-        "install_colab_exact_runtime.py",
-        "inspect_colab_python_deps.py",
-    ):
-        if not _remote_exec(ROOT / ".scratch" / script, 900):
-            log(f"runtime_setup_failed=true script={script}")
-            return False
+    log("restore_sha256_verified=true")
+    if not run_runtime_setup():
+        return False
+    write_supervisor_status("restore_complete", uploaded_files=len(uploads))
+    log("restore_complete=true")
     return True
 
 
@@ -581,7 +721,8 @@ def _inspect_colab() -> dict[str, Any] | None:
         "-f",
         _wsl_path(INSPECT_SCRIPT),
         "--timeout",
-        "120",
+        str(INSPECT_TIMEOUT_SECONDS),
+        timeout_seconds=INSPECT_TIMEOUT_SECONDS + LOCAL_TIMEOUT_MARGIN_SECONDS,
     )
     if result.returncode != 0:
         return None
@@ -595,13 +736,20 @@ def _inspect_colab() -> dict[str, Any] | None:
 
 
 def launch_and_verify_colab(sleep: Callable[[float], None] = time.sleep) -> bool:
+    write_supervisor_status("launch_start")
+    log(f"launch_start=true shard={COLAB_SHARD} session={SESSION}")
     if not _remote_exec(WORKER_LAUNCHER, 120):
+        write_supervisor_status("launch_failed", step="worker_launcher")
+        log("launch_failed=true step=worker_launcher")
         return False
+    log("worker_launcher_complete=true")
     durable_rows = _tail_durable_rows()
     durable_chunks = len(_valid_local_tail_chunks())
     sleep(45)
     first = _inspect_colab()
     if not first or not first.get("alive"):
+        write_supervisor_status("launch_failed", step="first_health_sample")
+        log("launch_failed=true step=first_health_sample")
         return False
     if int(first.get("chunk_count", -1)) < durable_chunks:
         raise RecoveryInvariantError("remote checkpoint count regressed")
@@ -611,9 +759,20 @@ def launch_and_verify_colab(sleep: Callable[[float], None] = time.sleep) -> bool
     sleep(45)
     second = _inspect_colab()
     if not second or not second.get("alive"):
+        write_supervisor_status("launch_failed", step="second_health_sample")
+        log("launch_failed=true step=second_health_sample")
         return False
     second_rows = int(second.get("heartbeat.json", {}).get("completed_rows", -1))
     if second_rows <= first_rows:
+        write_supervisor_status(
+            "launch_failed",
+            step="heartbeat_not_advancing",
+            first_rows=first_rows,
+            second_rows=second_rows,
+        )
+        log(
+            f"launch_failed=true step=heartbeat_not_advancing first_rows={first_rows} second_rows={second_rows}"
+        )
         return False
     log(
         "colab_recovery_verified=true "
@@ -647,16 +806,25 @@ def local_sync_reports_missing_remote_work() -> bool:
         lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
     except OSError:
         return False
-    recent = "\n".join(lines[-20:]).lower()
-    return ("session '" in recent and "not found" in recent) or (
-        "file or directory not found" in recent
-        and f"{REMOTE_ROOT}/work/chunks".lower() in recent
-    )
+    for line in reversed(lines):
+        recent = line.lower()
+        if (
+            "checkpoints=" in recent
+            or "downloaded=" in recent
+            or "completed=true" in recent
+        ):
+            return False
+        if ("session '" in recent and "not found" in recent) or (
+            "file or directory not found" in recent
+            and f"{REMOTE_ROOT}/work/chunks".lower() in recent
+        ):
+            return True
+    return False
 
 
-def rebuild_colab_from_checkpoints() -> bool:
+def rebuild_colab_from_checkpoints(*, force_fresh_session: bool = False) -> bool:
     """Create a fresh runtime, restore all durable inputs, and verify resume."""
-    if not colab_session_transport_healthy():
+    if force_fresh_session or not colab_session_transport_healthy():
         retry_until_success(
             ensure_fresh_colab_session,
             delay_for_attempt=colab_allocation_delay,
@@ -664,6 +832,51 @@ def rebuild_colab_from_checkpoints() -> bool:
     if not restore_colab_files():
         return False
     return launch_and_verify_colab()
+
+
+def rebuild_once_or_accept_durable_progress(
+    episode: dict[str, Any],
+    operation: Callable[[], bool],
+    *,
+    sleep: Callable[[float], None] = time.sleep,
+    resync_grace_seconds: float = 90,
+) -> bool:
+    """Stop retrying when a failed rebuild already advanced durable output.
+
+    A runtime can reclaim immediately after the worker writes and syncs a new
+    checkpoint.  In that case the remote health sample may return ``False``
+    even though the recovery episode has met its success contract.  Treating
+    that result as an ordinary failed attempt causes an unnecessary second
+    full upload and loses the episode boundary.
+
+    A transient remote exec failure can also fail the health sample while the
+    worker is still predicting normally.  The sync monitor only lists remote
+    chunks once per minute, so a checkpoint finished moments earlier is still
+    in flight and the immediate durable check misses it.  Re-check once after
+    a sync interval before discarding a runtime that may still be producing.
+    The acceptance contract is unchanged: durable rows *and* structurally
+    valid chunk count must both exceed the episode baseline.
+    """
+    succeeded = operation()
+    if succeeded:
+        return True
+    if _accept_durable_advance(episode):
+        return True
+    sleep(resync_grace_seconds)
+    return _accept_durable_advance(episode)
+
+
+def _accept_durable_advance(episode: dict[str, Any]) -> bool:
+    if not recovery_episode_advanced(episode):
+        return False
+    log("rebuild_failed_after_durable_advance=true")
+    rows, chunks = _durable_frontier()
+    write_supervisor_status(
+        "recovery_episode_advanced",
+        durable_rows=rows,
+        durable_chunks=chunks,
+    )
+    return True
 
 
 def recover_colab_until_healthy(
@@ -680,17 +893,27 @@ def recover_colab_until_healthy(
         if colab_formal_shard_complete():
             log(f"colab_formal_shard_complete=true shard={COLAB_SHARD}")
             return
-        if local_sync_reports_missing_remote_work():
+        missing_remote_work = local_sync_reports_missing_remote_work()
+        if missing_remote_work:
             status = None
             log(f"remote_work_missing_from_sync=true shard={COLAB_SHARD}")
         elif synced_heartbeat_fresh():
             status = {"alive": True, "source": "recent_synced_heartbeat"}
         else:
             status = _inspect_colab()
-        if (not status or not status.get("alive")) and not synced_heartbeat_fresh():
+        if missing_remote_work or (
+            (not status or not status.get("alive")) and not synced_heartbeat_fresh()
+        ):
             if episode is None:
                 episode = load_or_start_recovery_episode()
-            retry_until_success(rebuild_colab_from_checkpoints)
+            retry_until_success(
+                lambda: rebuild_once_or_accept_durable_progress(
+                    episode,
+                    lambda: rebuild_colab_from_checkpoints(
+                        force_fresh_session=missing_remote_work
+                    ),
+                )
+            )
         else:
             log(f"colab_worker_already_healthy=true shard={COLAB_SHARD}")
         ensure_colab_monitors()
