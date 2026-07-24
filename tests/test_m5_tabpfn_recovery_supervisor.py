@@ -435,6 +435,67 @@ class TestTabPFNRecoverySupervisor(unittest.TestCase):
 
         self.assertEqual(events, ["restore", "launch"])
 
+    def _launch_with_samples(self, samples, durable_rows=4_460_000, chunks=223):
+        sleeps = []
+        return (
+            sleeps,
+            patch.object(self.m, "_remote_exec", return_value=True),
+            patch.object(self.m, "write_supervisor_status"),
+            patch.object(self.m, "_tail_durable_rows", return_value=durable_rows),
+            patch.object(
+                self.m, "_valid_local_tail_chunks", return_value=[None] * chunks
+            ),
+            patch.object(self.m, "_inspect_colab", side_effect=samples),
+        )
+
+    def test_resume_tolerates_heartbeat_written_after_chunk_revalidation(self) -> None:
+        samples = [
+            {"alive": True, "chunk_count": 223},
+            {
+                "alive": True,
+                "chunk_count": 223,
+                "heartbeat.json": {"completed_rows": 4_400_000},
+            },
+            {
+                "alive": True,
+                "chunk_count": 223,
+                "heartbeat.json": {"completed_rows": 4_465_120},
+            },
+            {
+                "alive": True,
+                "chunk_count": 223,
+                "heartbeat.json": {"completed_rows": 4_470_000},
+            },
+        ]
+        sleeps, *patches = self._launch_with_samples(samples)
+        with patches[0], patches[1], patches[2], patches[3], patches[4]:
+            self.assertTrue(self.m.launch_and_verify_colab(sleep=sleeps.append))
+
+        self.assertEqual(len(sleeps), 4)
+
+    def test_resume_still_fails_when_heartbeat_never_reaches_frontier(self) -> None:
+        behind = {
+            "alive": True,
+            "chunk_count": 223,
+            "heartbeat.json": {"completed_rows": 4_400_000},
+        }
+        samples = [behind] * (self.m.LAUNCH_HEARTBEAT_MAX_SAMPLES + 1)
+        sleeps, *patches = self._launch_with_samples(samples)
+        with patches[0], patches[1], patches[2], patches[3], patches[4]:
+            with self.assertRaises(self.m.RecoveryInvariantError):
+                self.m.launch_and_verify_colab(sleep=sleeps.append)
+
+        self.assertEqual(len(sleeps), self.m.LAUNCH_HEARTBEAT_MAX_SAMPLES)
+
+    def test_resume_rejects_remote_checkpoint_regression_immediately(self) -> None:
+        samples = [{"alive": True, "chunk_count": 222}]
+        sleeps, *patches = self._launch_with_samples(samples)
+        with patches[0], patches[1], patches[2], patches[3], patches[4]:
+            with self.assertRaises(self.m.RecoveryInvariantError):
+                self.m.launch_and_verify_colab(sleep=sleeps.append)
+
+        self.assertEqual(len(sleeps), 1)
+
     def test_forced_rebuild_replaces_transport_even_when_assignment_lists(self) -> None:
         events = []
         with (

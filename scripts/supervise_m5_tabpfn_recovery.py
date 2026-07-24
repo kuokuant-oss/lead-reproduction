@@ -82,6 +82,10 @@ ENDPOINT_RE = re.compile(r"^gpu-[a-z0-9-]+$")
 LOCAL_TIMEOUT_MARGIN_SECONDS = 120
 UPLOAD_TIMEOUT_SECONDS = 900
 INSPECT_TIMEOUT_SECONDS = 120
+# A resumed worker revalidates every uploaded checkpoint before its first
+# heartbeat, so the startup window scales with the shard's checkpoint count.
+LAUNCH_HEARTBEAT_POLL_SECONDS = 45
+LAUNCH_HEARTBEAT_MAX_SAMPLES = 20
 
 
 class SupervisorAlreadyRunning(RuntimeError):
@@ -735,6 +739,37 @@ def _inspect_colab() -> dict[str, Any] | None:
     return None
 
 
+def _await_resumed_heartbeat(
+    durable_rows: int,
+    durable_chunks: int,
+    sleep: Callable[[float], None],
+) -> int | None:
+    """Sample until the resumed worker reaches the durable frontier.
+
+    A restored session starts without ``heartbeat.json`` -- only fixed inputs
+    and ``rows_*.npz`` are uploaded -- and ``--resume`` revalidates every
+    uploaded checkpoint before it predicts again.  Both effects make the first
+    samples read as missing or behind, and the window grows with the checkpoint
+    count, so a single fixed-delay sample turns a healthy late-shard resume into
+    a fatal invariant.  Only a worker still behind the frontier after the whole
+    grace period has actually regressed.
+    """
+    for _ in range(LAUNCH_HEARTBEAT_MAX_SAMPLES):
+        sleep(LAUNCH_HEARTBEAT_POLL_SECONDS)
+        sample = _inspect_colab()
+        if not sample or not sample.get("alive"):
+            write_supervisor_status("launch_failed", step="first_health_sample")
+            log("launch_failed=true step=first_health_sample")
+            return None
+        if int(sample.get("chunk_count", -1)) < durable_chunks:
+            raise RecoveryInvariantError("remote checkpoint count regressed")
+        rows = int(sample.get("heartbeat.json", {}).get("completed_rows", -1))
+        if rows >= durable_rows:
+            return rows
+        log(f"resume_heartbeat_pending=true rows={rows} durable_rows={durable_rows}")
+    raise RecoveryInvariantError("remote heartbeat resumed behind durable rows")
+
+
 def launch_and_verify_colab(sleep: Callable[[float], None] = time.sleep) -> bool:
     write_supervisor_status("launch_start")
     log(f"launch_start=true shard={COLAB_SHARD} session={SESSION}")
@@ -745,17 +780,9 @@ def launch_and_verify_colab(sleep: Callable[[float], None] = time.sleep) -> bool
     log("worker_launcher_complete=true")
     durable_rows = _tail_durable_rows()
     durable_chunks = len(_valid_local_tail_chunks())
-    sleep(45)
-    first = _inspect_colab()
-    if not first or not first.get("alive"):
-        write_supervisor_status("launch_failed", step="first_health_sample")
-        log("launch_failed=true step=first_health_sample")
+    first_rows = _await_resumed_heartbeat(durable_rows, durable_chunks, sleep)
+    if first_rows is None:
         return False
-    if int(first.get("chunk_count", -1)) < durable_chunks:
-        raise RecoveryInvariantError("remote checkpoint count regressed")
-    first_rows = int(first.get("heartbeat.json", {}).get("completed_rows", -1))
-    if first_rows < durable_rows:
-        raise RecoveryInvariantError("remote heartbeat resumed behind durable rows")
     sleep(45)
     second = _inspect_colab()
     if not second or not second.get("alive"):
