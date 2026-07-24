@@ -62,6 +62,24 @@
 匯出器因此以「同一條規則重算列集合」再與計畫的列數／anomaly 數／building 範圍逐項比對，
 不符就拒絕寫檔（`export_m5_tabpfn_137_batch_shards.py`）。
 
+## 3.1 執行帳號（務必確認）
+
+| 項目 | 值 |
+|---|---|
+| Google 帳號 | **`tonykuo210100@gmail.com`**（Colab Pro） |
+| WSL HOME | `/home/tonykuo/.colab-tony` |
+| 必要環境變數 | `OAUTHLIB_RELAX_TOKEN_SCOPE=1`（缺少時 Google 少給 `drive.file` scope，會在寫檔前中止） |
+| GPU | 2 × A100 |
+
+**極易誤讀的地方**：兩個帳號的 HOME 都位於 `/home/tonykuo/` 底下 —— `.colab-tony` 是
+`tonykuo210100@gmail.com`，`.colab-hank` 是 `hank0503work@gmail.com`。**路徑中的 `tonykuo`
+是 WSL 使用者名稱，不是帳號**；判斷帳號只能看 `.colab-tony` / `.colab-hank` 這一段。
+
+`token.json` 內沒有 `id_token`、`account` 欄位為空，**因此無法從本機檔案直接驗證帳號信箱**。
+目前的對應關係依據是 `docs/handoffs/2026-07-24-tabpfn-session-changes.md` 的記載，
+加上行為特徵：`.colab-tony` 的每次呼叫都必須帶 `OAUTHLIB_RELAX_TOKEN_SCOPE=1` 才成功，`.colab-hank` 不需要。
+若要更換帳號，請同時改 `run_m5_tabpfn_137_batches.ps1` 的 `-ColabHome` 預設值。
+
 ## 4. 腳本與執行順序
 
 | 步驟 | 腳本 | 說明 |
@@ -82,7 +100,7 @@
 uv run python scripts/plan_m5_tabpfn_137_remaining_batches.py
 foreach ($b in 0..5) { uv run python scripts/export_m5_tabpfn_137_batch_shards.py --batch $b }
 
-# 執行（tonykuo 帳號、兩張 A100）
+# 執行（tonykuo210100@gmail.com / HOME .colab-tony、兩張 A100）
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\run_m5_tabpfn_137_batches.ps1
 
 # 收尾
@@ -130,7 +148,7 @@ uv run python scripts/merge_m5_tabpfn_137_full_test.py
 
 ## 8. Decision
 
-批次以 building_id 切分、每批 head/tail 並行於 tonykuo 帳號的兩張 A100、批次之間嚴格依序，
+批次以 building_id 切分、每批 head/tail 並行於 `tonykuo210100@gmail.com`（HOME `.colab-tony`）的兩張 A100、批次之間嚴格依序，
 完成後合併回 10,137,155 列並通過四關驗證，才可用於重繪 M3 四圖。
 預期 wall clock 約 4 小時。所有準備（計畫、12 個 shard、launcher、runner、合併器、收尾 reaper）
 在開跑前已全部就緒。
