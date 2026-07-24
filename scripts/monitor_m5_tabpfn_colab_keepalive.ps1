@@ -2,6 +2,8 @@ param(
     [string]$Session = "lead-tabpfn-tail",
     [int]$PollSeconds = 60,
     [string]$LogPath = "C:\Users\tonykuo\projects\lead-reproduction\data\processed\m5_tabpfn_colab_keepalive_monitor.log",
+    [string]$RemoteRoot = "/content/lead_tabpfn_tail",
+    [int]$TouchSeconds = 2700,
     [ValidateSet("adc", "oauth2")]
     [string]$Auth = "oauth2",
     [string]$ColabHome = "/home/tonykuo/.colab-hank",
@@ -9,6 +11,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$colabCli = "/home/tonykuo/.local/bin/colab"
 $cliPython = "/home/tonykuo/.local/share/uv/tools/google-colab-cli/bin/python"
 $sessionsPath = "$ColabHome/.config/colab-cli/sessions.json"
 if ($Session -notmatch '^[A-Za-z0-9_-]+$') {
@@ -17,6 +20,11 @@ if ($Session -notmatch '^[A-Za-z0-9_-]+$') {
 if ($PollSeconds -lt 10) {
     throw "PollSeconds must be at least 10"
 }
+if ($TouchSeconds -lt 300) {
+    throw "TouchSeconds must be at least 300"
+}
+
+$lastTouch = 0
 
 while ($true) {
     $timestamp = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
@@ -44,6 +52,15 @@ while ($true) {
             }
             else {
                 Add-Content -LiteralPath $LogPath -Value "$timestamp keep_alive_ok=true endpoint=$endpoint"
+            }
+
+            if ($lastTouch -eq 0 -or ($timestamp - $lastTouch) -ge $TouchSeconds) {
+                $touchOutput = & wsl.exe -d Ubuntu -- env "HOME=$ColabHome" $colabCli --auth $Auth ls -s $Session "$RemoteRoot/work" 2>&1
+                if ($LASTEXITCODE -ne 0) {
+                    throw "Work touch failed: $($touchOutput -join ' ')"
+                }
+                $lastTouch = $timestamp
+                Add-Content -LiteralPath $LogPath -Value "$timestamp work_touch=true remote=$RemoteRoot/work interval_seconds=$TouchSeconds"
             }
         }
     }

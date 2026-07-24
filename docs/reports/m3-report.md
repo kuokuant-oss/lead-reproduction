@@ -134,7 +134,7 @@ features 如何把突變轉成模型可使用的訊號；缺少精確一小時�
 
 | 模型 | Features | ROC-AUC | PR-AUC |
 |---|---:|---:|---:|
-| M3.1 LightGBM | 17 | 0.9650 | 0.8235 |
+| Tree Ensemble | 17 | 0.9663 | 0.8221 |
 | LightGBM | 137 | 0.9910 | 0.9239 |
 | XGBoost | 137 | 0.9892 | 0.9277 |
 | CatBoost | 137 | 0.9883 | 0.9256 |
@@ -142,8 +142,8 @@ features 如何把突變轉成模型可使用的訊號；缺少精確一小時�
 | Tree Ensemble | 137 | 0.9918 | 0.9303 |
 
 表 2.2：所有數字皆為 50/50 mod2、`timestamp_merge` offline validation；不是
-80/20 development artifact。137-feature LightGBM 相較 17-feature baseline 的
-ROC-AUC 與 PR-AUC 分別增加約 `0.0260` 與 `0.1004`。四個 component models 的
+80/20 development artifact。137-feature Tree Ensemble 相較同模型的 17-feature
+baseline，ROC-AUC 與 PR-AUC 分別增加約 `0.0256` 與 `0.1082`。四個 component models 的
 ROC-AUC 接近，ensemble 的 PR-AUC 最高。
 
 ### 四模型共識與 permutation importance
