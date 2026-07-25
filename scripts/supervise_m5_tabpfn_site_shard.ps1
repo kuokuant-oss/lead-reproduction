@@ -155,7 +155,12 @@ function Invoke-Recovery([string]$Reason) {
         "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
         "-File", "$repo\scripts\deploy_m5_tabpfn_site_shard.ps1",
         "-Site", $Site, "-Shard", $Shard, "-NEstimators", $NEstimators,
-        "-Session", $Session, "-ColabHome", $ColabHome, "-Microbatch", $Microbatch
+        "-Session", $Session, "-ColabHome", $ColabHome, "-Microbatch", $Microbatch,
+        # Forward the shard root so a 137-batch recovery redeploys from its own
+        # exported inputs. Without this, deploy falls back to the per-site default
+        # (m5_tabpfn_site<Site>_context100000_n<N>) and would upload the wrong,
+        # already-completed site shard onto this batch's session.
+        "-ShardRootName", $ShardRootName
     )
     if ($RelaxTokenScope) { $deployArgs += "-RelaxTokenScope" }
     & powershell.exe @deployArgs *> (Join-Path $results "supervisor_deploy.log")

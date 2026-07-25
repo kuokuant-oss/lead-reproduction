@@ -39,6 +39,7 @@ AXIS = "#c3c2b7"
 BASELINE = "#898781"
 ENGINEERED = "#2a78d6"
 TABPFN = "#d1580f"
+TABPFN137 = "#7a51a8"
 
 DEFAULT_M3_PREDICTIONS = PROC / "m3_figure_predictions_50_50.npz"
 DEFAULT_SITE_PREDICTIONS = (
@@ -48,6 +49,7 @@ DEFAULT_BASELINE_PREDICTIONS = PROC / "m3_17_feature_ensemble_predictions.npz"
 DEFAULT_TABPFN_PREDICTIONS = (
     PROC / "m5_tabpfn_distributed_context100000_predictions.npz"
 )
+DEFAULT_TABPFN_137_PREDICTIONS = PROC / "m5_tabpfn_137_full_test_n8_predictions.npz"
 DEFAULT_ROC_OUTPUT = (
     ROOT / "docs" / "reports" / "assets" / "m3" / "m3_tree_ensemble_by_site_roc.png"
 )
@@ -95,6 +97,8 @@ class SiteResult:
     engineered_precision_recall: Curve
     tabpfn_roc: Curve | None = None
     tabpfn_precision_recall: Curve | None = None
+    tabpfn137_roc: Curve | None = None
+    tabpfn137_precision_recall: Curve | None = None
 
 
 def _compressed(
@@ -182,12 +186,25 @@ def load_tabpfn_scores(
     return score
 
 
+def _curve_pair(y_site: np.ndarray, score_site: np.ndarray) -> tuple[Curve, Curve]:
+    """Return (ROC, Precision-Recall) curves for one site's scores."""
+    fpr, tpr, _ = roc_curve(y_site, score_site)
+    fpr, tpr = _compressed(fpr, tpr)
+    prec, rec, _ = precision_recall_curve(y_site, score_site)
+    rec, prec = _compressed(rec, prec)
+    return (
+        Curve(fpr, tpr, float(roc_auc_score(y_site, score_site))),
+        Curve(rec, prec, float(average_precision_score(y_site, score_site))),
+    )
+
+
 def compute_site_results(
     y_true: np.ndarray,
     baseline_ensemble: np.ndarray,
     engineered_ensemble: np.ndarray,
     site_id: np.ndarray,
     tabpfn: np.ndarray | None = None,
+    tabpfn137: np.ndarray | None = None,
 ) -> list[SiteResult]:
     results: list[SiteResult] = []
     for value in range(16):
@@ -201,20 +218,12 @@ def compute_site_results(
         tabpfn_roc: Curve | None = None
         tabpfn_precision_recall: Curve | None = None
         if tabpfn is not None:
-            tabpfn_site = tabpfn[mask]
-            tabpfn_fpr, tabpfn_tpr, _ = roc_curve(y_site, tabpfn_site)
-            tabpfn_fpr, tabpfn_tpr = _compressed(tabpfn_fpr, tabpfn_tpr)
-            tabpfn_prec, tabpfn_rec, _ = precision_recall_curve(y_site, tabpfn_site)
-            tabpfn_rec, tabpfn_prec = _compressed(tabpfn_rec, tabpfn_prec)
-            tabpfn_roc = Curve(
-                tabpfn_fpr,
-                tabpfn_tpr,
-                float(roc_auc_score(y_site, tabpfn_site)),
-            )
-            tabpfn_precision_recall = Curve(
-                tabpfn_rec,
-                tabpfn_prec,
-                float(average_precision_score(y_site, tabpfn_site)),
+            tabpfn_roc, tabpfn_precision_recall = _curve_pair(y_site, tabpfn[mask])
+        tabpfn137_roc: Curve | None = None
+        tabpfn137_precision_recall: Curve | None = None
+        if tabpfn137 is not None:
+            tabpfn137_roc, tabpfn137_precision_recall = _curve_pair(
+                y_site, tabpfn137[mask]
             )
 
         baseline_fpr, baseline_tpr, _ = roc_curve(y_site, baseline_site)
@@ -267,6 +276,8 @@ def compute_site_results(
                 ),
                 tabpfn_roc=tabpfn_roc,
                 tabpfn_precision_recall=tabpfn_precision_recall,
+                tabpfn137_roc=tabpfn137_roc,
+                tabpfn137_precision_recall=tabpfn137_precision_recall,
             )
         )
     return results
@@ -309,6 +320,7 @@ def render(
             baseline_curve = result.baseline_roc
             engineered_curve = result.engineered_roc
             tabpfn_curve = result.tabpfn_roc
+            tabpfn137_curve = result.tabpfn137_roc
             ax.plot(
                 [0, 1],
                 [0, 1],
@@ -323,6 +335,7 @@ def render(
             baseline_curve = result.baseline_precision_recall
             engineered_curve = result.engineered_precision_recall
             tabpfn_curve = result.tabpfn_precision_recall
+            tabpfn137_curve = result.tabpfn137_precision_recall
             prevalence = result.anomalies / result.rows
             ax.axhline(
                 prevalence,
@@ -355,6 +368,13 @@ def render(
                 color=TABPFN,
                 linewidth=1.45,
             )
+            if tabpfn137_curve is not None:
+                ax.plot(
+                    tabpfn137_curve.x,
+                    tabpfn137_curve.y,
+                    color=TABPFN137,
+                    linewidth=1.45,
+                )
         ax.set_title(
             f"{names[result.site_id]} (site {result.site_id})",
             loc="left",
@@ -387,13 +407,22 @@ def render(
             )
 
     title_metric = "ROC" if curve_type == "roc" else "Precision-Recall"
-    subtitle = (
-        "Gray: 17 features (pooled ROC-AUC 0.9663); "
-        "blue: 137 features (pooled ROC-AUC 0.9918)."
-        if curve_type == "roc"
-        else "Gray: 17 features (pooled PR-AUC 0.8221); "
-        "blue: 137 features (pooled PR-AUC 0.9303)."
-    )
+    if curve_type == "roc":
+        subtitle = (
+            "Gray: 17 features (pooled ROC-AUC 0.9663); "
+            "blue: 137 features (pooled ROC-AUC 0.9918)."
+        )
+        if include_tabpfn:
+            subtitle = (
+                "Pooled ROC-AUC — gray (0.9663) · blue (0.9918) · violet (0.9919)"
+            )
+    else:
+        subtitle = (
+            "Gray: 17 features (pooled PR-AUC 0.8221); "
+            "blue: 137 features (pooled PR-AUC 0.9303)."
+        )
+        if include_tabpfn:
+            subtitle = "Pooled PR-AUC — gray (0.8221) · blue (0.9303) · violet (0.9314)"
     fig.suptitle(
         f"Tree Ensemble by site: {title_metric}",
         x=0.06,
@@ -445,14 +474,25 @@ def render(
                 label="TabPFN (17 features, context 100k)",
             )
         )
+        if results[0].tabpfn137_roc is not None:
+            handles.append(
+                Line2D(
+                    [0],
+                    [0],
+                    color=TABPFN137,
+                    linewidth=1.8,
+                    label="TabPFN (137 features, context 100k)",
+                )
+            )
+    # More entries need a smaller face and a wrapped row to stay readable.
+    legend_fontsize = {2: 10.5, 3: 9.6}.get(len(handles), 8.6)
     fig.legend(
         handles=handles,
         loc="lower center",
         bbox_to_anchor=(0.5, 0.018),
-        ncol=len(handles),
+        ncol=2 if len(handles) >= 4 else len(handles),
         frameon=False,
-        # Three entries need the extra width a slightly smaller face buys.
-        fontsize=10.5 if len(handles) == 2 else 9.6,
+        fontsize=legend_fontsize,
     )
     output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output, dpi=180, facecolor=SURFACE, edgecolor="none")
@@ -476,6 +516,11 @@ def parse_args() -> argparse.Namespace:
         "--tabpfn-predictions",
         type=Path,
         default=DEFAULT_TABPFN_PREDICTIONS,
+    )
+    parser.add_argument(
+        "--tabpfn-137-predictions",
+        type=Path,
+        default=DEFAULT_TABPFN_137_PREDICTIONS,
     )
     parser.add_argument(
         "--tabpfn-roc-output",
@@ -516,12 +561,16 @@ def main() -> None:
     if args.skip_tabpfn:
         return
     tabpfn = load_tabpfn_scores(args.tabpfn_predictions, y_true, site_id)
+    tabpfn137 = None
+    if args.tabpfn_137_predictions.is_file():
+        tabpfn137 = load_tabpfn_scores(args.tabpfn_137_predictions, y_true, site_id)
     tabpfn_results = compute_site_results(
         y_true,
         baseline_ensemble,
         engineered_ensemble,
         site_id,
         tabpfn=tabpfn,
+        tabpfn137=tabpfn137,
     )
     render(
         tabpfn_results,

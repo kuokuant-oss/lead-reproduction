@@ -54,12 +54,14 @@ MODEL_ORDER = (
 )
 FEATURE_BASELINE_KEY = "m3_1_ensemble"
 TABPFN_KEY = "tabpfn"
+TABPFN_137_KEY = "tabpfn_137"
 DEFAULT_17_FEATURE_ENSEMBLE_PREDICTIONS = (
     PROC / "m3_17_feature_ensemble_predictions.npz"
 )
 DEFAULT_TABPFN_PREDICTIONS = (
     PROC / "m5_tabpfn_distributed_context100000_predictions.npz"
 )
+DEFAULT_TABPFN_137_PREDICTIONS = PROC / "m5_tabpfn_137_full_test_n8_predictions.npz"
 
 
 def _style_axis(ax: plt.Axes, *, horizontal_grid: bool = True) -> None:
@@ -676,11 +678,15 @@ def add_17_feature_ensemble_comparison(
     }
 
 
-def add_tabpfn_comparison(data: dict[str, Any], predictions_path: Path) -> None:
-    """Add the merged distributed TabPFN metrics and curves.
+def add_tabpfn_comparison(
+    data: dict[str, Any], predictions_path: Path, *, key: str = TABPFN_KEY
+) -> None:
+    """Add a merged TabPFN line's metrics and curves under ``key``.
 
-    TabPFN scores the same 17 baseline features as ``FEATURE_BASELINE_KEY``, so
-    the gray curve -- not the 137-feature blue one -- is its matched comparison.
+    The 17-feature TabPFN (``TABPFN_KEY``) scores the same 17 baseline features as
+    ``FEATURE_BASELINE_KEY``; the 137-feature TabPFN (``TABPFN_137_KEY``) scores
+    the same 137 features as the blue Tree Ensemble. Both share the plotted row
+    order, so each drops straight onto these figures.
     """
     with np.load(predictions_path) as predictions:
         required = {"anomaly", "tabpfn"}
@@ -701,11 +707,11 @@ def add_tabpfn_comparison(data: dict[str, Any], predictions_path: Path) -> None:
 
     fpr, tpr, _ = roc_curve(y_true, score)
     precision, recall, _ = precision_recall_curve(y_true, score)
-    data["metrics"][TABPFN_KEY] = {
+    data["metrics"][key] = {
         "roc_auc": float(roc_auc_score(y_true, score)),
         "pr_auc": float(average_precision_score(y_true, score)),
     }
-    data["curves"][TABPFN_KEY] = {
+    data["curves"][key] = {
         "roc": {"x": fpr, "y": tpr},
         "precision_recall": {"x": recall, "y": precision},
     }
@@ -750,6 +756,14 @@ def render_discrimination_curve(
         ]
         if comparison == "feature_engineering_tabpfn":
             series.append((TABPFN_KEY, "TabPFN (17 features, context 100k)", "#d1580f"))
+            if TABPFN_137_KEY in data["curves"]:
+                series.append(
+                    (
+                        TABPFN_137_KEY,
+                        "TabPFN (137 features, context 100k)",
+                        "#7a51a8",
+                    )
+                )
         title_prefix = "Feature-Engineering Contribution"
         subtitle = "Tree Ensemble on the same final 50/50 building holdout · 17 versus 137 features"
 
@@ -800,13 +814,12 @@ def render_discrimination_curve(
         columnspacing=1.4,
         handlelength=2.4,
     )
-    # A third stacked legend row needs a little more room beneath the axes.
-    fig.subplots_adjust(
-        left=0.14,
-        right=0.96,
-        top=0.78,
-        bottom=0.26 if len(series) == 3 and comparison != "models" else 0.24,
-    )
+    # Each extra stacked legend row needs a little more room beneath the axes.
+    if comparison == "models":
+        legend_bottom = 0.24
+    else:
+        legend_bottom = {2: 0.24, 3: 0.26, 4: 0.30}.get(len(series), 0.24)
+    fig.subplots_adjust(left=0.14, right=0.96, top=0.78, bottom=legend_bottom)
     _save(fig, path)
 
 
@@ -1157,6 +1170,11 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_TABPFN_PREDICTIONS,
     )
     parser.add_argument(
+        "--tabpfn-137-predictions",
+        type=Path,
+        default=DEFAULT_TABPFN_137_PREDICTIONS,
+    )
+    parser.add_argument(
         "--skip-tabpfn",
         action="store_true",
         help="render only the two-series feature-engineering figures",
@@ -1172,6 +1190,8 @@ def main() -> None:
     add_17_feature_ensemble_comparison(data, args.baseline_ensemble_predictions)
     if not args.skip_tabpfn and args.tabpfn_predictions.is_file():
         add_tabpfn_comparison(data, args.tabpfn_predictions)
+        if args.tabpfn_137_predictions.is_file():
+            add_tabpfn_comparison(data, args.tabpfn_137_predictions, key=TABPFN_137_KEY)
     figures = {
         "confusion": args.asset_dir / "m3_tree_ensemble_confusion_matrix.png",
         "value_change": args.asset_dir

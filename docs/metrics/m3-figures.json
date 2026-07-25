@@ -46,13 +46,13 @@
     },
     "feature_precision_recall_with_tabpfn": {
       "path": "docs/reports/assets/m3/m3_feature_engineering_precision_recall_with_tabpfn.png",
-      "sha256": "018c09e471a5f8f0561e865c641838cc9e6a5839733e6efa6b809471204e877f",
-      "size_bytes": 104982
+      "sha256": "cd70e61c34aa3b9033fd5612e8fb7dc4045fcd1d778581a37df98173b8149d11",
+      "size_bytes": 115204
     },
     "feature_roc_with_tabpfn": {
       "path": "docs/reports/assets/m3/m3_feature_engineering_roc_with_tabpfn.png",
-      "sha256": "fa8d2bf58513540df4903a9e0658bb7051d4e82b88ad438a6ae9a161c8968325",
-      "size_bytes": 94055
+      "sha256": "08dc84299a7137fa53afcdc86db8fe86624db3167646ce8d31f88258ec364ae9",
+      "size_bytes": 101428
     },
     "importance_lightgbm": {
       "path": "docs/reports/assets/m3/m3_permutation_importance_lightgbm.png",
@@ -384,8 +384,8 @@
     "canonical_feature_set_changed": false
   },
   "provenance": {
-    "commit": "2196b677a2829a2eeffb1c1438b805b436a2b48f",
-    "generated_at_utc": "2026-07-24T04:30:12.338272+00:00",
+    "commit": "7045eda781ca3b0fc89d02cb167053ee1d865424",
+    "generated_at_utc": "2026-07-25T03:01:24.367601+00:00",
     "plot_style": "docs/reference/plot-style-rules.md v0.2"
   }
 }
