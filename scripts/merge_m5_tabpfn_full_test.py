@@ -1,15 +1,19 @@
-"""Merge every 137-feature shard into one full-holdout prediction artifact.
+"""Merge one TabPFN line's shards into a full-holdout prediction artifact.
 
-The 137-feature line was produced in two waves: sites 1/2/3 as per-site shards,
-then the remaining thirteen sites as building_id batches. Both waves scored rows
-drawn from the same canonical 50/50 building holdout, so the merge is a pure
-regrouping -- but only if the union is exactly the holdout, with no row scored
-twice and none missing.
+Both n_estimators=8 lines were produced in two waves: sites 1/2/3 as per-site
+shards, then the remaining thirteen sites as building_id batches. Both waves
+scored rows drawn from the same canonical 50/50 building holdout, so the merge is
+a pure regrouping -- but only if the union is exactly the holdout, with no row
+scored twice and none missing.
 
 That is what this checks before writing anything: every canonical row appears
 exactly once, labels/sites/buildings agree row-for-row with the canonical
 artifact, and no score is non-finite. Output is aligned to canonical order so it
-drops straight into the M3 figure renderers next to the 17-feature TabPFN line.
+drops straight into the M3 figure renderers.
+
+``--line`` picks which set of shard roots to gather. The two lines share the
+batch geometry exactly, so merging them the same way is what keeps the two
+plotted curves row-for-row comparable.
 """
 
 from __future__ import annotations
@@ -23,14 +27,23 @@ import numpy as np
 from lead import PROC
 
 DEFAULT_CANONICAL = PROC / "m5_tabpfn_distributed_context100000_predictions.npz"
-DEFAULT_OUT = PROC / "m5_tabpfn_137_full_test_n8_predictions.npz"
 
-DEFAULT_ROOTS = [
-    PROC / "m5_tabpfn_site1_f137_context100000_n8",
-    PROC / "m5_tabpfn_site2_f137_context100000_n8",
-    PROC / "m5_tabpfn_site3_f137_context100000_n8",
-    *[PROC / f"m5_tabpfn_f137_batch{i}_context100000_n8" for i in range(6)],
-]
+# The 17-feature sweep named its per-site roots before a second feature width
+# existed, so only the 137-feature line carries an f137 marker in the site roots.
+LINE_ROOTS = {
+    "17": [
+        *[PROC / f"m5_tabpfn_site{s}_context100000_n8" for s in (1, 2, 3)],
+        *[PROC / f"m5_tabpfn_f17_batch{i}_context100000_n8" for i in range(6)],
+    ],
+    "137": [
+        *[PROC / f"m5_tabpfn_site{s}_f137_context100000_n8" for s in (1, 2, 3)],
+        *[PROC / f"m5_tabpfn_f137_batch{i}_context100000_n8" for i in range(6)],
+    ],
+}
+LINE_OUT = {
+    "17": PROC / "m5_tabpfn_17_full_test_n8_predictions.npz",
+    "137": PROC / "m5_tabpfn_137_full_test_n8_predictions.npz",
+}
 
 
 def collect(roots: list[Path]) -> dict[str, np.ndarray]:
@@ -64,12 +77,16 @@ def collect(roots: list[Path]) -> dict[str, np.ndarray]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--roots", type=Path, nargs="*", default=DEFAULT_ROOTS)
+    parser.add_argument("--line", choices=sorted(LINE_ROOTS), default="137")
+    parser.add_argument("--roots", type=Path, nargs="*", default=None)
     parser.add_argument("--canonical", type=Path, default=DEFAULT_CANONICAL)
-    parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args(argv)
 
-    observed = collect(list(args.roots))
+    roots = args.roots if args.roots else LINE_ROOTS[args.line]
+    out = args.out or LINE_OUT[args.line]
+
+    observed = collect(list(roots))
     with np.load(args.canonical) as data:
         canonical = {
             "raw_index": np.asarray(data["raw_index"], dtype="int64"),
@@ -102,7 +119,7 @@ def main(argv: list[str] | None = None) -> int:
         raise AssertionError("merged scores contain non-finite values")
 
     np.savez_compressed(
-        args.out,
+        out,
         raw_index=aligned["raw_index"],
         anomaly=aligned["anomaly"],
         tabpfn=aligned["score"].astype("float32"),
@@ -110,13 +127,14 @@ def main(argv: list[str] | None = None) -> int:
         building_id=aligned["building_id"],
     )
     summary = {
+        "line": args.line,
         "rows": int(rows),
         "anomalies": int(aligned["anomaly"].sum()),
         "distinct_scores": int(len(np.unique(aligned["score"]))),
         "score_min": float(aligned["score"].min()),
         "score_max": float(aligned["score"].max()),
-        "roots": [str(r) for r in args.roots],
-        "out": str(args.out.resolve()),
+        "roots": [str(r) for r in roots],
+        "out": str(out.resolve()),
     }
     print(json.dumps(summary, indent=2, sort_keys=True))
     return 0

@@ -10,6 +10,14 @@ param(
     # The tonykuo account only receives the drive.file scope when this is set;
     # without it the CLI aborts before writing anything.
     [switch]$RelaxTokenScope,
+    # Durable evidence that this shard is finished, so the monitor can retire
+    # itself. Without it the loop runs forever: the sync monitor stops the Colab
+    # session on completion, but this process keeps shelling into WSL every poll
+    # for a session that no longer exists. Across a queue of shards those leaked
+    # pollers accumulate, and one of them touching a session name that has since
+    # been reused is worse than noise.
+    [string]$CompletionDirectory = "",
+    [int]$ExpectedCheckpointCount = 0,
     [switch]$Once
 )
 
@@ -35,8 +43,22 @@ if ($RelaxTokenScope) { $extraEnv = @("OAUTHLIB_RELAX_TOKEN_SCOPE=1") }
 $relaxAssignment = if ($RelaxTokenScope) { "OAUTHLIB_RELAX_TOKEN_SCOPE=1 " } else { "" }
 $lastTouch = 0
 
+function Test-ShardComplete {
+    if (-not $CompletionDirectory -or $ExpectedCheckpointCount -le 0) { return $false }
+    if (-not (Test-Path -LiteralPath (Join-Path $CompletionDirectory "result.json"))) {
+        return $false
+    }
+    $count = @(Get-ChildItem -LiteralPath (Join-Path $CompletionDirectory "chunks") `
+            -Filter "rows_*.npz" -File -ErrorAction SilentlyContinue).Count
+    return ($count -ge $ExpectedCheckpointCount)
+}
+
 while ($true) {
     $timestamp = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+    if (Test-ShardComplete) {
+        Add-Content -LiteralPath $LogPath -Value "$timestamp shard_complete=true keepalive_exiting"
+        break
+    }
     try {
         $pythonCode = "import json,pathlib; d=json.loads(pathlib.Path('$sessionsPath').read_text()); print(d.get('$Session',{}).get('endpoint',''))"
         $endpoint = (& wsl.exe -d Ubuntu -- env "HOME=$ColabHome" @extraEnv $cliPython -c $pythonCode 2>$null | Select-Object -First 1).Trim()

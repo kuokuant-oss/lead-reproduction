@@ -46,13 +46,23 @@
     },
     "feature_precision_recall_with_tabpfn": {
       "path": "docs/reports/assets/m3/m3_feature_engineering_precision_recall_with_tabpfn.png",
-      "sha256": "cd70e61c34aa3b9033fd5612e8fb7dc4045fcd1d778581a37df98173b8149d11",
-      "size_bytes": 115204
+      "sha256": "50c7f1664c1c2ef9d941adc6ce864a35a50d6386b143f84e8366aa3a18e4f529",
+      "size_bytes": 112261
     },
     "feature_roc_with_tabpfn": {
       "path": "docs/reports/assets/m3/m3_feature_engineering_roc_with_tabpfn.png",
-      "sha256": "08dc84299a7137fa53afcdc86db8fe86624db3167646ce8d31f88258ec364ae9",
-      "size_bytes": 101428
+      "sha256": "590bdab0599377ee3ca189be2ba11385ba470333271b1ee3f196709f0c3d7e24",
+      "size_bytes": 101647
+    },
+    "tabpfn_feature_precision_recall": {
+      "path": "docs/reports/assets/m3/m3_tabpfn_feature_contribution_precision_recall.png",
+      "sha256": "582ea8b0040620e361358b52ed4c71e2172ab6e553086141cfa05c627143fe91",
+      "size_bytes": 90477
+    },
+    "tabpfn_feature_roc": {
+      "path": "docs/reports/assets/m3/m3_tabpfn_feature_contribution_roc.png",
+      "sha256": "db2ddf1e4e5db4fbe00bc6da10ddcc71bd093951859657119a9bc89bb0e308fd",
+      "size_bytes": 85703
     },
     "importance_lightgbm": {
       "path": "docs/reports/assets/m3/m3_permutation_importance_lightgbm.png",
@@ -83,6 +93,11 @@
       "path": "docs/reports/assets/m3/m3_permutation_importance_four_model_consensus.png",
       "sha256": "f6faf12cb84970ff03f98bd7fe36125a3e71d844bfdf83a2bf6ad01552a78ee1",
       "size_bytes": 74249
+    },
+    "tabpfn_137_confusion": {
+      "path": "docs/reports/assets/m3/m3_tabpfn_137_confusion_matrix.png",
+      "sha256": "4c95a2110bbad84e47460e4d1ad0679b176996ad5198bfeef28b3961a16cce3c",
+      "size_bytes": 66377
     }
   },
   "feature_pruning": {
@@ -384,8 +399,8 @@
     "canonical_feature_set_changed": false
   },
   "provenance": {
-    "commit": "7045eda781ca3b0fc89d02cb167053ee1d865424",
-    "generated_at_utc": "2026-07-25T03:01:24.367601+00:00",
+    "commit": "a2e69635e026d44714cfe548aae1e34c71755407",
+    "generated_at_utc": "2026-07-25T19:33:32.326077+00:00",
     "plot_style": "docs/reference/plot-style-rules.md v0.2"
   }
 }

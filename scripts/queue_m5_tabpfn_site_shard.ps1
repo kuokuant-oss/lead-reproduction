@@ -57,7 +57,11 @@ $keepAliveArgs = @(
     "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
     "-File", "$repo\scripts\monitor_m5_tabpfn_colab_keepalive.ps1",
     "-Session", $Session, "-RemoteRoot", $remoteRoot, "-ColabHome", $ColabHome,
-    "-LogPath", (Join-Path $results "keepalive.log")
+    "-LogPath", (Join-Path $results "keepalive.log"),
+    # Retire the keep-alive with the shard, so a queue of shards does not leave a
+    # growing pile of pollers behind it.
+    "-CompletionDirectory", $results,
+    "-ExpectedCheckpointCount", $ExpectedCheckpointCount
 )
 if ($RelaxTokenScope) { $keepAliveArgs += "-RelaxTokenScope" }
 Start-Process powershell.exe -ArgumentList $keepAliveArgs -WindowStyle Hidden

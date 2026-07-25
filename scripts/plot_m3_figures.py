@@ -58,9 +58,11 @@ TABPFN_137_KEY = "tabpfn_137"
 DEFAULT_17_FEATURE_ENSEMBLE_PREDICTIONS = (
     PROC / "m3_17_feature_ensemble_predictions.npz"
 )
-DEFAULT_TABPFN_PREDICTIONS = (
-    PROC / "m5_tabpfn_distributed_context100000_predictions.npz"
-)
+# Both TabPFN lines are n_estimators=8 over the same 100k context, so the only
+# difference between them is the feature set. The earlier 17-feature artifact
+# (m5_tabpfn_distributed_context100000_predictions.npz) was n_estimators=1, which
+# confounded the feature comparison with an estimator-count difference.
+DEFAULT_TABPFN_PREDICTIONS = PROC / "m5_tabpfn_17_full_test_n8_predictions.npz"
 DEFAULT_TABPFN_137_PREDICTIONS = PROC / "m5_tabpfn_137_full_test_n8_predictions.npz"
 
 
@@ -95,22 +97,34 @@ def _save(fig: plt.Figure, path: Path) -> None:
     plt.close(fig)
 
 
-def render_confusion(data: dict[str, Any], path: Path) -> None:
-    matrix_data = data["metrics"]["ensemble"]["threshold_0_5"]["confusion_matrix"]
-    counts = np.array(
-        [
-            [matrix_data["tn"], matrix_data["fp"]],
-            [matrix_data["fn"], matrix_data["tp"]],
-        ],
-        dtype=float,
-    )
+def render_confusion(
+    data: dict[str, Any],
+    path: Path,
+    *,
+    counts: np.ndarray | None = None,
+    title: str = "137-Feature Tree Ensemble Confusion Matrix",
+) -> None:
+    """Render one confusion matrix.
+
+    ``counts`` lets another model's matrix reuse this exact layout; when omitted
+    the figure is the Tree Ensemble's, unchanged.
+    """
+    if counts is None:
+        matrix_data = data["metrics"]["ensemble"]["threshold_0_5"]["confusion_matrix"]
+        counts = np.array(
+            [
+                [matrix_data["tn"], matrix_data["fp"]],
+                [matrix_data["fn"], matrix_data["tp"]],
+            ],
+            dtype=float,
+        )
     row_totals = counts.sum(axis=1, keepdims=True)
     normalized = np.divide(
         counts, row_totals, out=np.zeros_like(counts), where=row_totals != 0
     )
     fig, ax = plt.subplots(figsize=(7.2, 6.1), facecolor=SURFACE)
     fig.suptitle(
-        "137-Feature Tree Ensemble Confusion Matrix",
+        title,
         x=0.06,
         y=0.95,
         ha="left",
@@ -144,6 +158,43 @@ def render_confusion(data: dict[str, Any], path: Path) -> None:
     colorbar.ax.tick_params(colors=SECONDARY)
     fig.subplots_adjust(left=0.19, right=0.86, top=0.86, bottom=0.14)
     _save(fig, path)
+
+
+def tabpfn_confusion_counts(predictions: Path, threshold: float = 0.5) -> np.ndarray:
+    """Confusion counts for a merged TabPFN artifact: its actual predictions.
+
+    The stored score is ``predict_proba(...)[:, 1]``, so a 0.5 cut is exactly the
+    model's own argmax -- what TabPFN actually calls an anomaly. It is also the
+    threshold behind the Tree Ensemble matrix, so the two figures are read the
+    same way.
+
+    Resist re-cutting this at a "better" threshold. The two models are tied on
+    ranking (ROC 0.9919 vs 0.9918, PR 0.9314 vs 0.9303), so no operating point
+    gives either a visible edge, and tuning one to look better while the other
+    stays at 0.5 compares two different rules.
+    """
+    with np.load(predictions) as payload:
+        y_true = np.asarray(payload["anomaly"]).astype(int)
+        score = np.asarray(payload["tabpfn"])
+    if not np.isfinite(score).all():
+        raise ValueError(f"{predictions} contains non-finite scores")
+    predicted = (score >= threshold).astype(int)
+    counts = np.array(
+        [
+            [
+                int(((y_true == 0) & (predicted == 0)).sum()),
+                int(((y_true == 0) & (predicted == 1)).sum()),
+            ],
+            [
+                int(((y_true == 1) & (predicted == 0)).sum()),
+                int(((y_true == 1) & (predicted == 1)).sum()),
+            ],
+        ],
+        dtype=float,
+    )
+    if counts.sum() != len(y_true):
+        raise AssertionError("confusion counts do not cover every holdout row")
+    return counts
 
 
 def _render_value_change_context_curves(data: dict[str, Any], path: Path) -> None:
@@ -732,6 +783,7 @@ def render_discrimination_curve(
         "models",
         "feature_engineering",
         "feature_engineering_tabpfn",
+        "tabpfn_features",
     }:
         raise ValueError(f"Unsupported comparison: {comparison}")
 
@@ -749,18 +801,33 @@ def render_discrimination_curve(
         subtitle = (
             "Final 50/50 building holdout · zoomed to the observed performance range"
         )
+    elif comparison == "tabpfn_features":
+        # Both lines are n_estimators=8 over the same 100k context and the same
+        # holdout rows, so the feature set is the only thing that differs. The
+        # tree lines are deliberately left out: this figure exists to isolate the
+        # feature-engineering effect *within* TabPFN.
+        series = [
+            (TABPFN_KEY, "TabPFN (17 features, context 100k, n=8)", "#d1580f"),
+            (TABPFN_137_KEY, "TabPFN (137 features, context 100k, n=8)", "#7a51a8"),
+        ]
+        title_prefix = "Feature-Engineering Contribution"
+        subtitle = (
+            "TabPFN on the same final 50/50 building holdout · 17 versus 137 features"
+        )
     else:
         series = [
             (FEATURE_BASELINE_KEY, "17 baseline features", "#898781"),
             ("ensemble", "137 features", "#2a78d6"),
         ]
         if comparison == "feature_engineering_tabpfn":
-            series.append((TABPFN_KEY, "TabPFN (17 features, context 100k)", "#d1580f"))
+            series.append(
+                (TABPFN_KEY, "TabPFN (17 features, context 100k, n=8)", "#d1580f")
+            )
             if TABPFN_137_KEY in data["curves"]:
                 series.append(
                     (
                         TABPFN_137_KEY,
-                        "TabPFN (137 features, context 100k)",
+                        "TabPFN (137 features, context 100k, n=8)",
                         "#7a51a8",
                     )
                 )
@@ -874,6 +941,25 @@ def render_discrimination_figures(
             comparison="feature_engineering_tabpfn",
             curve_type="roc",
         )
+        if TABPFN_137_KEY in data["curves"]:
+            figures["tabpfn_feature_precision_recall"] = (
+                asset_dir / "m3_tabpfn_feature_contribution_precision_recall.png"
+            )
+            figures["tabpfn_feature_roc"] = (
+                asset_dir / "m3_tabpfn_feature_contribution_roc.png"
+            )
+            render_discrimination_curve(
+                data,
+                figures["tabpfn_feature_precision_recall"],
+                comparison="tabpfn_features",
+                curve_type="precision_recall",
+            )
+            render_discrimination_curve(
+                data,
+                figures["tabpfn_feature_roc"],
+                comparison="tabpfn_features",
+                curve_type="roc",
+            )
     return figures
 
 
@@ -1188,10 +1274,24 @@ def main() -> None:
     if data["frozen_contract"]["split"] != "50_50_mod2":
         raise RuntimeError("M3 headline figures require the frozen 50/50 baseline")
     add_17_feature_ensemble_comparison(data, args.baseline_ensemble_predictions)
-    if not args.skip_tabpfn and args.tabpfn_predictions.is_file():
-        add_tabpfn_comparison(data, args.tabpfn_predictions)
-        if args.tabpfn_137_predictions.is_file():
-            add_tabpfn_comparison(data, args.tabpfn_137_predictions, key=TABPFN_137_KEY)
+    if not args.skip_tabpfn:
+        # The merged TabPFN artifacts are gitignored, so a fresh clone renders the
+        # two-series figures and skips the rest. Say so out loud: silently
+        # skipping leaves the *_with_tabpfn.png files stale from a previous run,
+        # which looks exactly like a successful render.
+        if args.tabpfn_predictions.is_file():
+            add_tabpfn_comparison(data, args.tabpfn_predictions)
+            if args.tabpfn_137_predictions.is_file():
+                add_tabpfn_comparison(
+                    data, args.tabpfn_137_predictions, key=TABPFN_137_KEY
+                )
+            else:
+                print(f"WARNING: {args.tabpfn_137_predictions} missing; no 137 line")
+        else:
+            print(
+                f"WARNING: {args.tabpfn_predictions} missing; "
+                "the *_with_tabpfn.png figures keep their previous contents"
+            )
     figures = {
         "confusion": args.asset_dir / "m3_tree_ensemble_confusion_matrix.png",
         "value_change": args.asset_dir
@@ -1201,6 +1301,16 @@ def main() -> None:
     figures.update(render_discrimination_figures(data, args.asset_dir))
     figures.update(render_importance_figures(data, args.asset_dir))
     render_confusion(data, figures["confusion"])
+    if args.tabpfn_137_predictions.is_file():
+        figures["tabpfn_137_confusion"] = (
+            args.asset_dir / "m3_tabpfn_137_confusion_matrix.png"
+        )
+        render_confusion(
+            data,
+            figures["tabpfn_137_confusion"],
+            counts=tabpfn_confusion_counts(args.tabpfn_137_predictions),
+            title="137-Feature TabPFN Confusion Matrix",
+        )
     render_value_change(data, figures["value_change"])
     render_workflow(figures["workflow"])
     manifest = {

@@ -78,7 +78,7 @@
 `token.json` 內沒有 `id_token`、`account` 欄位為空，**因此無法從本機檔案直接驗證帳號信箱**。
 目前的對應關係依據是 `docs/handoffs/2026-07-24-tabpfn-session-changes.md` 的記載，
 加上行為特徵：`.colab-tony` 的每次呼叫都必須帶 `OAUTHLIB_RELAX_TOKEN_SCOPE=1` 才成功，`.colab-hank` 不需要。
-若要更換帳號，請同時改 `run_m5_tabpfn_137_batches.ps1` 的 `-ColabHome` 預設值。
+若要更換帳號，請同時改 `run_m5_tabpfn_shard_pool.ps1` 的 `-ColabHome` 預設值。
 
 ## 4. 腳本與執行順序
 
@@ -86,9 +86,13 @@
 |---|---|---|
 | 1. 規劃 | `plan_m5_tabpfn_137_remaining_batches.py` | 產生批次計畫 JSON 與時間估算；不匯出、不啟動 |
 | 2. 匯出 | `export_m5_tabpfn_137_batch_shards.py --batch N` | 從既有全 test 137 矩陣切片；四項一致性檢查後才寫檔 |
-| 3. 執行 | `run_m5_tabpfn_137_batches.ps1` | 依序推進批次，每批 head/tail 並行於兩張 A100 |
+| 3. 執行 | `run_m5_tabpfn_shard_pool.ps1` | 2-slot 貪婪排程，任一 slot 空出就接下一個 shard |
 | 4. 收尾 | `reap_idle_m5_tabpfn_colab_sessions.ps1` | 關閉閒置 session，避免空燒 CU |
-| 5. 合併 | `merge_m5_tabpfn_137_full_test.py` | 併回 10,137,155 列並做完整身分驗證 |
+| 5. 合併 | `merge_m5_tabpfn_full_test.py --line 137` | 併回 10,137,155 列並做完整身分驗證 |
+
+> 2026-07-26 更新：步驟 3 原為 `run_m5_tabpfn_137_batches.ps1`（逐 batch 阻塞），實跑到 batch 1 就因 straggler
+> 拖累而改為手動 pool 排程；該排程已固化成 `run_m5_tabpfn_shard_pool.ps1`。步驟 5 的合併器已改名並加上
+> `--line`，同時服務 17-feature 與 137-feature 兩條線。
 
 單一 shard 的上線由 `queue_m5_tabpfn_site_shard.ps1` 負責，固定順序為
 **取得 A100 → 掛 keep-alive → 部署上傳 → 掛 sync + supervisor**。
@@ -101,10 +105,14 @@ uv run python scripts/plan_m5_tabpfn_137_remaining_batches.py
 foreach ($b in 0..5) { uv run python scripts/export_m5_tabpfn_137_batch_shards.py --batch $b }
 
 # 執行（tonykuo210100@gmail.com / HOME .colab-tony、兩張 A100）
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts\run_m5_tabpfn_137_batches.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\run_m5_tabpfn_shard_pool.ps1 `
+  -Plan m5_tabpfn_137_remaining_batch_plan.json `
+  -ShardRootTemplate 'm5_tabpfn_f137_batch{0}_context100000_n8' `
+  -SessionTemplate 'lead-tabpfn-b{0}-{1}-f137n8' `
+  -LogName m5_tabpfn_137_shard_pool.log
 
 # 收尾
-uv run python scripts/merge_m5_tabpfn_137_full_test.py
+uv run python scripts/merge_m5_tabpfn_full_test.py --line 137
 ~~~
 
 ## 5. 驗證關卡（每一關都會擋下錯誤，不是事後檢查）

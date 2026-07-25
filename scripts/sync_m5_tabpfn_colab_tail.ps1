@@ -62,6 +62,21 @@ function Download-Atomically([string]$RemotePath, [string]$LocalPath) {
 
 while ($true) {
     $timestamp = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+
+    # Retire on durable local evidence before touching the remote. The remote
+    # call is the first thing that throws once the session is gone, and the
+    # completion check used to sit after it -- so whenever anything else stopped
+    # the session first (the reaper does exactly that when it sees a finished
+    # shard), this loop caught the error, slept, and retried forever on a shard
+    # that was already complete. Observed twice in one run.
+    $doneCount = @(Get-ChildItem -LiteralPath $chunksDirectory -Filter "rows_*.npz" -File -ErrorAction SilentlyContinue).Count
+    if ((Test-Path -LiteralPath (Join-Path $resolvedLocal "result.json")) -and
+        $doneCount -ge $ExpectedCheckpointCount) {
+        try { Invoke-Colab @("stop", "-s", $Session) | Out-Null } catch {}
+        Add-Content -LiteralPath $logPath -Value "$timestamp completed=true session_stopped=true"
+        exit 0
+    }
+
     try {
         $chunkListing = Invoke-Colab @("ls", "-s", $Session, $remoteChunks)
         $remoteChunkNames = @(

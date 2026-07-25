@@ -46,9 +46,11 @@ DEFAULT_SITE_PREDICTIONS = (
     PROC / "m6_site_transfer_b2_a0_pos677077_seed42_predictions.npz"
 )
 DEFAULT_BASELINE_PREDICTIONS = PROC / "m3_17_feature_ensemble_predictions.npz"
-DEFAULT_TABPFN_PREDICTIONS = (
-    PROC / "m5_tabpfn_distributed_context100000_predictions.npz"
-)
+# Both TabPFN lines are n_estimators=8 over the same 100k context, so the only
+# difference between them is the feature set. The earlier 17-feature artifact
+# (m5_tabpfn_distributed_context100000_predictions.npz) was n_estimators=1, which
+# confounded the feature comparison with an estimator-count difference.
+DEFAULT_TABPFN_PREDICTIONS = PROC / "m5_tabpfn_17_full_test_n8_predictions.npz"
 DEFAULT_TABPFN_137_PREDICTIONS = PROC / "m5_tabpfn_137_full_test_n8_predictions.npz"
 DEFAULT_ROC_OUTPUT = (
     ROOT / "docs" / "reports" / "assets" / "m3" / "m3_tree_ensemble_by_site_roc.png"
@@ -471,7 +473,7 @@ def render(
                 [0],
                 color=TABPFN,
                 linewidth=1.8,
-                label="TabPFN (17 features, context 100k)",
+                label="TabPFN (17 features, context 100k, n=8)",
             )
         )
         if results[0].tabpfn137_roc is not None:
@@ -481,7 +483,7 @@ def render(
                     [0],
                     color=TABPFN137,
                     linewidth=1.8,
-                    label="TabPFN (137 features, context 100k)",
+                    label="TabPFN (137 features, context 100k, n=8)",
                 )
             )
     # More entries need a smaller face and a wrapped row to stay readable.

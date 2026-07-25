@@ -1,6 +1,12 @@
 param(
     [int]$PollSeconds = 120,
     [int]$OrphanConfirmPolls = 3,
+    # Which shards are expected to be doing real work. Derived from the batch
+    # plan so this list can never drift out of date -- see the note below.
+    [string]$Plan = "m5_tabpfn_17_remaining_batch_plan.json",
+    [string]$ShardRootTemplate = "m5_tabpfn_f17_batch{0}_context100000_n8",
+    [string]$SessionTemplate = "lead-tabpfn-b{0}-{1}-f17n8",
+    [int[]]$Batches = @(0, 1, 2, 3, 4, 5),
     [string]$ColabCli = "/home/tonykuo/.local/bin/colab",
     [string]$ColabPython = "/home/tonykuo/.local/share/uv/tools/google-colab-cli/bin/python",
     [ValidateSet("adc", "oauth2")][string]$Auth = "oauth2",
@@ -30,12 +36,25 @@ $accounts = @(
 )
 
 # Sessions expected to be doing real work, with the local evidence of completion.
-$tracked = @(
-    @{ session = "lead-tabpfn-s2-head-f137n8"; dir = "m5_tabpfn_site2_f137_context100000_n8\head-results"; expected = 32 },
-    @{ session = "lead-tabpfn-s2-tail-f137n8"; dir = "m5_tabpfn_site2_f137_context100000_n8\tail-results"; expected = 32 },
-    @{ session = "lead-tabpfn-s3-head-f137n8"; dir = "m5_tabpfn_site3_f137_context100000_n8\head-results"; expected = 30 },
-    @{ session = "lead-tabpfn-s3-tail-f137n8"; dir = "m5_tabpfn_site3_f137_context100000_n8\tail-results"; expected = 30 }
-)
+#
+# This list is derived from the batch plan, never written by hand. A hardcoded
+# list is silently catastrophic here: anything in the lead-tabpfn-* namespace that
+# is *not* on it gets stopped on sight, so a stale list does not merely fail to
+# reap -- it kills the run it was supposed to be protecting.
+$planData = Get-Content -LiteralPath (Join-Path $proc $Plan) -Raw | ConvertFrom-Json
+$tracked = @()
+foreach ($batch in $Batches) {
+    $entry = $planData.batches | Where-Object { $_.batch -eq $batch }
+    if ($null -eq $entry) { continue }
+    foreach ($pair in @(@("head", [int]$entry.head_chunks), @("tail", [int]$entry.tail_chunks))) {
+        $tracked += @{
+            session  = ($SessionTemplate -f $batch, $pair[0])
+            dir      = "$($ShardRootTemplate -f $batch)\$($pair[0])-results"
+            expected = $pair[1]
+        }
+    }
+}
+if ($tracked.Count -eq 0) { throw "no tracked shards derived from $Plan" }
 
 function Write-Log([string]$Message) {
     $stamp = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
