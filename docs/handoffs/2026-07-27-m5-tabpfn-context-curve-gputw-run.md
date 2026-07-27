@@ -1,4 +1,4 @@
-# M5 TabPFN context curve — resume handoff (2026-07-27)
+# M5 TabPFN context curve — resume handoff (2026-07-27 → 28)
 
 **Read this first. It is authoritative for run state.** The protocol and the
 reasoning behind the design live in
@@ -6,14 +6,68 @@ reasoning behind the design live in
 but that document's cost estimates were superseded by measurement (§3 here) and
 its opening status line describes the pre-run state.
 
-**Status 2026-07-28 02:40.** A second pod ran 5h00m with zero failures and was
-stopped after every shard it produced was pulled and its chunk count verified
-against the pod. Fifteen of sixteen shards are home. The last cell, **5k / 137,
-is being scored on the local RTX 4070** at ~1 chunk/min -- roughly 4 h per shard,
-free -- and is the only work outstanding.
+## 0. Resume here
 
-The tree matched-N arm, listed below as the largest gap, is **complete**: all
-nine cells. Both feature lines can now be read as `TabPFN(N) − Trees(N)`.
+**Paused 2026-07-28 07:05. Nothing is running. No rented GPU is up, and none is
+needed — there is nothing left to stop or pay for.**
+
+One shard of one cell remains: **5k / 137, tail, at 46 of 254 chunks**, on the
+local RTX 4070. It is resumable at chunk granularity. Run this and the entire
+5 x 2 x 2 grid is complete:
+
+```bash
+# ~3.5 h on the 4070 at the measured ~1 chunk/min. --resume skips the 46 done.
+uv run python scripts/run_m5_tabpfn_portable_shard.py \
+  --features  data/processed/m5_tabpfn_137_distributed_context5000_n8/tail/features.float32.npy \
+  --metadata  data/processed/m5_tabpfn_137_distributed_context5000_n8/tail/metadata.npz \
+  --fit-state data/processed/m5_tabpfn_local_c5000_f137_tail/model.portable.tabpfn_fit \
+  --work-dir  data/processed/m5_tabpfn_f137_batch0_context5000_n8/tail-results \
+  --context-rows 5000 --n-features 137 --n-estimators 8 \
+  --query-microbatch-size 4096 --checkpoint-rows 20000 \
+  --direction reverse --resume
+
+# then, once tail reads 254:
+uv run python scripts/merge_m5_tabpfn_full_test.py --line 137 --context-rows 5000 \
+  --roots data/processed/m5_tabpfn_f137_batch0_context5000_n8
+```
+
+The localised fit state it needs already exists; do **not** point `--fit-state`
+at the shard's own `model.portable.tabpfn_fit`, which carries the pod's
+checkpoint path and fails as `TabPFNLicenseError` (§5 trap 3). If it is ever
+lost, rebuild with `scripts/localize_m5_tabpfn_fit_state.py` (§2).
+
+`--work-dir` is the pull destination, so chunks land where the merge already
+looks. `--direction reverse` is not optional: the tail scores the holdout
+backwards, and forward would rescore the head's rows.
+
+After that merge, the last comparison to compute is TabPFN vs trees at
+**5k / 137** — the only cell of the grid without a matched-N number, and the one
+that decides whether TabPFN's small PR lead on the 137 line grows as data shrinks
+(+0.0017 at 10k, +0.0023 at 20k, +0.0024 at 50k, +0.0008 at 100k). Trees are
+already scored there: ROC 0.9879, PR 0.8965.
+
+Everything else is done. Do not restart `gputw_tabpfn_pool2.sh` or the
+supervisor; they have no work left and starting a pod would cost money for
+nothing.
+
+**Status 2026-07-28 07:05.** A second pod ran 5h00m with zero failures and was
+stopped after every shard it produced was pulled and its chunk count verified
+against the pod. The tree matched-N arm, listed below as the largest gap, is
+**complete**: all ten cells. Both feature lines read as `TabPFN(N) − Trees(N)`
+at every context except 5k / 137.
+
+| cell | TabPFN | trees | matched-N diff |
+|---|---|---|---|
+| 5k / 17 | merged | done | yes |
+| 5k / 137 | **tail 46/254** | done | **outstanding** |
+| 10k / 17 | merged | done | yes |
+| 10k / 137 | merged | done | yes |
+| 20k / 17 | merged | done | yes |
+| 20k / 137 | merged | done | yes |
+| 50k / 17 | merged | done | yes |
+| 50k / 137 | merged | done | yes |
+| 100k / 17 | published | done | yes |
+| 100k / 137 | published | done | yes |
 
 ## 1. What the experiment asks
 
@@ -34,7 +88,7 @@ Each cell needs two shards, head (253 chunks) and tail (254), covering all
 | cell | shards | merged | tree counterpart |
 |---|---|---|---|
 | 5k / 17 | 2/2 | yes | yes |
-| 5k / 137 | **0/2 — running locally** | no | yes |
+| 5k / 137 | **head 253/253, tail 46/254** | no | yes |
 | 10k / 17 | 2/2 | yes | yes |
 | 10k / 137 | 2/2 | yes | yes |
 | 20k / 17 | 2/2 | yes | yes |
@@ -48,9 +102,11 @@ line. Chunk counts were verified per shard against the pod before it was stopped
 
 **Running the last cell locally.** The 137-feature 5k shards are scored on the
 local 4070 because the remote work was finished and keeping a pod alive for one
-cheap cell is not worth the per-second bill. The portable fit carries the *pod's*
-checkpoint path, so it must be localised first or it fails as `TabPFNLicenseError`
-(§5 trap 3):
+cheap cell is not worth the per-second bill. The head took 4 h 39 m at ~1
+chunk/min, matching the estimate; the tail is paused partway (§0 has the exact
+resume command). The portable fit carries the *pod's* checkpoint path, so it must
+be localised first or it fails as `TabPFNLicenseError` (§5 trap 3) — this was
+already done for both 5k/137 shards, so §0 only needs the run step:
 
 ```powershell
 uv run python scripts/localize_m5_tabpfn_fit_state.py `
