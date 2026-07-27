@@ -29,6 +29,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--features", type=Path, required=True)
     parser.add_argument("--metadata", type=Path, required=True)
     parser.add_argument("--fit-state", type=Path, required=True)
+    parser.add_argument(
+        "--scaler",
+        type=Path,
+        default=None,
+        help=(
+            "npz with 'mean' and 'scale'; applied per microbatch when --features "
+            "holds unscaled values. Omit when the matrix is already standardised."
+        ),
+    )
     parser.add_argument("--work-dir", type=Path, required=True)
     parser.add_argument("--context-rows", type=int, default=100_000)
     # The defaults are the canonical 17-feature contract. The 137-feature line
@@ -208,6 +217,7 @@ def predict_checkpoint(
     psutil: Any,
     heartbeat_path: Path,
     completed_before: int,
+    scaler: tuple[np.ndarray, np.ndarray] | None = None,
 ) -> tuple[np.ndarray, int, dict[str, float]]:
     batch_size = initial_batch_size
     predictions: list[np.ndarray] = []
@@ -247,7 +257,13 @@ def predict_checkpoint(
             },
         )
         try:
-            score = model.predict_proba(np.asarray(features[position:end]))[:, 1]
+            block = np.asarray(features[position:end], dtype="float32")
+            if scaler is not None:
+                # Standardising here rather than at export time lets one
+                # unscaled matrix serve every context in the curve: the contexts
+                # differ only by these 2 x n_features numbers.
+                block = ((block - scaler[0]) / scaler[1]).astype("float32", copy=False)
+            score = model.predict_proba(block)[:, 1]
         except BaseException as error:
             if not is_oom(error) or batch_size <= minimum_batch_size:
                 raise
@@ -294,6 +310,25 @@ def main(argv: list[str] | None = None) -> int:
                 f"portable shard requires exactly {args.n_features} features, "
                 f"got {features.shape[1]}"
             )
+
+        scaler = None
+        if args.scaler is not None:
+            with np.load(args.scaler) as payload:
+                missing = {"mean", "scale"} - set(payload.files)
+                if missing:
+                    raise ValueError(f"scaler npz missing {sorted(missing)}")
+                mean = np.asarray(payload["mean"], dtype="float32")
+                scale = np.asarray(payload["scale"], dtype="float32")
+            if mean.shape != (args.n_features,) or scale.shape != (args.n_features,):
+                raise ValueError(
+                    f"scaler must hold {args.n_features} means and scales, got "
+                    f"{mean.shape} and {scale.shape}"
+                )
+            if not np.isfinite(mean).all() or not np.isfinite(scale).all():
+                raise ValueError("scaler contains non-finite values")
+            if (scale == 0).any():
+                raise ValueError("scaler has a zero scale; would divide by zero")
+            scaler = (mean, scale)
 
         stage = "load_fitted_state"
         atomic_write_json(
@@ -368,6 +403,7 @@ def main(argv: list[str] | None = None) -> int:
                 psutil=psutil,
                 heartbeat_path=heartbeat_path,
                 completed_before=completed_rows,
+                scaler=scaler,
             )
             checkpoint_seconds = time.perf_counter() - checkpoint_started
             atomic_write_npz(
@@ -417,6 +453,14 @@ def main(argv: list[str] | None = None) -> int:
             "checkpoint_count": len(spans),
             "n_features": int(features.shape[1]),
             "n_estimators": args.n_estimators,
+            "context_rows": args.context_rows,
+            # Which standardisation produced these scores. Without it, a shard
+            # scored from an unscaled matrix and one scored from a pre-scaled
+            # matrix are indistinguishable after the fact.
+            "scaler_applied_at_predict": args.scaler is not None,
+            "scaler_sha256": (
+                sha256_file(args.scaler) if args.scaler is not None else None
+            ),
             "effective_microbatch_size": effective_batch,
             "elapsed_seconds_this_session": time.perf_counter() - started,
             "fit_state_sha256": sha256_file(args.fit_state),

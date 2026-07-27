@@ -49,8 +49,22 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def prove_scaler_matches_canonical(scaler: StandardScaler) -> bool:
-    """The sweep is only interpretable if queries are scaled identically."""
+def prove_scaler_matches_canonical(
+    scaler: StandardScaler, context_rows: int = 100_000
+) -> bool:
+    """The estimator sweep is only interpretable if queries are scaled identically.
+
+    That argument holds only while the context is fixed: the n=1 and n=8 fits
+    differ in estimator count alone, so any scaler drift between them is a bug.
+
+    A *context* sweep is the opposite case. The scaler is refit on each context
+    by design -- freezing the 100k scaler would leak the larger sample's
+    distribution into the smaller conditions -- so a different context is
+    expected to produce a different scaler, and asserting otherwise would abort
+    every point on the curve.
+    """
+    if context_rows != 100_000:
+        return False
     reference_path = CANONICAL_WORK / "scaler.joblib"
     if not reference_path.is_file():
         return False
@@ -74,7 +88,7 @@ def main() -> int:
         "--work-dir",
         type=Path,
         default=None,
-        help="default: m5_tabpfn_canonical_full_test_context100000_n<k>.work",
+        help="default: m5_tabpfn_canonical_full_test_context<rows>_n<k>.work",
     )
     parser.add_argument(
         "--model-path",
@@ -89,8 +103,12 @@ def main() -> int:
             f"n=1 is the official run; reuse {CANONICAL_WORK} instead of refitting it"
         )
     if args.work_dir is None:
+        # The context size must appear in the path. It used to be the literal
+        # 100000, so a --context-rows 5000 run wrote straight over the 100k
+        # fit state -- same directory, same file names, no warning.
         args.work_dir = PROC / (
-            f"m5_tabpfn_canonical_full_test_context100000_n{args.n_estimators}.work"
+            f"m5_tabpfn_canonical_full_test_context{args.context_rows}"
+            f"_n{args.n_estimators}.work"
         )
     args.work_dir.mkdir(parents=True, exist_ok=True)
 
@@ -128,7 +146,7 @@ def main() -> int:
 
     scaler = StandardScaler(copy=False)
     x_context = scaler.fit_transform(x_context).astype("float32", copy=False)
-    scaler_proved = prove_scaler_matches_canonical(scaler)
+    scaler_proved = prove_scaler_matches_canonical(scaler, args.context_rows)
     print(f"scaler matches canonical 17-feature run: {scaler_proved}", flush=True)
 
     print(f"creating foundation model (n_estimators={args.n_estimators})", flush=True)

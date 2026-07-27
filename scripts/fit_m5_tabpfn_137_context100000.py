@@ -70,7 +70,7 @@ def main() -> int:
         "--work-dir",
         type=Path,
         default=None,
-        help="default: m5_tabpfn_137_full_test_context100000[_n<k>].work",
+        help="default: m5_tabpfn_137_full_test_context<rows>[_n<k>].work",
     )
     parser.add_argument(
         "--model-path",
@@ -83,7 +83,12 @@ def main() -> int:
     if args.work_dir is None:
         # n=1 keeps the original path so the existing fit stays addressable.
         suffix = "" if args.n_estimators == 1 else f"_n{args.n_estimators}"
-        args.work_dir = PROC / f"m5_tabpfn_137_full_test_context100000{suffix}.work"
+        # The context size must appear in the path. It used to be the literal
+        # 100000, so a --context-rows 5000 run wrote straight over the 100k
+        # fit state -- same directory, same file names, no warning.
+        args.work_dir = (
+            PROC / f"m5_tabpfn_137_full_test_context{args.context_rows}{suffix}.work"
+        )
     args.work_dir.mkdir(parents=True, exist_ok=True)
 
     mod = load_canonical_module()

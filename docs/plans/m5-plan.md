@@ -85,6 +85,21 @@ isolated workers, and resumable 100K--500K budgets do not change accepted M5
 metrics or golden fixtures. Formal GPU execution remains pending explicit
 operator invocation.
 
+## Additive follow-up: 訓練量 vs 性能曲線（context curve，執行中）
+
+問的是「標註資料稀少時 TabPFN 是否有優勢」，因此**兩個模型都掃 N**，看
+`TabPFN(N) − Trees(N)` 隨 N 的變化。協定見
+[`m5-tabpfn-context-curve-runbook.md`](../reference/m5-tabpfn-context-curve-runbook.md)；
+執行進度見
+[2026-07-27 handoff](../handoffs/2026-07-27-m5-tabpfn-context-curve-gputw-run.md)。
+
+2026-07-27 起在 gputw.ai 的 RTX 5090 上執行。目前 17 維 @10k 已合併並驗證
+（10,137,155 列、與 100k 線 `raw_index`/`anomaly` 逐列相同、與 100k 分數相關 0.843）；
+137 維 @10k 的 head 已完成，20k 推論進行中。既有的 100k 四張圖不受影響。
+
+實測推翻了 §9 的估算：17 維 @20k 約 4,000 rows/s（估算值的 3.3 倍），真正的瓶頸是
+~1.5–2.0 MiB/s 的上行頻寬。樹的 matched-N 手臂為純 CPU、尚未開跑。
+
 | Commit | 用途 |
 | --- | --- |
 | `bfd6664` | 啟動 M5 TabPFN feasibility spike。 |

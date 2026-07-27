@@ -34,8 +34,11 @@ import numpy as np
 from lead import BASELINE_FEATURE_COLS, PROC, load_m3_frame
 
 DEFAULT_PLAN = PROC / "m5_tabpfn_17_remaining_batch_plan.json"
-DEFAULT_SOURCE_WORK = PROC / "m5_tabpfn_canonical_full_test_context100000_n8.work"
 DEFAULT_CANONICAL = PROC / "m5_tabpfn_distributed_context100000_predictions.npz"
+
+
+def default_source_work(context_rows: int) -> Path:
+    return PROC / f"m5_tabpfn_canonical_full_test_context{context_rows}_n8.work"
 
 
 def sha256_file(path: Path) -> str:
@@ -50,18 +53,33 @@ def array_sha256(values: np.ndarray) -> str:
     return hashlib.sha256(np.ascontiguousarray(values).tobytes()).hexdigest()
 
 
-def out_root_for(batch: int) -> Path:
-    return PROC / f"m5_tabpfn_f17_batch{batch}_context100000_n8"
+def out_root_for(batch: int, context_rows: int = 100_000) -> Path:
+    return PROC / f"m5_tabpfn_f17_batch{batch}_context{context_rows}_n8"
 
 
-def remote_root_for(batch: int, shard: str) -> PurePosixPath:
-    """Feature count and estimator count both belong in the remote path.
+def remote_root_for(
+    batch: int,
+    shard: str,
+    context_rows: int = 100_000,
+    prefix: str = "/content",
+) -> PurePosixPath:
+    """Feature count, estimator count and context size belong in the remote path.
 
     The 137-feature batches cover exactly these rows, and the per-site 17-feature
     shards overlap the same holdout. Without both markers a --resume would happily
     accept another line's checkpoints as this line's finished work.
+
+    The context curve adds a third way to collide, and it is the worst one: every
+    context scores the same rows with the same feature count, so two contexts
+    differ only in the scores. A resumed run across that collision is finite,
+    complete, and silently the wrong experiment.
+
+    100k keeps its unmarked path so the twelve already-exported and verified
+    shards stay addressable, matching how ``estimator_suffix`` treats n=1.
+    ``prefix`` is ``/content`` on Colab and ``/workspace`` on gputw.ai.
     """
-    return PurePosixPath(f"/content/lead_tabpfn_b{batch}_{shard}_f17_n8")
+    marker = "" if context_rows == 100_000 else f"c{context_rows}_"
+    return PurePosixPath(f"{prefix}/lead_tabpfn_{marker}b{batch}_{shard}_f17_n8")
 
 
 def atomic_write_json(path: Path, value: Any) -> None:
@@ -164,6 +182,8 @@ def write_shard(
     out_root: Path,
     block_rows: int,
     force: bool,
+    context_rows: int = 100_000,
+    remote_prefix: str = "/content",
 ) -> dict[str, Any]:
     out_dir = out_root / shard
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -204,7 +224,7 @@ def write_shard(
         global_position=np.arange(start, end, dtype="int64"),
     )
 
-    remote_root = remote_root_for(batch, shard)
+    remote_root = remote_root_for(batch, shard, context_rows, remote_prefix)
     remote_checkpoint = remote_root / "tabpfn-v3-classifier-v3_default.ckpt"
     relocate_fitted_archive(
         source_work / "model.tabpfn_fit", portable_fit_path, remote_checkpoint
@@ -265,11 +285,19 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--batches", type=int, nargs="*", default=None)
     parser.add_argument("--plan", type=Path, default=DEFAULT_PLAN)
-    parser.add_argument("--source-work-dir", type=Path, default=DEFAULT_SOURCE_WORK)
+    parser.add_argument("--context-rows", type=int, default=100_000)
+    parser.add_argument("--source-work-dir", type=Path, default=None)
+    parser.add_argument(
+        "--remote-prefix",
+        default="/content",
+        help="remote parent dir: /content on Colab, /workspace on gputw.ai",
+    )
     parser.add_argument("--canonical", type=Path, default=DEFAULT_CANONICAL)
     parser.add_argument("--block-rows", type=int, default=100_000)
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args(argv)
+
+    source_work = args.source_work_dir or default_source_work(args.context_rows)
 
     plan = json.loads(args.plan.read_text(encoding="utf-8"))
     wanted_batches = (
@@ -280,14 +308,23 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit("plan does not contain every requested batch")
 
     fit_manifest = json.loads(
-        (args.source_work_dir / "fit_manifest.json").read_text(encoding="utf-8")
+        (source_work / "fit_manifest.json").read_text(encoding="utf-8")
     )
     if int(fit_manifest.get("n_estimators", 1)) != 8:
         raise AssertionError("batch shards expect the n_estimators=8 fitted state")
+    # Checked against the fit, not the directory name, because --source-work-dir
+    # can override the convention. A wrong-context matrix yields finite scores on
+    # the correct rows, which every downstream gate accepts.
+    fitted_context = int(fit_manifest["context_rows"])
+    if fitted_context != args.context_rows:
+        raise AssertionError(
+            f"{source_work} was fit with context_rows={fitted_context}, "
+            f"but --context-rows={args.context_rows}"
+        )
     feature_names = list(fit_manifest["feature_names"])
     if feature_names != list(BASELINE_FEATURE_COLS):
         raise AssertionError("fitted state does not use the 17 baseline features")
-    scaler = joblib.load(args.source_work_dir / "scaler.joblib")
+    scaler = joblib.load(source_work / "scaler.joblib")
 
     with np.load(args.canonical) as data:
         canonical = {
@@ -309,7 +346,7 @@ def main(argv: list[str] | None = None) -> int:
         batch = entry["batch"]
         selected = selections[batch]
         prove_row_identity(frame, canonical, selected)
-        out_root = out_root_for(batch)
+        out_root = out_root_for(batch, args.context_rows)
         boundary = entry["head_rows"]
         specs = {
             "head": (0, boundary, "forward"),
@@ -327,11 +364,13 @@ def main(argv: list[str] | None = None) -> int:
                 frame,
                 feature_names,
                 scaler,
-                args.source_work_dir,
+                source_work,
                 fit_manifest,
                 out_root,
                 args.block_rows,
                 args.force,
+                args.context_rows,
+                args.remote_prefix,
             )
             print(
                 f"batch {batch} {shard}: {manifest['rows']:,} rows, "

@@ -28,9 +28,21 @@ import numpy as np
 from lead import PROC
 
 DEFAULT_PLAN = PROC / "m5_tabpfn_137_remaining_batch_plan.json"
-DEFAULT_SOURCE_WORK = PROC / "m5_tabpfn_137_full_test_context100000_n8.work"
-DEFAULT_SLICE_ROOT = PROC / "m5_tabpfn_137_distributed_context100000"
 DEFAULT_CANONICAL = PROC / "m5_tabpfn_distributed_context100000_predictions.npz"
+
+
+def default_source_work(context_rows: int) -> Path:
+    return PROC / f"m5_tabpfn_137_full_test_context{context_rows}_n8.work"
+
+
+def default_slice_root(context_rows: int) -> Path:
+    # The 100k slice root predates the context suffix, so it keeps its name.
+    suffix = "" if context_rows == 100_000 else "_n8"
+    return PROC / f"m5_tabpfn_137_distributed_context{context_rows}{suffix}"
+
+
+def default_out_root(batch: int, context_rows: int) -> Path:
+    return PROC / f"m5_tabpfn_f137_batch{batch}_context{context_rows}_n8"
 
 
 def sha256_file(path: Path) -> str:
@@ -113,25 +125,35 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--batch", type=int, required=True)
     parser.add_argument("--plan", type=Path, default=DEFAULT_PLAN)
-    parser.add_argument("--source-work-dir", type=Path, default=DEFAULT_SOURCE_WORK)
-    parser.add_argument("--slice-from", type=Path, default=DEFAULT_SLICE_ROOT)
+    parser.add_argument("--context-rows", type=int, default=100_000)
+    parser.add_argument("--source-work-dir", type=Path, default=None)
+    parser.add_argument("--slice-from", type=Path, default=None)
     parser.add_argument("--canonical", type=Path, default=DEFAULT_CANONICAL)
     parser.add_argument("--out-root", type=Path, default=None)
     parser.add_argument("--block-rows", type=int, default=100_000)
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args(argv)
 
+    source_work = args.source_work_dir or default_source_work(args.context_rows)
+    slice_from = args.slice_from or default_slice_root(args.context_rows)
+
     plan = json.loads(args.plan.read_text(encoding="utf-8"))
     entry = next(b for b in plan["batches"] if b["batch"] == args.batch)
-    out_root = args.out_root or (
-        PROC / f"m5_tabpfn_f137_batch{args.batch}_context100000_n8"
-    )
+    out_root = args.out_root or default_out_root(args.batch, args.context_rows)
 
-    fit_manifest = json.loads(
-        (args.source_work_dir / "fit_manifest.json").read_text(encoding="utf-8")
-    )
+    fit_manifest = json.loads((source_work / "fit_manifest.json").read_text("utf-8"))
     if int(fit_manifest["n_estimators"]) != 8:
         raise AssertionError("batch shards expect the n_estimators=8 fitted state")
+    # Every path above can be overridden, so the context is checked against the
+    # fit rather than inferred from a directory name. A mismatch here would ship
+    # a matrix scaled by the wrong context: finite scores, correct rows, wrong
+    # experiment, and no downstream gate can see it.
+    fitted_context = int(fit_manifest["context_rows"])
+    if fitted_context != args.context_rows:
+        raise AssertionError(
+            f"{source_work} was fit with context_rows={fitted_context}, "
+            f"but --context-rows={args.context_rows}"
+        )
     feature_names = list(fit_manifest["feature_names"])
     n_features = len(feature_names)
 
@@ -162,7 +184,7 @@ def main(argv: list[str] | None = None) -> int:
     if np.isin(site_id[selected], plan["done_sites"]).any():
         raise AssertionError(f"batch {args.batch}: contains an already-scored site")
 
-    sources, total = open_slice_sources(args.slice_from, n_features)
+    sources, total = open_slice_sources(slice_from, n_features)
     if total != len(site_id):
         raise AssertionError("slice source rows differ from the canonical holdout")
 
@@ -212,7 +234,7 @@ def main(argv: list[str] | None = None) -> int:
             global_position=np.arange(start, end, dtype="int64"),
         )
         relocate_fitted_archive(
-            args.source_work_dir / "model.tabpfn_fit",
+            source_work / "model.tabpfn_fit",
             portable_fit_path,
             remote_root / "tabpfn-v3-classifier-v3_default.ckpt",
         )
@@ -247,7 +269,7 @@ def main(argv: list[str] | None = None) -> int:
                 "context_rows": fit_manifest["context_rows"],
                 "context_sha256": fit_manifest["context_sha256"],
                 "n_estimators": 8,
-                "source_work_dir": str(args.source_work_dir.resolve()),
+                "source_work_dir": str(source_work.resolve()),
                 "remote_model_path": str(
                     remote_root / "tabpfn-v3-classifier-v3_default.ckpt"
                 ),
@@ -269,7 +291,7 @@ def main(argv: list[str] | None = None) -> int:
             flush=True,
         )
 
-    _ = joblib.load(args.source_work_dir / "scaler.joblib")
+    _ = joblib.load(source_work / "scaler.joblib")
     return 0
 
 

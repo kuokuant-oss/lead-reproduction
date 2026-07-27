@@ -59,14 +59,14 @@ def estimator_suffix(n_estimators: int) -> str:
     return "" if n_estimators == 1 else f"_n{n_estimators}"
 
 
-def default_source_work(n_estimators: int) -> Path:
+def default_source_work(n_estimators: int, context_rows: int = 100_000) -> Path:
     suffix = estimator_suffix(n_estimators)
-    return PROC / f"m5_tabpfn_137_full_test_context100000{suffix}.work"
+    return PROC / f"m5_tabpfn_137_full_test_context{context_rows}{suffix}.work"
 
 
-def default_out_root(n_estimators: int) -> Path:
+def default_out_root(n_estimators: int, context_rows: int = 100_000) -> Path:
     suffix = estimator_suffix(n_estimators)
-    return PROC / f"m5_tabpfn_137_distributed_context100000{suffix}"
+    return PROC / f"m5_tabpfn_137_distributed_context{context_rows}{suffix}"
 
 
 def sha256_file(path: Path) -> str:
@@ -336,6 +336,12 @@ def main(argv: list[str] | None = None) -> int:
         default=1,
         help="selects the fitted state and the default source/output paths",
     )
+    parser.add_argument(
+        "--context-rows",
+        type=int,
+        default=100_000,
+        help="selects the default source/output paths; checked against the fit",
+    )
     parser.add_argument("--source-work-dir", type=Path, default=None)
     parser.add_argument(
         "--site-predictions", type=Path, default=DEFAULT_SITE_PREDICTIONS
@@ -354,8 +360,10 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.n_estimators < 1:
         raise ValueError(f"n_estimators must be >= 1, got {args.n_estimators}")
-    source_work = args.source_work_dir or default_source_work(args.n_estimators)
-    out_root = args.out_root or default_out_root(args.n_estimators)
+    source_work = args.source_work_dir or default_source_work(
+        args.n_estimators, args.context_rows
+    )
+    out_root = args.out_root or default_out_root(args.n_estimators, args.context_rows)
 
     fit_manifest = json.loads(
         (source_work / "fit_manifest.json").read_text(encoding="utf-8")
@@ -365,6 +373,16 @@ def main(argv: list[str] | None = None) -> int:
         raise AssertionError(
             f"{source_work} was fit with n_estimators={fitted_estimators}, "
             f"but --n-estimators={args.n_estimators}"
+        )
+    # An explicit --source-work-dir bypasses the path convention, so the context
+    # is checked against the fit itself. Exporting a 5k-scaled matrix into a
+    # directory named context100000 produces finite scores on the right rows:
+    # nothing downstream can catch it.
+    fitted_context = int(fit_manifest["context_rows"])
+    if fitted_context != args.context_rows:
+        raise AssertionError(
+            f"{source_work} was fit with context_rows={fitted_context}, "
+            f"but --context-rows={args.context_rows}"
         )
     feature_names = list(fit_manifest["feature_names"])
     if len(feature_names) != 137:

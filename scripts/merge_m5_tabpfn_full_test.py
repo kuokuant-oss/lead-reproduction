@@ -30,20 +30,35 @@ DEFAULT_CANONICAL = PROC / "m5_tabpfn_distributed_context100000_predictions.npz"
 
 # The 17-feature sweep named its per-site roots before a second feature width
 # existed, so only the 137-feature line carries an f137 marker in the site roots.
-LINE_ROOTS = {
-    "17": [
-        *[PROC / f"m5_tabpfn_site{s}_context100000_n8" for s in (1, 2, 3)],
-        *[PROC / f"m5_tabpfn_f17_batch{i}_context100000_n8" for i in range(6)],
-    ],
-    "137": [
-        *[PROC / f"m5_tabpfn_site{s}_f137_context100000_n8" for s in (1, 2, 3)],
-        *[PROC / f"m5_tabpfn_f137_batch{i}_context100000_n8" for i in range(6)],
-    ],
-}
-LINE_OUT = {
-    "17": PROC / "m5_tabpfn_17_full_test_n8_predictions.npz",
-    "137": PROC / "m5_tabpfn_137_full_test_n8_predictions.npz",
-}
+LINE_MARKER = {"17": "f17", "137": "f137"}
+
+
+def line_roots(line: str, context_rows: int = 100_000) -> list[Path]:
+    """Shard roots for one line at one context.
+
+    Only the 100k run has per-site roots: sites 1/2/3 were scored first, in a
+    separate sweep, and the six batches deliberately exclude them. A new context
+    starts from nothing, so its plan covers all sixteen sites in the batches and
+    there are no per-site roots to add.
+    """
+    marker = LINE_MARKER[line]
+    roots = [
+        PROC / f"m5_tabpfn_{marker}_batch{i}_context{context_rows}_n8" for i in range(6)
+    ]
+    if context_rows == 100_000:
+        site = "" if line == "17" else "f137_"
+        roots = [
+            *[PROC / f"m5_tabpfn_site{s}_{site}context100000_n8" for s in (1, 2, 3)],
+            *roots,
+        ]
+    return roots
+
+
+def line_out(line: str, context_rows: int = 100_000) -> Path:
+    if context_rows == 100_000:
+        # The published artifact the four M3 figures already point at.
+        return PROC / f"m5_tabpfn_{line}_full_test_n8_predictions.npz"
+    return PROC / f"m5_tabpfn_{line}_full_test_context{context_rows}_n8_predictions.npz"
 
 
 def collect(roots: list[Path]) -> dict[str, np.ndarray]:
@@ -77,14 +92,15 @@ def collect(roots: list[Path]) -> dict[str, np.ndarray]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--line", choices=sorted(LINE_ROOTS), default="137")
+    parser.add_argument("--line", choices=sorted(LINE_MARKER), default="137")
+    parser.add_argument("--context-rows", type=int, default=100_000)
     parser.add_argument("--roots", type=Path, nargs="*", default=None)
     parser.add_argument("--canonical", type=Path, default=DEFAULT_CANONICAL)
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args(argv)
 
-    roots = args.roots if args.roots else LINE_ROOTS[args.line]
-    out = args.out or LINE_OUT[args.line]
+    roots = args.roots if args.roots else line_roots(args.line, args.context_rows)
+    out = args.out or line_out(args.line, args.context_rows)
 
     observed = collect(list(roots))
     with np.load(args.canonical) as data:
@@ -128,6 +144,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     summary = {
         "line": args.line,
+        "context_rows": args.context_rows,
         "rows": int(rows),
         "anomalies": int(aligned["anomaly"].sum()),
         "distinct_scores": int(len(np.unique(aligned["score"]))),
