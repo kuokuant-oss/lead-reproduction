@@ -24,6 +24,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import zipfile
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -57,6 +58,38 @@ def out_root_for(batch: int, context_rows: int = 100_000) -> Path:
     return PROC / f"m5_tabpfn_f17_batch{batch}_context{context_rows}_n8"
 
 
+def normalise_remote_prefix(prefix: str) -> str:
+    """Undo Git Bash's MSYS path translation, or refuse to guess.
+
+    Passing ``--remote-prefix /workspace`` from Git Bash on Windows does not
+    deliver ``/workspace``: MSYS rewrites a lone leading-slash argument into a
+    Windows path, so the exporter receives
+    ``C:/Program Files/Git/workspace``. That string is then baked into the
+    portable fit's ``model_path``. Nothing downstream notices, because a missing
+    checkpoint path does not raise -- TabPFN concludes the weights are absent and
+    tries to *download* them, which surfaces on the pod as ``TabPFNLicenseError``,
+    a message about licensing that never mentions paths. This actually shipped:
+    the 17-feature 50k and 5k shards were exported that way.
+
+    The mangled form is recognisable (drive letter, and the tail is the prefix we
+    meant), so repair it. Anything else that is not a clean POSIX absolute path is
+    rejected rather than guessed at -- silently exporting a wrong remote root is
+    the failure being prevented.
+    """
+    candidate = prefix.replace("\\", "/")
+    mangled = re.match(r"^[A-Za-z]:/.*/(workspace|content)/?$", candidate)
+    if mangled:
+        return "/" + mangled.group(1)
+    candidate = candidate.rstrip("/")
+    if not candidate.startswith("/") or ":" in candidate:
+        raise ValueError(
+            f"--remote-prefix must be an absolute POSIX path, got {prefix!r}. "
+            "From Git Bash, prefix the command with MSYS_NO_PATHCONV=1 or write "
+            "the value as //workspace."
+        )
+    return candidate
+
+
 def remote_root_for(
     batch: int,
     shard: str,
@@ -79,7 +112,10 @@ def remote_root_for(
     ``prefix`` is ``/content`` on Colab and ``/workspace`` on gputw.ai.
     """
     marker = "" if context_rows == 100_000 else f"c{context_rows}_"
-    return PurePosixPath(f"{prefix}/lead_tabpfn_{marker}b{batch}_{shard}_f17_n8")
+    root = (
+        f"{normalise_remote_prefix(prefix)}/lead_tabpfn_{marker}b{batch}_{shard}_f17_n8"
+    )
+    return PurePosixPath(root)
 
 
 def atomic_write_json(path: Path, value: Any) -> None:

@@ -18,6 +18,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import zipfile
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -43,6 +44,52 @@ def default_slice_root(context_rows: int) -> Path:
 
 def default_out_root(batch: int, context_rows: int) -> Path:
     return PROC / f"m5_tabpfn_f137_batch{batch}_context{context_rows}_n8"
+
+
+def normalise_remote_prefix(prefix: str) -> str:
+    """Undo Git Bash's MSYS path translation, or refuse to guess.
+
+    Passing ``--remote-prefix /workspace`` from Git Bash on Windows does not
+    deliver ``/workspace``: MSYS rewrites a lone leading-slash argument into a
+    Windows path, so the exporter receives ``C:/Program Files/Git/workspace``.
+    See the twin of this function in ``export_m5_tabpfn_17_batch_shards.py`` for
+    why a wrong remote root is silent all the way to a licensing error on the pod.
+    """
+    candidate = prefix.replace("\\", "/")
+    mangled = re.match(r"^[A-Za-z]:/.*/(workspace|content)/?$", candidate)
+    if mangled:
+        return "/" + mangled.group(1)
+    candidate = candidate.rstrip("/")
+    if not candidate.startswith("/") or ":" in candidate:
+        raise ValueError(
+            f"--remote-prefix must be an absolute POSIX path, got {prefix!r}. "
+            "From Git Bash, prefix the command with MSYS_NO_PATHCONV=1 or write "
+            "the value as //workspace."
+        )
+    return candidate
+
+
+def remote_root_for(
+    batch: int,
+    shard: str,
+    context_rows: int,
+    prefix: str,
+) -> PurePosixPath:
+    """Remote working directory, which the portable fit's ``model_path`` embeds.
+
+    This must agree character-for-character with ``remote_root()`` in
+    ``scripts/gputw_tabpfn_shard.sh``; that script hydrates the shard into this
+    path and runs the worker there. The context marker is not decoration: every
+    context scores the same rows with the same feature width, so without it two
+    contexts share one directory and a ``--resume`` silently adopts another
+    experiment's checkpoints.
+
+    100k keeps its historical unmarked Colab-era name so the finished line stays
+    addressable, matching ``export_m5_tabpfn_17_batch_shards.remote_root_for``.
+    """
+    marker = "" if context_rows == 100_000 else f"c{context_rows}_"
+    root = f"{normalise_remote_prefix(prefix)}/lead_tabpfn_{marker}b{batch}_{shard}_f137_n8"
+    return PurePosixPath(root)
 
 
 def sha256_file(path: Path) -> str:
@@ -131,6 +178,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--canonical", type=Path, default=DEFAULT_CANONICAL)
     parser.add_argument("--out-root", type=Path, default=None)
     parser.add_argument("--block-rows", type=int, default=100_000)
+    parser.add_argument(
+        "--remote-prefix",
+        default="/content",
+        help="remote parent dir: /content on Colab, /workspace on gputw.ai",
+    )
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args(argv)
 
@@ -208,8 +260,8 @@ def main(argv: list[str] | None = None) -> int:
             raise FileExistsError(f"{out_dir} exists; pass --force")
 
         wanted = selected[start:end]
-        remote_root = PurePosixPath(
-            f"/content/lead_tabpfn_b{args.batch}_{shard}_f137_n8"
+        remote_root = remote_root_for(
+            args.batch, shard, args.context_rows, args.remote_prefix
         )
 
         temporary = features_path.with_name(features_path.name + ".tmp")

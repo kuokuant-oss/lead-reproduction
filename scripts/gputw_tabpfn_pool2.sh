@@ -86,7 +86,15 @@ uploader() {
 
 # --------------------------------------------------------------- scheduler ---
 scheduler() {
-  local -A done_seen=()
+  local -A done_seen=() last_launch=() relaunches=()
+  # A 137-feature shard memory-maps a 2.6 GiB matrix and loads the foundation
+  # model before it can write its first 20,000-row checkpoint, which takes well
+  # over a poll interval. cmd_run starts with `tmux kill-session`, so relaunching
+  # a shard that is merely still starting up kills it and restarts the clock --
+  # a loop that never makes progress and looks like a hung GPU. Observed live:
+  # 10000:137:tail was launched six times in four minutes and never got going.
+  # Nothing may relaunch a job until this grace period has elapsed.
+  local GRACE=300
   while true; do
     local raw
     raw="$(sshq '
@@ -123,6 +131,7 @@ scheduler() {
 
     (( pending == 0 )) && { say "=== all shards complete ==="; return 0; }
 
+    local now; now="$(date +%s)"
     for job in "${JOBS[@]}"; do
       (( running >= SLOTS )) && break
       IFS=: read -r ctx line shard <<<"$job"
@@ -132,7 +141,24 @@ scheduler() {
       (( have >= want )) && continue
       [[ -n "${alive[$(session "$ctx" "$line" "$shard")]:-}" ]] && continue
       [[ -f "$STATE/${job}.uploaded" ]] || continue
+
+      local since=$(( now - ${last_launch[$job]:-0} ))
+      if (( ${last_launch[$job]:-0} > 0 && since < GRACE )); then
+        continue          # still starting up; killing it now would restart the clock
+      fi
+      # Past the grace period with the session gone and no new chunk means the
+      # worker died on startup rather than being slow. Say so: a silent relaunch
+      # loop is what made the last failure look like an idle GPU for 25 minutes.
+      if (( ${last_launch[$job]:-0} > 0 )); then
+        relaunches[$job]=$(( ${relaunches[$job]:-0} + 1 ))
+        say "WARN ${job} died after ${since}s with ${have}/${want} chunks (relaunch #${relaunches[$job]}); check ${rt}/worker.log"
+        if (( ${relaunches[$job]} >= 3 )); then
+          say "GIVE UP ${job} after 3 failed starts -- leaving the slot for other work"
+          continue
+        fi
+      fi
       say "LAUNCH ${job}"
+      last_launch[$job]="$now"
       bash "$SHARD" run "$ctx" "$line" 0 "$shard" >>"$LOG" 2>&1 && running=$((running + 1))
     done
     sleep "$POLL"
