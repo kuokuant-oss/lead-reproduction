@@ -54,6 +54,32 @@ python -c "import tabpfn; print('tabpfn', tabpfn.__version__)" 2>/dev/null \
 python -c "import tabpfn; print('tabpfn', tabpfn.__version__)"
 
 echo
+echo "=== vault ==="
+# /vault is account-scoped NFS and is the only thing that can make a replacement
+# pod cheap: from the vault a shard is a ~30 s local copy, from Windows it is a
+# 2.6 GiB push at 1.35 MB/s. Whether it actually survives a stop has been an open
+# question since this run started, so the probe file is appended to rather than
+# overwritten -- the answer is simply whether earlier pods' lines are still here.
+if [ -d /vault ]; then
+  df -h /vault | tail -1
+  probe=/vault/lead-tabpfn/PERSISTENCE_PROBE.txt
+  if [ -f "$probe" ]; then
+    echo "vault SURVIVED -- previous pods recorded:"
+    sed 's/^/  /' "$probe"
+  else
+    echo "no previous probe: either the vault is fresh or it did not survive"
+  fi
+  staged="$(du -sh /vault/lead-tabpfn/*/ 2>/dev/null | sort -k2 || true)"
+  echo "staged shards:"
+  [ -n "$staged" ] && sed 's/^/  /' <<<"$staged" || echo "  (none)"
+  mkdir -p /vault/lead-tabpfn
+  echo "$(date -Is) $(hostname)" >> "$probe"
+else
+  echo "/vault IS NOT MOUNTED -- every shard must be re-uploaded (~3.5 h)."
+  echo "Check the pod was created under the same account before proceeding."
+fi
+
+echo
 echo "=== workspace ==="
 mkdir -p /workspace
 df -h /workspace | tail -1

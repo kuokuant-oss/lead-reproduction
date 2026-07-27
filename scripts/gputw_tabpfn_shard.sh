@@ -19,10 +19,11 @@
 #      never stop an instance before `pull` reports every chunk retrieved.
 #
 # Usage:
-#   gputw_tabpfn_shard.sh push   <shard-dir> <context> <line> <batch> <head|tail>
-#   gputw_tabpfn_shard.sh run    <context> <line> <batch> <head|tail> [extra args]
-#   gputw_tabpfn_shard.sh status <context> <line> <batch> <head|tail>
-#   gputw_tabpfn_shard.sh pull   <context> <line> <batch> <head|tail> <dest-dir>
+#   gputw_tabpfn_shard.sh push    <shard-dir> <context> <line> <batch> <head|tail>
+#   gputw_tabpfn_shard.sh hydrate <shard-dir> <context> <line> <batch> <head|tail>
+#   gputw_tabpfn_shard.sh run     <context> <line> <batch> <head|tail> [extra args]
+#   gputw_tabpfn_shard.sh status  <context> <line> <batch> <head|tail>
+#   gputw_tabpfn_shard.sh pull    <context> <line> <batch> <head|tail> <dest-dir>
 #
 # The host comes from $GPUTW_HOST and $GPUTW_PORT (default 2222), e.g.
 #   export GPUTW_HOST=pod-xxxx@ssh.gputw.ai
@@ -116,14 +117,21 @@ cmd_push() {
     push_if_changed "$src/scaler.npz" "${vault}/scaler.npz" "scaler"
   push_if_changed "$WORKER" "${vault}/run_m5_tabpfn_portable_shard.py" "worker"
 
-  # Materialise the fast local working copy. Reading the matrix over NFS during
-  # inference would work, but a local ext4 copy costs half a minute and removes
-  # NFS from the hot path entirely.
+  hydrate_workspace "$vault" "$root"
+  echo "push complete"
+}
+
+# Materialise the fast local working copy. Reading the matrix over NFS during
+# inference would work, but a local ext4 copy costs half a minute and removes
+# NFS from the hot path entirely.
+hydrate_workspace() {
+  local vault="$1" root="$2"
   echo "    hydrating ${root} from vault"
   sshx "
     set -e
+    mkdir -p '${root}/work' /workspace/tabpfn-cache
     cp -n '${VAULT_CKPT}' '${REMOTE_CKPT}' 2>/dev/null || true
-    for f in features.float32.npy metadata.npz model.portable.tabpfn_fit scaler.npz run_m5_tabpfn_portable_shard.py; do
+    for f in features.float32.npy metadata.npz model.portable.tabpfn_fit scaler.npz features.UNSCALED run_m5_tabpfn_portable_shard.py; do
       [ -f '${vault}'/\$f ] || continue
       if [ ! -f '${root}'/\$f ] || [ \"\$(stat -c%s '${vault}'/\$f)\" != \"\$(stat -c%s '${root}'/\$f)\" ]; then
         cp '${vault}'/\$f '${root}'/\$f
@@ -131,7 +139,56 @@ cmd_push() {
     done
     ln -sfn '${REMOTE_CKPT}' '${root}/tabpfn-v3-classifier-v3_default.ckpt'
   "
-  echo "push complete"
+}
+
+# Re-stage an already-uploaded shard onto a *replacement* pod.
+#
+# /vault is account-scoped NFS and survives a stop; /workspace is pod-local NVMe
+# and does not. So on a new pod every input is still in the vault while the
+# working copy the worker actually reads is gone. The pool records a finished
+# upload as a marker file and skips the whole push for a marked shard, which on a
+# fresh pod meant nothing ever recreated /workspace: `cmd_run` would cd into a
+# directory that does not exist, the tmux session would die before writing a
+# worker.log, and the pool -- which correctly judges liveness by chunk count --
+# would relaunch twice more and give up. Three shards' worth of GPU idle time
+# looking exactly like a hung worker.
+#
+# Sizes are verified against the local originals before copying, because the
+# other way this goes wrong is a vault that did NOT survive, or survived with a
+# truncated file from an interrupted push. A short matrix loads, scores, and
+# merges: numpy reads whatever is there. Refusing here sends the pool back to a
+# full re-push, which is the correct and only safe response.
+cmd_hydrate() {
+  local src="$1" context="$2" line="$3" batch="$4" shard="$5"
+  local root; root="$(remote_root "$context" "$line" "$batch" "$shard")"
+  local vault; vault="$(vault_root "$context" "$line" "$batch" "$shard")"
+  [[ -d "$src" ]] || die "shard dir not found: $src"
+
+  local checks=""
+  for required in features.float32.npy metadata.npz model.portable.tabpfn_fit; do
+    [[ -f "$src/$required" ]] || die "missing $required in $src"
+    checks+="${required} $(stat -c%s "$src/$required")"$'\n'
+  done
+  echo "==> verifying vault copy of ${vault}"
+  sshx "
+    fail=0
+    while read -r name want; do
+      [ -n \"\$name\" ] || continue
+      got=\$(stat -c%s '${vault}'/\$name 2>/dev/null || echo missing)
+      if [ \"\$got\" != \"\$want\" ]; then
+        echo \"    vault \$name: have \$got, want \$want\" >&2
+        fail=1
+      fi
+    done
+    exit \$fail
+  " <<<"$checks" || die "vault copy of ${vault} is missing or truncated; re-upload required"
+  echo "    vault copy complete"
+
+  # The worker script is a few KB and is the one input that changes between
+  # sessions, so it is refreshed rather than merely checked.
+  push_if_changed "$WORKER" "${vault}/run_m5_tabpfn_portable_shard.py" "worker"
+  hydrate_workspace "$vault" "$root"
+  echo "hydrate complete"
 }
 
 cmd_run() {
@@ -213,6 +270,7 @@ cmd_pull() {
 sub="$1"; shift
 case "$sub" in
   push)   [[ $# -eq 5 ]] || die "push needs 5 args";  cmd_push   "$@" ;;
+  hydrate) [[ $# -eq 5 ]] || die "hydrate needs 5 args"; cmd_hydrate "$@" ;;
   run)    [[ $# -ge 4 ]] || die "run needs >=4 args"; cmd_run    "$@" ;;
   status) [[ $# -eq 4 ]] || die "status needs 4 args"; cmd_status "$@" ;;
   pull)   [[ $# -eq 5 ]] || die "pull needs 5 args";  cmd_pull   "$@" ;;
