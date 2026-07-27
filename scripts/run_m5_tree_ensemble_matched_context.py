@@ -63,6 +63,34 @@ from run_m3_figure_observations import (
     predict_probability,
 )
 
+RAW_INDEX_CARRIER = "__raw_index_carrier"
+
+
+def build_features_keeping_index(subset: "pd.DataFrame") -> "pd.DataFrame":  # noqa: F821
+    """Add value-change features without losing the frame's raw_index labels.
+
+    ``add_value_change_features`` ends with
+    ``sort_values(...).reset_index(drop=True)``: it both discards the original
+    labels and reorders the rows. Selecting the matched context afterwards with
+    ``.loc[fit_index]`` therefore raises ``KeyError`` on every id -- and if the
+    labels had merely been reused rather than dropped, the reordering would have
+    silently handed the trees a different set of rows than TabPFN saw, which is
+    the one property this whole comparison rests on.
+
+    Carrying raw_index through as an ordinary column survives both operations, so
+    it can be restored as the index and label-based selection means what it says.
+    ``.loc`` with an array of labels also returns rows in the requested order,
+    which is what keeps the holdout chunks aligned to the canonical row order.
+    """
+    tagged = subset  # frame.loc[mask] already returned a copy; do not copy again
+    tagged[RAW_INDEX_CARRIER] = subset.index.to_numpy(dtype="int64")
+    built = add_value_change_features(
+        tagged, list(SHIFTS), value_change_regime=VALUE_CHANGE_REGIME
+    )
+    built.index = built[RAW_INDEX_CARRIER].to_numpy(dtype="int64")
+    return built.drop(columns=[RAW_INDEX_CARRIER])
+
+
 CANONICAL_SCRIPT = ROOT / "scripts" / "run_m5_tabpfn_canonical_full_test.py"
 CANONICAL_ORDER = PROC / "m6_site_transfer_b2_a0_pos677077_seed42_predictions.npz"
 NESTING_PROOF = PROC / "m5_tabpfn_context_nesting_proof.json"
@@ -226,12 +254,21 @@ def main() -> int:
         )
 
     print("Building timestamp-merge features for the training half", flush=True)
-    train_full = add_value_change_features(
-        frame.loc[train_mask], list(SHIFTS), value_change_regime=VALUE_CHANGE_REGIME
-    )
+    train_full = build_features_keeping_index(frame.loc[train_mask])
     columns = feature_columns(args.features, list(train_full.columns))
-    x_fit = train_full.loc[fit_index, columns].to_numpy(dtype="float32")
+    selected = train_full.loc[fit_index]
+    # The entire matched-N claim is "these are the rows TabPFN was fitted on, in
+    # that order". The feature builder sorts its output, so assert the selection
+    # rather than trusting it -- a silent reorder here would still train, still
+    # score, and quietly answer a different question.
+    if not np.array_equal(selected.index.to_numpy(dtype="int64"), fit_index):
+        raise AssertionError(
+            "training rows are not the context rows in context order; "
+            "the feature builder's row order leaked into the selection"
+        )
+    x_fit = selected[columns].to_numpy(dtype="float32")
     y_fit = frame.loc[fit_index, "anomaly"].copy()
+    del selected
     del train_full
     gc.collect()
 
@@ -264,9 +301,7 @@ def main() -> int:
     gc.collect()
 
     print("Building timestamp-merge features for the holdout", flush=True)
-    holdout_full = add_value_change_features(
-        frame.loc[~train_mask], list(SHIFTS), value_change_regime=VALUE_CHANGE_REGIME
-    )
+    holdout_full = build_features_keeping_index(frame.loc[~train_mask])
     del frame
     gc.collect()
 
