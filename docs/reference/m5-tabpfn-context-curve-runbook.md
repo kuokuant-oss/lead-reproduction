@@ -12,11 +12,13 @@ TabPFN 帶著合成資料預訓練的先驗、樹沒有——這個不對稱**�
 搭配閱讀：`m5-tabpfn-137feature-full-holdout-runbook.md`、`m5-tabpfn-17feature-full-holdout-runbook.md`
 （批次切法、驗證關卡、portable worker 的行為完全沿用）。
 
-**狀態：執行中（2026-07-27 起）。本文是計畫與協定；實際進度以
-[docs/handoffs/2026-07-27-m5-tabpfn-context-curve-gputw-run.md](../handoffs/2026-07-27-m5-tabpfn-context-curve-gputw-run.md) 為準。**
-fit / export 全部完成，已租 5090 並開始推論；17 維 @10k 已合併驗證。
-§9 的成本估算已被實測取代（17 維 @20k 實測 ~4,000 rows/s，比估算快約 3.3 倍；
-真正的瓶頸是 ~1.5–2.0 MiB/s 的上行頻寬，不是算力）。
+**狀態：8 個 cell 完成 3 個（10k/17、10k/137、20k/17），GPU 已於 2026-07-27 停機。
+本文是計畫與協定；要接手請先讀
+[docs/handoffs/2026-07-27-m5-tabpfn-context-curve-gputw-run.md](../handoffs/2026-07-27-m5-tabpfn-context-curve-gputw-run.md)，
+那份才是進度與已知地雷的權威來源。**
+§9 的成本估算已被實測取代：17 維 @20k 實測 ~4,000 rows/s（比估算快約 3.3 倍），
+上行實測 ~1.35 MB/s 且**並行不會更快**（兩條合計反而略降），所以整條流程是
+上傳受限而非算力受限。樹的 matched-N 手臂尚未產出任何結果。
 
 ## 1. 必須兩邊都掃 N，不能拿既有藍線當對照
 
