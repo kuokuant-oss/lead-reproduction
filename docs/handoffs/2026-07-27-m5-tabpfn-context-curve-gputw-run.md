@@ -240,6 +240,23 @@ mattering has to be made per site, or it is an artefact of aggregation. This is
 the full version of the redistribution effect noted for the 17-feature line in
 §3: only 9 of 16 sites improve, and the pooled gain is dominated by a handful.
 
+### 3.0.1 The disaggregated grid
+
+`docs/reports/m5-matched-context-breakdown.md` carries the full per-site and
+per-meter tables for both models at every context, each read against the
+full-training-set tree for its own feature line. Regenerate with
+`scripts/report_m5_matched_context_breakdown.py`. Two things it shows that the
+pooled table cannot:
+
+- **The 137-feature "tie" is a cancellation, not a tie.** TabPFN beats the trees
+  on chilledwater (+0.05 PR at 100k) and steam (+0.08), and loses on electricity
+  (-0.007) -- which is 60% of the rows and 56% of the anomalies, so it alone
+  pulls the pooled figure back to zero.
+- **More data is not uniformly better.** At 17 features the full-data tree scores
+  PR 0.1436 at site 4 and 0.0188 at site 11, *below* the same trees capped at
+  5,000 rows (0.5547) and below TabPFN at 5,000 (0.7416). Both sites carry 197
+  anomalies, so read the direction, not the digits.
+
 ### 3.1 Every number here comes from one draw
 
 The context is a single frozen sample: seed 42, digest `e9ffe0cf`, nested
@@ -314,6 +331,7 @@ Measured on the RTX 5090, replacing runbook §9's extrapolation:
 | `scripts/run_m5_tree_matched_queue.sh` | all nine tree cells, serial, resumable, skips finished ones |
 | `scripts/m5_context_curve_supervisor.ps1` | unattended driver: restarts a dead pool, merges finished contexts, keeps the tree queue fed, announces when the pod is safe to stop |
 | `scripts/merge_m5_tabpfn_full_test.py` | merge a context's shards |
+| `scripts/report_m5_matched_context_breakdown.py` | per-site and per-meter tables for the whole grid, against the full-data tree |
 
 Audits, all re-runnable, written because reading the sampler is not the same as
 checking it (§3.1):
@@ -381,7 +399,17 @@ uploads inside its scheduler loop and will idle the GPU.
    vault, not that this pod can see them, so it no longer authorises a launch.
    The pool asks the pod whether the working copy exists at the vault's length,
    and `hydrate` re-stages it if not.
-8. **The feature builder destroys row identity.** `add_value_change_features` ends
+8. **The two full-data M3 artifacts contradict themselves on row order.**
+   `m3_17_feature_ensemble_predictions.npz` and `m3_figure_predictions_50_50.npz`
+   store `validation_raw_index` ascending while their `anomaly` and score arrays
+   are in the canonical scoring order. Their published AUCs are unaffected --
+   score and label are mutually consistent, and scoring them positionally
+   against the canonical labels reproduces 0.9663 and 0.9918 exactly -- but
+   keying rows by that index instead collapses the 137-feature line to
+   **ROC 0.4933**, which is noise wearing a plausible-looking number. Anything
+   joining to those files must go through the canonical order, never their own
+   index. `report_m5_matched_context_breakdown.py` gates on this.
+9. **The feature builder destroys row identity.** `add_value_change_features` ends
    with `sort_values(...).reset_index(drop=True)`, dropping labels *and* reordering
    rows. The tree runner's `.loc[fit_index]` therefore raised `KeyError`. The
    KeyError was the lucky outcome — had labels been reused instead of dropped, the
