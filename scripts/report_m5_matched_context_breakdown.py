@@ -358,13 +358,23 @@ def markdown_block(table: pd.DataFrame, features: int, metric: str, model: str) 
 
     One model per table. Putting both in a shared cell packs two independent
     curves into one row and neither can be read across; the difference between
-    them is a third thing again and is not printed here at all. ``FULL`` is
-    repeated in both tables so each stands on its own.
+    them is a third thing again and is not printed here at all.
+
+    ``FULL`` appears only in the tree tables. It is the tree trained on the whole
+    training set, so it extends the tree's own row -- the same model at an
+    uncapped N. In a TabPFN table it would be another family's number sitting in
+    a column of TabPFN's, which is what it looked like when it was there.
     """
     part = table[table["features"] == features]
     contexts = sorted(part["context_rows"].unique())
-    header = ["group", "rows", "anomalies", "FULL"] + [f"{c:,}" for c in contexts]
-    align = ["---", "---:", "---:", "---:"] + ["---:"] * len(contexts)
+    with_full = model == "trees"
+    header = ["group", "rows", "anomalies"]
+    align = ["---", "---:", "---:"]
+    if with_full:
+        header.append("FULL")
+        align.append("---:")
+    header += [f"{c:,}" for c in contexts]
+    align += ["---:"] * len(contexts)
     lines = ["| " + " | ".join(header) + " |", "| " + " | ".join(align) + " |"]
 
     for group in sorted(part["group"].unique()):
@@ -374,8 +384,9 @@ def markdown_block(table: pd.DataFrame, features: int, metric: str, model: str) 
             str(first["group_label"]),
             f"{int(first['rows']):,}",
             f"{int(first['anomalies']):,}",
-            f"{first[f'fulltree_{metric}']:.4f}",
         ]
+        if with_full:
+            cells.append(f"{first[f'fulltree_{metric}']:.4f}")
         for context in contexts:
             cell = rows[rows["context_rows"] == context]
             cells.append(
@@ -404,11 +415,16 @@ def write_markdown(
         "the pooled figure cannot support a per-site or per-meter claim.",
         "",
         "One table per model. Columns are the label budget N, which both models",
-        "are capped at identically. `FULL` is the",
-        "tree ensemble trained on the **entire** training set for that feature",
-        f"line -- pooled ROC {ref['17']['pooled_roc']:.4f} at 17 features and",
+        "are capped at identically.",
+        "",
+        "The tree tables carry one extra column, `FULL`: the same tree ensemble",
+        "trained on the **entire** training set for that feature line -- pooled",
+        f"ROC {ref['17']['pooled_roc']:.4f} at 17 features and",
         f"{ref['137']['pooled_roc']:.4f} at 137, the two lines in",
-        "`m3_feature_engineering_roc.png`.",
+        "`m3_feature_engineering_roc.png`. It is the tree's own uncapped end point,",
+        "which is what makes it the reference for what capping N costs. There is no",
+        "TabPFN equivalent -- TabPFN was never run on the full training set, and",
+        "could not be: its context is the labelled set it is given.",
         "",
         "Regenerate with `uv run python scripts/report_m5_matched_context_breakdown.py`.",
         "",
