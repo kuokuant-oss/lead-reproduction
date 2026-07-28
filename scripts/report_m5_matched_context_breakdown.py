@@ -353,17 +353,18 @@ def build_table(
     )
 
 
-def markdown_block(table: pd.DataFrame, features: int, metric: str) -> str:
-    """One table: a row per group, a column per context, cells ``TabPFN / Trees``.
+def markdown_block(table: pd.DataFrame, features: int, metric: str, model: str) -> str:
+    """One model's table: a row per group, a column per label budget N.
 
-    Both models are printed rather than their difference. A difference hides
-    which of the two moved, and the absolute level against the full-data tree is
-    the number that says whether capping the label budget cost anything.
+    One model per table. Putting both in a shared cell packs two independent
+    curves into one row and neither can be read across; the difference between
+    them is a third thing again and is not printed here at all. ``FULL`` is
+    repeated in both tables so each stands on its own.
     """
     part = table[table["features"] == features]
     contexts = sorted(part["context_rows"].unique())
     header = ["group", "rows", "anomalies", "FULL"] + [f"{c:,}" for c in contexts]
-    align = ["---", "---:", "---:", "---:"] + ["---"] * len(contexts)
+    align = ["---", "---:", "---:", "---:"] + ["---:"] * len(contexts)
     lines = ["| " + " | ".join(header) + " |", "| " + " | ".join(align) + " |"]
 
     for group in sorted(part["group"].unique()):
@@ -377,12 +378,8 @@ def markdown_block(table: pd.DataFrame, features: int, metric: str) -> str:
         ]
         for context in contexts:
             cell = rows[rows["context_rows"] == context]
-            if cell.empty:
-                cells.append("—")
-                continue
-            cell = cell.iloc[0]
             cells.append(
-                f"{cell[f'tabpfn_{metric}']:.4f} / {cell[f'trees_{metric}']:.4f}"
+                "—" if cell.empty else f"{cell.iloc[0][f'{model}_{metric}']:.4f}"
             )
         lines.append("| " + " | ".join(cells) + " |")
     return "\n".join(lines)
@@ -406,7 +403,8 @@ def write_markdown(
         "sixteen sites and four meter types whose behaviour differs in sign, so",
         "the pooled figure cannot support a per-site or per-meter claim.",
         "",
-        "Every cell is `TabPFN / Trees`, both capped at the same N. `FULL` is the",
+        "One table per model. Columns are the label budget N, which both models",
+        "are capped at identically. `FULL` is the",
         "tree ensemble trained on the **entire** training set for that feature",
         f"line -- pooled ROC {ref['17']['pooled_roc']:.4f} at 17 features and",
         f"{ref['137']['pooled_roc']:.4f} at 137, the two lines in",
@@ -447,12 +445,14 @@ def write_markdown(
         parts.append("")
         for features in sorted(table["features"].unique()):
             for metric in ("pr", "roc"):
-                parts.append(
-                    f"### By {kind}: {features} features, {metric.upper()}-AUC"
-                )
-                parts.append("")
-                parts.append(markdown_block(table, features, metric))
-                parts.append("")
+                for model, name in (("tabpfn", "TabPFN"), ("trees", "Trees")):
+                    parts.append(
+                        f"### {name} by {kind}: {features} features, "
+                        f"{metric.upper()}-AUC"
+                    )
+                    parts.append("")
+                    parts.append(markdown_block(table, features, metric, model))
+                    parts.append("")
 
     thin = by_site.dropna(subset=["pr_diff_sd"]) if "pr_diff_sd" in by_site else None
     if thin is not None and not thin.empty:
