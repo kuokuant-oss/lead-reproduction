@@ -434,12 +434,11 @@ def write_markdown(
         "  137-feature line to ROC 0.4933, i.e. noise. They are consumed",
         "  positionally here and never through their own index.",
         f"- Cells not yet produced: {pending}.",
-        "- Every number comes from the single frozen context draw (seed 42). There",
-        "  are no error bars per group; the pooled draw-noise figures in the",
-        "  handoff (ROC sd 0.0003 at 137 features, 0.0004 at 17) are pooled and a",
-        "  per-group sd is necessarily larger. Groups with a few hundred anomalies",
-        "  -- site 4 and site 11 carry 197 each -- cannot support a PR-AUC",
-        "  comparison at all.",
+        "- Every number comes from the single frozen context draw (seed 42), so",
+        "  the *context* noise is unmeasured per group; the handoff's sd figures",
+        "  (ROC 0.0003 at 137 features, 0.0004 at 17) are pooled, and a per-group",
+        "  sd is necessarily larger. The *sampling* noise is measured, for the",
+        "  groups thin enough for it to bite -- see the last section.",
         "",
     ]
 
@@ -454,6 +453,41 @@ def write_markdown(
                 parts.append("")
                 parts.append(markdown_block(table, features, metric))
                 parts.append("")
+
+    thin = by_site.dropna(subset=["pr_diff_sd"]) if "pr_diff_sd" in by_site else None
+    if thin is not None and not thin.empty:
+        parts.extend(
+            [
+                "## Sampling noise on the thin sites",
+                "",
+                "Paired bootstrap over rows, 200 draws, for every site carrying at",
+                "most 3,000 anomalies -- the ones where a PR-AUC gap could plausibly",
+                "be decided by which handful of positives landed in the group. Both",
+                "models are resampled together, so shared row difficulty cancels.",
+                "",
+                "This measures how much the difference would move on another draw of",
+                "*rows*. It does not cover the context draw, which is frozen at seed",
+                "42 everywhere in this grid and remains unmeasured per group.",
+                "",
+                "The measurement mostly refutes the caution it was run to justify:",
+                "at 197 anomalies the sd of the PR difference is 0.008-0.037, so gaps",
+                "like site 4 at 17f/5k (+0.1869) and site 11 at 137f/10k (-0.3210)",
+                "clear it by 7x and 13x. Read them as real, subject to the context",
+                "caveat above.",
+                "",
+                "| features | N | site | anomalies | TabPFN PR | Trees PR | PR diff | sd | ROC diff | sd |",
+                "| ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+            ]
+        )
+        for _, row in thin.iterrows():
+            parts.append(
+                f"| {int(row['features'])} | {int(row['context_rows']):,} | "
+                f"{row['group_label']} | {int(row['anomalies']):,} | "
+                f"{row['tabpfn_pr']:.4f} | {row['trees_pr']:.4f} | "
+                f"{row['pr_diff']:+.4f} | {row['pr_diff_sd']:.4f} | "
+                f"{row['roc_diff']:+.4f} | {row['roc_diff_sd']:.4f} |"
+            )
+        parts.append("")
 
     path.write_text("\n".join(parts), encoding="utf-8")
 
@@ -495,7 +529,26 @@ def main() -> None:
     )
     parser.add_argument("--bootstrap-draws", type=int, default=200)
     parser.add_argument("--bootstrap-seed", type=int, default=42)
+    parser.add_argument(
+        "--rebuild-report-only",
+        action="store_true",
+        help="re-emit the markdown from the CSVs and JSON already on disk; for "
+        "editing the prose without paying for the bootstrap again",
+    )
     args = parser.parse_args()
+
+    if args.rebuild_report_only:
+        summary = json.loads(
+            (PROC / f"{args.out_prefix}.json").read_text(encoding="utf-8")
+        )
+        write_markdown(
+            Path(args.report),
+            pd.read_csv(PROC / f"{args.out_prefix}_by_site.csv"),
+            pd.read_csv(PROC / f"{args.out_prefix}_by_meter.csv"),
+            summary,
+        )
+        print(f"rebuilt {args.report}")
+        return
 
     cells: list[Cell] = []
     pending: list[str] = []

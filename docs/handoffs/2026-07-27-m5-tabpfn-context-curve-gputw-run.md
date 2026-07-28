@@ -6,60 +6,23 @@ reasoning behind the design live in
 but that document's cost estimates were superseded by measurement (§3 here) and
 its opening status line describes the pre-run state.
 
-## 0. Resume here
+## 0. The grid is complete
 
-**Paused 2026-07-28 07:05. Nothing is running. No rented GPU is up, and none is
-needed — there is nothing left to stop or pay for.**
-
-One shard of one cell remains: **5k / 137, tail, at 46 of 254 chunks**, on the
-local RTX 4070. It is resumable at chunk granularity. Run this and the entire
-5 x 2 x 2 grid is complete:
-
-```bash
-# ~3.5 h on the 4070 at the measured ~1 chunk/min. --resume skips the 46 done.
-uv run python scripts/run_m5_tabpfn_portable_shard.py \
-  --features  data/processed/m5_tabpfn_137_distributed_context5000_n8/tail/features.float32.npy \
-  --metadata  data/processed/m5_tabpfn_137_distributed_context5000_n8/tail/metadata.npz \
-  --fit-state data/processed/m5_tabpfn_local_c5000_f137_tail/model.portable.tabpfn_fit \
-  --work-dir  data/processed/m5_tabpfn_f137_batch0_context5000_n8/tail-results \
-  --context-rows 5000 --n-features 137 --n-estimators 8 \
-  --query-microbatch-size 4096 --checkpoint-rows 20000 \
-  --direction reverse --resume
-
-# then, once tail reads 254:
-uv run python scripts/merge_m5_tabpfn_full_test.py --line 137 --context-rows 5000 \
-  --roots data/processed/m5_tabpfn_f137_batch0_context5000_n8
-```
-
-The localised fit state it needs already exists; do **not** point `--fit-state`
-at the shard's own `model.portable.tabpfn_fit`, which carries the pod's
-checkpoint path and fails as `TabPFNLicenseError` (§5 trap 3). If it is ever
-lost, rebuild with `scripts/localize_m5_tabpfn_fit_state.py` (§2).
-
-`--work-dir` is the pull destination, so chunks land where the merge already
-looks. `--direction reverse` is not optional: the tail scores the holdout
-backwards, and forward would rescore the head's rows.
-
-After that merge, the last comparison to compute is TabPFN vs trees at
-**5k / 137** — the only cell of the grid without a matched-N number, and the one
-that decides whether TabPFN's small PR lead on the 137 line grows as data shrinks
-(+0.0017 at 10k, +0.0023 at 20k, +0.0024 at 50k, +0.0008 at 100k). Trees are
-already scored there: ROC 0.9879, PR 0.8965.
-
-Everything else is done. Do not restart `gputw_tabpfn_pool2.sh` or the
-supervisor; they have no work left and starting a pod would cost money for
+**Finished 2026-07-28 14:00. Nothing is running, no rented GPU is up, and there
+is nothing left to launch.** All twenty cells (5 contexts x 2 feature lines x
+{TabPFN, trees}) are scored, merged and compared at matched N. Do not restart
+`gputw_tabpfn_pool2.sh` or the supervisor; starting a pod would cost money for
 nothing.
 
-**Status 2026-07-28 07:05.** A second pod ran 5h00m with zero failures and was
-stopped after every shard it produced was pulled and its chunk count verified
-against the pod. The tree matched-N arm, listed below as the largest gap, is
-**complete**: all ten cells. Both feature lines read as `TabPFN(N) − Trees(N)`
-at every context except 5k / 137.
+The last shard, 5k / 137 tail, was resumed from chunk 46 on the local RTX 4070
+and ran to 254 with zero errors at a measured 0.61 chunk/min (4h35m). Its merge
+passes the identity gates: 10,137,155 rows, 637,397 anomalies, `raw_index`
+element-wise identical to the tree artifact.
 
 | cell | TabPFN | trees | matched-N diff |
 |---|---|---|---|
 | 5k / 17 | merged | done | yes |
-| 5k / 137 | **tail 46/254** | done | **outstanding** |
+| 5k / 137 | merged | done | yes |
 | 10k / 17 | merged | done | yes |
 | 10k / 137 | merged | done | yes |
 | 20k / 17 | merged | done | yes |
@@ -68,6 +31,17 @@ at every context except 5k / 137.
 | 50k / 137 | merged | done | yes |
 | 100k / 17 | published | done | yes |
 | 100k / 137 | published | done | yes |
+
+What is left is analysis, not compute. The disaggregated tables are in
+`docs/reports/m5-matched-context-breakdown.md` (§3.0.1). The one measurement
+still worth GPU time is TabPFN's own context-draw noise, which has never been
+measured and is currently proxied by the trees' (§3.1).
+
+If a 137-feature shard ever needs re-running locally, use the localised fit
+state under `data/processed/m5_tabpfn_local_c5000_f137_{head,tail}/` and **not**
+the shard's own `model.portable.tabpfn_fit`, which carries the pod's checkpoint
+path and fails as `TabPFNLicenseError` (§5 trap 3). `--direction reverse` for a
+tail shard is not optional: forward would rescore the head's rows.
 
 ## 1. What the experiment asks
 
@@ -88,7 +62,7 @@ Each cell needs two shards, head (253 chunks) and tail (254), covering all
 | cell | shards | merged | tree counterpart |
 |---|---|---|---|
 | 5k / 17 | 2/2 | yes | yes |
-| 5k / 137 | **head 253/253, tail 46/254** | no | yes |
+| 5k / 137 | 2/2 | yes | yes |
 | 10k / 17 | 2/2 | yes | yes |
 | 10k / 137 | 2/2 | yes | yes |
 | 20k / 17 | 2/2 | yes | yes |
@@ -140,11 +114,11 @@ Pooled over the full holdout:
 | 50,000 | 0.9238 | 0.9665 | -0.0427 | 0.7159 | 0.8291 | -0.1132 |
 | 100,000 | 0.9163 | 0.9650 | -0.0487 | 0.6944 | 0.8291 | -0.1348 |
 
-**137 features.** 5k pending; the rest complete:
+**137 features.** Complete, five points:
 
 | N | TabPFN ROC | Trees ROC | diff | TabPFN PR | Trees PR | diff |
 |---:|---:|---:|---:|---:|---:|---:|
-| 5,000 | *pending* | 0.9879 | — | *pending* | 0.8965 | — |
+| 5,000 | 0.9878 | 0.9879 | -0.0001 | **0.9001** | 0.8965 | **+0.0036** |
 | 10,000 | 0.9902 | 0.9901 | +0.0001 | 0.9208 | 0.9191 | +0.0017 |
 | 20,000 | 0.9912 | 0.9912 | -0.0000 | 0.9263 | 0.9240 | +0.0023 |
 | 50,000 | **0.9924** | 0.9918 | +0.0006 | **0.9324** | 0.9300 | +0.0024 |
@@ -152,8 +126,16 @@ Pooled over the full holdout:
 
 **The headline answer is no.** At 17 features TabPFN loses at every N, by 40-120
 sd of the draw noise in §3.1. At 137 features it ties on ROC (|diff| <= 0.0006 at
-every N) and holds a consistent but tiny PR lead of +0.0008 to +0.0024, which is
-2-3 sd. It never wins by an amount anyone would act on.
+every N) and holds a consistent but tiny PR lead of +0.0008 to +0.0036, which is
+1-5 sd. It never wins by an amount anyone would act on.
+
+**With 5k merged, the PR lead on the 137 line is largest at the smallest N.**
++0.0036 at 5k, then +0.0017, +0.0023, +0.0024, +0.0008 as N rises. So the
+hypothesis that TabPFN's advantage grows as labelled data shrinks is confirmed on
+this line as well as refuted in magnitude: 5 sd of the 0.0007 PR floor, and ROC
+stays flat at -0.0001. The ordering across the middle three points is not
+monotone and is inside 2 sd, so the defensible claim is "largest at 5k", not "a
+monotone trend".
 
 **The hypothesised direction is confirmed and does not rescue the claim.** On the
 17-feature line the deficit shrinks monotonically as data shrinks -- -0.0487 at
@@ -248,14 +230,25 @@ full-training-set tree for its own feature line. Regenerate with
 `scripts/report_m5_matched_context_breakdown.py`. Two things it shows that the
 pooled table cannot:
 
-- **The 137-feature "tie" is a cancellation, not a tie.** TabPFN beats the trees
-  on chilledwater (+0.05 PR at 100k) and steam (+0.08), and loses on electricity
-  (-0.007) -- which is 60% of the rows and 56% of the anomalies, so it alone
-  pulls the pooled figure back to zero.
+- **The 137-feature "tie" is a cancellation, not a tie.** From 10k up, TabPFN
+  beats the trees on chilledwater (+0.05 PR at 100k) and steam (+0.08), and
+  loses on electricity (-0.007) -- which is 60% of the rows and 56% of the
+  anomalies, so it alone pulls the pooled figure back to zero. Per-meter gaps run
+  one to two orders of magnitude above the pooled +0.0008.
+- **The 5k point is not a smaller version of the same picture.** At 5k the only
+  meter TabPFN wins is chilledwater, and it wins it by +0.109; steam flips to
+  -0.041 and hotwater to -0.102. So the pooled +0.0036 at 5k -- the grid's
+  largest TabPFN lead -- is one meter carrying three, not a uniform edge. Do not
+  describe the per-meter result without saying which N it is at.
 - **More data is not uniformly better.** At 17 features the full-data tree scores
   PR 0.1436 at site 4 and 0.0188 at site 11, *below* the same trees capped at
-  5,000 rows (0.5547) and below TabPFN at 5,000 (0.7416). Both sites carry 197
-  anomalies, so read the direction, not the digits.
+  5,000 rows (0.5547) and below TabPFN at 5,000 (0.7416).
+- **The thin sites survive their error bars.** A paired row bootstrap (200 draws)
+  puts the sd of the PR difference at 0.008-0.037 for the 197-anomaly sites, so
+  site 4's +0.1869 at 17f/5k and site 11's -0.3210 at 137f/10k are 7x and 13x
+  their sampling noise. The caution that these sites are too thin to compare was
+  written before the measurement and is wrong; what remains unmeasured for them
+  is the *context* draw, not the row draw.
 
 ### 3.1 Every number here comes from one draw
 
