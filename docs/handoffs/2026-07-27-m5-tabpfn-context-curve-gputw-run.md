@@ -32,10 +32,9 @@ element-wise identical to the tree artifact.
 | 100k / 17 | published | done | yes |
 | 100k / 137 | published | done | yes |
 
-What is left is analysis, not compute. The disaggregated tables are in
-`docs/reports/m5-matched-context-breakdown.md` (§3.0.1). The one measurement
-still worth GPU time is TabPFN's own context-draw noise, which has never been
-measured and is currently proxied by the trees' (§3.1).
+Disaggregated tables: `docs/reports/m5-matched-context-breakdown.md` (§3.0.1).
+Not measured: TabPFN's own context-draw noise, currently proxied by the trees'
+(§3.1). Measuring it needs GPU time to re-score new context draws.
 
 If a 137-feature shard ever needs re-running locally, use the localised fit
 state under `data/processed/m5_tabpfn_local_c5000_f137_{head,tail}/` and **not**
@@ -74,13 +73,11 @@ Every merged file passes the identity gates: 10,137,155 rows, 637,397 anomalies,
 scores finite, `raw_index`/`anomaly` element-wise identical to the published 100k
 line. Chunk counts were verified per shard against the pod before it was stopped.
 
-**Running the last cell locally.** The 137-feature 5k shards are scored on the
-local 4070 because the remote work was finished and keeping a pod alive for one
-cheap cell is not worth the per-second bill. The head took 4 h 39 m at ~1
-chunk/min, matching the estimate; the tail is paused partway (§0 has the exact
-resume command). The portable fit carries the *pod's* checkpoint path, so it must
-be localised first or it fails as `TabPFNLicenseError` (§5 trap 3) — this was
-already done for both 5k/137 shards, so §0 only needs the run step:
+**The last cell ran locally.** The 137-feature 5k shards were scored on the local
+4070 after the remote work finished. The head took 4 h 39 m at ~1 chunk/min, the
+tail 4 h 35 m at 0.61 chunk/min. The portable fit carries the *pod's* checkpoint
+path, so it must be localised first or it fails as `TabPFNLicenseError`
+(§5 trap 3); this was done for both 5k/137 shards. The commands used:
 
 ```powershell
 uv run python scripts/localize_m5_tabpfn_fit_state.py `
@@ -100,7 +97,7 @@ uv run python scripts/run_m5_tabpfn_portable_shard.py `
 looks. `--direction reverse` for the tail. A 4096 microbatch keeps the 8 GB card
 at 5.7 GB and 100% utilization; it is compute-bound, so raising it buys nothing.
 
-## 3. Results so far, and the measured numbers that replace the estimates
+## 3. Results and measured run figures
 
 Pooled over the full holdout:
 
@@ -124,80 +121,31 @@ Pooled over the full holdout:
 | 50,000 | **0.9924** | 0.9918 | +0.0006 | **0.9324** | 0.9300 | +0.0024 |
 | 100,000 | 0.9919 | 0.9920 | -0.0001 | 0.9314 | 0.9306 | +0.0008 |
 
-**The headline answer is no.** At 17 features TabPFN loses at every N, by 40-120
-sd of the draw noise in §3.1. At 137 features it ties on ROC (|diff| <= 0.0006 at
-every N) and holds a consistent but tiny PR lead of +0.0008 to +0.0036, which is
-1-5 sd. It never wins by an amount anyone would act on.
+Movement across the sweep, measured on the tables above:
 
-**With 5k merged, the PR lead on the 137 line is largest at the smallest N.**
-+0.0036 at 5k, then +0.0017, +0.0023, +0.0024, +0.0008 as N rises. So the
-hypothesis that TabPFN's advantage grows as labelled data shrinks is confirmed on
-this line as well as refuted in magnitude: 5 sd of the 0.0007 PR floor, and ROC
-stays flat at -0.0001. The ordering across the middle three points is not
-monotone and is inside 2 sd, so the defensible claim is "largest at 5k", not "a
-monotone trend".
+- 17 features, 5k to 100k: TabPFN ROC -0.0288 / PR -0.0775, monotone at all five
+  points. Trees stay between ROC 0.9609 and 0.9665.
+- 137 features: TabPFN ROC rises +0.0022 from 10k to 50k, then -0.0005 by 100k.
+  Its PR difference against trees is +0.0036 at 5k, +0.0017, +0.0023, +0.0024,
+  +0.0008 as N rises.
 
-**The hypothesised direction is confirmed and does not rescue the claim.** On the
-17-feature line the deficit shrinks monotonically as data shrinks -- -0.0487 at
-100k to -0.0158 at 5k -- and TabPFN's own best point on that line is its smallest
-context. It is still 40 sd behind there. What the curve shows is not TabPFN
-excelling at small N but TabPFN *degrading with context*: 0.9451 down to 0.9163
-while the trees sit flat between 0.9609 and 0.9665.
+Reference points measured on the same 10,137,155 rows:
 
-**TabPFN at 137 features peaks at 50k, not at 100k.** An earlier draft of this
-file called the 137 line monotone rising; with the 50k point merged it is not.
-0.9924 at 50k falls to 0.9919 at 100k, a -0.0005 ROC / -0.0010 PR step against a
-0.0003 / 0.0007 noise floor -- about 1.5 sd, so the defensible reading is that the
-line stops improving after 50k, not that it declines.
+- Ranking by `-meter_reading` alone, no model: **ROC 0.8998, PR 0.5143**. Single-
+  feature |AUC-0.5| across the 17: meter_reading 0.419, dayofyear 0.155,
+  month 0.154, all others below 0.11. Low readings are the anomalous direction.
+- `SHIFTS` is symmetric, +-1..24 h plus +-48..168 h, so a 137-feature row carries
+  up to seven days of its own meter's future as well as its past.
 
-**Read every number above against the one-feature baseline.** Ranking the holdout
-by `-meter_reading` alone -- no model, no training -- scores **ROC 0.8998,
-PR 0.5143** on the same 10,137,155 rows. Of the seventeen features it is the only
-strong one (single-feature |AUC-0.5|: meter_reading 0.419, dayofyear 0.155,
-month 0.154, everything else below 0.11), and the direction is that *low*
-readings are anomalous. This is why 10,000 labelled rows is already enough for
-both model families: most of the decision is a threshold on one raw column, and
-5,000 positives calibrate it well. It also means ROC-AUC is a compressed axis
-here -- it starts at 0.90 before anyone models anything -- while PR-AUC still
-separates the methods (0.514 baseline, 0.762 TabPFN, 0.826 trees at 17f/10k).
-Quote the baseline beside any model number, or a reader cannot tell how much of
-it is the model.
+Noise floors, from redrawing the 100k context under four seeds and refitting the
+trees (§3.1): ROC sd 0.0003 at 137 features, 0.0004 at 17. These are the *trees'*
+draw noise. TabPFN's own has never been measured; nested prefixes also mean
+adjacent contexts share rows, so the variance of a difference is smaller than
+these independent-draw figures.
 
-A second thing to state rather than bury: `SHIFTS` is symmetric, +-1..24 h plus
-+-48..168 h, so the 137-feature line gives each row up to **seven days of its own
-meter's future**. That is a defensible framing for retrospective detection, but
-it is not forecasting, and it is most of why 137 features reaches 0.99.
+### 3.0 Per-site view of the same 17-feature tree numbers
 
-**The 17-feature line falls with context; the 137-feature line rises to 50k and
-then stops.** Across 5k to 100k the 17 line moves ROC -0.0288 / PR -0.0775, and
-does so monotonically at all five points. The 137 line climbs +0.0022 ROC from
-10k to its 50k peak and gives back -0.0005 by 100k.
-
-Both movements clear the noise floor, measured per line by redrawing the 100k
-context under four seeds and refitting the trees (§3.1): **ROC sd 0.0003 at 137
-features, 0.0004 at 17**. The 17-feature fall is ~70 sd; the 137-feature rise to
-its peak is ~7 sd. Nested prefixes mean adjacent contexts share rows, so the
-variance of a *difference* is smaller still than these independent-draw figures
-imply.
-
-This paragraph has been wrong twice, in opposite directions, and the sequence is
-worth keeping as a caution. It first called the 137 rise settled on two points,
-which it was not. Challenged, it then called the rise "not a finding" by applying
-the 17-feature sd of 0.0004 -- an over-retraction, since the line's own sd is
-0.0003. Merging the 50k point then showed the line is not monotone at all: it
-peaks at 50k. Each revision was driven by data arriving, not by argument, which is
-the only reason to trust the current one.
-
-Caveat that the numbers cannot remove: the sd is the *tree's* draw noise, used as
-a proxy for TabPFN's. TabPFN learns in-context, so it may well be more sensitive
-to which rows the context holds than a fitted GBDT is, and 0.0003 is then an
-underestimate for the TabPFN curve. Measuring it directly needs GPU time to
-re-score new contexts, and has not been done.
-
-### 3.0 The pooled metric hides the result
-
-The single most misleading number in this experiment is the pooled one. Trees at
-17 features, 5,000 rows versus 100,000 rows, PR-AUC per site:
+Trees at 17 features, 5,000 rows versus 100,000 rows, PR-AUC per site:
 
 | site | rows | anomaly rate | 5k | 100k | change |
 |---:|---:|---:|---:|---:|---:|
@@ -210,52 +158,33 @@ The single most misleading number in this experiment is the pooled one. Trees at
 | 6 | 345,117 | 8.30% | 0.6575 | 0.5421 | **-0.1154** |
 | **pooled** | 10,137,155 | 6.29% | **0.8208** | **0.8291** | **+0.0083** |
 
-Twentyfold more data moves the pooled figure by +0.0083, and that near-flatness
-is the *net of +0.18 and -0.12 moving in opposite directions*. Sites 4 and 1
-improve substantially; site 6 gets materially worse; site 11 is unsolved at both
-sizes (PR 0.018). The pooled number is held up by a few large easy sites -- site
-0 alone is 538k rows at PR 0.998.
-
-**So "2,500 anomalies is enough" is a statement about the pooled metric, not
-about the problem.** Any claim in this work about data volume mattering or not
-mattering has to be made per site, or it is an artefact of aggregation. This is
-the full version of the redistribution effect noted for the 17-feature line in
-§3: only 9 of 16 sites improve, and the pooled gain is dominated by a handful.
+The pooled change of +0.0083 spans per-site changes from +0.1773 to -0.1154.
+Nine of sixteen sites improve on ROC. Site 0 is 538k rows at PR 0.998 at both
+sizes; site 11 is at PR 0.018 at both.
 
 ### 3.0.1 The disaggregated grid
 
-`docs/reports/m5-matched-context-breakdown.md` carries the full per-site and
-per-meter tables for both models at every context, each read against the
-full-training-set tree for its own feature line. Regenerate with
-`scripts/report_m5_matched_context_breakdown.py`. Two things it shows that the
-pooled table cannot:
+`docs/reports/m5-matched-context-breakdown.md` carries the per-site and per-meter
+tables for both models at every context, plus the full-training-set tree for each
+feature line. Regenerate with `scripts/report_m5_matched_context_breakdown.py`.
+Numbers from it, for cross-reference:
 
-- **The 137-feature "tie" is a cancellation, not a tie.** From 10k up, TabPFN
-  beats the trees on chilledwater (+0.05 PR at 100k) and steam (+0.08), and
-  loses on electricity (-0.007) -- which is 60% of the rows and 56% of the
-  anomalies, so it alone pulls the pooled figure back to zero. Per-meter gaps run
-  one to two orders of magnitude above the pooled +0.0008.
-- **The 5k point is not a smaller version of the same picture.** At 5k the only
-  meter TabPFN wins is chilledwater, and it wins it by +0.109; steam flips to
-  -0.041 and hotwater to -0.102. So the pooled +0.0036 at 5k -- the grid's
-  largest TabPFN lead -- is one meter carrying three, not a uniform edge. Do not
-  describe the per-meter result without saying which N it is at.
-- **More data is not uniformly better.** At 17 features the full-data tree scores
-  PR 0.1436 at site 4 and 0.0188 at site 11, *below* the same trees capped at
-  5,000 rows (0.5547) and below TabPFN at 5,000 (0.7416).
-- **The thin sites survive their error bars.** A paired row bootstrap (200 draws)
-  puts the sd of the PR difference at 0.008-0.037 for the 197-anomaly sites, so
-  site 4's +0.1869 at 17f/5k and site 11's -0.3210 at 137f/10k are 7x and 13x
-  their sampling noise. The caution that these sites are too thin to compare was
-  written before the measurement and is wrong; what remains unmeasured for them
-  is the *context* draw, not the row draw.
+- Per-meter PR difference at 137 features, 100k: chilledwater +0.0486,
+  steam +0.0790, hotwater -0.0060, electricity -0.0065. Electricity is 6,035,071
+  of the 10,137,155 rows and 356,679 of the 637,397 anomalies.
+- The same at 5k: chilledwater +0.1090, steam -0.0406, hotwater -0.1022,
+  electricity -0.0094.
+- At 17 features the full-data tree scores PR 0.1436 at site 4 and 0.0188 at site
+  11, against 0.5547 and 0.0186 for the same trees capped at 5,000 rows.
+- Paired row bootstrap, 200 draws, sites with at most 3,000 anomalies: sd of the
+  PR difference is 0.008-0.037 at the two 197-anomaly sites. It covers the row
+  draw only, not the context draw.
 
 ### 3.1 Every number here comes from one draw
 
 The context is a single frozen sample: seed 42, digest `e9ffe0cf`, nested
 prefixes, reused by every TabPFN context and every tree cell. There is no
-repetition and there are no error bars anywhere in the grid. That is what makes
-the effect sizes above the only defensible unit of judgement.
+repetition and there are no error bars anywhere in the grid.
 
 Both lines were redrawn at 100k to calibrate the noise -- trees, four seeds,
 scored on one fixed 2M-row holdout subsample
@@ -269,27 +198,21 @@ scored on one fixed 2M-row holdout subsample
 | 2024 | 0.9657 | 0.8284 | 0.9918 | 0.9304 |
 | | sd **0.0004** | sd **0.0020** | sd **0.0003** | sd **0.0007** |
 
-The frozen draw sits below the redraw mean on both lines (1.22 sd at 17
-features, 0.25 sd at 137), which disposes of the worry that it was a favourable
-sample. What the floors license:
+The frozen draw sits below the redraw mean on both lines: 1.22 sd at 17 features,
+0.25 sd at 137.
 
-- TabPFN minus trees at 17 features (ROC -0.0221 to -0.0487): 55-120 sd, solid.
-- TabPFN minus trees at 137 features (|ROC| <= 0.0001 at 10k, 20k and 100k):
-  under 0.35 sd at every context. A tie, now at a tighter tolerance.
-- The 137 context rise (+0.0017 cumulative): 5.7 sd. Real, and negligible.
-
-Applying a line's sd to the other line, or to TabPFN rather than the trees, is an
-assumption -- and it has already produced one wrong call in this file.
+These floors are per line and per model family. Applying one line's sd to the
+other, or the trees' to TabPFN, is an assumption the measurement does not cover.
 
 Leakage was audited empirically rather than argued
 (`scripts/audit_m5_matched_context_leakage.py`): reconstructed digest matches both
 Gate 1 and the digest the tree run recorded, 100,000 unique rows exactly 50/50,
 all fit buildings even and all holdout buildings odd with zero shared buildings,
 zero shared row ids, and 385 of 2,000,000 sampled holdout rows byte-identical to
-a fit row on 17 features plus label (0.019%, cross-building feature collisions). Per-site, the 17-feature 10k-vs-100k gain is a
-redistribution rather than a lift: only 9 of 16 sites improve on ROC, and pooled
-PR-AUC is dominated by Site 2 (+0.297) with Sites 6 and 10 behind it, while Sites
-1, 7 and 9 get worse.
+a fit row on 17 features plus label (0.019%, cross-building feature collisions).
+Per-site on the 17-feature 10k-vs-100k step: 9 of 16 sites improve on ROC; the
+pooled PR-AUC change is dominated by Site 2 (+0.297) with Sites 6 and 10 next,
+while Sites 1, 7 and 9 fall.
 
 Measured on the RTX 5090, replacing runbook §9's extrapolation:
 
@@ -297,16 +220,12 @@ Measured on the RTX 5090, replacing runbook §9's extrapolation:
   3.3x the projection.
 - **Uplink: ~1.35 MB/s on the first pod, ~2.1-2.5 MB/s on the second.** Measured
   on the second pod: 348 MB in 2m39s and 2m44s (2.19 and 2.12 MB/s), then
-  2,653 MiB in 18m50s (2.46 MB/s). So it is *not* the hard ceiling the first
-  session's number suggested -- it varies by pod, and budgeting a resume should
-  measure rather than assume. What does hold is that **parallelism does not
-  help**: two streams measured 1,237 KiB/s combined versus 1,384 KiB/s for one.
-  Only sending fewer bytes, or sending them off the critical path, does.
+  2,653 MiB in 18m50s (2.46 MB/s). It varies by pod, so budget a resume from
+  measurement. Two parallel streams measured 1,237 KiB/s combined against
+  1,384 KiB/s for one.
 - One 17-feature worker at 20k context pins the GPU at 100%. The "two slots give
   1.58x" note in `gputw_tabpfn_pool.sh` was measured at 10k, where a single worker
-  reached only 29%. Do not assume it generalises.
-
-**The run is upload-bound, not compute-bound.**
+  reached only 29%.
 
 ## 4. Scripts
 
@@ -468,40 +387,32 @@ step.** There is no API; stop it in the dashboard.
   2.7 GiB shard from the vault to `/workspace` took **2-3 seconds** against the
   ~18 minutes it would have cost to re-upload. This closes an item open since the
   runbook was written. A replacement pod should always hydrate before uploading.
-- **Unscaled upload (runbook §6.3) is no longer worth doing, and the earlier
-  "single biggest lever" estimate was wrong.** The mechanism is real: exports are
+- **Unscaled upload (runbook §6.3): implemented, not adopted.** Exports are
   pre-scaled, so each context re-sends a full matrix, where the unscaled matrix is
   identical across contexts and only a few-KB `scaler.npz` differs. The worker's
   `--scaler` path is implemented and verified to 2.4e-07, and `cmd_run` gates on a
   deliberate `features.UNSCALED` marker so an already-scaled matrix is never
   scaled twice; only the exporters lack the flag.
 
-  What changed is the denominator. That estimate priced upload against a
-  *serialised* run. The uploader now runs as its own process, so its ~3.5 h for
-  the ten remaining shards (16.8 GiB at 1.35 MB/s, worst case of a lost vault)
-  overlaps compute that is far longer: scaling the measured 20 min/shard at
-  17 features/20k and ~35 min/shard at 137/10k gives roughly 10 h for what is
-  left, dominated by 50k/137. The run is **compute-bound now, not upload-bound**,
-  and deduplicating uploads would only shorten the wait before the *first* worker
-  starts -- which hydrating from the vault already handles. It is not worth
-  re-exporting six 2.6 GiB matrices and adding a shared-vault-path special case
-  to a pool whose failure modes fill §5. Revisit only if the vault is lost *and*
-  the queue is reordered to be upload-led.
-- **TabPFN's ceiling on 32 GB is still unprobed, and now looks far away.** The
-  largest cell attempted, 50k context at 137 features, used **7.9 GiB of 32.6**
-  with two workers resident — the single-worker figure was 3.5 GiB. The recorded
-  `last_safe_budget: 100000` came from the 8 GB 4070 and badly understates this
-  card. Where TabPFN actually stops is still a reportable result nobody has
-  measured.
-- **Slot count: two, measured, not one.** An earlier revision defaulted to one
-  slot on the strength of a single instantaneous `nvidia-smi` sample reading 100%.
-  Sustained sampling puts one worker at 69.5% — utilization swings 30-100% as a
-  worker alternates between attention and checkpoint writes, so a single sample is
-  worthless. A second worker took the card to 99% and total output from 5.14 to
-  6.0 chunks/min. Never size a slot count from one sample.
-- **5k / 137 finished on the local 4070, not the rented card**, because the pod's
-  remaining work ran out first and one cheap cell does not justify per-second
-  billing. The other three 5k shards did run remotely. See §2 for the localisation
-  step the portable fit needs.
+  The earlier "single biggest lever" estimate priced upload against a
+  *serialised* run. The uploader runs as its own process, so its ~3.5 h for the
+  ten remaining shards (16.8 GiB at 1.35 MB/s, worst case of a lost vault)
+  overlapped compute of roughly 10 h, scaling the measured 20 min/shard at
+  17 features/20k and ~35 min/shard at 137/10k, dominated by 50k/137. Adopting it
+  would require re-exporting six 2.6 GiB matrices and a shared-vault-path case in
+  the pool. Revisit if the vault is lost *and* the queue is reordered to be
+  upload-led.
+- **TabPFN's ceiling on 32 GB is unprobed.** The largest cell attempted, 50k
+  context at 137 features, used **7.9 GiB of 32.6** with two workers resident;
+  the single-worker figure was 3.5 GiB. The recorded `last_safe_budget: 100000`
+  was measured on the 8 GB 4070, not this card.
+- **Slot count: two, measured.** Sustained sampling puts one worker at 69.5%;
+  utilization swings 30-100% as a worker alternates between attention and
+  checkpoint writes, so a single `nvidia-smi` sample does not size a slot count.
+  A second worker took the card to 99% and total output from 5.14 to
+  6.0 chunks/min.
+- **5k / 137 finished on the local 4070, not the rented card.** The pod's
+  remaining work ran out first. The other three 5k shards did run remotely. See
+  §2 for the localisation step the portable fit needs.
 - No GitHub issue was opened for this work; recorded honestly per the
   change-checklist backfill policy rather than fabricated retroactively.
