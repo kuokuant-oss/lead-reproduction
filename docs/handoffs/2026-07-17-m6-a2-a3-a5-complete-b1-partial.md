@@ -98,7 +98,7 @@ site 11 `0.2349`、site 13 `0.5516`、site 1 `0.6653`、site 10 `0.7743`、site 
 
 - **site 11 / 13 / 10（最差 transfer sites）的 oracle 並未回升**（11 甚至更差、13 僅 +0.05、
   10 僅 +0.06）→ 屬於「**該 site 在 frozen feature/model contract 下本質較難**」，
-  **不可**把落差全部歸因為 unseen-site shift。這推翻了「site 11 只是沒被見過」的直覺假設。
+  落差不能全部歸因為 unseen-site shift。
 - **site 1（+0.26）與 site 2（+0.16）oracle 明顯回升** → 屬於「存在可由 target-site labels
   恢復的 unseen-site penalty」。
 - **site 4 與 site 11 的 oracle test 只有 197 個 anomalies**，oracle 負 gap 很可能是

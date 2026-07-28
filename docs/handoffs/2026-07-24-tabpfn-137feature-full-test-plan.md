@@ -155,7 +155,7 @@ ensemble 平均掉了單一 estimator 抓到的有限訊號」，**不是這個 
 TabPFN 137f（0.9910 / 0.9015）與樹 ensemble 137f（0.991 / 0.900）再次幾乎完全一致，
 成為「落差來自特徵不足而非 in-context learning 限制」的第二個證據點。
 
-## 5.4 三個 site 完整結果與定案結論（2026-07-25）
+## 5.4 三個 site 完整結果（2026-07-25）
 
 全部 n_estimators=8，與 17-feature 線跑在**完全相同的列**上：
 
@@ -165,15 +165,7 @@ TabPFN 137f（0.9910 / 0.9015）與樹 ensemble 137f（0.991 / 0.900）再次幾
 | Site 2 | 6.401% | 0.8177 → **0.9910** | 0.2101 → **0.9015** | 0.991 / 0.900 |
 | Site 3 | 0.227% | 0.9800 → **0.9987** | 0.7828 → **0.8586** | 0.999 / 0.886 |
 
-**定案結論**：
-
-1. **特徵工程的效果比 estimator 數量大一個數量級，且三個 site 方向一致**：換 137 features 後 ROC 全部 ≥ 0.99、PR 全部 ≥ 0.86。
-   相對地 estimator 的效果因 site 而異、甚至為負（Site 2 的 PR −0.0706）。
-2. **修正 M5 報告的既有歸因**：原本把「TabPFN 低於樹 ensemble」歸因於 in-context 100k 對上樹全量訓練的結構劣勢。
-   但在相同 137 features 下，TabPFN 與樹 ensemble **三個 site 全部幾乎完全追平**（見上表右兩欄）。
-   落差主要來自**特徵不足**，而非 in-context learning 本身的限制。三個獨立 site 支持，不再是單點推測。
-3. **Site 2 的負增益獲得解釋**：17 features 下越加 estimator 越差，換 137 features 後 PR 由 0.2101 升至 0.9015。
-   該退步是「資訊不足的特徵空間中 ensemble 平均掉了有限訊號」，不是該 site 本質難預測。
+estimator 數的效果（同一 site、17 features、n=1→n=8）：Site 2 的 PR −0.0706。
 
 per-cell 指標檔：`data/processed/m5_tabpfn_site{1,2,3}_f137_n8_sweep_metrics.json`
 

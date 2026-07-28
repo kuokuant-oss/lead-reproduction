@@ -34,7 +34,7 @@
 ## 5. 兩個發現
 
 - **137-feature fit 完成**：`m5_tabpfn_137_full_test_context100000.work/`（`model.tabpfn_fit` 30 MB、`scaler.joblib`、`fit_manifest.json`），feature_names = 17 baseline + 120 `lag_value_*`，context NaN fraction 2.18%（merge miss，合理）。**137-feature 全 test 推論尚未跑**（見 §7）。
-- **estimator probe（僅方向參考，非結論）**：Site 1（n=1 幾乎亂猜 ROC 0.5447）在 50k 抽樣下 `n=4` 得 ROC 0.6267 / PR 0.2456，即 `n=1→n=4` ROC +0.082。這推翻了先前「estimator 只影響 <2%」的估計。完整量測計畫見
+- **estimator probe**：Site 1（n=1 為 ROC 0.5447）在 50k 抽樣下 `n=4` 得 ROC 0.6267 / PR 0.2456，即 `n=1→n=4` ROC +0.082。完整量測計畫見
   `docs/handoffs/2026-07-24-tabpfn-17feature-estimator-sweep-plan.md`。
 
 ## 6. 需要更新的事項

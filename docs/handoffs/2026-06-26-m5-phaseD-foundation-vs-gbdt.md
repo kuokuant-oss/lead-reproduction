@@ -33,16 +33,6 @@ Full run: 559.8 s, all cells completed, zero failures.
 Inference latency: TabPFN `predict_proba` ~25 s / 4,000 rows (~6.3 ms/row) vs
 sub-second GBDT — ~100× slower.
 
-## Honest verdict
-
-TabPFN adds real value in **label-scarce** and **true cross-site** settings.
-It does **not** dethrone the tuned GBDT headline (0.9928 ensemble), is far slower
-at inference, and does **not** lower the feature-engineering burden (it depends on
-the engineered value-change lags at least as much as GBDT). Nuance recorded in the
-report: GBDT-transfer-without-retrain scores highest on the site split (0.9882)
-but is an easier setting (all-sites training carries site familiarity), so it is
-not apples-to-apples with the true cross-site models.
-
 ## Rails honored
 
 Frozen `lead.__all__` unchanged (harness imports only public API; PR-AUC computed

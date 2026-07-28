@@ -8,8 +8,7 @@
 ## 1. 一句話
 
 137-feature TabPFN 已跑完全部 10,137,155 列、通過四關身分驗證合併，並加上 M3 四張圖；
-全 holdout pooled **ROC-AUC 0.9919 / PR-AUC 0.9314**，與 137-feature 樹 ensemble
-（0.9918 / 0.9303）幾乎完全追平，遠勝 17-feature TabPFN（0.9120 / 0.6639）。
+全 holdout pooled **ROC-AUC 0.9919 / PR-AUC 0.9314**。
 
 ## 2. 結果
 
@@ -19,9 +18,6 @@
 | 137-feature 樹 ensemble（blue） | 0.9918 | 0.9303 |
 | 17-feature TabPFN（orange） | 0.9120 | 0.6639 |
 | **137-feature TabPFN（violet，本次）** | **0.9919** | **0.9314** |
-
-**結論**：在相同 137 features 下 TabPFN 追平樹 ensemble，再次坐實 estimator-sweep handoff 的
-歸因修正 —— TabPFN 先前的落後主要來自**特徵不足**，而非 in-context learning 的結構劣勢。
 
 ## 3. 產物
 

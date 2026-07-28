@@ -70,7 +70,7 @@ docs/reports/assets/m6/
 
 ## 3. 兩處被推翻的舊結論
 
-### 3.1 §12.3(c) 被推翻 —— 最重要
+### 3.1 §12.3(c) 更正
 
 原文:sites 6、15「anomalies 不具 site 特異性,**不應投入 target-site labelling**,全域模型嚴格較優」。
 
@@ -96,7 +96,7 @@ A5 的 gap 是負的(`−0.1038` / `−0.1478`),但 §12.10 的 seen 臂在 **bu
 
 ## 4. 可能的方向(依建議順序)
 
-### ★ 方向 A — B3:target-site label 劑量曲線(**最有價值,但要新跑**)
+### 方向 A — B3:target-site label 劑量曲線(需新跑)
 
 **問題:在訓練充分的全域模型上,加 k 個 target-site 電表,要多少才夠?**
 
@@ -140,7 +140,7 @@ k=0 是 unseen 基線,k=all 逼近 seen 上限。每個 cell 一次評估 8 個 
 
 > 使用者表示記得做過類似實驗,但上述搜尋未找到。**下一手若要重找,請先問使用者關鍵字**,不要重跑一次同樣的搜尋。
 
-### 方向 B — A5 補圖(**便宜,補的是已知結論**)
+### 方向 B — A5 補圖
 
 A5 完整跑完、是 §12.3 的主要結果、**一張圖都沒有**。資料比預期豐富:每站有 5 模型的完整 ROC/PR curve arrays、per-meter slices、100-bin score histograms(normal/anomaly 分開)。
 

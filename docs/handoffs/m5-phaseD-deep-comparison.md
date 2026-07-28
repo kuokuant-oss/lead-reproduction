@@ -16,7 +16,7 @@
 
 The test `threshold_0_5` and `fixed_recall_0_90` entries are post-hoc operating points. In particular, `fixed_recall_0_90` derives its threshold from the same split's labels, including test labels for the test summary. These entries are descriptive only and do not represent deployable performance. Model comparison and TabPFN-vs-tree claims should use threshold-free ROC-AUC / PR-AUC. For deployable operating points, choose thresholds on val and apply them once to test.
 
-## Axis Headlines
+## Axes
 
 ### Axis 1: default_vs_tuned
 

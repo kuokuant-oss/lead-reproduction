@@ -1,15 +1,15 @@
 # 2026-07-25 TabPFN estimator sweep 與 137-feature 結果 handoff
 
-這份 handoff 記錄 2026-07-24 深夜至 2026-07-25 的完整執行：17-feature estimator sweep 定案、
+這份 handoff 記錄 2026-07-24 深夜至 2026-07-25 的完整執行：17-feature estimator sweep、
 137-feature（n=8）三個 site 完成、以及補滿整個 holdout 的批次作業啟動。
 寫法沿用 `docs/reference/m5-tabpfn-colab-dual-shard-runbook.md`。
 
 ## 1. 一句話
 
 在四張 A100 上跑完 12 格全列推論（17-feature 的 3 site × n∈{4,8}，137-feature 的 3 site × n=8），
-推翻了兩個既有假設，修正了 M5 報告對 TabPFN 落後原因的歸因，並把補滿剩餘 7,401,924 列的批次作業備妥啟動。
+並把補滿剩餘 7,401,924 列的批次作業備妥啟動。
 
-## 2. 17-feature estimator sweep（定案）
+## 2. 17-feature estimator sweep
 
 全列量測、零抽樣、共 2,735,231 列。詳見
 `docs/handoffs/2026-07-24-tabpfn-17feature-estimator-sweep-plan.md` §7.2。
@@ -20,12 +20,8 @@
 | Site 2 | 6.401% | 0.8435 → 0.8144 → 0.8177 | 0.2807 → 0.2262 → **0.2101** |
 | Site 3 | 0.227% | 0.9762 → 0.9787 → 0.9800 | 0.1667 → **0.7900** → 0.7828 |
 
-**結論**：
-
-1. 「estimator 只影響 <2%」被推翻 —— 實際橫跨 −0.07 到 +0.62。
-2. 「越多 estimator 越好」也被推翻 —— Site 2 的 PR 單調下滑，n=8 未回升。
-3. 增益主要來自「開啟 ensemble」本身而非加大它：三個 site 的 n=4 → n=8 變化都遠小於 n=1 → n=4。
-4. **不得用單一 site（更不用說單一 site 的 50k 抽樣）外推**：只看 Site 1 的 probe 會對 Site 2 給出相反建議。
+n=1 → n=8 的 PR 變化橫跨 −0.07（Site 2）到 +0.62（Site 3）。Site 2 的 PR 單調下滑，
+n=8 未回升。三個 site 的 n=4 → n=8 變化都小於 n=1 → n=4。
 
 ## 3. 137-feature（n=8）三個 site
 
@@ -35,13 +31,7 @@
 | Site 2 | 0.8177 → **0.9910** | 0.2101 → **0.9015** | 0.991 / 0.900 |
 | Site 3 | 0.9800 → **0.9987** | 0.7828 → **0.8586** | 0.999 / 0.886 |
 
-**最重要的發現 —— 修正既有歸因**：M5 報告原本把「TabPFN 低於樹 ensemble」歸因於
-in-context 100k 對上樹全量訓練的**結構劣勢**。但在相同 137 features 下，TabPFN 與樹 ensemble
-**三個 site 全部幾乎完全追平**。落差主要來自**特徵不足**，而非 in-context learning 的限制。
-
-這也解釋了 Site 2 的負增益：它在 17 features 下越加 estimator 越差，換 137 features 後 PR 從
-0.2101 升到 0.9015 —— 那個退步是「資訊不足的特徵空間中 ensemble 平均掉了有限訊號」，
-不是該 site 本質難預測。
+Site 2 在 17 features 下 n=1→n=8 的 PR 由 0.2807 降至 0.2101；換 137 features 後為 0.9015。
 
 ## 4. 已備妥但**尚未啟動**：補滿整個 holdout
 
@@ -126,7 +116,6 @@ in-context 100k 對上樹全量訓練的**結構劣勢**。但在相同 137 feat
 
 ## 9. Decision
 
-17-feature estimator sweep 已定案；137-feature 三個 site 完成並修正了 M5 報告對「TabPFN 落後樹 ensemble」的歸因
-（主因是特徵不足，不是 in-context learning 的結構劣勢）。
+17-feature estimator sweep 與 137-feature 三個 site 皆已完成。
 補滿剩餘 7,401,924 列的批次作業**已完成全部準備但尚未啟動**，預期 wall clock 約 4 小時，等使用者下令再開跑。
 所有踩過的坑都已寫入 runbook §1.2 與新的 137-feature runbook，避免重蹈。
