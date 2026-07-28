@@ -368,13 +368,12 @@ def markdown_block(table: pd.DataFrame, features: int, metric: str, model: str) 
     part = table[table["features"] == features]
     contexts = sorted(part["context_rows"].unique())
     with_full = model == "trees"
-    header = ["group", "rows", "anomalies"]
-    align = ["---", "---:", "---:"]
+    header = ["group", "rows", "anomalies"] + [f"{c:,}" for c in contexts]
+    align = ["---", "---:", "---:"] + ["---:"] * len(contexts)
     if with_full:
+        # Last column: N rises left to right, and FULL is the end of that axis.
         header.append("FULL")
         align.append("---:")
-    header += [f"{c:,}" for c in contexts]
-    align += ["---:"] * len(contexts)
     lines = ["| " + " | ".join(header) + " |", "| " + " | ".join(align) + " |"]
 
     for group in sorted(part["group"].unique()):
@@ -385,13 +384,13 @@ def markdown_block(table: pd.DataFrame, features: int, metric: str, model: str) 
             f"{int(first['rows']):,}",
             f"{int(first['anomalies']):,}",
         ]
-        if with_full:
-            cells.append(f"{first[f'fulltree_{metric}']:.4f}")
         for context in contexts:
             cell = rows[rows["context_rows"] == context]
             cells.append(
                 "—" if cell.empty else f"{cell.iloc[0][f'{model}_{metric}']:.4f}"
             )
+        if with_full:
+            cells.append(f"{first[f'fulltree_{metric}']:.4f}")
         lines.append("| " + " | ".join(cells) + " |")
     return "\n".join(lines)
 
@@ -417,7 +416,8 @@ def write_markdown(
         "One table per model. Columns are the label budget N, which both models",
         "are capped at identically.",
         "",
-        "The tree tables carry one extra column, `FULL`: the same tree ensemble",
+        "The tree tables carry one extra column on the right, `FULL`: the same",
+        "tree ensemble",
         "trained on the **entire** training set for that feature line -- pooled",
         f"ROC {ref['17']['pooled_roc']:.4f} at 17 features and",
         f"{ref['137']['pooled_roc']:.4f} at 137, the two lines in",
