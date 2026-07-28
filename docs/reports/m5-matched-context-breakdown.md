@@ -1,50 +1,23 @@
 # M5 matched-context breakdown: per site and per meter
 
-TabPFN and tree ensembles trained on byte-identical rows at each label
-budget N, scored on the full 10,137,155-row holdout, then disaggregated.
-The pooled numbers in the context-curve handoff are an aggregate over
-sixteen sites and four meter types whose behaviour differs in sign, so
-the pooled figure cannot support a per-site or per-meter claim.
+## Setup
 
-One table per model. Columns are the label budget N, which both models
-are capped at identically.
-
-The tree tables carry one extra column on the right, `FULL`: the same
-tree ensemble
-trained on the **entire** training set for that feature line -- pooled
-ROC 0.9663 at 17 features and
-0.9918 at 137, the two lines in
-`m3_feature_engineering_roc.png`. It is the tree's own uncapped end point,
-which is what makes it the reference for what capping N costs. There is no
-TabPFN equivalent -- TabPFN was never run on the full training set, and
-could not be: its context is the labelled set it is given.
+- **Models.** TabPFN (`n_estimators=8`) and a tree ensemble (LightGBM, XGBoost, CatBoost, HistGradientBoosting; the `ensemble` score is what is reported).
+- **Label budget N.** 5,000 / 10,000 / 20,000 / 50,000 / 100,000 rows, 50/50 stratified, seed 42, nested prefixes. Both models are fit on byte-identical rows at each N.
+- **Feature lines.** 17 and 137, run independently.
+- **Holdout.** 10,137,155 rows, 637,397 anomalies, buildings disjoint from the fit rows. Scored in full, then split by group.
+- **Metrics.** ROC-AUC and PR-AUC computed within each site and each meter type, not pooled and not reweighted.
+- **Layout.** One table per model; columns are N. The tree tables carry `FULL` on the right: the same tree ensemble trained on the entire training set, pooled ROC 0.9663 at 17 features and 0.9918 at 137 (`m3_feature_engineering_roc.png`). TabPFN has no such column; it was never run on the full training set.
+- **Draw.** One frozen context draw, seed 42. No repetition, so per-group context noise is unmeasured; row-sampling noise is measured for the thin sites in the last section.
+- **Cells not yet produced.** none.
 
 Regenerate with `uv run python scripts/report_m5_matched_context_breakdown.py`.
 
-## Provenance and gates
+## Gates
 
-- Holdout: 10,137,155 rows, 637,397 anomalies.
-- Tree and TabPFN artifacts are asserted to carry identical `raw_index`
-  and identical labels per cell; a cell failing that never reaches the
-  metric code, because the matched-N comparison would not hold.
-- `meter` is recovered positionally from the frozen M3 frame and gated:
-  `building_id` and `site_id` read back at those positions match what the
-  prediction artifacts stored.
-- **Trap.** The two full-data M3 artifacts store `validation_raw_index`
-  ascending while their score and label arrays are in canonical scoring
-  order, so that column contradicts its own file. The published AUCs are
-  unaffected -- score and label are mutually consistent, and scoring
-  against the canonical labels reproduces
-  0.9663 and 0.9918
-  exactly -- but keying rows by that index instead collapses the
-  137-feature line to ROC 0.4933, i.e. noise. They are consumed
-  positionally here and never through their own index.
-- Cells not yet produced: none.
-- Every number comes from the single frozen context draw (seed 42), so
-  the *context* noise is unmeasured per group; the handoff's sd figures
-  (ROC 0.0003 at 137 features, 0.0004 at 17) are pooled, and a per-group
-  sd is necessarily larger. The *sampling* noise is measured, for the
-  groups thin enough for it to bite -- see the last section.
+- Tree and TabPFN artifacts must carry identical `raw_index` and identical labels per cell; a cell failing this never reaches the metric code.
+- `meter` is recovered positionally from the frozen M3 frame; `building_id` and `site_id` read back at those positions must match what the prediction artifacts stored.
+- The two full-data M3 artifacts store `validation_raw_index` ascending while their score and label arrays are in canonical scoring order. They are consumed positionally here and never through that index, which would collapse the 137-feature line to ROC 0.4933.
 
 ## By meter
 
@@ -293,19 +266,9 @@ Regenerate with `uv run python scripts/report_m5_matched_context_breakdown.py`.
 ## Sampling noise on the thin sites
 
 Paired bootstrap over rows, 200 draws, for every site carrying at
-most 3,000 anomalies -- the ones where a PR-AUC gap could plausibly
-be decided by which handful of positives landed in the group. Both
-models are resampled together, so shared row difficulty cancels.
-
-This measures how much the difference would move on another draw of
-*rows*. It does not cover the context draw, which is frozen at seed
-42 everywhere in this grid and remains unmeasured per group.
-
-The measurement mostly refutes the caution it was run to justify:
-at 197 anomalies the sd of the PR difference is 0.008-0.037, so gaps
-like site 4 at 17f/5k (+0.1869) and site 11 at 137f/10k (-0.3210)
-clear it by 7x and 13x. Read them as real, subject to the context
-caveat above.
+most 3,000 anomalies. Both models are resampled on the same rows.
+Measures the row draw only; the context draw is frozen at seed 42
+and is not covered.
 
 | features | N | site | anomalies | TabPFN PR | Trees PR | PR diff | sd | ROC diff | sd |
 | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
