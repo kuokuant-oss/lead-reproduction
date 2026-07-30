@@ -932,6 +932,12 @@ def parent_has_forbidden_imports() -> bool:
 
 
 def main() -> int:
+    # LONG_RUNNING_RESEARCH_LAUNCH_BLOCKED: stale-heartbeat termination is an
+    # auto-kill path. This legacy launcher has no override before migration.
+    raise SystemExit(
+        "Blocked: migrate this legacy long-running research path to atomic "
+        "checkpoints, resume, provenance, and no-timeout execution first."
+    )
     args = parse_args()
     return worker(args) if args.worker else controller(args)
 

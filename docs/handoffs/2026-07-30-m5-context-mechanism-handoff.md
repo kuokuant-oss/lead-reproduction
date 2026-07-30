@@ -47,6 +47,14 @@ No 8.1.0 science; no model fit or inference replicate in this handoff round; no
 192-row scoring; no 24-cell grid; no Path B; no tree refit; no context-curve or
 full-holdout refit; no site transfer; no paper-manuscript change.
 
+## Long-running execution policy
+
+All future research execution must follow the repository-wide
+[`long-running research execution policy`](../policies/long-running-research-execution.md):
+**NO CHECKPOINT, NO LAUNCH**, no automatic timeout, atomic checkpoint/resume
+with provenance validation, and an explicit human authorization before a formal
+run.
+
 ## Artifact map
 
 - Canonical plan: docs/plans/m5-context-construction-paper-plan.md

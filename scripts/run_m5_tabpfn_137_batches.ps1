@@ -7,6 +7,11 @@ param(
     [int]$BatchTimeoutMinutes = 180
 )
 
+# LONG_RUNNING_RESEARCH_LAUNCH_BLOCKED: this legacy runner has a batch
+# wall-clock timeout. It cannot be run until migrated to the repository
+# checkpoint/resume execution contract. There is no override.
+throw "Blocked: migrate this legacy long-running research path to atomic checkpoints, resume, provenance, and no-timeout execution first."
+
 # Drives the remaining 137-feature batches through two A100s, one batch at a
 # time: head and tail run in parallel, and the next batch only starts once both
 # halves of the current one are durably complete.

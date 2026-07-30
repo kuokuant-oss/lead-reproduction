@@ -1665,6 +1665,13 @@ def parent_has_forbidden_imports() -> bool:
 
 
 def main() -> int:
+    # LONG_RUNNING_RESEARCH_LAUNCH_BLOCKED: this legacy runner contains
+    # wall-clock termination logic and cannot run until migrated to the
+    # repository checkpoint/resume execution contract. There is no override.
+    raise SystemExit(
+        "Blocked: migrate this legacy long-running research path to atomic "
+        "checkpoints, resume, provenance, and no-timeout execution first."
+    )
     args = parse_args()
     if args.worker:
         if args.preflight_only:
