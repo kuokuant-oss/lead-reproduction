@@ -74,3 +74,17 @@ run.
   within-meter morphology, or no localization?
 - Are the original-query chilledwater strata sufficiently resolved for future
   boundary readouts?
+
+## Formal E0 execution status — Tranche 1
+
+Completed evidence: Stage I framework commit
+`28815776ad735db624755bcb08c5676bd18dfd60` and formal tranche implementation
+HEAD `d8e59da2c40cb5102367d6a73299e807680f6ca6`.  Formal preflight passed with
+ten inputs and a 4,000-unit manifest.  Identity is 10/10 and base metrics are
+40/40, both completed.  Bootstrap is partially checkpointed at 168/4,000:
+draw IDs 0–41 for each of four meters, with 3,832 pending.  Elapsed execution
+time was 1:16:38.  There is no bootstrap completion marker, no active research
+Python process, and no LOO, segment, finalization, or scientific
+interpretation.  The exact resume point is draw ID 42 per meter under the same
+formal root, manifest, seed mapping, and provenance; it requires explicit
+future authorization.  This partial bootstrap is not completed E0.
