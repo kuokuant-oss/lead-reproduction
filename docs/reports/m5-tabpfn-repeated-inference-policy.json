@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "scientific_tabpfn_version": "8.0.8",
+  "diagnostic_only_versions": ["8.1.0"],
+  "tabpfn_8_1_0_scope": {
+    "allowed_interpretation": "isolated_live_repeat_diagnostic",
+    "excluded_from": ["factorial_estimation", "model_comparison", "path_a_decision", "paper_results"]
+  },
+  "estimand": {
+    "formula": "Y[c,s,a,r] = mu[c,s,a] + epsilon[c,s,a,r]",
+    "cell": "hotwater positive-support x negative-support factorial cell",
+    "context_seed": "s",
+    "scaler_arm": "a",
+    "inference_replicate": "r",
+    "composition_effect": "mu",
+    "measurement_variation": "epsilon"
+  },
+  "variance_pilot": {
+    "status": "designed_not_running",
+    "tabpfn_version": "8.0.8",
+    "checkpoint": "v3",
+    "feature_set": "F4_137",
+    "context_n": 20000,
+    "context_seed": 42,
+    "model_seed": 42,
+    "scaler_arm": "cell_specific",
+    "cells": ["11", "10", "01", "00"],
+    "query": "original_352_row_screening_query",
+    "fits_per_cell": 1,
+    "main_inference_mode": "same_process",
+    "cell_schedule": "pre_generated_seeded_randomized_interleaving",
+    "initial_replicates_per_cell": 8,
+    "maximum_replicates_per_cell": 40,
+    "bounded_metric_ci_half_width_target": 0.015,
+    "continuous_margin_ci_half_width_iqr_multiplier": 0.02,
+    "fresh_process_role": "limited_diagnostic_only"
+  },
+  "forbidden_this_round": [
+    "pilot_execution",
+    "24_cell_grid",
+    "192_row_query_scoring",
+    "path_b",
+    "tree_refit",
+    "full_holdout",
+    "new_tabpfn_version",
+    "paper_manuscript_change"
+  ]
+}

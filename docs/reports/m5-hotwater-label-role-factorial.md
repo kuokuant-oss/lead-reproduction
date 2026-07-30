@@ -87,11 +87,10 @@ spillover.
 | Positive support preserves HW anomaly morphology | Local ranking mechanism | Positive main effect is 3/3 for TabPFN HW rank gap and AUC | Both 1,000-draw clustered CIs cross 0; tree local response differs | More independent HW 0–1 segments/buildings | No new fit under current gate | Treat as descriptive only unless a cluster-stable local effect appears |
 | Frozen scaler explains the factorial | Preprocessing alternative | Tree pilot proves scaling is not invariant | External TabPFN interaction persists under frozen scaler; scaler interaction is small for steam/recall | Larger query replication | None | Reject as sole explanation |
 
-The expansion gate is **not met**. No 5k/100k, full-holdout, or additional seed
-fit is permitted. The external result is a cross-meter supporting observation
-whose steam-positive cells hit an AUC ceiling in every TabPFN seed, and it must
-be tested on a predeclared independent query before deciding whether to archive
-Path A or activate Path B.
+The first-round screen is not an expansion decision. Its local HW negative
+stratum is too small and the external result includes an AUC ceiling, so the
+screen supplies directionally useful composition hypotheses only. It must not
+be used to select or score the independent query.
 
 ## Post-fit audit and replication status
 
@@ -113,13 +112,13 @@ were retained. Under the no-retraining instruction this query cannot be scored.
 The replication is therefore blocked rather than silently replaced by a refit.
 
 That blocker was subsequently addressed by an authorized exact-design refit
-which saved every state, but the predeclared original-query reproduction gate
-failed for TabPFN and its subsequent portable-state reload was also variable.
-Trees reproduced and reloaded exactly. The independent query was consequently
-not scored, Path A is closed as unreproducible under this environment, and the
-table above must be read as initial screening rather than a support-allocation
-finding. See the artifact-recovery and reproduction reports for the exact gate
-and reload diagnostics.
+which saved every state. Its original deterministic reproduction gate failed
+for TabPFN and its portable-state reload was variable, while trees reproduced
+and reloaded exactly. This is execution-variation evidence, not a scientific
+closure of Path A. The independent query remains unscored. The next authorized
+design is a fixed-8.0.8 four-cell repeated-inference variance pilot with one
+fit per cell and replicate-aware factorial estimation; no 24-cell grid, Path B,
+or query scoring is authorized here.
 
 ## Reproducible outputs
 

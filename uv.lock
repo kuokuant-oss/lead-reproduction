@@ -1416,7 +1416,7 @@ dev = [
 ]
 m5 = [
     { name = "psutil", specifier = ">=5.9" },
-    { name = "tabpfn", specifier = ">=3.0" },
+    { name = "tabpfn", specifier = "==8.0.8" },
     { name = "torch", specifier = ">=2.3" },
 ]
 

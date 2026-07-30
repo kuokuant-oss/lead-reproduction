@@ -1,52 +1,36 @@
-# M5 hotwater label-role factorial: exact-design reproduction gate
+# M5 hotwater label-role factorial: recovery comparison
 
-Date: 2026-07-30. This report evaluates the authorized recovery refit on the
-original 352-row screening query before any independent-query scoring.
+**Date:** 2026-07-30
+**Scope:** exact-design 8.0.8 recovery comparison on the original 352-row
+screening query. The 192-row independent query remains frozen and unscored.
 
-## Predeclared gate
+## What was recovered
 
-The pre-fit tolerances are recorded in the artifact-recovery report and in
-`recovery/reproduction_gate.json`: score MAE <= 0.005, Spearman >= 0.999,
-primary-estimand absolute difference <= 0.02, factorial-effect absolute
-difference <= 0.04, and matching effect sign whenever the original magnitude
-is at least 0.01. Primary estimands exclude `recall@FPR=.001`.
+The authorized recovery rebuilt the original manifests and persisted 24 TabPFN
+states, 24 tree ensembles, scalers, replacement maps, digests, and
+query-independent inference entry points. Trees reproduce and reload bit-exactly.
+TabPFN fit-time and reload outputs vary under the observed execution protocol.
 
-## Result: failed — independent query remains unscored
+## Correct interpretation
 
-The 48-cell check failed. Trees passed all 24 cell score and primary-estimand
-checks. TabPFN failed all 24 score checks and 16 primary-estimand checks;
-16 factorial effects exceeded the magnitude tolerance and one required effect
-direction changed. The largest observed TabPFN score MAE was 0.006674, the
-lowest reported Spearman correlation was 0.993613, and local HW effects changed
-enough to invalidate a confirmation claim.
+The former deterministic reproduction gate is retained as a provenance
+comparison, **not** as a scientific stop. Its score/rank thresholds describe
+engineering repeatability of a single call; failing them does not establish that
+the support-role hypothesis is false or that TabPFN cannot estimate composition
+effects. The appropriate estimand is repeated-inference-aware:
 
-The exact results are machine-readable in:
+    Y[c,s,a,r] = μ[c,s,a] + ε[c,s,a,r]
 
-- `data/processed/m5_hotwater_label_factorial/recovery/reproduction_gate.json`;
-- `.../reports/reproduction_cell_comparison.csv`;
-- `.../reports/reproduction_effect_comparison.csv`.
+No historical prediction is promoted as confirmatory evidence. The next
+authorized model work is a separately predeclared, fixed-8.0.8 four-cell
+variance pilot with one fit per cell and retained inference replicates. It will
+estimate cell means and factorial contrasts with replicate-aware uncertainty.
 
-This is a reproducibility stop, not evidence against or for the support-role
-hypothesis. The remaining permitted diagnostic is a no-fit reload check: load
-each just-saved TabPFN state and tree ensemble, rescore the same screening
-query, and compare with the recovery's fit-time score. If state reload is
-stable, the discrepancy is a fresh-TabPFN-fit reproducibility issue; if not,
-state serialization/inference is implicated. Neither outcome authorizes
-independent-query scoring, Path B, or additional factorial refits in this
-round.
+## Constraints retained
 
-## No-fit state reload result
-
-All 48 states load and produce finite scores. Tree reload is bit-exact across
-24 ensembles (MAE 0, maximum absolute difference 0, Spearman 1). TabPFN reload
-is not numerically stable relative to the recovery fit-time score: across 24
-states, maximum MAE is 0.006650, maximum absolute difference is 0.196808, and
-minimum Spearman is 0.995948. Thus the failed reproduction gate cannot be
-attributed solely to a fresh fit; the portable-state inference path itself is
-also variable under the present environment.
-
-This ends the allowed Path-A recovery work. The independent mechanism query is
-not scored, and no claim is updated from it. A future attempt would require a
-separately specified deterministic TabPFN execution investigation (including
-backend/device controls) and a new predeclared reproduction gate; it is not
-authorized in this round.
+- Do not score the 192-row query until the repeated-inference protocol is
+  frozen after the pilot.
+- Do not run Path B, a 24-cell grid, full holdout, a new TabPFN version, trees,
+  or paper-manuscript changes in this recovery round.
+- recall@FPR=.001 remains descriptive on the 352-row query because 176 normal
+  rows have empirical resolution 1/176 = 0.00568.

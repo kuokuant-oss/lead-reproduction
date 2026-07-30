@@ -78,7 +78,10 @@ permitted reproducibility diagnostic before any new scientific decision.
 The no-fit verification is now complete. All 48 states are loadable and finite;
 tree reload is bit-exact. In contrast, TabPFN reload versus its own recovery
 fit-time predictions has maximum MAE 0.006650, maximum absolute difference
-0.196808, and minimum Spearman 0.995948 across 24 states. Portable state
-availability has therefore been recovered, but deterministic TabPFN inference
-has not. This meets the stopping rule: Path A is closed without scoring the
-independent query, and Path B is only a deferred next candidate.
+0.196808, and minimum Spearman 0.995948 across 24 states. Portable-state
+availability has therefore been recovered and repeated-inference variation is
+measured. This supersedes the former deterministic stopping rule: Path A is not
+closed on bit instability. The frozen independent query remains unscored while
+a separately predeclared 8.0.8 repeated-inference variance pilot determines
+whether composition contrasts are estimable with adequate precision. Path B is
+still deferred.
