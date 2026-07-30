@@ -43,6 +43,10 @@ MODELS = ("tabpfn", "trees")
 METER_NAMES = {0: "electricity", 1: "chilledwater", 2: "steam", 3: "hotwater"}
 PRIMARY_GAP_METRICS = ("pr_auc", "roc_auc")
 EXPECTED_VALIDATION_INTERRUPTION_EXIT = 75
+# Human authorization label: AUTHORIZE E0 FORMAL RUN.
+FORMAL_AUTHORIZATION_TOKEN = "AUTHORIZE_E0_FORMAL_RUN"
+FORMAL_BOOTSTRAP_DRAWS_PER_METER = 1_000
+FORMAL_TRANCHE_DRAWS_PER_METER = 42
 
 
 def prediction_path(model: str, context: int) -> Path:
@@ -897,6 +901,287 @@ def _validation_provenance(
     }
 
 
+def formal_bootstrap_manifest() -> list[str]:
+    """The immutable 4,000-unit formal bootstrap universe, in RR order."""
+    return [
+        f"{METER_NAMES[code]}__draw__{draw}"
+        for draw in range(FORMAL_BOOTSTRAP_DRAWS_PER_METER)
+        for code in METER_NAMES
+    ]
+
+
+def formal_tranche_units(
+    store: ResearchCheckpointStore, manifest: list[str], max_new: int
+) -> list[str]:
+    """Select the smallest missing IDs per meter and schedule them round-robin."""
+    completed = store.completed_units(manifest)
+    selected: dict[str, list[str]] = {}
+    for name in METER_NAMES.values():
+        missing = [
+            f"{name}__draw__{draw}"
+            for draw in range(FORMAL_BOOTSTRAP_DRAWS_PER_METER)
+            if f"{name}__draw__{draw}" not in completed
+        ]
+        selected[name] = missing[:max_new]
+    return [
+        selected[name][position]
+        for position in range(
+            max((len(items) for items in selected.values()), default=0)
+        )
+        for name in METER_NAMES.values()
+        if position < len(selected[name])
+    ]
+
+
+def _formal_provenance(
+    args: argparse.Namespace, audit: pd.DataFrame
+) -> dict[str, object]:
+    manifest = formal_bootstrap_manifest()
+    return {
+        "repository": "kuokuant-oss/lead-reproduction",
+        "branch": git_output("branch", "--show-current"),
+        "committed_source_sha": git_output("rev-parse", "HEAD"),
+        "source_file_digest": file_digest(Path(__file__)),
+        "execution_mode": "FORMAL_E0",
+        "inputs": audit.to_dict(orient="records"),
+        "contexts": list(CONTEXTS),
+        "meters": list(METER_NAMES.values()),
+        "learners": list(MODELS),
+        "bootstrap_seed": args.seed,
+        "draw_mapping": "numpy.SeedSequence([bootstrap_seed, meter_code, draw_id])",
+        "metric_definition": "sklearn average_precision_score and roc_auc_score; ranks use average ties",
+        "formal_bootstrap_draws_per_meter": FORMAL_BOOTSTRAP_DRAWS_PER_METER,
+        "formal_bootstrap_expected_units": len(manifest),
+        "formal_bootstrap_manifest_sha256": hashlib.sha256(
+            json.dumps(manifest, separators=(",", ":")).encode()
+        ).hexdigest(),
+        "wall_clock_termination": False,
+        "output_root": str(args.output_root.resolve()),
+        "checkpoint_root": str(args.checkpoint_root.resolve()),
+        "log_root": str(args.log_root.resolve()),
+    }
+
+
+def _formal_root_checks(args: argparse.Namespace) -> None:
+    roots = [
+        args.output_root.resolve(),
+        args.checkpoint_root.resolve(),
+        args.log_root.resolve(),
+    ]
+    if len(set(roots)) != len(roots):
+        raise ValueError("formal output, checkpoint, and log roots must be distinct")
+    validation_root = (PROC / "m5_e0_validation").resolve()
+    if any(
+        root == validation_root or validation_root in root.parents for root in roots
+    ):
+        raise ValueError(
+            "FORMAL_E0 roots must be isolated from NON_SCIENTIFIC_VALIDATION"
+        )
+
+
+def _validate_formal_args(args: argparse.Namespace) -> None:
+    if args.authorization_token != FORMAL_AUTHORIZATION_TOKEN:
+        raise PermissionError(
+            "--formal requires the explicit AUTHORIZE_E0_FORMAL_RUN token"
+        )
+    if not args.resume:
+        raise PermissionError(
+            "--formal requires --resume for deterministic checkpoint recovery"
+        )
+    if args.max_new_draws_per_meter != FORMAL_TRANCHE_DRAWS_PER_METER:
+        raise ValueError("formal tranche 1 requires --max-new-draws-per-meter 42")
+    if args.validation_mode or args.validation_stop_after_units is not None:
+        raise PermissionError("formal execution cannot use validation controls")
+    if args.phase not in (None, "bootstrap"):
+        raise PermissionError(
+            "formal tranche permits only identity, base_metrics, and bootstrap"
+        )
+    _formal_root_checks(args)
+
+
+def _formal_preflight(args: argparse.Namespace) -> int:
+    """Verify formal artifacts and launch conditions without computing metrics."""
+    _formal_root_checks(args)
+    if git_output("branch", "--show-current") != "m5-tabpfn-repro-audit":
+        raise RuntimeError("formal preflight requires m5-tabpfn-repro-audit")
+    if git_output("status", "--short", "--", str(Path(__file__).relative_to(ROOT))):
+        raise RuntimeError("formal preflight refuses uncommitted execution source")
+    for root in (args.output_root, args.checkpoint_root, args.log_root):
+        root.mkdir(parents=True, exist_ok=True)
+        probe = root / ".formal-preflight-write-probe"
+        probe.write_text("ok", encoding="utf-8")
+        probe.unlink()
+    _, _, _, audit = load_predictions()
+    provenance = _formal_provenance(args, audit)
+    bootstrap_store = ResearchCheckpointStore(
+        args.checkpoint_root, "bootstrap", {**provenance, "phase": "bootstrap"}
+    )
+    manifest = formal_bootstrap_manifest()
+    selected = formal_tranche_units(
+        bootstrap_store, manifest, args.max_new_draws_per_meter
+    )
+    payload = {
+        "status": "FORMAL_PREFLIGHT_PASSED",
+        "execution_mode": "FORMAL_E0",
+        "head_sha": provenance["committed_source_sha"],
+        "source_file_digest": provenance["source_file_digest"],
+        "input_count": len(provenance["inputs"]),
+        "manifest_units": len(manifest),
+        "manifest_sha256": provenance["formal_bootstrap_manifest_sha256"],
+        "selected_units": selected,
+        "selected_per_meter": {
+            name: [
+                int(unit.rsplit("__", 1)[-1])
+                for unit in selected
+                if unit.startswith(name + "__")
+            ]
+            for name in METER_NAMES.values()
+        },
+        "roots": {
+            "output": str(args.output_root),
+            "checkpoint": str(args.checkpoint_root),
+            "log": str(args.log_root),
+        },
+        "no_metric_computation": True,
+        "wall_clock_termination": False,
+        "timestamp_utc": datetime.now(UTC).isoformat(),
+    }
+    atomic_write_json(args.output_root / "formal_preflight.json", payload)
+    print(json.dumps(payload, sort_keys=True), flush=True)
+    return 0
+
+
+def _run_formal_tranche(args: argparse.Namespace) -> int:
+    started = time.perf_counter()
+    scores, _, base, audit = load_predictions()
+    provenance = _formal_provenance(args, audit)
+    controller = ValidationStopController(args.checkpoint_root, None)
+
+    identity_store = ResearchCheckpointStore(
+        args.checkpoint_root, "identity", {**provenance, "phase": "identity"}
+    )
+    expected_identity = [
+        f"{row['model']}-{int(row['context_rows'])}" for row in provenance["inputs"]
+    ]
+    identity_heartbeat = PhaseHeartbeat(identity_store, expected_identity)
+    for unit, row in zip(expected_identity, provenance["inputs"], strict=True):
+        _execute_unit(
+            store=identity_store,
+            expected=expected_identity,
+            unit_id=unit,
+            meter=None,
+            rows=int(row["rows"]),
+            compute=lambda row=row: row,
+            controller=controller,
+            heartbeat=identity_heartbeat,
+        )
+    _finish_phase(identity_store, expected_identity, identity_heartbeat)
+
+    metrics, _ = per_meter_metrics(scores, base)
+    base_store = ResearchCheckpointStore(
+        args.checkpoint_root, "base_metrics", {**provenance, "phase": "base_metrics"}
+    )
+    expected_base = [
+        f"{row.model}-{int(row.context_rows)}-{row.meter}"
+        for _, row in metrics.iterrows()
+    ]
+    base_heartbeat = PhaseHeartbeat(base_store, expected_base)
+    for unit, (_, row) in zip(expected_base, metrics.iterrows(), strict=True):
+        _execute_unit(
+            store=base_store,
+            expected=expected_base,
+            unit_id=unit,
+            meter=str(row.meter),
+            rows=int(row.rows),
+            compute=lambda row=row: _record(row),
+            controller=controller,
+            heartbeat=base_heartbeat,
+        )
+    _finish_phase(base_store, expected_base, base_heartbeat)
+
+    bootstrap_store = ResearchCheckpointStore(
+        args.checkpoint_root, "bootstrap", {**provenance, "phase": "bootstrap"}
+    )
+    manifest = formal_bootstrap_manifest()
+    selected = formal_tranche_units(
+        bootstrap_store, manifest, args.max_new_draws_per_meter
+    )
+    heartbeat = PhaseHeartbeat(bootstrap_store, manifest)
+    for unit in selected:
+        name, _, draw_text = unit.partition("__draw__")
+        code = next(
+            code for code, meter_name in METER_NAMES.items() if meter_name == name
+        )
+        draw = int(draw_text)
+
+        def compute_bootstrap(
+            code: int = code, draw: int = draw, name: str = name
+        ) -> dict[str, object]:
+            frame, invalid = bootstrap_unit(
+                scores, base, code=code, draw=draw, seed=args.seed
+            )
+            return {
+                "meter": name,
+                "draw": draw,
+                "records": json.loads(frame.to_json(orient="records")),
+                "invalid": invalid,
+            }
+
+        _execute_unit(
+            store=bootstrap_store,
+            expected=manifest,
+            unit_id=unit,
+            meter=name,
+            rows=int((base.meter == code).sum()),
+            compute=compute_bootstrap,
+            controller=controller,
+            heartbeat=heartbeat,
+        )
+    completed = bootstrap_store.completed_units(manifest)
+    marker = bootstrap_store.phase_root / "COMPLETE.json"
+    if len(completed) == len(manifest):
+        _finish_phase(bootstrap_store, manifest, heartbeat)
+    elif marker.exists():
+        raise CheckpointError(
+            "bootstrap completion marker exists before all 4,000 units"
+        )
+    else:
+        heartbeat._write(
+            status="running",
+            current_unit=None,
+            current_meter=None,
+            completion_marker=None,
+        )
+    summary = {
+        "execution_mode": "FORMAL_E0",
+        "status": "PARTIAL_BOOTSTRAP_TRANCHE"
+        if len(completed) < len(manifest)
+        else "BOOTSTRAP_COMPLETE",
+        "expected_bootstrap_units": len(manifest),
+        "completed_bootstrap_units": len(completed),
+        "newly_computed_units": controller.computed_units,
+        "reused_units": controller.reused_units,
+        "selected_units": selected,
+        "selected_draw_ids": {
+            name: [
+                int(unit.rsplit("__", 1)[-1])
+                for unit in selected
+                if unit.startswith(name + "__")
+            ]
+            for name in METER_NAMES.values()
+        },
+        "bootstrap_complete_marker": str(marker) if marker.exists() else None,
+        "elapsed_seconds": time.perf_counter() - started,
+        "timestamp_utc": datetime.now(UTC).isoformat(),
+    }
+    atomic_write_json(args.output_root / "formal_tranche_summary.json", summary)
+    print(
+        f"FORMAL_E0 tranche checkpointed {len(selected)} bootstrap units; {len(completed)}/{len(manifest)} complete",
+        flush=True,
+    )
+    return 0
+
+
 def _write_invocation_record(root: Path, args: argparse.Namespace) -> None:
     """Record each launcher invocation outside result-affecting provenance."""
     invocation = {
@@ -1509,10 +1794,15 @@ def main() -> int:
     )
     parser.add_argument("--validation-mode", action="store_true")
     parser.add_argument("--formal", action="store_true")
+    parser.add_argument("--authorization-token")
+    parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--max-new-draws-per-meter", type=int)
+    parser.add_argument("--formal-preflight", action="store_true")
     parser.add_argument("--output-root", type=Path, default=PROC / "m5_e0_validation")
     parser.add_argument(
         "--checkpoint-root", type=Path, default=PROC / "m5_e0_validation"
     )
+    parser.add_argument("--log-root", type=Path, default=PROC / "m5_e0_validation")
     parser.add_argument("--bootstrap-draws", type=int, default=None)
     parser.add_argument("--loo-buildings", type=int, default=None)
     parser.add_argument("--segment-draws", type=int, default=None)
@@ -1522,9 +1812,17 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=20260730)
     args = parser.parse_args()
     if args.formal:
-        raise PermissionError(
-            "formal E0 is disabled pending explicit AUTHORIZE E0 FORMAL RUN authorization"
-        )
+        _validate_formal_args(args)
+        if args.formal_preflight:
+            return _formal_preflight(args)
+        return _run_formal_tranche(args)
+    if (
+        args.formal_preflight
+        or args.authorization_token
+        or args.resume
+        or args.max_new_draws_per_meter is not None
+    ):
+        raise PermissionError("formal controls require --formal")
     if not args.validation_mode:
         raise PermissionError(
             "default invocation is safe: specify --validation-mode with deterministic limits"
