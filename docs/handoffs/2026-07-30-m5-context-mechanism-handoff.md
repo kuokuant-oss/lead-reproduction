@@ -50,7 +50,6 @@ full-holdout refit; no site transfer; no paper-manuscript change.
 ## Artifact map
 
 - Canonical plan: docs/plans/m5-context-construction-paper-plan.md
-- Synchronized snapshot: docs/plans/m5-context-construction-paper-plan(6).md
 - C1 specification: docs/plans/m5-chilledwater-mechanism-localization.md
 - E1 report: docs/reports/m5-137-context-mechanism-analysis.md
 - Execution diagnostic: docs/reports/m5-tabpfn-deterministic-execution-audit.md
