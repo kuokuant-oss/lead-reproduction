@@ -5,6 +5,17 @@
 **Scope:** F4/137 features, N=20,000, 50/50 labels, existing 352-row fixed
 query, three context-draw seeds (42, 123, 999), fixed model seed 42.
 
+## Revised role in the meter-specific research narrative
+
+This fixed-query screen is not a hotwater detection result. Hotwater support is
+the Path-A intervention lever; local hotwater AUC/rank readouts are
+manipulation checks and mechanism diagnostics. The future principal outcome is
+steam-positive relative to hotwater-negative ranking and continuous margin.
+Chilledwater is a conditional mechanism-boundary readout after its CPU-only
+localization and query-resolution audit. These historical scores are not
+confirmatory until a fixed 8.0.8 repeated-inference protocol supports
+replicate-aware estimation.
+
 ## Design and provenance
 
 For every seed a pooled-reference context supplied the same 20,000 ordered row

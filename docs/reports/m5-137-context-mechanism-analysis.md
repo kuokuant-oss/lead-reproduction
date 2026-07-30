@@ -141,3 +141,30 @@ segment-clustered uncertainty, and full-holdout/natural-prevalence confirmation.
 Q1 additionally requires a reusable support-allocation diagnostic,
 cross-domain-alignment metric, or context selector and confirmation with a
 second modern tabular learner or usable data construction.
+
+## Paper framing and next CPU-only decisions
+
+This report is Phase-1 localization evidence, not the empirical opening of a
+generic context-size paper. The revised paper question is meter-specific:
+whether TabPFN obtains distinct steam and chilledwater anomaly responses under
+the 137-feature representation, and whether they reflect shared cross-meter
+references, within-meter support, or different mechanisms.
+
+The next planned CPU-only analysis is E0, which will quantify per-meter
+TabPFN-minus-tree PR-AUC/ROC-AUC movement, learner-gap slopes, clustered
+uncertainty, influence, and segment concentration from these existing
+full-holdout artifacts. It must not assert a steam or chilledwater advantage
+until those checks are complete.
+
+The other planned CPU-only analysis is C1 chilledwater localization. Its
+purpose is to distinguish a hotwater-negative reference candidate from a
+different support source, within-meter morphology/representation, or no stable
+localization. Chilledwater's observed reading-regime non-monotonicity in this
+report is a reason for C1, not a mechanism conclusion.
+
+For the future hotwater factorial, steam-positive versus hotwater-negative
+ranking and continuous margin are the principal mechanism outcomes. Hotwater
+local AUC/rank readouts are support-allocation diagnostics. Any future
+chilledwater factorial readout is conditional on a pre-fit row/building/segment
+and pair-resolution audit of the original 352-row query. No fit, independent
+query scoring, Path B, tree refit, or full-holdout rerun is authorized here.

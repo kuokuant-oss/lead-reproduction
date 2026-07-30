@@ -33,6 +33,16 @@ class TestM5RepeatedInferencePlan(unittest.TestCase):
         self.assertEqual(pilot["cells"], ["11", "10", "01", "00"])
         self.assertIn("192_row_query_scoring", policy["forbidden_this_round"])
 
+    def test_endpoint_roles_prioritize_steam_and_guard_chilledwater(self) -> None:
+        policy = json.loads(POLICY.read_text(encoding="utf-8"))
+        endpoints = policy["endpoint_schema"]
+        self.assertEqual(endpoints["steam"]["role"], "primary_path_a_mechanism_outcome")
+        self.assertEqual(
+            endpoints["hotwater"]["role"],
+            "support_lever_and_manipulation_diagnostic",
+        )
+        self.assertTrue(endpoints["chilledwater"]["requires_pre_fit_resolution_audit"])
+
     def test_plan_removes_bit_stability_as_scientific_gate(self) -> None:
         plan = (
             Path(__file__).resolve().parents[1]
@@ -41,7 +51,7 @@ class TestM5RepeatedInferencePlan(unittest.TestCase):
             / "m5-context-construction-paper-plan.md"
         ).read_text(encoding="utf-8")
         self.assertIn("Bit-identical probabilities are not a", plan)
-        self.assertIn("engineering diagnostics only", plan)
+        self.assertIn("artifact diagnostics only", plan)
         self.assertIn("frozen and unscored", plan)
 
 

@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "scientific_tabpfn_version": "8.0.8",
   "diagnostic_only_versions": ["8.1.0"],
   "tabpfn_8_1_0_scope": {
@@ -14,6 +14,38 @@
     "inference_replicate": "r",
     "composition_effect": "mu",
     "measurement_variation": "epsilon"
+  },
+  "endpoint_schema": {
+    "steam": {
+      "role": "primary_path_a_mechanism_outcome",
+      "readouts": [
+        "steam_positive_vs_hotwater_negative_pairwise_auc",
+        "steam_positive_minus_hotwater_negative_score_margin",
+        "steam_positive_global_rank",
+        "steam_positive_within_meter_rank",
+        "steam_anomaly_segment_movement"
+      ]
+    },
+    "hotwater": {
+      "role": "support_lever_and_manipulation_diagnostic",
+      "readouts": [
+        "hw01_anomaly_vs_normal_pairwise_auc",
+        "hw01_within_meter_rank_gap",
+        "hw_anomaly_minus_normal_score_margin"
+      ]
+    },
+    "chilledwater": {
+      "role": "conditional_mechanism_boundary_readout",
+      "requires_pre_fit_resolution_audit": true,
+      "readouts": [
+        "chilledwater_positive_vs_hotwater_negative_pairwise_auc",
+        "chilledwater_positive_minus_hotwater_negative_score_margin",
+        "chilledwater_within_meter_anomaly_vs_normal_auc",
+        "chilledwater_within_meter_rank_gap",
+        "chilledwater_segment_summary",
+        "tabpfn_minus_tree_factorial_response"
+      ]
+    }
   },
   "variance_pilot": {
     "status": "designed_not_running",

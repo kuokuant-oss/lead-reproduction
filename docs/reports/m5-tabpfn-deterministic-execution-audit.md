@@ -56,3 +56,12 @@ The v2c root retains its reused-array/state contracts, stage artifacts,
 timestamps, and gate output. The gate is now historical engineering provenance,
 not a scientific eligibility decision. No existing Path-A prediction or
 recovery artifact was overwritten.
+
+## Role in the revised research plan
+
+This is an engineering/measurement appendix, not a paper narrative. It records
+execution variation so that future 8.0.8 factorial estimates retain
+repeat-inference uncertainty. It cannot choose the steam or chilledwater
+mechanism, establish learner superiority, or block the planned CPU-only E0/C1
+analyses. The canonical plan and repeated-inference policy define the scientific
+endpoints; this report supplies only the measurement constraint.

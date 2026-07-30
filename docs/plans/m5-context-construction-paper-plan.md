@@ -1,157 +1,155 @@
-# M5 137-feature context mechanism plan
+# M5 137-feature meter-specific mechanism plan
 
 **Updated:** 2026-07-30
-**Status:** Path A is retained as a measurement-aware composition experiment.
-No model execution is authorized by this document update. The 192-row query is
-frozen and unscored; Path B and all other deferred work remain paused.
+**Status:** documentation-only planning. No fit, inference replicate, 192-row
+scoring, Path B, tree refit, context-curve rerun, or full-holdout refit is
+authorized by this plan.
+The 192-row independent query remains frozen and unscored.
 
-## Research question and fixed boundary
+## Research question and paper narrative
 
-This study concerns the 137-feature temporal value-change representation in the
-GEPIII building-disjoint task. It is not a generic TabPFN context-size curve or
-a claim that 137 features outperform 17; the 17-feature representation is only
-a targeted counterfactual if later needed.
+The paper asks:
 
-The completed CPU-only analysis of existing 5k/10k/20k/50k/100k full-holdout
-predictions remains fixed Phase-1 evidence: TabPFN and matched-row trees both
-improve within- and cross-meter AUC and recall@global-FPR=.001 from 5k to 100k;
-anomaly within-meter rank rises in all meters while normal movement is near
-zero; hotwater 0–1 normal scores fall more than anomaly scores; and the largest
-TabPFN cross-meter movement is steam-positive versus hotwater-negative.
-Building-influence diagnostics do not support a single-building explanation.
-These results select a composition intervention; they do not establish the
-roles of positive or negative support.
+> Why does TabPFN obtain meter-specific gains for steam and chilledwater
+> anomalies under the 137-feature temporal representation, and do those gains
+> arise from shared cross-meter score references, within-meter anomaly support,
+> or distinct mechanisms?
 
-Site transfer, site-only contexts, transfer matrices, site properties,
-retrieval, 500k scaling, full holdout refits, and representation ablations are
-paused. Per-site slices are diagnostic only. Trees remain the matched-row
-comparator; the completed tree context curves are retained Phase-1 evidence.
+This is not a generic context-size benchmark, a claim of unconditional TabPFN
+superiority, a hotwater detection paper, or a TabPFN reproducibility paper.
+The 137-feature representation is the research object. Matched-row trees are
+the comparator for meter-specific learner response. Hotwater is a candidate
+support source and intervention lever; its local outcomes are manipulation
+checks and mechanism diagnostics, not the principal outcome.
 
-## Fixed scientific version policy
+Completed Phase-1 CPU analysis of existing 5k/10k/20k/50k/100k full-holdout
+predictions establishes rank/score movement and selects hypotheses. It does not
+by itself establish a steam or chilledwater mechanism. Site transfer, retrieval,
+500k scaling, representation ablations, full transfer matrices, and per-site
+stories remain paused; per-site slices are only robustness diagnostics.
 
-> **TabPFN 8.0.8 is the fixed scientific version for this study. TabPFN 8.1.0
-> was used only as an isolated live-repeat diagnostic and is not used for
-> factorial estimation or model comparison.**
+## Fixed version and measurement policy
 
-All existing context-size results, Path-A screening/recovery artifacts, and
-matched-tree comparisons use 8.0.8. The isolated 8.1.0 v2c run reused the
-8.0.8 frozen arrays/scaler and demonstrated live-repeat variation of comparable
-order; it is neither a version replacement nor formal factorial evidence.
-Its retained R1–R3 artifacts belong only in the execution-audit appendix.
+TabPFN 8.0.8 is the only scientific version. TabPFN 8.1.0 is an isolated
+live-repeat diagnostic, excluded from factorial estimation, learner comparison,
+Path-A decisions, and paper results.
 
-## Path A: repeated-inference estimand
+For factorial cell c, context seed s, scaler arm a, and repeated inference r:
 
-Path A asks whether allocating hotwater positive and negative support changes
-score ordering. For factorial cell \(c\), context seed \(s\), scaler arm \(a\),
-and repeated inference from one fitted state \(r\), analyse
+    Y[c,s,a,r] = mu[c,s,a] + epsilon[c,s,a,r]
 
-\[
-Y[c,s,a,r] = \mu[c,s,a] + \epsilon[c,s,a,r].
-\]
+mu is the training-composition estimand and epsilon is repeat-inference
+measurement variation. The deterministic lifecycle thresholds remain engineering
+artifact diagnostics only; they are not a scientific gate. Trees remain
+bit-exact fixed comparators and receive no artificial replicate noise.
+Bit-identical probabilities are not a scientific eligibility criterion.
 
-`mu` is the training-composition estimand; `epsilon` is observed
-repeat-inference measurement variation. Bit-identical probabilities are not a
-scientific eligibility criterion. Estimate cell means and the positive-support,
-negative-support, positive×negative, and scaler-arm contrasts while retaining
-the distribution over inference replicates. The interaction is
-`(cell11 - cell10) - (cell01 - cell00)`.
+## Experiment map
 
-Do not pair replicate IDs between cells unless a controlled shared random-state
-mechanism is established. Use cell-level replicate distributions with
-independent-replicate variance propagation or a hierarchical/cluster-bootstrap
-analysis; context seed is a higher-level source of variation and inference
-replicate is nested under its fitted state. Never average row probabilities
-before calculating AUC, choose favourable calls, call inference calls new fits,
-or ignore within-execution dependence. Existing tree states are bit-exact and
-receive no artificial replicate noise.
+| Stage | Scientific role | Data | New fit | Primary outcome | Status |
+| --- | --- | --- | --- | --- | --- |
+| E0 | meter-specific learner-gap characterization | existing natural-prevalence full-holdout predictions, 5k-100k | no | steam/chilledwater TabPFN-minus-tree PR-AUC and ROC-AUC movement | planned CPU analysis |
+| E1 | context mechanism localization | existing predictions and row/segment artifacts | no | within/cross-meter score and rank movement | completed |
+| E2 / C1 | chilledwater localization | existing predictions and row/segment artifacts | no | candidate support or morphology source | planned CPU analysis |
+| E3 | 8.0.8 variance pilot | original 352-row query | four fits, only after authorization | repeated-inference cell estimands | next fit candidate; not authorized |
+| E4 | formal Path A | 3 seeds x 4 cells x 2 scaler arms | conditional | steam cross-meter response; chilledwater boundary readouts | conditional |
+| E5 | independent replication | frozen 192-row query | no new fit if valid states exist | predeclared steam/chilledwater endpoints | locked |
+| E6 | targeted confirmation | natural-prevalence targeted/full holdout | conditional | replicated mechanism | deferred |
+| E7 | chilledwater intervention | only if C1 identifies a distinct mechanism | conditional | chilledwater mechanism | deferred |
 
-## Next authorized design: 8.0.8 variance pilot (not running now)
+### E0: meter-specific learner-gap characterization
 
-The next model work, only after separate authorization, is a 8.0.8 repeated-
-inference variance pilot. It is not a 24-cell recovery, independent-query
-replication, Path B fit, tree refit, or context-curve run.
+Use only existing full-holdout predictions to report per-meter PR-AUC and
+ROC-AUC for TabPFN and trees at each context size, their paired difference, and
+the steam/chilledwater learner-gap slope. Include building-clustered bootstrap,
+leave-one-building influence, and anomaly-segment concentration. Electricity is
+a counterexample, not a claim of universal TabPFN advantage. Interpret observed
+advantages without a formal significance claim until clustered uncertainty and
+positive-ranking behaviour are available.
 
-| Fixed item | Contract |
-| --- | --- |
-| Context/model | v3 checkpoint; F4 137 features; N=20,000; context seed 42; model seed 42; cell-specific scaler |
-| Cells | `11` pos/neg present, `10` pos present/neg excluded, `01` pos excluded/neg present, `00` both excluded |
-| Inputs | Original 352-row screening query, original ordered manifests, replacement maps, row/scaler/checkpoint digests, and TabPFN constructor |
-| Fits | One 8.0.8 fit and persisted state per cell; no rebuild of F4 arrays |
-| Main replicates | Same-process predictions from each fitted state; all cells are interleaved by one pre-generated, seeded randomized schedule |
-| Diagnostic only | A limited fresh-process saved-state comparison, stored separately; it is not the main variance distribution |
-| Prohibited | 192-row query, 24-cell grid, Path B, new version test, tree fit, full holdout, or context-size work |
+E0 is a CPU-only analysis specification. It must not trigger a fit if a required
+artifact is absent; report the missing artifact instead.
 
-Each replicate must preserve row probabilities, available per-estimator
-probabilities/raw logits, global and within-meter ranks, raw identities,
-process/device metadata, replicate index, randomized schedule position,
-timestamps, and state/query/scaler/checkpoint digests. Per-replicate readouts
-are HW 0–1 anomaly-vs-normal AUC and rank gap, steam-positive vs
-hotwater-negative AUC, continuous steam-minus-HW-negative and HW-anomaly-minus-
-normal margins, plus relevant segment summaries.
+### E1: completed context localization
 
-### Predeclared pilot sizing and stops
+E1 found broad rank improvement for both learners, positive anomaly
+within-meter rank movement across meters, hotwater 0-1 normal score reduction
+larger than anomaly score reduction, and a large steam-positive versus
+hotwater-negative cross-meter movement. It supports a hotwater-support
+intervention hypothesis, not a settled mechanism.
 
-The pilot starts with **8 completed same-process replicates per cell**, executed
-in complete four-cell schedule blocks, and may use at most **40 replicates per
-cell**. After each complete block from the initial batch onward, use a 95% t
-interval over a cell's inference replicates. A measurement target is met when
-the half-width is at most **0.015** for every bounded AUC/rank primary readout
-and at most **0.02 × the frozen fit-time pooled score IQR** for each continuous
-margin. The IQR is recorded before repeats begin and is never re-estimated for
-this threshold.
+### E2 / C1: chilledwater CPU-only localization
 
-Stop early for a *clear measurable composition signal* only when the target is
-met, at least one pre-specified factorial contrast has a 95% interval excluding
-zero, its absolute contrast exceeds twice its Monte-Carlo standard error, and
-its sign is unchanged in the two most recent complete schedule blocks. Stop at
-the cap for *infeasible precision* when the target remains unmet for two or
-more primary readouts, or when both ranking and continuous-margin contrasts are
-indistinguishable from within-cell inference variation at the cap. These are
-pilot feasibility decisions, not a scientific finding from one seed.
+C1 is fully specified in
+docs/plans/m5-chilledwater-mechanism-localization.md. It uses existing
+5k-100k prediction plus row/segment artifacts only. It must determine whether
+chilledwater is more consistent with the hotwater-negative reference candidate,
+a different support source, within-meter morphology/representation, or no stable
+localization. It cannot launch a fit.
 
-## Pilot decision paths
+## Steam Path A: controlled support intervention
 
-1. **Composition measurable:** freeze the 8.0.8 repeated-inference protocol,
-   then plan the formal three-context-seed × four-cell × two-scaler-arm Path A
-   study with replicate-aware clustered uncertainty.
-2. **Local HW unreliable but cross-meter/margin readout measurable:** retain
-   local HW as screening/diagnostic, make the pre-specified steam readout the
-   primary candidate, and consider the 192-row independent query only after
-   the full protocol is frozen.
-3. **Measurement infeasibility:** only if within-cell variation is comparable
-   to composition separation, the cap cannot meet precision, and both ranking
-   and continuous margins fail. Report TabPFN+query measurement infeasibility
-   separately; tree exactness does not prove a TabPFN mechanism.
+The future N=20k hotwater positive-support x negative-support 2x2 factorial is
+organized around steam, not hotwater.
 
-The frozen 192-row query cannot choose pilot endpoints, directions, replicate
-counts, or stopping rules. It remains unscored until the full repeated-
-inference protocol is frozen.
+- Intervention: allocate hotwater positive and negative support.
+- Principal mechanism outcome: steam-positive relative to hotwater-negative.
+- Candidate mechanism: hotwater negative support supplies a cross-meter,
+  normal-side score reference.
+- Local hotwater AUC/rank gap: manipulation check and mechanism diagnostic.
+- Scaler arm: preprocessing-geometry test.
+- Trees: matched-row fixed comparator.
+- TabPFN: 8.0.8 repeated-inference measurement process.
 
-## Deterministic-execution audit: engineering evidence only
+Primary steam readouts are pairwise AUC, continuous score margin, global and
+within-meter rank, anomaly-segment movement, factorial contrasts, scaler-arm
+interaction, context-seed consistency, and building-/segment-clustered
+uncertainty. Do not require a local hotwater endpoint to carry the principal
+claim.
 
-The audit found live-repeat variation before saving under both 8.0.8
-`low_memory` and 8.0.8 `fit_preprocessors`; same- and fresh-process reloads do
-not remove it. The 8.1.0 diagnostic R1–R3 shows the same issue rather than a
-direct version remedy. The earlier MAE/max/Spearman thresholds are retained as
-engineering diagnostics only; none is a scientific gate for Path A, a reason
-to block the 192-row query indefinitely, or a criterion for abandoning TabPFN.
+## Chilledwater: mechanism-boundary readouts
 
-## Mechanism alternatives and stopping conditions
+If and only if the 352-row query has adequate pre-fit chilledwater strata after
+a resolution audit, add these as secondary boundary readouts to the 8.0.8
+variance pilot and then formal Path A:
 
-Path B (past/future diff/ratio targeted contrasts) is deferred and must not be
-started in this round. It becomes the next candidate only after Path A's
-repeated-inference pilot makes one of the three decisions above. Do not promote
-a mechanism claim if it exists only at a .5 threshold, lacks stable pairwise or
-fixed-FPR support where resolution permits, is driven by one building/few
-segments, reverses across context seeds, or has no predictable intervention
-response.
+- chilledwater-positive versus hotwater-negative pairwise AUC;
+- continuous chilledwater-positive minus hotwater-negative score margin;
+- chilledwater-positive versus other negative-meter groups;
+- chilledwater within-meter anomaly-vs-normal AUC and rank gap;
+- chilledwater positive/negative score and rank movement;
+- chilledwater anomaly-segment summaries; and
+- TabPFN-minus-tree factorial-response difference.
 
-## Submission thresholds
+Before any pilot result is interpreted, the resolution audit must report rows,
+buildings, segments, valid pair counts, AUC resolution, and building/segment
+concentration for each chilledwater stratum. These endpoints distinguish a
+shared hotwater-negative reference from a steam-only mechanism; they do not
+make a chilledwater mechanism claim by themselves.
 
-**Q2 minimum:** one clear empirical finding; an intervention or representation
-contrast supporting its mechanism; at least three context seeds; building- and
-segment-clustered uncertainty; full-holdout and natural-prevalence confirmation.
+## Variance pilot and conditional continuation
 
-**Q1 extension:** the Q2 path plus a reusable support-allocation diagnostic,
-cross-domain alignment metric, or context selector, confirmed with a second
-modern tabular learner or usable second data construction.
+The next fit candidate remains the fixed-8.0.8 variance pilot: v3 checkpoint,
+F4 137 features, N=20,000, seed 42, model seed 42, cell-specific scaler, the
+four original cells, original 352-row query, one fit per cell, persisted state,
+and retained same-process inference replicates. Cells must follow a
+pre-generated seeded interleaved schedule. Initial batch: 8 completed repeats
+per cell; cap: 40. Fresh-process reload is limited device/process diagnostic.
+
+The pilot is designed but unauthorized. It cannot score the 192-row query,
+select its endpoints, alter C1, or run a 24-cell grid. Formal Path A follows
+only if the measurement process supports replicate-aware composition estimates
+with the predeclared precision and stopping rules in the policy JSON.
+
+## Evidence chain and hard boundaries
+
+A Q2-ready chain is: meter-specific empirical opening (E0), CPU localization
+(E1/C1), controlled steam intervention, repeat-aware TabPFN estimation,
+matched-tree comparison, three context seeds, building-/segment-clustered
+uncertainty, frozen independent replication, and targeted natural-prevalence
+confirmation. A hotwater intervention does not automatically establish a
+chilledwater mechanism.
+
+Do not run 8.1.0 as science, the 192-row query, a 24-cell grid, Path B, tree
+refits, context-curve fits, site transfer, or manuscript conclusion changes in
+this planning round.
