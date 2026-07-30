@@ -29,6 +29,25 @@ from .bdg2 import load_bdg2_frame
 from .evaluate import classification_metrics
 from .features import add_value_change_features
 from .io import write_json_with_provenance
+from .m5_context import (
+    M5_CONTEXT_ROOT,
+    M5_CONTEXT_SCHEMA_VERSION,
+    M5_HOLDOUT_RULE,
+    M5_SENTINEL_SITES,
+    M5_FIT_RULE,
+    METER_NAME_TO_ID,
+    array_sha256,
+    build_context_manifest,
+    build_query_artifact,
+    context_indices,
+    context_summary,
+    feature_names,
+    manifest_path,
+    parse_context_tag,
+    protocol_source,
+    query_paths,
+    validate_context_manifest,
+)
 from .sample import downsample_indices
 from .split import assert_no_building_overlap, leave_site_out_mask, split_mask
 
@@ -58,4 +77,21 @@ __all__ = [
     "downsample_indices",
     "classification_metrics",
     "write_json_with_provenance",
+    "M5_CONTEXT_ROOT",
+    "M5_CONTEXT_SCHEMA_VERSION",
+    "M5_FIT_RULE",
+    "M5_HOLDOUT_RULE",
+    "M5_SENTINEL_SITES",
+    "METER_NAME_TO_ID",
+    "array_sha256",
+    "build_context_manifest",
+    "build_query_artifact",
+    "context_indices",
+    "context_summary",
+    "feature_names",
+    "manifest_path",
+    "parse_context_tag",
+    "protocol_source",
+    "query_paths",
+    "validate_context_manifest",
 ]
