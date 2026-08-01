@@ -1,0 +1,1905 @@
+{
+  "contrasts": {
+    "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+      "cell_specific": {
+        "tabpfn": {
+          "cell_means_by_seed": {
+            "123": {
+              "00": 0.9185012075377585,
+              "01": 0.9142400686848191,
+              "10": 0.9109964192410871,
+              "11": 0.9120730503250911
+            },
+            "42": {
+              "00": 0.9211085988728769,
+              "01": 0.9161510248526383,
+              "10": 0.9142421109576162,
+              "11": 0.9168577843792036
+            },
+            "999": {
+              "00": 0.9037242244004347,
+              "01": 0.8989245828165622,
+              "10": 0.8962870111043344,
+              "11": 0.9008367143349574
+            }
+          },
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.0009627244534726742,
+              "per_seed": {
+                "123": -0.0015922538844677092,
+                "42": -0.0011709502993255683,
+                "999": -0.00012496917662474516
+              },
+              "range": 0.001467284707842964,
+              "sample_sd": 0.0007554797188729277,
+              "sign_consistency": "3/3 negative"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.003559436137133313,
+              "per_seed": {
+                "123": -0.00483590332819972,
+                "42": -0.0030798641943476923,
+                "999": -0.002762540888852527
+              },
+              "range": 0.0020733624393471928,
+              "sample_sd": 0.0011167810382766697,
+              "sign_consistency": "3/3 negative"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.007420120731088294,
+              "per_seed": {
+                "123": 0.0053377699369434595,
+                "42": 0.00757324744182597,
+                "999": 0.009349344814495453
+              },
+              "range": 0.004011574877551993,
+              "sample_sd": 0.002010166433832676,
+              "sign_consistency": "3/3 positive"
+            }
+          }
+        },
+        "tabpfn_minus_tree": {
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.000697902080427563,
+              "per_seed": {
+                "123": 0.0014944904659444092,
+                "42": -0.003848470563440287,
+                "999": 0.004447686338778567
+              },
+              "range": 0.008296156902218854,
+              "sample_sd": 0.004205052868694237,
+              "sign_consistency": "2/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.005167390555489722,
+              "per_seed": {
+                "123": -0.007365556176324617,
+                "42": -0.004658788406828762,
+                "999": -0.0034778270833157876
+              },
+              "range": 0.0038877290930088293,
+              "sample_sd": 0.001993142364301588,
+              "sign_consistency": "3/3 negative"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.008625857846557968,
+              "per_seed": {
+                "123": 0.006923911988963027,
+                "42": 0.012463366056465475,
+                "999": 0.006490295494245402
+              },
+              "range": 0.005973070562220073,
+              "sample_sd": 0.0033304440787909105,
+              "sign_consistency": "3/3 positive"
+            }
+          }
+        },
+        "tree": {
+          "cell_means_by_seed": {
+            "123": {
+              "00": 0.9036507289797555,
+              "01": 0.9013570556553532,
+              "10": 0.9069734528538902,
+              "11": 0.9030936374774683
+            },
+            "42": {
+              "00": 0.9109091803566116,
+              "01": 0.9160317599280461,
+              "10": 0.9149331638764124,
+              "11": 0.9151656248332074
+            },
+            "999": {
+              "00": 0.9015436527351994,
+              "01": 0.8955414725596711,
+              "10": 0.9008294142695377,
+              "11": 0.8976862834142594
+            }
+          },
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.0016606265339002373,
+              "per_seed": {
+                "123": -0.0030867443504121184,
+                "42": 0.002677520264114719,
+                "999": -0.004572655515403312
+              },
+              "range": 0.007250175779518031,
+              "sample_sd": 0.003829702498681449,
+              "sign_consistency": "2/3 negative"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.0016079544183564092,
+              "per_seed": {
+                "123": 0.002529652848124897,
+                "42": 0.0015789242124810698,
+                "999": 0.0007152861944632605
+              },
+              "range": 0.0018143666536616365,
+              "sample_sd": 0.0009075316265121039,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.0012057371154696739,
+              "per_seed": {
+                "123": -0.001586142052019568,
+                "42": -0.004890118614639505,
+                "999": 0.002859049320250051
+              },
+              "range": 0.007749167934889556,
+              "sample_sd": 0.0038885642411555657,
+              "sign_consistency": "2/3 negative"
+            }
+          }
+        }
+      },
+      "frozen_reference": {
+        "tabpfn": {
+          "cell_means_by_seed": {
+            "123": {
+              "00": 0.9182373382297442,
+              "01": 0.9150408507658199,
+              "10": 0.9102497416080269,
+              "11": 0.9111965339239987
+            },
+            "42": {
+              "00": 0.9207390419378498,
+              "01": 0.9156936430159703,
+              "10": 0.9146182917885994,
+              "11": 0.9166267676959592
+            },
+            "999": {
+              "00": 0.9053700320104667,
+              "01": 0.8964714176759117,
+              "10": 0.896209075248521,
+              "11": 0.9021671194216196
+            }
+          },
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.0013711980539881097,
+              "per_seed": {
+                "123": -0.0011248475739762398,
+                "42": -0.0015184615072598717,
+                "999": -0.0014702850807282175
+              },
+              "range": 0.0003936139332836319,
+              "sample_sd": 0.0002147013303868865,
+              "sign_consistency": "3/3 negative"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.0034141323248396325,
+              "per_seed": {
+                "123": -0.005915956731769256,
+                "42": -0.0025938127346307738,
+                "999": -0.001732627508118867
+              },
+              "range": 0.004183329223650389,
+              "sample_sd": 0.002209016527987549,
+              "sign_consistency": "3/3 negative"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.008684604372263038,
+              "per_seed": {
+                "123": 0.004143279779896147,
+                "42": 0.007053874829239248,
+                "999": 0.01485665850765372
+              },
+              "range": 0.010713378727757572,
+              "sample_sd": 0.005539727436703005,
+              "sign_consistency": "3/3 positive"
+            }
+          }
+        },
+        "tabpfn_minus_tree": {
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.00011742676831734873,
+              "per_seed": {
+                "123": 0.0008645748150115651,
+                "42": -0.004129981179460174,
+                "999": 0.0029131260594965624
+              },
+              "range": 0.007043107238956736,
+              "sample_sd": 0.003622786941997358,
+              "sign_consistency": "2/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.0030306886515916176,
+              "per_seed": {
+                "123": -0.0063973822650496,
+                "42": -0.000496878847343396,
+                "999": -0.0021978048423818564
+              },
+              "range": 0.005900503417706204,
+              "sample_sd": 0.0030371461481666423,
+              "sign_consistency": "3/3 negative"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.011112432120417756,
+              "per_seed": {
+                "123": 0.003950697570530792,
+                "42": 0.014513429003386591,
+                "999": 0.014873169787335883
+              },
+              "range": 0.01092247221680509,
+              "sample_sd": 0.0062048517049316,
+              "sign_consistency": "3/3 positive"
+            }
+          }
+        },
+        "tree": {
+          "cell_means_by_seed": {
+            "123": {
+              "00": 0.9046016343331758,
+              "01": 0.9025159208395053,
+              "10": 0.9049867687617734,
+              "11": 0.9030936374774683
+            },
+            "42": {
+              "00": 0.9146510390482945,
+              "01": 0.9209923358075685,
+              "10": 0.9162838822480808,
+              "11": 0.9151656248332074
+            },
+            "999": {
+              "00": 0.9016045172202212,
+              "01": 0.8972293617198375,
+              "10": 0.9020779501943252,
+              "11": 0.8976862834142594
+            }
+          },
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.001253771285670761,
+              "per_seed": {
+                "123": -0.001989422388987805,
+                "42": 0.002611519672200302,
+                "999": -0.00438341114022478
+              },
+              "range": 0.006994930812425082,
+              "sample_sd": 0.0035550177463709153,
+              "sign_consistency": "2/3 negative"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.0003834436732480147,
+              "per_seed": {
+                "123": 0.0004814255332803441,
+                "42": -0.0020969338872873777,
+                "999": 0.00046517733426298946
+              },
+              "range": 0.002578359420567722,
+              "sample_sd": 0.001483948292966882,
+              "sign_consistency": "2/3 positive"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.002427827748154717,
+              "per_seed": {
+                "123": 0.00019258220936535508,
+                "42": -0.0074595541741473426,
+                "999": -1.651127968216315e-05
+              },
+              "range": 0.007652136383512698,
+              "sample_sd": 0.004358856861760306,
+              "sign_consistency": "2/3 negative"
+            }
+          }
+        }
+      },
+      "scaler_interaction": {
+        "tabpfn": {
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.00040847360051543546,
+              "per_seed": {
+                "123": 0.0004674063104914694,
+                "42": -0.00034751120793430346,
+                "999": -0.0013453159041034723
+              },
+              "range": 0.0018127222145949418,
+              "sample_sd": 0.0009078974428884628,
+              "sign_consistency": "2/3 negative"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.0001453038122936808,
+              "per_seed": {
+                "123": -0.0010800534035695364,
+                "42": 0.00048605145971691854,
+                "999": 0.0010299133807336602
+              },
+              "range": 0.0021099667843031966,
+              "sample_sd": 0.0010954778305077863,
+              "sign_consistency": "2/3 positive"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.0012644836411747444,
+              "per_seed": {
+                "123": -0.001194490157047312,
+                "42": -0.0005193726125867215,
+                "999": 0.005507313693158267
+              },
+              "range": 0.006701803850205579,
+              "sample_sd": 0.0036898714154046746,
+              "sign_consistency": "2/3 negative"
+            }
+          }
+        },
+        "tabpfn_minus_tree": {
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.0008153288487449117,
+              "per_seed": {
+                "123": -0.0006299156509328441,
+                "42": -0.0002815106160198866,
+                "999": -0.0015345602792820046
+              },
+              "range": 0.001253049663262118,
+              "sample_sd": 0.000646774230386848,
+              "sign_consistency": "3/3 negative"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.0021367019038981048,
+              "per_seed": {
+                "123": 0.0009681739112750165,
+                "42": 0.004161909559485366,
+                "999": 0.0012800222409339312
+              },
+              "range": 0.0031937356482103496,
+              "sample_sd": 0.0017607986487286678,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.0024865742738597874,
+              "per_seed": {
+                "123": -0.002973214418432235,
+                "42": 0.0020500629469211162,
+                "999": 0.008382874293090481
+              },
+              "range": 0.011356088711522716,
+              "sample_sd": 0.005690614581036282,
+              "sign_consistency": "2/3 positive"
+            }
+          }
+        },
+        "tree": {
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.0004068552482294763,
+              "per_seed": {
+                "123": 0.0010973219614243135,
+                "42": -6.600059191441687e-05,
+                "999": 0.0001892443751785322
+              },
+              "range": 0.0011633225533387304,
+              "sample_sd": 0.0006114292353405513,
+              "sign_consistency": "2/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.001991398091604424,
+              "per_seed": {
+                "123": -0.002048227314844553,
+                "42": -0.0036758580997684476,
+                "999": -0.000250108860200271
+              },
+              "range": 0.0034257492395681766,
+              "sample_sd": 0.001713581522297974,
+              "sign_consistency": "3/3 negative"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.001222090632685043,
+              "per_seed": {
+                "123": 0.001778724261384923,
+                "42": -0.0025694355595078378,
+                "999": -0.0028755605999322142
+              },
+              "range": 0.004654284861317137,
+              "sample_sd": 0.0026032855503090348,
+              "sign_consistency": "2/3 negative"
+            }
+          }
+        }
+      }
+    },
+    "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+      "cell_specific": {
+        "tabpfn": {
+          "cell_means_by_seed": {
+            "123": {
+              "00": 0.994964599609375,
+              "01": 0.9952392578125,
+              "10": 0.9949951171875,
+              "11": 0.994598388671875
+            },
+            "42": {
+              "00": 0.99896240234375,
+              "01": 0.99896240234375,
+              "10": 0.99884033203125,
+              "11": 0.99853515625
+            },
+            "999": {
+              "00": 0.997314453125,
+              "01": 0.997283935546875,
+              "10": 0.997283935546875,
+              "11": 0.99725341796875
+            }
+          },
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -8.138020833333333e-05,
+              "per_seed": {
+                "123": -6.103515625e-05,
+                "42": -0.000152587890625,
+                "999": -3.0517578125e-05
+              },
+              "range": 0.0001220703125,
+              "sample_sd": 6.352740476886392e-05,
+              "sign_consistency": "3/3 negative"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.00020345052083333334,
+              "per_seed": {
+                "123": -0.00030517578125,
+                "42": -0.000274658203125,
+                "999": -3.0517578125e-05
+              },
+              "range": 0.000274658203125,
+              "sample_sd": 0.0001505396381322097,
+              "sign_consistency": "3/3 negative"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.0003255208333333333,
+              "per_seed": {
+                "123": -0.00067138671875,
+                "42": -0.00030517578125,
+                "999": 0.0
+              },
+              "range": 0.00067138671875,
+              "sample_sd": 0.00033615542891150525,
+              "sign_consistency": "2/3 negative"
+            }
+          }
+        },
+        "tabpfn_minus_tree": {
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.0006103515625,
+              "per_seed": {
+                "123": 0.00152587890625,
+                "42": -0.000640869140625,
+                "999": 0.000946044921875
+              },
+              "range": 0.002166748046875,
+              "sample_sd": 0.0011217026336358096,
+              "sign_consistency": "2/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.0004069010416666667,
+              "per_seed": {
+                "123": -0.00140380859375,
+                "42": 0.000457763671875,
+                "999": -0.000274658203125
+              },
+              "range": 0.001861572265625,
+              "sample_sd": 0.0009378053909501784,
+              "sign_consistency": "2/3 negative"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.0010579427083333333,
+              "per_seed": {
+                "123": -0.00091552734375,
+                "42": -0.00030517578125,
+                "999": -0.001953125
+              },
+              "range": 0.00164794921875,
+              "sample_sd": 0.0008331541027605496,
+              "sign_consistency": "3/3 negative"
+            }
+          }
+        },
+        "tree": {
+          "cell_means_by_seed": {
+            "123": {
+              "00": 0.989013671875,
+              "01": 0.9873046875,
+              "10": 0.989990234375,
+              "11": 0.988525390625
+            },
+            "42": {
+              "00": 0.99755859375,
+              "01": 0.998046875,
+              "10": 0.996826171875,
+              "11": 0.997314453125
+            },
+            "999": {
+              "00": 0.99755859375,
+              "01": 0.99560546875,
+              "10": 0.996826171875,
+              "11": 0.996826171875
+            }
+          },
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.0006917317708333334,
+              "per_seed": {
+                "123": -0.0015869140625,
+                "42": 0.00048828125,
+                "999": -0.0009765625
+              },
+              "range": 0.0020751953125,
+              "sample_sd": 0.001066515496588636,
+              "sign_consistency": "2/3 negative"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.00020345052083333334,
+              "per_seed": {
+                "123": 0.0010986328125,
+                "42": -0.000732421875,
+                "999": 0.000244140625
+              },
+              "range": 0.0018310546875,
+              "sample_sd": 0.0009162052611651776,
+              "sign_consistency": "2/3 positive"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.000732421875,
+              "per_seed": {
+                "123": 0.000244140625,
+                "42": 0.0,
+                "999": 0.001953125
+              },
+              "range": 0.001953125,
+              "sample_sd": 0.0010641843123878599,
+              "sign_consistency": "2/3 positive"
+            }
+          }
+        }
+      },
+      "frozen_reference": {
+        "tabpfn": {
+          "cell_means_by_seed": {
+            "123": {
+              "00": 0.99432373046875,
+              "01": 0.995330810546875,
+              "10": 0.994720458984375,
+              "11": 0.9947509765625
+            },
+            "42": {
+              "00": 0.999176025390625,
+              "01": 0.998748779296875,
+              "10": 0.998809814453125,
+              "11": 0.99853515625
+            },
+            "999": {
+              "00": 0.997344970703125,
+              "01": 0.997283935546875,
+              "10": 0.9971923828125,
+              "11": 0.99737548828125
+            }
+          },
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 7.62939453125e-05,
+              "per_seed": {
+                "123": 0.000518798828125,
+                "42": -0.0003509521484375,
+                "999": 6.103515625e-05
+              },
+              "range": 0.0008697509765625,
+              "sample_sd": 0.0004350762154963151,
+              "sign_consistency": "2/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.0001373291015625,
+              "per_seed": {
+                "123": -9.1552734375e-05,
+                "42": -0.0002899169921875,
+                "999": -3.0517578125e-05
+              },
+              "range": 0.0002593994140625,
+              "sample_sd": 0.00013562308376030867,
+              "sign_consistency": "3/3 negative"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.00019327799479166666,
+              "per_seed": {
+                "123": -0.0009765625,
+                "42": 0.000152587890625,
+                "999": 0.000244140625
+              },
+              "range": 0.001220703125,
+              "sample_sd": 0.0006798870772911355,
+              "sign_consistency": "2/3 positive"
+            }
+          }
+        },
+        "tabpfn_minus_tree": {
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.0007680257161458334,
+              "per_seed": {
+                "123": 0.002716064453125,
+                "42": -0.0003509521484375,
+                "999": -6.103515625e-05
+              },
+              "range": 0.0030670166015625,
+              "sample_sd": 0.001693267302043095,
+              "sign_consistency": "2/3 negative"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -9.663899739583333e-05,
+              "per_seed": {
+                "123": -0.000823974609375,
+                "42": 0.0004425048828125,
+                "999": 9.1552734375e-05
+              },
+              "range": 0.0012664794921875,
+              "sample_sd": 0.0006538766488895715,
+              "sign_consistency": "2/3 positive"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.0004374186197916667,
+              "per_seed": {
+                "123": -0.0029296875,
+                "42": 0.000640869140625,
+                "999": 0.0009765625
+              },
+              "range": 0.00390625,
+              "sample_sd": 0.002164884670443969,
+              "sign_consistency": "2/3 positive"
+            }
+          }
+        },
+        "tree": {
+          "cell_means_by_seed": {
+            "123": {
+              "00": 0.989990234375,
+              "01": 0.98681640625,
+              "10": 0.98974609375,
+              "11": 0.988525390625
+            },
+            "42": {
+              "00": 0.998046875,
+              "01": 0.998291015625,
+              "10": 0.99755859375,
+              "11": 0.997314453125
+            },
+            "999": {
+              "00": 0.996826171875,
+              "01": 0.997314453125,
+              "10": 0.9970703125,
+              "11": 0.996826171875
+            }
+          },
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.0006917317708333334,
+              "per_seed": {
+                "123": -0.002197265625,
+                "42": 0.0,
+                "999": 0.0001220703125
+              },
+              "range": 0.0023193359375,
+              "sample_sd": 0.001305258376655716,
+              "sign_consistency": "1/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -4.0690104166666664e-05,
+              "per_seed": {
+                "123": 0.000732421875,
+                "42": -0.000732421875,
+                "999": -0.0001220703125
+              },
+              "range": 0.00146484375,
+              "sample_sd": 0.0007358049039723765,
+              "sign_consistency": "2/3 negative"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.000244140625,
+              "per_seed": {
+                "123": 0.001953125,
+                "42": -0.00048828125,
+                "999": -0.000732421875
+              },
+              "range": 0.002685546875,
+              "sample_sd": 0.0014850494458735887,
+              "sign_consistency": "2/3 negative"
+            }
+          }
+        }
+      },
+      "scaler_interaction": {
+        "tabpfn": {
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.00015767415364583334,
+              "per_seed": {
+                "123": 0.000579833984375,
+                "42": -0.0001983642578125,
+                "999": 9.1552734375e-05
+              },
+              "range": 0.0007781982421875,
+              "sample_sd": 0.0003932901697229677,
+              "sign_consistency": "2/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 6.612141927083333e-05,
+              "per_seed": {
+                "123": 0.000213623046875,
+                "42": -1.52587890625e-05,
+                "999": 0.0
+              },
+              "range": 0.0002288818359375,
+              "sample_sd": 0.00012796778997201666,
+              "sign_consistency": "1/3 positive"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.00013224283854166666,
+              "per_seed": {
+                "123": -0.00030517578125,
+                "42": 0.000457763671875,
+                "999": 0.000244140625
+              },
+              "range": 0.000762939453125,
+              "sample_sd": 0.0003935860620555237,
+              "sign_consistency": "2/3 positive"
+            }
+          }
+        },
+        "tabpfn_minus_tree": {
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.00015767415364583334,
+              "per_seed": {
+                "123": 0.001190185546875,
+                "42": 0.0002899169921875,
+                "999": -0.001007080078125
+              },
+              "range": 0.002197265625,
+              "sample_sd": 0.0011045859780754181,
+              "sign_consistency": "2/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.0003102620442708333,
+              "per_seed": {
+                "123": 0.000579833984375,
+                "42": -1.52587890625e-05,
+                "999": 0.0003662109375
+              },
+              "range": 0.0005950927734375,
+              "sample_sd": 0.0003014656883288054,
+              "sign_consistency": "2/3 positive"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.0006205240885416666,
+              "per_seed": {
+                "123": -0.00201416015625,
+                "42": 0.000946044921875,
+                "999": 0.0029296875
+              },
+              "range": 0.00494384765625,
+              "sample_sd": 0.002487946999385774,
+              "sign_consistency": "2/3 positive"
+            }
+          }
+        },
+        "tree": {
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.0,
+              "per_seed": {
+                "123": -0.0006103515625,
+                "42": -0.00048828125,
+                "999": 0.0010986328125
+              },
+              "range": 0.001708984375,
+              "sample_sd": 0.000953399618640949,
+              "sign_consistency": "2/3 negative"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.000244140625,
+              "per_seed": {
+                "123": -0.0003662109375,
+                "42": 0.0,
+                "999": -0.0003662109375
+              },
+              "range": 0.0003662109375,
+              "sample_sd": 0.0002114319833458102,
+              "sign_consistency": "2/3 negative"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.00048828125,
+              "per_seed": {
+                "123": 0.001708984375,
+                "42": -0.00048828125,
+                "999": -0.002685546875
+              },
+              "range": 0.00439453125,
+              "sample_sd": 0.002197265625,
+              "sign_consistency": "2/3 negative"
+            }
+          }
+        }
+      }
+    },
+    "steam_positive_minus_hotwater_negative_score_margin": {
+      "cell_specific": {
+        "tabpfn": {
+          "cell_means_by_seed": {
+            "123": {
+              "00": 0.3095500358576828,
+              "01": 0.9074109029994446,
+              "10": -0.024601898388937116,
+              "11": 0.6770868643034191
+            },
+            "42": {
+              "00": 0.3543726803000027,
+              "01": 0.9215705569075965,
+              "10": 0.053898302372545004,
+              "11": 0.7010614146356602
+            },
+            "999": {
+              "00": 0.33101440423342865,
+              "01": 0.9128457683682285,
+              "10": -0.016490306705236435,
+              "11": 0.6749276259270118
+            }
+          },
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.6311933192453125,
+              "per_seed": {
+                "123": 0.649774814917059,
+                "42": 0.6071804944353545,
+                "999": 0.6366246483835241
+              },
+              "range": 0.04259432048170453,
+              "sample_sd": 0.02181039973224305,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.27848039108698686,
+              "per_seed": {
+                "123": -0.2822379864713227,
+                "42": -0.260491760099697,
+                "999": -0.2927114266899409
+              },
+              "range": 0.03221966659024389,
+              "sample_sd": 0.01643521740351816,
+              "sign_consistency": "3/3 negative"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.09779323323452142,
+              "per_seed": {
+                "123": 0.10382789555059446,
+                "42": 0.07996523565552138,
+                "999": 0.10958656849744841
+              },
+              "range": 0.02962133284192703,
+              "sample_sd": 0.01570569010851896,
+              "sign_consistency": "3/3 positive"
+            }
+          }
+        },
+        "tabpfn_minus_tree": {
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.1521795007968194,
+              "per_seed": {
+                "123": 0.1633512192977875,
+                "42": 0.14897624901773554,
+                "999": 0.14421103407493518
+              },
+              "range": 0.019140185222852324,
+              "sample_sd": 0.009964049832343605,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.03467587040760615,
+              "per_seed": {
+                "123": 0.04252958653768957,
+                "42": 0.04926384101376868,
+                "999": 0.0122341836713602
+              },
+              "range": 0.037029657342408484,
+              "sample_sd": 0.019724591846550232,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.07895667239138977,
+              "per_seed": {
+                "123": 0.03161148015114179,
+                "42": 0.11421953027374343,
+                "999": 0.09103900674928411
+              },
+              "range": 0.08260805012260164,
+              "sample_sd": 0.04260879708366022,
+              "sign_consistency": "3/3 positive"
+            }
+          }
+        },
+        "tree": {
+          "cell_means_by_seed": {
+            "123": {
+              "00": 0.5036714943271363,
+              "01": 0.9539868822466815,
+              "10": 0.1427957136183977,
+              "11": 0.6653275169373956
+            },
+            "42": {
+              "00": 0.47304673887992976,
+              "01": 0.9483781316066597,
+              "10": 0.1804182850755751,
+              "11": 0.621495383184083
+            },
+            "999": {
+              "00": 0.4566884825762827,
+              "01": 0.9398283160107894,
+              "10": 0.14246909134089947,
+              "11": 0.6441564865235705
+            }
+          },
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.4790138184484931,
+              "per_seed": {
+                "123": 0.4864235956192715,
+                "42": 0.45820424541761895,
+                "999": 0.4924136143085889
+              },
+              "range": 0.03420936889096993,
+              "sample_sd": 0.018268793837307836,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.313156261494593,
+              "per_seed": {
+                "123": -0.32476757300901227,
+                "42": -0.3097556011134657,
+                "999": -0.3049456103613011
+              },
+              "range": 0.01982196264771119,
+              "sample_sd": 0.010339290066181585,
+              "sign_consistency": "3/3 negative"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.01883656084313164,
+              "per_seed": {
+                "123": 0.07221641539945267,
+                "42": -0.03425429461822205,
+                "999": 0.0185475617481643
+              },
+              "range": 0.10647071001767472,
+              "sample_sd": 0.05323594333976448,
+              "sign_consistency": "2/3 positive"
+            }
+          }
+        }
+      },
+      "frozen_reference": {
+        "tabpfn": {
+          "cell_means_by_seed": {
+            "123": {
+              "00": 0.3074386277803569,
+              "01": 0.9050165722399157,
+              "10": -0.022705354960635304,
+              "11": 0.6724738811608404
+            },
+            "42": {
+              "00": 0.3592976765758067,
+              "01": 0.9236107882601488,
+              "10": 0.05795968254096806,
+              "11": 0.7053806219032595
+            },
+            "999": {
+              "00": 0.3294844449919765,
+              "01": 0.9141904702531747,
+              "10": -0.01768089854158461,
+              "11": 0.6802628822497354
+            }
+          },
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.6311901729466977,
+              "per_seed": {
+                "123": 0.6463785902905173,
+                "42": 0.6058670255233167,
+                "999": 0.6413249030262591
+              },
+              "range": 0.040511564767200525,
+              "sample_sd": 0.02207558119984491,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.2772246276247993,
+              "per_seed": {
+                "123": -0.28134333691003377,
+                "42": -0.25978408019586396,
+                "999": -0.2905464657685002
+              },
+              "range": 0.03076238557263622,
+              "sample_sd": 0.015789360853501692,
+              "sign_consistency": "3/3 negative"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.09798229162332935,
+              "per_seed": {
+                "123": 0.09760129166191689,
+                "42": 0.08310782767794933,
+                "999": 0.11323775553012183
+              },
+              "range": 0.0301299278521725,
+              "sample_sd": 0.01506857686784745,
+              "sign_consistency": "3/3 positive"
+            }
+          }
+        },
+        "tabpfn_minus_tree": {
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.14818760846932358,
+              "per_seed": {
+                "123": 0.1500014257261526,
+                "42": 0.14576650932071544,
+                "999": 0.14879489036110272
+              },
+              "range": 0.004234916405437161,
+              "sample_sd": 0.0021817934623429252,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.03646631429591688,
+              "per_seed": {
+                "123": 0.032131302715349364,
+                "42": 0.05165399182083519,
+                "999": 0.0256136483515661
+              },
+              "range": 0.02604034346926909,
+              "sample_sd": 0.013550613124582857,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.06983686319501696,
+              "per_seed": {
+                "123": 0.038789253578428884,
+                "42": 0.10173279211458919,
+                "999": 0.0689885438920328
+              },
+              "range": 0.0629435385361603,
+              "sample_sd": 0.03148034299516344,
+              "sign_consistency": "3/3 positive"
+            }
+          }
+        },
+        "tree": {
+          "cell_means_by_seed": {
+            "123": {
+              "00": 0.48242499199841404,
+              "01": 0.9493961375210347,
+              "10": 0.1395443333312869,
+              "11": 0.6653275169373956
+            },
+            "42": {
+              "00": 0.4728329389981809,
+              "01": 0.9422459374191021,
+              "10": 0.17070734919980168,
+              "11": 0.621495383184083
+            },
+            "999": {
+              "00": 0.4677865879784804,
+              "01": 0.9381919948245923,
+              "10": 0.12950186803936958,
+              "11": 0.6441564865235705
+            }
+          },
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.4830025644773741,
+              "per_seed": {
+                "123": 0.49637716456436465,
+                "42": 0.4601005162026013,
+                "999": 0.4925300126651564
+              },
+              "range": 0.036276648361763364,
+              "sample_sd": 0.01992681624893736,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.31369094192071617,
+              "per_seed": {
+                "123": -0.31347463962538313,
+                "42": -0.31143807201669915,
+                "999": -0.3161601141200663
+              },
+              "range": 0.00472204210336713,
+              "sample_sd": 0.0023684405035207723,
+              "sign_consistency": "3/3 negative"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.028145428428312396,
+              "per_seed": {
+                "123": 0.058812038083488005,
+                "42": -0.018624964436639857,
+                "999": 0.04424921163808904
+              },
+              "range": 0.07743700252012786,
+              "sample_sd": 0.041153629427745315,
+              "sign_consistency": "2/3 positive"
+            }
+          }
+        }
+      },
+      "scaler_interaction": {
+        "tabpfn": {
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -3.146298614827477e-06,
+              "per_seed": {
+                "123": -0.003396224626541766,
+                "42": -0.001313468912037763,
+                "999": 0.004700254642735047
+              },
+              "range": 0.008096479269276813,
+              "sample_sd": 0.004204277958567075,
+              "sign_consistency": "2/3 negative"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.0012557634621875498,
+              "per_seed": {
+                "123": 0.0008946495612889294,
+                "42": 0.000707679903833025,
+                "999": 0.002164960921440695
+              },
+              "range": 0.00145728101760767,
+              "sample_sd": 0.0007929182985255011,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.0001890583888079315,
+              "per_seed": {
+                "123": -0.006226603888677573,
+                "42": 0.003142592022427948,
+                "999": 0.0036511870326734197
+              },
+              "range": 0.009877790921350993,
+              "sample_sd": 0.005561942921783225,
+              "sign_consistency": "2/3 positive"
+            }
+          }
+        },
+        "tabpfn_minus_tree": {
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.003991892327495823,
+              "per_seed": {
+                "123": -0.013349793571634905,
+                "42": -0.0032097396970200975,
+                "999": 0.004583856286167531
+              },
+              "range": 0.017933649857802436,
+              "sample_sd": 0.008992372954820346,
+              "sign_consistency": "2/3 negative"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.0017904438883107332,
+              "per_seed": {
+                "123": -0.010398283822340204,
+                "42": 0.0023901508070665045,
+                "999": 0.0133794646802059
+              },
+              "range": 0.023777748502546103,
+              "sample_sd": 0.01190021290792253,
+              "sign_consistency": "2/3 positive"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.009119809196372822,
+              "per_seed": {
+                "123": 0.007177773427287093,
+                "42": -0.012486738159154243,
+                "999": -0.02205046285725132
+              },
+              "range": 0.02922823628453841,
+              "sample_sd": 0.014902167864324781,
+              "sign_consistency": "2/3 negative"
+            }
+          }
+        },
+        "tree": {
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.003988746028880996,
+              "per_seed": {
+                "123": 0.009953568945093139,
+                "42": 0.0018962707849823346,
+                "999": 0.00011639835656751529
+              },
+              "range": 0.009837170588525623,
+              "sample_sd": 0.005241786029750257,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.0005346804261231833,
+              "per_seed": {
+                "123": 0.011292933383629133,
+                "42": -0.0016824709032334795,
+                "999": -0.011214503758765204
+              },
+              "range": 0.022507437142394338,
+              "sample_sd": 0.011297532868472517,
+              "sign_consistency": "2/3 negative"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.009308867585180755,
+              "per_seed": {
+                "123": -0.013404377315964666,
+                "42": 0.01562933018158219,
+                "999": 0.025701649889924738
+              },
+              "range": 0.039106027205889404,
+              "sample_sd": 0.020304716854251444,
+              "sign_consistency": "2/3 positive"
+            }
+          }
+        }
+      }
+    },
+    "steam_positive_vs_hotwater_negative_pairwise_auc": {
+      "cell_specific": {
+        "tabpfn": {
+          "cell_means_by_seed": {
+            "123": {
+              "00": 0.71044921875,
+              "01": 1.0,
+              "10": 0.38232421875,
+              "11": 0.9619140625
+            },
+            "42": {
+              "00": 0.82763671875,
+              "01": 1.0,
+              "10": 0.4755859375,
+              "11": 0.97119140625
+            },
+            "999": {
+              "00": 0.708740234375,
+              "01": 1.0,
+              "10": 0.330078125,
+              "11": 0.97265625
+            }
+          },
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.4118245442708333,
+              "per_seed": {
+                "123": 0.4345703125,
+                "42": 0.333984375,
+                "999": 0.4669189453125
+              },
+              "range": 0.1329345703125,
+              "sample_sd": 0.06932479697260914,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.19217936197916666,
+              "per_seed": {
+                "123": -0.18310546875,
+                "42": -0.1904296875,
+                "999": -0.2030029296875
+              },
+              "range": 0.0198974609375,
+              "sample_sd": 0.01006346155788951,
+              "sign_consistency": "3/3 negative"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.321533203125,
+              "per_seed": {
+                "123": 0.2900390625,
+                "42": 0.3232421875,
+                "999": 0.351318359375
+              },
+              "range": 0.061279296875,
+              "sample_sd": 0.030675373299588252,
+              "sign_consistency": "3/3 positive"
+            }
+          }
+        },
+        "tabpfn_minus_tree": {
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.12373860677083333,
+              "per_seed": {
+                "123": 0.1376953125,
+                "42": 0.0654296875,
+                "999": 0.1680908203125
+              },
+              "range": 0.1026611328125,
+              "sample_sd": 0.05273442209500694,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.0438232421875,
+              "per_seed": {
+                "123": 0.08837890625,
+                "42": 0.013671875,
+                "999": 0.0294189453125
+              },
+              "range": 0.07470703125,
+              "sample_sd": 0.039381441770134196,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.09969075520833333,
+              "per_seed": {
+                "123": -0.1865234375,
+                "42": -0.0380859375,
+                "999": -0.074462890625
+              },
+              "range": 0.1484375,
+              "sample_sd": 0.0773676722871947,
+              "sign_consistency": "3/3 negative"
+            }
+          }
+        },
+        "tree": {
+          "cell_means_by_seed": {
+            "123": {
+              "00": 0.94140625,
+              "01": 1.0,
+              "10": 0.431640625,
+              "11": 0.966796875
+            },
+            "42": {
+              "00": 0.912109375,
+              "01": 1.0,
+              "10": 0.52734375,
+              "11": 0.9765625
+            },
+            "999": {
+              "00": 0.9140625,
+              "01": 1.0,
+              "10": 0.46875,
+              "11": 0.98046875
+            }
+          },
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.2880859375,
+              "per_seed": {
+                "123": 0.296875,
+                "42": 0.2685546875,
+                "999": 0.298828125
+              },
+              "range": 0.0302734375,
+              "sample_sd": 0.016942726145407688,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.23600260416666666,
+              "per_seed": {
+                "123": -0.271484375,
+                "42": -0.2041015625,
+                "999": -0.232421875
+              },
+              "range": 0.0673828125,
+              "sample_sd": 0.03383381549760981,
+              "sign_consistency": "3/3 negative"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.4212239583333333,
+              "per_seed": {
+                "123": 0.4765625,
+                "42": 0.361328125,
+                "999": 0.42578125
+              },
+              "range": 0.115234375,
+              "sample_sd": 0.057752203212617426,
+              "sign_consistency": "3/3 positive"
+            }
+          }
+        }
+      },
+      "frozen_reference": {
+        "tabpfn": {
+          "cell_means_by_seed": {
+            "123": {
+              "00": 0.702392578125,
+              "01": 1.0,
+              "10": 0.383544921875,
+              "11": 0.9580078125
+            },
+            "42": {
+              "00": 0.830322265625,
+              "01": 1.0,
+              "10": 0.482666015625,
+              "11": 0.970458984375
+            },
+            "999": {
+              "00": 0.69921875,
+              "01": 1.0,
+              "10": 0.32666015625,
+              "11": 0.974609375
+            }
+          },
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.4130452473958333,
+              "per_seed": {
+                "123": 0.43603515625,
+                "42": 0.3287353515625,
+                "999": 0.474365234375
+              },
+              "range": 0.1456298828125,
+              "sample_sd": 0.07548786408316101,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.1893310546875,
+              "per_seed": {
+                "123": -0.180419921875,
+                "42": -0.1885986328125,
+                "999": -0.198974609375
+              },
+              "range": 0.0185546875,
+              "sample_sd": 0.009299002011393371,
+              "sign_consistency": "3/3 negative"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.3140462239583333,
+              "per_seed": {
+                "123": 0.27685546875,
+                "42": 0.318115234375,
+                "999": 0.34716796875
+              },
+              "range": 0.0703125,
+              "sample_sd": 0.035332414981015754,
+              "sign_consistency": "3/3 positive"
+            }
+          }
+        },
+        "tabpfn_minus_tree": {
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.1383056640625,
+              "per_seed": {
+                "123": 0.14990234375,
+                "42": 0.0836181640625,
+                "999": 0.181396484375
+              },
+              "range": 0.0977783203125,
+              "sample_sd": 0.049910041230340804,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.0411376953125,
+              "per_seed": {
+                "123": 0.086181640625,
+                "42": 0.0096435546875,
+                "999": 0.027587890625
+              },
+              "range": 0.0765380859375,
+              "sample_sd": 0.04002770984013552,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.09611002604166667,
+              "per_seed": {
+                "123": -0.18994140625,
+                "42": -0.031494140625,
+                "999": -0.06689453125
+              },
+              "range": 0.158447265625,
+              "sample_sd": 0.08316575525991003,
+              "sign_consistency": "3/3 negative"
+            }
+          }
+        },
+        "tree": {
+          "cell_means_by_seed": {
+            "123": {
+              "00": 0.947265625,
+              "01": 1.0,
+              "10": 0.447265625,
+              "11": 0.966796875
+            },
+            "42": {
+              "00": 0.9296875,
+              "01": 1.0,
+              "10": 0.556640625,
+              "11": 0.9765625
+            },
+            "999": {
+              "00": 0.9140625,
+              "01": 1.0,
+              "10": 0.48046875,
+              "11": 0.98046875
+            }
+          },
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.2747395833333333,
+              "per_seed": {
+                "123": 0.2861328125,
+                "42": 0.2451171875,
+                "999": 0.29296875
+              },
+              "range": 0.0478515625,
+              "sample_sd": 0.025880441680079372,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.23046875,
+              "per_seed": {
+                "123": -0.2666015625,
+                "42": -0.1982421875,
+                "999": -0.2265625
+              },
+              "range": 0.068359375,
+              "sample_sd": 0.03434669022474409,
+              "sign_consistency": "3/3 negative"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.41015625,
+              "per_seed": {
+                "123": 0.466796875,
+                "42": 0.349609375,
+                "999": 0.4140625
+              },
+              "range": 0.1171875,
+              "sample_sd": 0.05869132500514344,
+              "sign_consistency": "3/3 positive"
+            }
+          }
+        }
+      },
+      "scaler_interaction": {
+        "tabpfn": {
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.001220703125,
+              "per_seed": {
+                "123": 0.00146484375,
+                "42": -0.0052490234375,
+                "999": 0.0074462890625
+              },
+              "range": 0.0126953125,
+              "sample_sd": 0.006351176532875275,
+              "sign_consistency": "2/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.0028483072916666665,
+              "per_seed": {
+                "123": 0.002685546875,
+                "42": 0.0018310546875,
+                "999": 0.0040283203125
+              },
+              "range": 0.002197265625,
+              "sample_sd": 0.0011076381501315268,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.007486979166666667,
+              "per_seed": {
+                "123": -0.01318359375,
+                "42": -0.005126953125,
+                "999": -0.004150390625
+              },
+              "range": 0.009033203125,
+              "sample_sd": 0.004957517711757172,
+              "sign_consistency": "3/3 negative"
+            }
+          }
+        },
+        "tabpfn_minus_tree": {
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.014567057291666666,
+              "per_seed": {
+                "123": 0.01220703125,
+                "42": 0.0181884765625,
+                "999": 0.0133056640625
+              },
+              "range": 0.0059814453125,
+              "sample_sd": 0.003183984400958599,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.002685546875,
+              "per_seed": {
+                "123": -0.002197265625,
+                "42": -0.0040283203125,
+                "999": -0.0018310546875
+              },
+              "range": 0.002197265625,
+              "sample_sd": 0.0011772034620352728,
+              "sign_consistency": "3/3 negative"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": false,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.0035807291666666665,
+              "per_seed": {
+                "123": -0.00341796875,
+                "42": 0.006591796875,
+                "999": 0.007568359375
+              },
+              "range": 0.010986328125,
+              "sample_sd": 0.0060806864724032034,
+              "sign_consistency": "2/3 positive"
+            }
+          }
+        },
+        "tree": {
+          "effects": {
+            "negative_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.013346354166666666,
+              "per_seed": {
+                "123": -0.0107421875,
+                "42": -0.0234375,
+                "999": -0.005859375
+              },
+              "range": 0.017578125,
+              "sample_sd": 0.009073801995290596,
+              "sign_consistency": "3/3 negative"
+            },
+            "positive_support_main_effect": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": 0.005533854166666667,
+              "per_seed": {
+                "123": 0.0048828125,
+                "42": 0.005859375,
+                "999": 0.005859375
+              },
+              "range": 0.0009765625,
+              "sample_sd": 0.000563818622255494,
+              "sign_consistency": "3/3 positive"
+            },
+            "positive_x_negative_interaction": {
+              "all_same_sign": true,
+              "interpretation": "equal-weight average of the three pre-specified seeds 42, 123, 999; not a generalisation beyond them",
+              "overall_equal_weight_mean": -0.011067708333333334,
+              "per_seed": {
+                "123": -0.009765625,
+                "42": -0.01171875,
+                "999": -0.01171875
+              },
+              "range": 0.001953125,
+              "sample_sd": 0.001127637244510988,
+              "sign_consistency": "3/3 negative"
+            }
+          }
+        }
+      }
+    }
+  },
+  "schema": "m5_e4_factorial_v1"
+}

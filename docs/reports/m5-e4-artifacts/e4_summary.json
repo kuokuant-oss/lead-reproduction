@@ -1,0 +1,2793 @@
+{
+  "clustered_interval_conditioning": {
+    "conditioning": "clustered intervals are conditional on the fixed 24 fitted states and the three specified context seeds",
+    "must_not_claim": "that the intervals contain model-seed or fresh-fit population variance, which was not executed",
+    "reported_separately": [
+      "inference variation: the 8 repeats of one fit",
+      "context-seed variation: 42 / 123 / 999",
+      "building-clustered uncertainty",
+      "segment-clustered uncertainty"
+    ]
+  },
+  "coverage": {
+    "distinct_process_uuids": 24,
+    "distinct_state_identities": 24,
+    "effective_n_estimators_": [
+      8
+    ],
+    "fits": 24,
+    "same_process_repeats": 192
+  },
+  "generated": 1785618014.037037,
+  "per_fit": {
+    "seed123__cell00__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "00",
+      "cell_dir": "hw_pos_excluded__hw_neg_excluded",
+      "context_seed": 123,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.014572048256687054,
+          "max": 0.83984375,
+          "mean": 0.8115234375,
+          "min": 0.7900390625,
+          "n": 8,
+          "sd": 0.01743024352582085
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.002166064925218352,
+          "max": 0.7317116477272727,
+          "mean": 0.7261851917613636,
+          "min": 0.7231001420454546,
+          "n": 8,
+          "sd": 0.0025909219125711566
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.0015790791356935674,
+          "max": 0.9222684733795177,
+          "mean": 0.9185012075377585,
+          "min": 0.916057547773562,
+          "n": 8,
+          "sd": 0.001888803371828738
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 0.00036081302667126223,
+          "max": 0.99560546875,
+          "mean": 0.994964599609375,
+          "min": 0.994384765625,
+          "n": 8,
+          "sd": 0.0004315837287515549
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 0.00018040651333563112,
+          "max": 0.751708984375,
+          "mean": 0.7513885498046875,
+          "min": 0.7510986328125,
+          "n": 8,
+          "sd": 0.00021579186437577745
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 0.0003727875240157147,
+          "max": 0.9958194268115989,
+          "mean": 0.9950740100697829,
+          "min": 0.9944919746925783,
+          "n": 8,
+          "sd": 0.00044590693171770774
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 0.00036081302667126223,
+          "max": 0.99560546875,
+          "mean": 0.994964599609375,
+          "min": 0.994384765625,
+          "n": 8,
+          "sd": 0.0004315837287515549
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.002678633957067083,
+          "max": 0.6545632102272727,
+          "mean": 0.6502352627840909,
+          "min": 0.6449751420454546,
+          "n": 8,
+          "sd": 0.0032040274205643606
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.00824392984350007,
+          "max": 0.3286478381487541,
+          "mean": 0.3095500358576828,
+          "min": 0.29734255850780755,
+          "n": 8,
+          "sd": 0.009860913321917388
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.011202781728161618,
+          "max": 0.7265625,
+          "mean": 0.71044921875,
+          "min": 0.69140625,
+          "n": 8,
+          "sd": 0.013400121262902477
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.000845081901718238,
+          "max": 0.736328125,
+          "mean": 0.73486328125,
+          "min": 0.7333984375,
+          "n": 8,
+          "sd": 0.0010108382216929017
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 0.8883999210011098,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "fc289d9e-2fdc-4f69-8131-22a9e0982f08",
+      "scaler_arm": "cell_specific",
+      "state_sha256": "c0f8444140521c2bf6714a30f2fadbfe45da3046974cd392e57d568f362c2970",
+      "unit_id": "seed123__cell00__cell_specific"
+    },
+    "seed123__cell00__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "00",
+      "cell_dir": "hw_pos_excluded__hw_neg_excluded",
+      "context_seed": 123,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.015437883150931208,
+          "max": 0.8291015625,
+          "mean": 0.8057861328125,
+          "min": 0.775390625,
+          "n": 8,
+          "sd": 0.01846590528002232
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.0021823470833520144,
+          "max": 0.7300248579545454,
+          "mean": 0.7244151722301135,
+          "min": 0.7219016335227273,
+          "n": 8,
+          "sd": 0.0026103976908829272
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.0016259784950801274,
+          "max": 0.9206763132888227,
+          "mean": 0.9182373382297442,
+          "min": 0.9155341285704708,
+          "n": 8,
+          "sd": 0.0019449016801044877
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 0.0005950680880257664,
+          "max": 0.995361328125,
+          "mean": 0.99432373046875,
+          "min": 0.99365234375,
+          "n": 8,
+          "sd": 0.000711786119976233
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 0.0002975340440128832,
+          "max": 0.7515869140625,
+          "mean": 0.751068115234375,
+          "min": 0.750732421875,
+          "n": 8,
+          "sd": 0.0003558930599881165
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 0.0007445352846455064,
+          "max": 0.9955404089544561,
+          "mean": 0.9942733491143857,
+          "min": 0.9932935197936272,
+          "n": 8,
+          "sd": 0.0008905701584526548
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 0.0005950680880257664,
+          "max": 0.995361328125,
+          "mean": 0.99432373046875,
+          "min": 0.99365234375,
+          "n": 8,
+          "sd": 0.000711786119976233
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.0023750594364480362,
+          "max": 0.6514559659090908,
+          "mean": 0.6479048295454546,
+          "min": 0.6428444602272727,
+          "n": 8,
+          "sd": 0.0028409090909090827
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.003783710721229861,
+          "max": 0.3136099143011961,
+          "mean": 0.3074386277803569,
+          "min": 0.3009575536707416,
+          "n": 8,
+          "sd": 0.004525856498727355
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.009833500249190316,
+          "max": 0.71875,
+          "mean": 0.702392578125,
+          "min": 0.677734375,
+          "n": 8,
+          "sd": 0.01176226574571988
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.0018312816266090365,
+          "max": 0.73876953125,
+          "mean": 0.73577880859375,
+          "min": 0.73291015625,
+          "n": 8,
+          "sd": 0.002190473442984175
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 0.9033802890007792,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "05f8b8fb-d7ef-497a-b470-68b3f648decd",
+      "scaler_arm": "frozen_reference",
+      "state_sha256": "a35815f177cfb1367f49bdf36e4a4a3ae21e381adfcd7a57fe30f194c098637b",
+      "unit_id": "seed123__cell00__frozen_reference"
+    },
+    "seed123__cell01__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "01",
+      "cell_dir": "hw_pos_excluded__hw_neg_present",
+      "context_seed": 123,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.0,
+          "max": 0.9990234375,
+          "mean": 0.9990234375,
+          "min": 0.9990234375,
+          "n": 8,
+          "sd": 0.0
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.001062492224242515,
+          "max": 0.7599875710227273,
+          "mean": 0.7588778409090908,
+          "min": 0.7559481534090908,
+          "n": 8,
+          "sd": 0.0012708919080294406
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.0011265818518917047,
+          "max": 0.9169031115748112,
+          "mean": 0.9142400686848191,
+          "min": 0.9127753061356998,
+          "n": 8,
+          "sd": 0.0013475522235682617
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 0.00018896605787967763,
+          "max": 0.99560546875,
+          "mean": 0.9952392578125,
+          "min": 0.994873046875,
+          "n": 8,
+          "sd": 0.00022603029779603306
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 9.448302893983882e-05,
+          "max": 0.751708984375,
+          "mean": 0.75152587890625,
+          "min": 0.7513427734375,
+          "n": 8,
+          "sd": 0.00011301514889801653
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 0.00020995421929593188,
+          "max": 0.9960073273936692,
+          "mean": 0.9955843692729394,
+          "min": 0.9952271794291582,
+          "n": 8,
+          "sd": 0.0002511351257653387
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 0.00018896605787967763,
+          "max": 0.99560546875,
+          "mean": 0.9952392578125,
+          "min": 0.994873046875,
+          "n": 8,
+          "sd": 0.00022603029779603306
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.0013794069395236762,
+          "max": 0.7172407670454546,
+          "mean": 0.7149658203125,
+          "min": 0.7120028409090909,
+          "n": 8,
+          "sd": 0.0016499670090010506
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.0018143914144703823,
+          "max": 0.909623922582341,
+          "mean": 0.9074109029994446,
+          "min": 0.9037890500212598,
+          "n": 8,
+          "sd": 0.0021702703455476553
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.0,
+          "max": 1.0,
+          "mean": 1.0,
+          "min": 1.0,
+          "n": 8,
+          "sd": 0.0
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.0010335712118660983,
+          "max": 0.740234375,
+          "mean": 0.73785400390625,
+          "min": 0.736328125,
+          "n": 8,
+          "sd": 0.0012362982613536623
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 0.7876372789996822,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "3fc60bc0-4929-4a0c-825a-291b7ee03c7a",
+      "scaler_arm": "cell_specific",
+      "state_sha256": "e1c4313f78ce27adf7efc2eaa79fa0789154be9a053d3b4a55b642ce65fc3262",
+      "unit_id": "seed123__cell01__cell_specific"
+    },
+    "seed123__cell01__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "01",
+      "cell_dir": "hw_pos_excluded__hw_neg_present",
+      "context_seed": 123,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.0,
+          "max": 0.9990234375,
+          "mean": 0.9990234375,
+          "min": 0.9990234375,
+          "n": 8,
+          "sd": 0.0
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.001042573583618692,
+          "max": 0.7604314630681818,
+          "mean": 0.7579068270596592,
+          "min": 0.7567471590909091,
+          "n": 8,
+          "sd": 0.0012470663791359837
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.001199206105374432,
+          "max": 0.9177750445387574,
+          "mean": 0.9150408507658199,
+          "min": 0.9126443934542294,
+          "n": 8,
+          "sd": 0.001434421166203281
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 0.0002975340440128832,
+          "max": 0.995849609375,
+          "mean": 0.995330810546875,
+          "min": 0.99462890625,
+          "n": 8,
+          "sd": 0.0003558930599881165
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 0.0001487670220064416,
+          "max": 0.7518310546875,
+          "mean": 0.7515716552734375,
+          "min": 0.751220703125,
+          "n": 8,
+          "sd": 0.00017794652999405825
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 0.0002925177707530877,
+          "max": 0.9961827659901603,
+          "mean": 0.9956654350728642,
+          "min": 0.9950139084279555,
+          "n": 8,
+          "sd": 0.00034989288328199174
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 0.0002975340440128832,
+          "max": 0.995849609375,
+          "mean": 0.995330810546875,
+          "min": 0.99462890625,
+          "n": 8,
+          "sd": 0.0003558930599881165
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.001381687070325485,
+          "max": 0.7154651988636365,
+          "mean": 0.7132124467329546,
+          "min": 0.7107599431818182,
+          "n": 8,
+          "sd": 0.001652694369935229
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.0020159764097158516,
+          "max": 0.9100721604401087,
+          "mean": 0.9050165722399157,
+          "min": 0.9020040995209229,
+          "n": 8,
+          "sd": 0.0024113946882883923
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.0,
+          "max": 1.0,
+          "mean": 1.0,
+          "min": 1.0,
+          "n": 8,
+          "sd": 0.0
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.0006523207580997348,
+          "max": 0.73828125,
+          "mean": 0.73699951171875,
+          "min": 0.73583984375,
+          "n": 8,
+          "sd": 0.0007802684612582692
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 0.857425513000635,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "21fa7141-5354-45a2-bf17-6129a7e5433a",
+      "scaler_arm": "frozen_reference",
+      "state_sha256": "91ec9baae7938479c150f6f7410474eb5a758ad79f101ca7c4b1ec529871f362",
+      "unit_id": "seed123__cell01__frozen_reference"
+    },
+    "seed123__cell10__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "10",
+      "cell_dir": "hw_pos_present__hw_neg_excluded",
+      "context_seed": 123,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.00738016690497715,
+          "max": 0.4814453125,
+          "mean": 0.46533203125,
+          "min": 0.4560546875,
+          "n": 8,
+          "sd": 0.00882772992162744
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.0008062269145944256,
+          "max": 0.6869673295454546,
+          "mean": 0.6855191317471592,
+          "min": 0.6841708096590908,
+          "n": 8,
+          "sd": 0.0009643621274725923
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.0013540774414519247,
+          "max": 0.9133230176785219,
+          "mean": 0.9109964192410871,
+          "min": 0.9086637000691553,
+          "n": 8,
+          "sd": 0.00161966932455749
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 0.000523223321888296,
+          "max": 0.995849609375,
+          "mean": 0.9949951171875,
+          "min": 0.994140625,
+          "n": 8,
+          "sd": 0.0006258495551383356
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 0.000261611660944148,
+          "max": 0.7518310546875,
+          "mean": 0.75140380859375,
+          "min": 0.7509765625,
+          "n": 8,
+          "sd": 0.0003129247775691678
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 0.00041618502448380795,
+          "max": 0.9958364456438401,
+          "mean": 0.9951655139262361,
+          "min": 0.9945633173523644,
+          "n": 8,
+          "sd": 0.0004978165183623765
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 0.000523223321888296,
+          "max": 0.995849609375,
+          "mean": 0.9949951171875,
+          "min": 0.994140625,
+          "n": 8,
+          "sd": 0.0006258495551383356
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.0013764442693336763,
+          "max": 0.6343217329545454,
+          "mean": 0.632568359375,
+          "min": 0.6295276988636364,
+          "n": 8,
+          "sd": 0.0016464232338234814
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.0038553141553245513,
+          "max": -0.015769096091389656,
+          "mean": -0.024601898388937116,
+          "min": -0.03050464577972889,
+          "n": 8,
+          "sd": 0.004611504396097087
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.008082211797436274,
+          "max": 0.3984375,
+          "mean": 0.38232421875,
+          "min": 0.37109375,
+          "n": 8,
+          "sd": 0.00966747552403483
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.00099842531415083,
+          "max": 0.740234375,
+          "mean": 0.73895263671875,
+          "min": 0.7373046875,
+          "n": 8,
+          "sd": 0.0011942587659224283
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 0.882324748999963,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "8e3334ec-bdf5-4496-aad4-b8fa5af71f0b",
+      "scaler_arm": "cell_specific",
+      "state_sha256": "cb6e796cf5dfab4e2f1172309845bd5dd16b29d52a71045d72c374bb07ecbb1d",
+      "unit_id": "seed123__cell10__cell_specific"
+    },
+    "seed123__cell10__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "10",
+      "cell_dir": "hw_pos_present__hw_neg_excluded",
+      "context_seed": 123,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.009659474670131932,
+          "max": 0.4833984375,
+          "mean": 0.4671630859375,
+          "min": 0.4501953125,
+          "n": 8,
+          "sd": 0.011554106386837874
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.001601097193582485,
+          "max": 0.6886985085227273,
+          "mean": 0.6851473721590908,
+          "min": 0.68310546875,
+          "n": 8,
+          "sd": 0.001915140102548343
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.0024919462359369302,
+          "max": 0.9137853316478868,
+          "mean": 0.9102497416080269,
+          "min": 0.9071289383800831,
+          "n": 8,
+          "sd": 0.0029807223377606553
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 0.0005556319783531229,
+          "max": 0.99560546875,
+          "mean": 0.994720458984375,
+          "min": 0.993896484375,
+          "n": 8,
+          "sd": 0.0006646149204854738
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 0.00027781598917656146,
+          "max": 0.751708984375,
+          "mean": 0.7512664794921875,
+          "min": 0.7508544921875,
+          "n": 8,
+          "sd": 0.0003323074602427369
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 0.0005718269647784289,
+          "max": 0.9959133694384362,
+          "mean": 0.9950429918880385,
+          "min": 0.9941456543462579,
+          "n": 8,
+          "sd": 0.0006839864290282695
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 0.0005556319783531229,
+          "max": 0.99560546875,
+          "mean": 0.994720458984375,
+          "min": 0.993896484375,
+          "n": 8,
+          "sd": 0.0006646149204854738
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.0008429257053718475,
+          "max": 0.6341441761363635,
+          "mean": 0.6330011541193181,
+          "min": 0.6312144886363635,
+          "n": 8,
+          "sd": 0.0010082591040050486
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.005260868186102632,
+          "max": -0.014807887375354767,
+          "mean": -0.022705354960635304,
+          "min": -0.031101536005735397,
+          "n": 8,
+          "sd": 0.00629274704734335
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.009833500249190316,
+          "max": 0.40234375,
+          "mean": 0.383544921875,
+          "min": 0.36328125,
+          "n": 8,
+          "sd": 0.01176226574571988
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.0009448302893983882,
+          "max": 0.7412109375,
+          "mean": 0.7396240234375,
+          "min": 0.73828125,
+          "n": 8,
+          "sd": 0.0011301514889801654
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 0.91018142500252,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "9906fe2d-972c-4e31-ae43-2dd9c0f3fc46",
+      "scaler_arm": "frozen_reference",
+      "state_sha256": "f37f9152566fc7c09c3f0187f6c38b5a800726f9b5b7725c3d8d9ee45b92cb2d",
+      "unit_id": "seed123__cell10__frozen_reference"
+    },
+    "seed123__cell11__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "11",
+      "cell_dir": "hw_pos_present__hw_neg_present",
+      "context_seed": 123,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.0032875025625222864,
+          "max": 0.9814453125,
+          "mean": 0.975830078125,
+          "min": 0.970703125,
+          "n": 8,
+          "sd": 0.003932320923397155
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.0008648572000694309,
+          "max": 0.7274946732954546,
+          "mean": 0.7258356267755681,
+          "min": 0.7243430397727272,
+          "n": 8,
+          "sd": 0.001034492292828638
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.0018057112420296752,
+          "max": 0.9149084904411211,
+          "mean": 0.9120730503250911,
+          "min": 0.9089842586045052,
+          "n": 8,
+          "sd": 0.002159887623995919
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 0.0002544033411591454,
+          "max": 0.9951171875,
+          "mean": 0.994598388671875,
+          "min": 0.994140625,
+          "n": 8,
+          "sd": 0.00030430260125933225
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 0.0001272016705795727,
+          "max": 0.75146484375,
+          "mean": 0.7512054443359375,
+          "min": 0.7509765625,
+          "n": 8,
+          "sd": 0.00015215130062966613
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 0.00026758030673429265,
+          "max": 0.995152082816986,
+          "mean": 0.9946635945084494,
+          "min": 0.9941350454977584,
+          "n": 8,
+          "sd": 0.00032006412735781847
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 0.0002544033411591454,
+          "max": 0.9951171875,
+          "mean": 0.994598388671875,
+          "min": 0.994140625,
+          "n": 8,
+          "sd": 0.00030430260125933225
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.002496675295436007,
+          "max": 0.6801313920454545,
+          "mean": 0.6770352450284091,
+          "min": 0.6716974431818182,
+          "n": 8,
+          "sd": 0.002986378965934336
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.007484222402794042,
+          "max": 0.692763258877676,
+          "mean": 0.6770868643034191,
+          "min": 0.6677399736072402,
+          "n": 8,
+          "sd": 0.008952195105601603
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.004780505146903917,
+          "max": 0.970703125,
+          "mean": 0.9619140625,
+          "min": 0.955078125,
+          "n": 8,
+          "sd": 0.005718164489932812
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.0010689534475264773,
+          "max": 0.7451171875,
+          "mean": 0.743408203125,
+          "min": 0.7412109375,
+          "n": 8,
+          "sd": 0.0012786204506015177
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 1.132631317999767,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "b3e0a8c5-b79f-478c-8fbe-238031048689",
+      "scaler_arm": "cell_specific",
+      "state_sha256": "870094568a428705a45130c8831762607926ea8ee2a093e39a7c6549834c2842",
+      "unit_id": "seed123__cell11__cell_specific"
+    },
+    "seed123__cell11__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "11",
+      "cell_dir": "hw_pos_present__hw_neg_present",
+      "context_seed": 123,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.0032875025625222864,
+          "max": 0.978515625,
+          "mean": 0.975830078125,
+          "min": 0.966796875,
+          "n": 8,
+          "sd": 0.003932320923397155
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.0014186676054573962,
+          "max": 0.7282049005681819,
+          "mean": 0.7262351296164773,
+          "min": 0.7235884232954546,
+          "n": 8,
+          "sd": 0.0016969283528119046
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.0015891881467219827,
+          "max": 0.9135674803178517,
+          "mean": 0.9111965339239987,
+          "min": 0.9077914052031701,
+          "n": 8,
+          "sd": 0.001900895187675534
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 0.0004082133406395074,
+          "max": 0.995361328125,
+          "mean": 0.9947509765625,
+          "min": 0.993896484375,
+          "n": 8,
+          "sd": 0.00048828125
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 0.0002041066703197537,
+          "max": 0.7515869140625,
+          "mean": 0.75128173828125,
+          "min": 0.7508544921875,
+          "n": 8,
+          "sd": 0.000244140625
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 0.0004441137531776863,
+          "max": 0.9955404089544561,
+          "mean": 0.9948382793184952,
+          "min": 0.9938947801207744,
+          "n": 8,
+          "sd": 0.0005312232525376827
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 0.0004082133406395074,
+          "max": 0.995361328125,
+          "mean": 0.9947509765625,
+          "min": 0.993896484375,
+          "n": 8,
+          "sd": 0.00048828125
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.0012298100926154347,
+          "max": 0.6809303977272727,
+          "mean": 0.6784778941761365,
+          "min": 0.6763139204545454,
+          "n": 8,
+          "sd": 0.001471027890328491
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.004548754139365961,
+          "max": 0.679716814061976,
+          "mean": 0.6724738811608404,
+          "min": 0.6632445428695064,
+          "n": 8,
+          "sd": 0.0054409573034353885
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.004185786575106368,
+          "max": 0.96484375,
+          "mean": 0.9580078125,
+          "min": 0.947265625,
+          "n": 8,
+          "sd": 0.005006796441106685
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.000845081901718238,
+          "max": 0.744140625,
+          "mean": 0.742919921875,
+          "min": 0.7412109375,
+          "n": 8,
+          "sd": 0.0010108382216929017
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 0.9401830850001716,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "2ea5c8ca-df1c-49a8-beee-d6f360ff63e4",
+      "scaler_arm": "frozen_reference",
+      "state_sha256": "668a03c92cbaa7456223e45c4af1f6d5a03a0c618cbdd42f348f726385923187",
+      "unit_id": "seed123__cell11__frozen_reference"
+    },
+    "seed42__cell00__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "00",
+      "cell_dir": "hw_pos_excluded__hw_neg_excluded",
+      "context_seed": 42,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.018637840212469295,
+          "max": 0.9560546875,
+          "mean": 0.9404296875,
+          "min": 0.892578125,
+          "n": 8,
+          "sd": 0.022293509325265824
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.0016173402631231727,
+          "max": 0.7698863636363635,
+          "mean": 0.7662214799360795,
+          "min": 0.7641157670454545,
+          "n": 8,
+          "sd": 0.0019345691253400499
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.0022975095929787396,
+          "max": 0.9250140378717333,
+          "mean": 0.9211085988728769,
+          "min": 0.917000664859188,
+          "n": 8,
+          "sd": 0.002748148441668244
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 0.00023777707514622596,
+          "max": 0.999267578125,
+          "mean": 0.99896240234375,
+          "min": 0.99853515625,
+          "n": 8,
+          "sd": 0.0002844152209524988
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 0.00011888853757311298,
+          "max": 0.7535400390625,
+          "mean": 0.753387451171875,
+          "min": 0.753173828125,
+          "n": 8,
+          "sd": 0.0001422076104762494
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 0.00022635085080152285,
+          "max": 0.9993003731343284,
+          "mean": 0.9990084612772887,
+          "min": 0.998600113122172,
+          "n": 8,
+          "sd": 0.0002707478305211335
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 0.00023777707514622596,
+          "max": 0.999267578125,
+          "mean": 0.99896240234375,
+          "min": 0.99853515625,
+          "n": 8,
+          "sd": 0.0002844152209524988
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.0029948038074206454,
+          "max": 0.6599786931818181,
+          "mean": 0.6570379083806819,
+          "min": 0.6496803977272727,
+          "n": 8,
+          "sd": 0.0035822115570776332
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.0033549992827548833,
+          "max": 0.3595263056049589,
+          "mean": 0.3543726803000027,
+          "min": 0.34783242945559323,
+          "n": 8,
+          "sd": 0.004013056606543722
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.017075395140037284,
+          "max": 0.85546875,
+          "mean": 0.82763671875,
+          "min": 0.79296875,
+          "n": 8,
+          "sd": 0.020424602660362952
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.0017984896883738919,
+          "max": 0.72607421875,
+          "mean": 0.72198486328125,
+          "min": 0.71923828125,
+          "n": 8,
+          "sd": 0.0021512496180932606
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 1.1144418389994826,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "bb7870c4-658e-4590-ab27-de3bc003b977",
+      "scaler_arm": "cell_specific",
+      "state_sha256": "a3144473c7ad31c446aca91337d729c20f9dd2a15efdaeb262c47564993da8b6",
+      "unit_id": "seed42__cell00__cell_specific"
+    },
+    "seed42__cell00__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "00",
+      "cell_dir": "hw_pos_excluded__hw_neg_excluded",
+      "context_seed": 42,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.014039131075859222,
+          "max": 0.9697265625,
+          "mean": 0.9459228515625,
+          "min": 0.921875,
+          "n": 8,
+          "sd": 0.016792798735816097
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.0018356860999293775,
+          "max": 0.7683771306818181,
+          "mean": 0.7646845037286931,
+          "min": 0.7606977982954546,
+          "n": 8,
+          "sd": 0.002195741819894833
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.0012160255820222018,
+          "max": 0.9227578859208734,
+          "mean": 0.9207390419378498,
+          "min": 0.9190689541314896,
+          "n": 8,
+          "sd": 0.0014545396539260315
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 0.00010563523771477975,
+          "max": 0.999267578125,
+          "mean": 0.999176025390625,
+          "min": 0.9990234375,
+          "n": 8,
+          "sd": 0.0001263547777116127
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 5.281761885738987e-05,
+          "max": 0.7535400390625,
+          "mean": 0.7534942626953125,
+          "min": 0.75341796875,
+          "n": 8,
+          "sd": 6.317738885580636e-05
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 0.00010227797337463942,
+          "max": 0.9993003731343284,
+          "mean": 0.999211901630405,
+          "min": 0.9990562325093284,
+          "n": 8,
+          "sd": 0.00012233901177408595
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 0.00010563523771477975,
+          "max": 0.999267578125,
+          "mean": 0.999176025390625,
+          "min": 0.9990234375,
+          "n": 8,
+          "sd": 0.0001263547777116127
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.0017460162672593097,
+          "max": 0.6613103693181819,
+          "mean": 0.6582586115056819,
+          "min": 0.6553622159090909,
+          "n": 8,
+          "sd": 0.0020884839387221125
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.0040744649699874244,
+          "max": 0.36499773649848066,
+          "mean": 0.3592976765758067,
+          "min": 0.3516484735009726,
+          "n": 8,
+          "sd": 0.004873639958728304
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.01567241544228974,
+          "max": 0.849609375,
+          "mean": 0.830322265625,
+          "min": 0.79296875,
+          "n": 8,
+          "sd": 0.01874643927778561
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.001413039948760679,
+          "max": 0.7265625,
+          "mean": 0.72296142578125,
+          "min": 0.72119140625,
+          "n": 8,
+          "sd": 0.001690196874506617
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 0.9431802639992384,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "d43abf7a-14cc-40c9-b638-826973a943fa",
+      "scaler_arm": "frozen_reference",
+      "state_sha256": "efcddcd0b87e615f9420fa0d89e337d1f08f29e8b0df94b66e2c0974c8bb3c35",
+      "unit_id": "seed42__cell00__frozen_reference"
+    },
+    "seed42__cell01__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "01",
+      "cell_dir": "hw_pos_excluded__hw_neg_present",
+      "context_seed": 42,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.0,
+          "max": 1.0,
+          "mean": 1.0,
+          "min": 1.0,
+          "n": 8,
+          "sd": 0.0
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.0012624883202666073,
+          "max": 0.7873757102272727,
+          "mean": 0.7851423783735796,
+          "min": 0.7834694602272727,
+          "n": 8,
+          "sd": 0.0015101157011783329
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.0012229074412419586,
+          "max": 0.9176848139995855,
+          "mean": 0.9161510248526383,
+          "min": 0.913341928520822,
+          "n": 8,
+          "sd": 0.0014627713369398268
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 0.0002112704754295595,
+          "max": 0.999267578125,
+          "mean": 0.99896240234375,
+          "min": 0.99853515625,
+          "n": 8,
+          "sd": 0.0002527095554232254
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 0.00010563523771477975,
+          "max": 0.7535400390625,
+          "mean": 0.753387451171875,
+          "min": 0.753173828125,
+          "n": 8,
+          "sd": 0.0001263547777116127
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 0.00018505842186378332,
+          "max": 0.9993003731343284,
+          "mean": 0.9990299518574465,
+          "min": 0.9986607142857142,
+          "n": 8,
+          "sd": 0.00022135620900854566
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 0.0002112704754295595,
+          "max": 0.999267578125,
+          "mean": 0.99896240234375,
+          "min": 0.99853515625,
+          "n": 8,
+          "sd": 0.0002527095554232254
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.0015961745156941353,
+          "max": 0.6922940340909091,
+          "mean": 0.690185546875,
+          "min": 0.6862571022727273,
+          "n": 8,
+          "sd": 0.001909251879226427
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.0010991135723978336,
+          "max": 0.9229040277950844,
+          "mean": 0.9215705569075965,
+          "min": 0.9187757967083598,
+          "n": 8,
+          "sd": 0.001314696252164669
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.0,
+          "max": 1.0,
+          "mean": 1.0,
+          "min": 1.0,
+          "n": 8,
+          "sd": 0.0
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.0013960913301378727,
+          "max": 0.7255859375,
+          "mean": 0.72381591796875,
+          "min": 0.72119140625,
+          "n": 8,
+          "sd": 0.0016699239146029732
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 0.7884574679992511,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "0f1c6fdb-b2b8-4775-84b3-da9db9ba78a3",
+      "scaler_arm": "cell_specific",
+      "state_sha256": "9df0c8553f8c011eed73dc71eca32f187c2b3ed2930d92402cf73a0b910bbf91",
+      "unit_id": "seed42__cell01__cell_specific"
+    },
+    "seed42__cell01__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "01",
+      "cell_dir": "hw_pos_excluded__hw_neg_present",
+      "context_seed": 42,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.0,
+          "max": 1.0,
+          "mean": 1.0,
+          "min": 1.0,
+          "n": 8,
+          "sd": 0.0
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.001113695609409721,
+          "max": 0.7852894176136364,
+          "mean": 0.7836747602982954,
+          "min": 0.7815607244318181,
+          "n": 8,
+          "sd": 0.0013321384436632523
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.0013090270293183218,
+          "max": 0.918399658979979,
+          "mean": 0.9156936430159703,
+          "min": 0.913768564705606,
+          "n": 8,
+          "sd": 0.0015657826203279081
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 0.0003524694006254245,
+          "max": 0.9990234375,
+          "mean": 0.998748779296875,
+          "min": 0.997802734375,
+          "n": 8,
+          "sd": 0.00042160356458344667
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 0.00017623470031271225,
+          "max": 0.75341796875,
+          "mean": 0.7532806396484375,
+          "min": 0.7528076171875,
+          "n": 8,
+          "sd": 0.00021080178229172333
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 0.00034215285849295633,
+          "max": 0.9990808823529411,
+          "mean": 0.9988258379167784,
+          "min": 0.9978869523903711,
+          "n": 8,
+          "sd": 0.00040926351200155974
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 0.0003524694006254245,
+          "max": 0.9990234375,
+          "mean": 0.998748779296875,
+          "min": 0.997802734375,
+          "n": 8,
+          "sd": 0.00042160356458344667
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.0018182155328881177,
+          "max": 0.6956676136363638,
+          "mean": 0.6916614879261364,
+          "min": 0.6882990056818181,
+          "n": 8,
+          "sd": 0.002174844535401996
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.0010697723762257423,
+          "max": 0.9249612161540881,
+          "mean": 0.9236107882601488,
+          "min": 0.9216680870758864,
+          "n": 8,
+          "sd": 0.0012796000058711017
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.0,
+          "max": 1.0,
+          "mean": 1.0,
+          "min": 1.0,
+          "n": 8,
+          "sd": 0.0
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.001975877872240767,
+          "max": 0.728515625,
+          "mean": 0.72509765625,
+          "min": 0.7216796875,
+          "n": 8,
+          "sd": 0.0023634311308729653
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 0.9274424479990557,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "cc07ef5c-ca23-4499-9b96-8182e597f1da",
+      "scaler_arm": "frozen_reference",
+      "state_sha256": "3df36867fdf3da819845c4e195c2028af5b60b88058dcb6dd2bfd19b86ddd5b7",
+      "unit_id": "seed42__cell01__frozen_reference"
+    },
+    "seed42__cell10__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "10",
+      "cell_dir": "hw_pos_present__hw_neg_excluded",
+      "context_seed": 42,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.0060626405727331,
+          "max": 0.6220703125,
+          "mean": 0.61328125,
+          "min": 0.603515625,
+          "n": 8,
+          "sd": 0.007251780925428028
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.0004944919371090122,
+          "max": 0.7162198153409092,
+          "mean": 0.7152044122869318,
+          "min": 0.7144442471590908,
+          "n": 8,
+          "sd": 0.0005914827300554467
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.0011811789923535172,
+          "max": 0.9160706746451979,
+          "mean": 0.9142421109576162,
+          "min": 0.9118717189385279,
+          "n": 8,
+          "sd": 0.001412858173514326
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 9.448302893983882e-05,
+          "max": 0.9990234375,
+          "mean": 0.99884033203125,
+          "min": 0.998779296875,
+          "n": 8,
+          "sd": 0.00011301514889801653
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 4.724151446991941e-05,
+          "max": 0.75341796875,
+          "mean": 0.753326416015625,
+          "min": 0.7532958984375,
+          "n": 8,
+          "sd": 5.6507574449008265e-05
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 8.248134836687299e-05,
+          "max": 0.9990808823529411,
+          "mean": 0.9989210358056266,
+          "min": 0.9988677536231885,
+          "n": 8,
+          "sd": 9.865943092199967e-05
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 9.448302893983882e-05,
+          "max": 0.9990234375,
+          "mean": 0.99884033203125,
+          "min": 0.998779296875,
+          "n": 8,
+          "sd": 0.00011301514889801653
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.001327068670449952,
+          "max": 0.6187855113636364,
+          "mean": 0.6170432350852273,
+          "min": 0.6136363636363635,
+          "n": 8,
+          "sd": 0.0015873629907048367
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.006596294232145614,
+          "max": 0.06686447933316231,
+          "mean": 0.053898302372545004,
+          "min": 0.0412292554974556,
+          "n": 8,
+          "sd": 0.007890106648631495
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.006872409151803172,
+          "max": 0.486328125,
+          "mean": 0.4755859375,
+          "min": 0.4609375,
+          "n": 8,
+          "sd": 0.008220379387642989
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.0008573174365695717,
+          "max": 0.7275390625,
+          "mean": 0.72662353515625,
+          "min": 0.724609375,
+          "n": 8,
+          "sd": 0.0010254736626666542
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 0.8589553700003307,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "b05e0989-8eae-431d-a308-74c207b9189f",
+      "scaler_arm": "cell_specific",
+      "state_sha256": "1e89562a57ddb1d48db5ae20fd0b06876fa37459adc4f24b825c7d6f18876da7",
+      "unit_id": "seed42__cell10__cell_specific"
+    },
+    "seed42__cell10__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "10",
+      "cell_dir": "hw_pos_present__hw_neg_excluded",
+      "context_seed": 42,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.008093249557116782,
+          "max": 0.634765625,
+          "mean": 0.6148681640625,
+          "min": 0.6015625,
+          "n": 8,
+          "sd": 0.009680678255443742
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.0010713434057627127,
+          "max": 0.7175071022727273,
+          "mean": 0.7152432528409092,
+          "min": 0.7140003551136365,
+          "n": 8,
+          "sd": 0.0012814791807772847
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.002015453462596681,
+          "max": 0.9187978694503727,
+          "mean": 0.9146182917885994,
+          "min": 0.9116271444845552,
+          "n": 8,
+          "sd": 0.0024107691691110113
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 7.216260533425244e-05,
+          "max": 0.9990234375,
+          "mean": 0.998809814453125,
+          "min": 0.998779296875,
+          "n": 8,
+          "sd": 8.631674575031098e-05
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 3.608130266712622e-05,
+          "max": 0.75341796875,
+          "mean": 0.7533111572265625,
+          "min": 0.7532958984375,
+          "n": 8,
+          "sd": 4.315837287515549e-05
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 6.299617038553629e-05,
+          "max": 0.9990808823529411,
+          "mean": 0.9988943947144076,
+          "min": 0.9988677536231885,
+          "n": 8,
+          "sd": 7.535238503688839e-05
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 7.216260533425244e-05,
+          "max": 0.9990234375,
+          "mean": 0.998809814453125,
+          "min": 0.998779296875,
+          "n": 8,
+          "sd": 8.631674575031098e-05
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.002347376004275791,
+          "max": 0.6242009943181819,
+          "mean": 0.6178422407670454,
+          "min": 0.6154119318181819,
+          "n": 8,
+          "sd": 0.0028077957662828524
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.009470275222577918,
+          "max": 0.07600024156272411,
+          "mean": 0.05795968254096806,
+          "min": 0.04090644419193268,
+          "n": 8,
+          "sd": 0.01132779692177665
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.008962119133969602,
+          "max": 0.498046875,
+          "mean": 0.482666015625,
+          "min": 0.470703125,
+          "n": 8,
+          "sd": 0.010719969921923901
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.000986431782022183,
+          "max": 0.7294921875,
+          "mean": 0.72698974609375,
+          "min": 0.7255859375,
+          "n": 8,
+          "sd": 0.001179912794645457
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 0.7313182330035488,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "8be61357-f348-4909-b1d7-70965b1d9d51",
+      "scaler_arm": "frozen_reference",
+      "state_sha256": "6aadc4e0f6cc724201f7c7dd6a7b8519599032068328f5f77963d8c219ca5259",
+      "unit_id": "seed42__cell10__frozen_reference"
+    },
+    "seed42__cell11__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "11",
+      "cell_dir": "hw_pos_present__hw_neg_present",
+      "context_seed": 42,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.0026183905052288227,
+          "max": 0.98828125,
+          "mean": 0.984375,
+          "min": 0.9794921875,
+          "n": 8,
+          "sd": 0.0031319676786612234
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.0007564780894059846,
+          "max": 0.7621626420454546,
+          "mean": 0.7609447132457386,
+          "min": 0.7589222301136365,
+          "n": 8,
+          "sd": 0.0009048554525780666
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.0014237525192564828,
+          "max": 0.9188237735934308,
+          "mean": 0.9168577843792036,
+          "min": 0.9141558398218876,
+          "n": 8,
+          "sd": 0.0017030106333715518
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 0.00015429014017014756,
+          "max": 0.998779296875,
+          "mean": 0.99853515625,
+          "min": 0.998291015625,
+          "n": 8,
+          "sd": 0.00018455296533653672
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 7.714507008507378e-05,
+          "max": 0.7532958984375,
+          "mean": 0.753173828125,
+          "min": 0.7530517578125,
+          "n": 8,
+          "sd": 9.227648266826836e-05
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 0.0001290068701377987,
+          "max": 0.9988677536231885,
+          "mean": 0.9986621723092176,
+          "min": 0.9984595070422535,
+          "n": 8,
+          "sd": 0.0001543105762070129
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 0.00015429014017014756,
+          "max": 0.998779296875,
+          "mean": 0.99853515625,
+          "min": 0.998291015625,
+          "n": 8,
+          "sd": 0.00018455296533653672
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.0016624362827569552,
+          "max": 0.6817294034090909,
+          "mean": 0.6781449751420454,
+          "min": 0.6756924715909091,
+          "n": 8,
+          "sd": 0.001988510382630446
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.008200638679355866,
+          "max": 0.7177717298400239,
+          "mean": 0.7010614146356602,
+          "min": 0.6917064998779097,
+          "n": 8,
+          "sd": 0.00980913092864927
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.0019022166011698077,
+          "max": 0.974609375,
+          "mean": 0.97119140625,
+          "min": 0.96875,
+          "n": 8,
+          "sd": 0.0022753217676199904
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.001972863564044366,
+          "max": 0.7392578125,
+          "mean": 0.7354736328125,
+          "min": 0.732421875,
+          "n": 8,
+          "sd": 0.002359825589290914
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 0.9442007880006713,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "6378c093-001f-413a-97ee-4bb7e8164afe",
+      "scaler_arm": "cell_specific",
+      "state_sha256": "9ff1784a3a4aa838073595ab84258b1cbf7de7c4e0c4c4ceda9b09ea1f4ec909",
+      "unit_id": "seed42__cell11__cell_specific"
+    },
+    "seed42__cell11__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "11",
+      "cell_dir": "hw_pos_present__hw_neg_present",
+      "context_seed": 42,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.003160124232508451,
+          "max": 0.9892578125,
+          "mean": 0.9854736328125,
+          "min": 0.9775390625,
+          "n": 8,
+          "sd": 0.003779958312942948
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.001809985192515447,
+          "max": 0.7618519176136364,
+          "mean": 0.759613037109375,
+          "min": 0.7552379261363635,
+          "n": 8,
+          "sd": 0.0021649998770211665
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.0021058761985129192,
+          "max": 0.9200716395330346,
+          "mean": 0.9166267676959592,
+          "min": 0.9136194602920114,
+          "n": 8,
+          "sd": 0.0025189276297150494
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 0.00021819920876906858,
+          "max": 0.998779296875,
+          "mean": 0.99853515625,
+          "min": 0.998046875,
+          "n": 8,
+          "sd": 0.00026099730655510195
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 0.00010909960438453429,
+          "max": 0.7532958984375,
+          "mean": 0.753173828125,
+          "min": 0.7529296875,
+          "n": 8,
+          "sd": 0.00013049865327755097
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 0.00018055065743323516,
+          "max": 0.9988677536231885,
+          "mean": 0.9986635999572313,
+          "min": 0.9982638888888888,
+          "n": 8,
+          "sd": 0.00021596428123027802
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 0.00021819920876906858,
+          "max": 0.998779296875,
+          "mean": 0.99853515625,
+          "min": 0.998046875,
+          "n": 8,
+          "sd": 0.00026099730655510195
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.001022098495392306,
+          "max": 0.6780007102272727,
+          "mean": 0.6767800071022727,
+          "min": 0.6748934659090909,
+          "n": 8,
+          "sd": 0.0012225752597194118
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.0066116439682602475,
+          "max": 0.7153572753195476,
+          "mean": 0.7053806219032595,
+          "min": 0.6886457034015621,
+          "n": 8,
+          "sd": 0.007908467117511522
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.001046446643776592,
+          "max": 0.97265625,
+          "mean": 0.970458984375,
+          "min": 0.96875,
+          "n": 8,
+          "sd": 0.0012516991102766713
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.0011533123474971195,
+          "max": 0.73681640625,
+          "mean": 0.73504638671875,
+          "min": 0.7333984375,
+          "n": 8,
+          "sd": 0.0013795257004440642
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 1.010351245999118,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "2402f9d7-d414-4c55-a3e3-27b88d1e3ecb",
+      "scaler_arm": "frozen_reference",
+      "state_sha256": "d9185332785ac41ce10968d0305468979506e2957427ae0e588d68dc52b6f8a4",
+      "unit_id": "seed42__cell11__frozen_reference"
+    },
+    "seed999__cell00__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "00",
+      "cell_dir": "hw_pos_excluded__hw_neg_excluded",
+      "context_seed": 999,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.026347046225992498,
+          "max": 0.8369140625,
+          "mean": 0.79248046875,
+          "min": 0.759765625,
+          "n": 8,
+          "sd": 0.03151481684768421
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.004292162846689512,
+          "max": 0.7205699573863636,
+          "mean": 0.7139781605113635,
+          "min": 0.7066761363636362,
+          "n": 8,
+          "sd": 0.005134037600784576
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.0017187391767654787,
+          "max": 0.9059478740150553,
+          "mean": 0.9037242244004347,
+          "min": 0.8996439191241734,
+          "n": 8,
+          "sd": 0.002055856656571496
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 0.0,
+          "max": 0.997314453125,
+          "mean": 0.997314453125,
+          "min": 0.997314453125,
+          "n": 8,
+          "sd": 0.0
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 0.0,
+          "max": 0.7525634765625,
+          "mean": 0.7525634765625,
+          "min": 0.7525634765625,
+          "n": 8,
+          "sd": 0.0
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 0.0,
+          "max": 0.9977083333333333,
+          "mean": 0.9977083333333333,
+          "min": 0.9977083333333333,
+          "n": 8,
+          "sd": 0.0
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 0.0,
+          "max": 0.997314453125,
+          "mean": 0.997314453125,
+          "min": 0.997314453125,
+          "n": 8,
+          "sd": 0.0
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.0035212490872827177,
+          "max": 0.6393821022727273,
+          "mean": 0.6314475319602273,
+          "min": 0.6254438920454546,
+          "n": 8,
+          "sd": 0.004211915032483293
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.004664697261728884,
+          "max": 0.33787362452130765,
+          "mean": 0.33101440423342865,
+          "min": 0.32182745705358684,
+          "n": 8,
+          "sd": 0.005579641778145551
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.022683274435217372,
+          "max": 0.75,
+          "mean": 0.708740234375,
+          "min": 0.6796875,
+          "n": 8,
+          "sd": 0.027132424378805444
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.0004329756320055146,
+          "max": 0.7236328125,
+          "mean": 0.72283935546875,
+          "min": 0.72216796875,
+          "n": 8,
+          "sd": 0.0005179004745018658
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 0.8337559540013899,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "a53764b1-8af2-4e30-809c-22fe9cd5fd4d",
+      "scaler_arm": "cell_specific",
+      "state_sha256": "ec38a7bc63ffd7a0f0151edd98d0a6423452633528e5f40ba5cf4d3406d48bc4",
+      "unit_id": "seed999__cell00__cell_specific"
+    },
+    "seed999__cell00__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "00",
+      "cell_dir": "hw_pos_excluded__hw_neg_excluded",
+      "context_seed": 999,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.013372603356159678,
+          "max": 0.81640625,
+          "mean": 0.7822265625,
+          "min": 0.7626953125,
+          "n": 8,
+          "sd": 0.015995536726630684
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.002993797706240361,
+          "max": 0.7203480113636365,
+          "mean": 0.7155484286221591,
+          "min": 0.7107155539772727,
+          "n": 8,
+          "sd": 0.0035810081168834297
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.001709441519853575,
+          "max": 0.9080873756206529,
+          "mean": 0.9053700320104667,
+          "min": 0.9026360538382505,
+          "n": 8,
+          "sd": 0.00204473533571534
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 7.216260533425244e-05,
+          "max": 0.99755859375,
+          "mean": 0.997344970703125,
+          "min": 0.997314453125,
+          "n": 8,
+          "sd": 8.631674575031098e-05
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 3.608130266712622e-05,
+          "max": 0.752685546875,
+          "mean": 0.7525787353515625,
+          "min": 0.7525634765625,
+          "n": 8,
+          "sd": 4.315837287515549e-05
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 5.325730296380089e-05,
+          "max": 0.9978885135135135,
+          "mean": 0.9977308558558557,
+          "min": 0.9977083333333333,
+          "n": 8,
+          "sd": 6.370331362040903e-05
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 7.216260533425244e-05,
+          "max": 0.99755859375,
+          "mean": 0.997344970703125,
+          "min": 0.997314453125,
+          "n": 8,
+          "sd": 8.631674575031098e-05
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.0034551039435265205,
+          "max": 0.6358309659090909,
+          "mean": 0.6299493963068181,
+          "min": 0.6224254261363635,
+          "n": 8,
+          "sd": 0.004132796027151159
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.0035828220886564787,
+          "max": 0.33526230411371216,
+          "mean": 0.3294844449919765,
+          "min": 0.32259872439317405,
+          "n": 8,
+          "sd": 0.004285565104844799
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.013717078985113148,
+          "max": 0.736328125,
+          "mean": 0.69921875,
+          "min": 0.68359375,
+          "n": 8,
+          "sd": 0.016407578602666468
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.0008996583851810689,
+          "max": 0.724609375,
+          "mean": 0.72314453125,
+          "min": 0.7216796875,
+          "n": 8,
+          "sd": 0.0010761194629283978
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 0.7011030610010494,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "965c899f-aca4-44a1-8bd8-5e8682ac19d2",
+      "scaler_arm": "frozen_reference",
+      "state_sha256": "982b5fbb5877ace13218e34455f95b6b1e62be07e9449a74cf52b35399380f2f",
+      "unit_id": "seed999__cell00__frozen_reference"
+    },
+    "seed999__cell01__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "01",
+      "cell_dir": "hw_pos_excluded__hw_neg_present",
+      "context_seed": 999,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.0,
+          "max": 0.9990234375,
+          "mean": 0.9990234375,
+          "min": 0.9990234375,
+          "n": 8,
+          "sd": 0.0
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.0009339397172165052,
+          "max": 0.75634765625,
+          "mean": 0.7541170987215909,
+          "min": 0.7527965198863638,
+          "n": 8,
+          "sd": 0.0011171248147664947
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.003421514390792362,
+          "max": 0.9061404319636495,
+          "mean": 0.8989245828165622,
+          "min": 0.8941017323086271,
+          "n": 8,
+          "sd": 0.004092618141807476
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 7.216260533425244e-05,
+          "max": 0.997314453125,
+          "mean": 0.997283935546875,
+          "min": 0.9970703125,
+          "n": 8,
+          "sd": 8.631674575031098e-05
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 3.608130266712622e-05,
+          "max": 0.7525634765625,
+          "mean": 0.7525482177734375,
+          "min": 0.75244140625,
+          "n": 8,
+          "sd": 4.315837287515549e-05
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 5.1855794991083114e-05,
+          "max": 0.9977083333333333,
+          "mean": 0.9976864035087718,
+          "min": 0.997532894736842,
+          "n": 8,
+          "sd": 6.20269106304148e-05
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 7.216260533425244e-05,
+          "max": 0.997314453125,
+          "mean": 0.997283935546875,
+          "min": 0.9970703125,
+          "n": 8,
+          "sd": 8.631674575031098e-05
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.0014988874829059162,
+          "max": 0.7042791193181819,
+          "mean": 0.7017156427556819,
+          "min": 0.6991299715909092,
+          "n": 8,
+          "sd": 0.001792882742675907
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.0021637301221614454,
+          "max": 0.9157144867618854,
+          "mean": 0.9128457683682285,
+          "min": 0.9071993389296722,
+          "n": 8,
+          "sd": 0.0025881291558392376
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.0,
+          "max": 1.0,
+          "mean": 1.0,
+          "min": 1.0,
+          "n": 8,
+          "sd": 0.0
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.0015419367867889925,
+          "max": 0.7333984375,
+          "mean": 0.73028564453125,
+          "min": 0.72802734375,
+          "n": 8,
+          "sd": 0.001844375836651543
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 0.9282137629998033,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "099cca7e-1741-4667-ba22-9443339f3bfa",
+      "scaler_arm": "cell_specific",
+      "state_sha256": "3dd045999b68c45237e8fdc72f5ffed7d2497d9086b8ed6a968650a994157c54",
+      "unit_id": "seed999__cell01__cell_specific"
+    },
+    "seed999__cell01__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "01",
+      "cell_dir": "hw_pos_excluded__hw_neg_present",
+      "context_seed": 999,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.0,
+          "max": 0.9990234375,
+          "mean": 0.9990234375,
+          "min": 0.9990234375,
+          "n": 8,
+          "sd": 0.0
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.001165624790518472,
+          "max": 0.7568359375,
+          "mean": 0.7547718394886364,
+          "min": 0.75244140625,
+          "n": 8,
+          "sd": 0.0013942531345342915
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.002223801535343405,
+          "max": 0.9010479134522029,
+          "mean": 0.8964714176759117,
+          "min": 0.892359754856443,
+          "n": 8,
+          "sd": 0.002659983115025879
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 7.216260533425244e-05,
+          "max": 0.997314453125,
+          "mean": 0.997283935546875,
+          "min": 0.9970703125,
+          "n": 8,
+          "sd": 8.631674575031098e-05
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 3.608130266712622e-05,
+          "max": 0.7525634765625,
+          "mean": 0.7525482177734375,
+          "min": 0.75244140625,
+          "n": 8,
+          "sd": 4.315837287515549e-05
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 5.1855794991083114e-05,
+          "max": 0.9977083333333333,
+          "mean": 0.9976864035087718,
+          "min": 0.997532894736842,
+          "n": 8,
+          "sd": 6.20269106304148e-05
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 7.216260533425244e-05,
+          "max": 0.997314453125,
+          "mean": 0.997283935546875,
+          "min": 0.9970703125,
+          "n": 8,
+          "sd": 8.631674575031098e-05
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.0011815088815478503,
+          "max": 0.7069424715909091,
+          "mean": 0.7049560546875,
+          "min": 0.703125,
+          "n": 8,
+          "sd": 0.0014132527679386977
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.002031793698898228,
+          "max": 0.9164044609001394,
+          "mean": 0.9141904702531747,
+          "min": 0.9085468989477476,
+          "n": 8,
+          "sd": 0.002430314417176926
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.0,
+          "max": 1.0,
+          "mean": 1.0,
+          "min": 1.0,
+          "n": 8,
+          "sd": 0.0
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.0013227624051577436,
+          "max": 0.7353515625,
+          "mean": 0.7325439453125,
+          "min": 0.73095703125,
+          "n": 8,
+          "sd": 0.0015822120845722315
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 0.9246103149998817,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "30d2c655-daeb-425e-831a-68cd38472c69",
+      "scaler_arm": "frozen_reference",
+      "state_sha256": "f58a0a766f0cbcb5990e330dccde4765bfd054d07c8a243a2510382abbf1047b",
+      "unit_id": "seed999__cell01__frozen_reference"
+    },
+    "seed999__cell10__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "10",
+      "cell_dir": "hw_pos_present__hw_neg_excluded",
+      "context_seed": 999,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.007779038962054751,
+          "max": 0.443359375,
+          "mean": 0.426513671875,
+          "min": 0.4169921875,
+          "n": 8,
+          "sd": 0.009304837667089184
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.002185455055448134,
+          "max": 0.6874556107954546,
+          "mean": 0.6825228604403408,
+          "min": 0.6790216619318181,
+          "n": 8,
+          "sd": 0.0026141152678187543
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.0017284281255291948,
+          "max": 0.8997900489948734,
+          "mean": 0.8962870111043344,
+          "min": 0.8927177121904606,
+          "n": 8,
+          "sd": 0.0020674460181688455
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 7.216260533425244e-05,
+          "max": 0.997314453125,
+          "mean": 0.997283935546875,
+          "min": 0.9970703125,
+          "n": 8,
+          "sd": 8.631674575031098e-05
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 3.608130266712622e-05,
+          "max": 0.7525634765625,
+          "mean": 0.7525482177734375,
+          "min": 0.75244140625,
+          "n": 8,
+          "sd": 4.315837287515549e-05
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 5.1855794991083114e-05,
+          "max": 0.9977083333333333,
+          "mean": 0.9976864035087718,
+          "min": 0.997532894736842,
+          "n": 8,
+          "sd": 6.20269106304148e-05
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 7.216260533425244e-05,
+          "max": 0.997314453125,
+          "mean": 0.997283935546875,
+          "min": 0.9970703125,
+          "n": 8,
+          "sd": 8.631674575031098e-05
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.0016173269582900889,
+          "max": 0.6290838068181818,
+          "mean": 0.6261208274147727,
+          "min": 0.6233132102272727,
+          "n": 8,
+          "sd": 0.0019345532108662137
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.003152372222548694,
+          "max": -0.009987302124500275,
+          "mean": -0.016490306705236435,
+          "min": -0.02105332352221012,
+          "n": 8,
+          "sd": 0.0037706858058092194
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.00940030960006226,
+          "max": 0.353515625,
+          "mean": 0.330078125,
+          "min": 0.318359375,
+          "n": 8,
+          "sd": 0.011244108080139445
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.0013615613143267695,
+          "max": 0.7353515625,
+          "mean": 0.73211669921875,
+          "min": 0.72998046875,
+          "n": 8,
+          "sd": 0.0016286211015779217
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 0.883438914999715,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "74784800-5de5-4333-8726-87e8a578e808",
+      "scaler_arm": "cell_specific",
+      "state_sha256": "90946cd90c6462e8230276e3f56050196ac380e32fca79d72377fe7b3f3688fb",
+      "unit_id": "seed999__cell10__cell_specific"
+    },
+    "seed999__cell10__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "10",
+      "cell_dir": "hw_pos_present__hw_neg_excluded",
+      "context_seed": 999,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.012107598639046103,
+          "max": 0.44140625,
+          "mean": 0.423095703125,
+          "min": 0.400390625,
+          "n": 8,
+          "sd": 0.014482411056704128
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.001826063714722452,
+          "max": 0.6883877840909091,
+          "mean": 0.6833773526278409,
+          "min": 0.6811967329545454,
+          "n": 8,
+          "sd": 0.002184232077784351
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.0019904454215859124,
+          "max": 0.8987733579288033,
+          "mean": 0.896209075248521,
+          "min": 0.8909127599326894,
+          "n": 8,
+          "sd": 0.002380855993060323
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 0.00010909960438453429,
+          "max": 0.997314453125,
+          "mean": 0.9971923828125,
+          "min": 0.9970703125,
+          "n": 8,
+          "sd": 0.00013049865327755097
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 5.4549802192267144e-05,
+          "max": 0.7525634765625,
+          "mean": 0.75250244140625,
+          "min": 0.75244140625,
+          "n": 8,
+          "sd": 6.524932663877549e-05
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 7.839859290511702e-05,
+          "max": 0.9977083333333333,
+          "mean": 0.9976206140350876,
+          "min": 0.997532894736842,
+          "n": 8,
+          "sd": 9.377587435526065e-05
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 0.00010909960438453429,
+          "max": 0.997314453125,
+          "mean": 0.9971923828125,
+          "min": 0.9970703125,
+          "n": 8,
+          "sd": 0.00013049865327755097
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.002260902206270291,
+          "max": 0.6285511363636364,
+          "mean": 0.6255992542613636,
+          "min": 0.6203835227272727,
+          "n": 8,
+          "sd": 0.0027043607974103854
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.0024063071722290985,
+          "max": -0.014391515403985977,
+          "mean": -0.01768089854158461,
+          "min": -0.02217705361545086,
+          "n": 8,
+          "sd": 0.002878285829902826
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.014066658395089863,
+          "max": 0.3515625,
+          "mean": 0.32666015625,
+          "min": 0.298828125,
+          "n": 8,
+          "sd": 0.016825725327147066
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.0009742906205181982,
+          "max": 0.73486328125,
+          "mean": 0.73211669921875,
+          "min": 0.7314453125,
+          "n": 8,
+          "sd": 0.0011653902376258106
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 0.7387396060003084,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "fd62718b-0e38-42ed-bbbe-8a03f9d3d325",
+      "scaler_arm": "frozen_reference",
+      "state_sha256": "4fabd3a377ed06cf3115aa7bb31d475e0079e783f6be9d0bea327107679af17b",
+      "unit_id": "seed999__cell10__frozen_reference"
+    },
+    "seed999__cell11__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "11",
+      "cell_dir": "hw_pos_present__hw_neg_present",
+      "context_seed": 999,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.001507786530739886,
+          "max": 0.984375,
+          "mean": 0.9801025390625,
+          "min": 0.978515625,
+          "n": 8,
+          "sd": 0.0018035272703470836
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.0025654037254096767,
+          "max": 0.72900390625,
+          "mean": 0.72613525390625,
+          "min": 0.7209250710227273,
+          "n": 8,
+          "sd": 0.003068587949221133
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.002868278672963446,
+          "max": 0.9065747371446378,
+          "mean": 0.9008367143349574,
+          "min": 0.8962707980822415,
+          "n": 8,
+          "sd": 0.0034308694899310888
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 0.00018092122625985657,
+          "max": 0.99755859375,
+          "mean": 0.99725341796875,
+          "min": 0.996826171875,
+          "n": 8,
+          "sd": 0.00021640753428415975
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 9.046061312992828e-05,
+          "max": 0.752685546875,
+          "mean": 0.752532958984375,
+          "min": 0.7523193359375,
+          "n": 8,
+          "sd": 0.00010820376714207988
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 0.0001297456736724825,
+          "max": 0.9978885135135135,
+          "mean": 0.9976656359880043,
+          "min": 0.997362012987013,
+          "n": 8,
+          "sd": 0.0001551942903768014
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 0.00018092122625985657,
+          "max": 0.99755859375,
+          "mean": 0.99725341796875,
+          "min": 0.996826171875,
+          "n": 8,
+          "sd": 0.00021640753428415975
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.0017675182238144642,
+          "max": 0.6890980113636365,
+          "mean": 0.6863125887784092,
+          "min": 0.68359375,
+          "n": 8,
+          "sd": 0.0021142033387979375
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.0055402338453788775,
+          "max": 0.6825351772713475,
+          "mean": 0.6749276259270118,
+          "min": 0.6623200821195496,
+          "n": 8,
+          "sd": 0.006626908133565522
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.0032657067251160594,
+          "max": 0.978515625,
+          "mean": 0.97265625,
+          "min": 0.96484375,
+          "n": 8,
+          "sd": 0.00390625
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.0012534590241989445,
+          "max": 0.736328125,
+          "mean": 0.734619140625,
+          "min": 0.732421875,
+          "n": 8,
+          "sd": 0.0014993153780834736
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 0.9253283059988462,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "9d1e9a53-b2df-44e9-a6b5-0e9b6fc69a4c",
+      "scaler_arm": "cell_specific",
+      "state_sha256": "208aedb03e71b25895cd26680f7808271c8d2d00abb4bcb855c1c1d7b0e6052a",
+      "unit_id": "seed999__cell11__cell_specific"
+    },
+    "seed999__cell11__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "11",
+      "cell_dir": "hw_pos_present__hw_neg_present",
+      "context_seed": 999,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.002654507942482418,
+          "max": 0.986328125,
+          "mean": 0.98046875,
+          "min": 0.9755859375,
+          "n": 8,
+          "sd": 0.0031751692736442638
+        },
+        "chilledwater_positive_global_rank": {
+          "half_width": 0.002055115450027731,
+          "max": 0.7274946732954546,
+          "mean": 0.7238436612215908,
+          "min": 0.7197265625,
+          "n": 8,
+          "sd": 0.00245821055054646
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "half_width": 0.0015084108550471747,
+          "max": 0.9045882697546404,
+          "mean": 0.9021671194216196,
+          "min": 0.8997523631956028,
+          "n": 8,
+          "sd": 0.0018042740510688766
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "half_width": 0.00018092122625985657,
+          "max": 0.99755859375,
+          "mean": 0.99737548828125,
+          "min": 0.9970703125,
+          "n": 8,
+          "sd": 0.00021640753428415975
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "half_width": 9.046061312992828e-05,
+          "max": 0.752685546875,
+          "mean": 0.752593994140625,
+          "min": 0.75244140625,
+          "n": 8,
+          "sd": 0.00010820376714207988
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "half_width": 0.00013192905200568863,
+          "max": 0.9978885135135135,
+          "mean": 0.9977545637743006,
+          "min": 0.997532894736842,
+          "n": 8,
+          "sd": 0.00015780592158927143
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "half_width": 0.00018092122625985657,
+          "max": 0.99755859375,
+          "mean": 0.99737548828125,
+          "min": 0.9970703125,
+          "n": 8,
+          "sd": 0.00021640753428415975
+        },
+        "steam_positive_global_rank": {
+          "half_width": 0.0027736782472329857,
+          "max": 0.6905184659090908,
+          "mean": 0.6848366477272727,
+          "min": 0.6795987215909092,
+          "n": 8,
+          "sd": 0.003317713917764247
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "half_width": 0.005603335949816648,
+          "max": 0.6913501301751239,
+          "mean": 0.6802628822497354,
+          "min": 0.6721905777594657,
+          "n": 8,
+          "sd": 0.006702387230804814
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "half_width": 0.0019516330537772222,
+          "max": 0.978515625,
+          "mean": 0.974609375,
+          "min": 0.97265625,
+          "n": 8,
+          "sd": 0.0023344308776062374
+        },
+        "steam_positive_within_meter_rank": {
+          "half_width": 0.001397156642257893,
+          "max": 0.73828125,
+          "mean": 0.73486328125,
+          "min": 0.73291015625,
+          "n": 8,
+          "sd": 0.0016711981795076644
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fit_seconds": 0.8964869610026653,
+      "peak_gpu_bytes": 1718230528,
+      "process_uuid": "414f4156-bf5a-4350-b29f-c9b6bccbccb8",
+      "scaler_arm": "frozen_reference",
+      "state_sha256": "383fd4cdfd75028ea424335ac21ae9fcf79f3b5b86efc56cc64a16ac3d3e5625",
+      "unit_id": "seed999__cell11__frozen_reference"
+    }
+  },
+  "protocol_sha256": "6efdc937878a835ad35eb139d38b3fc77c1d12a17e330988c55523f85cdebb10",
+  "realised_order_digest": "63ca76f1167768252b29992fd791c450ba33447f5908b8938f1b67d0ecc732e3",
+  "schema": "m5_e4_formal_path_a_summary_v1",
+  "variation_sources_reported_separately": [
+    "inference variation: 8 same-process repeats of one fit",
+    "context-seed variation: 42 / 123 / 999",
+    "building-clustered uncertainty",
+    "segment-clustered uncertainty"
+  ]
+}

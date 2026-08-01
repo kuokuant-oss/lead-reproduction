@@ -1,0 +1,1732 @@
+{
+  "repeats": [
+    {
+      "cell": "11",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell11__frozen_reference/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell11__frozen_reference/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell11__frozen_reference/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell11__frozen_reference/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell11__frozen_reference/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell11__frozen_reference/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell11__frozen_reference/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell11__frozen_reference/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell11__cell_specific/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell11__cell_specific/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell11__cell_specific/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell11__cell_specific/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell11__cell_specific/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell11__cell_specific/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell11__cell_specific/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell11__cell_specific/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell11__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell00__cell_specific/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell00__cell_specific/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell00__cell_specific/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell00__cell_specific/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell00__cell_specific/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell00__cell_specific/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell00__cell_specific/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell00__cell_specific/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell00__frozen_reference/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell00__frozen_reference/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell00__frozen_reference/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell00__frozen_reference/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell00__frozen_reference/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell00__frozen_reference/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell00__frozen_reference/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell00__frozen_reference/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell00__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell01__cell_specific/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell01__cell_specific/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell01__cell_specific/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell01__cell_specific/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell01__cell_specific/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell01__cell_specific/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell01__cell_specific/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell01__cell_specific/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell01__frozen_reference/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell01__frozen_reference/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell01__frozen_reference/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell01__frozen_reference/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell01__frozen_reference/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell01__frozen_reference/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell01__frozen_reference/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell01__frozen_reference/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell01__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell10__frozen_reference/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell10__frozen_reference/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell10__frozen_reference/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell10__frozen_reference/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell10__frozen_reference/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell10__frozen_reference/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell10__frozen_reference/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell10__frozen_reference/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell10__cell_specific/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell10__cell_specific/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell10__cell_specific/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell10__cell_specific/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell10__cell_specific/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell10__cell_specific/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell10__cell_specific/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell10__cell_specific/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell10__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell00__frozen_reference/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell00__frozen_reference/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell00__frozen_reference/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell00__frozen_reference/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell00__frozen_reference/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell00__frozen_reference/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell00__frozen_reference/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell00__frozen_reference/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell00__cell_specific/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell00__cell_specific/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell00__cell_specific/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell00__cell_specific/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell00__cell_specific/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell00__cell_specific/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell00__cell_specific/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell00__cell_specific/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell00__cell_specific/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell00__cell_specific/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell00__cell_specific/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell00__cell_specific/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell00__cell_specific/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell00__cell_specific/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell00__cell_specific/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell00__cell_specific/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell00__frozen_reference/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell00__frozen_reference/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell00__frozen_reference/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell00__frozen_reference/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell00__frozen_reference/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell00__frozen_reference/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell00__frozen_reference/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell00__frozen_reference/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell00__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell10__cell_specific/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell10__cell_specific/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell10__cell_specific/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell10__cell_specific/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell10__cell_specific/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell10__cell_specific/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell10__cell_specific/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell10__cell_specific/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell10__frozen_reference/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell10__frozen_reference/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell10__frozen_reference/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell10__frozen_reference/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell10__frozen_reference/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell10__frozen_reference/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell10__frozen_reference/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell10__frozen_reference/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell10__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell01__cell_specific/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell01__cell_specific/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell01__cell_specific/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell01__cell_specific/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell01__cell_specific/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell01__cell_specific/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell01__cell_specific/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell01__cell_specific/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell01__frozen_reference/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell01__frozen_reference/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell01__frozen_reference/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell01__frozen_reference/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell01__frozen_reference/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell01__frozen_reference/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell01__frozen_reference/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell01__frozen_reference/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell01__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell11__cell_specific/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell11__cell_specific/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell11__cell_specific/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell11__cell_specific/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell11__cell_specific/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell11__cell_specific/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell11__cell_specific/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell11__cell_specific/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed123__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell11__frozen_reference/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell11__frozen_reference/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell11__frozen_reference/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell11__frozen_reference/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell11__frozen_reference/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell11__frozen_reference/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell11__frozen_reference/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 123,
+      "expected_artifact": "seed123__cell11__frozen_reference/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed123__cell11__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell01__frozen_reference/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell01__frozen_reference/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell01__frozen_reference/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell01__frozen_reference/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell01__frozen_reference/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell01__frozen_reference/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell01__frozen_reference/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell01__frozen_reference/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell01__cell_specific/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell01__cell_specific/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell01__cell_specific/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell01__cell_specific/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell01__cell_specific/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell01__cell_specific/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell01__cell_specific/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell01__cell_specific/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell01__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell10__frozen_reference/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell10__frozen_reference/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell10__frozen_reference/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell10__frozen_reference/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell10__frozen_reference/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell10__frozen_reference/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell10__frozen_reference/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell10__frozen_reference/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed42__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell10__cell_specific/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell10__cell_specific/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell10__cell_specific/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell10__cell_specific/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell10__cell_specific/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell10__cell_specific/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell10__cell_specific/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "context_seed": 42,
+      "expected_artifact": "seed42__cell10__cell_specific/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed42__cell10__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell11__cell_specific/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell11__cell_specific/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell11__cell_specific/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell11__cell_specific/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell11__cell_specific/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell11__cell_specific/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell11__cell_specific/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell11__cell_specific/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "cell_specific",
+      "unit_id": "seed999__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell11__frozen_reference/repeats/repeat_000.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 0,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell11__frozen_reference/repeats/repeat_001.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 1,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell11__frozen_reference/repeats/repeat_002.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 2,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell11__frozen_reference/repeats/repeat_003.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 3,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell11__frozen_reference/repeats/repeat_004.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 4,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell11__frozen_reference/repeats/repeat_005.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 5,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell11__frozen_reference/repeats/repeat_006.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 6,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "context_seed": 999,
+      "expected_artifact": "seed999__cell11__frozen_reference/repeats/repeat_007.json",
+      "mode": "same_process_inference_repeat",
+      "repeat": 7,
+      "scaler_arm": "frozen_reference",
+      "unit_id": "seed999__cell11__frozen_reference"
+    }
+  ]
+}
