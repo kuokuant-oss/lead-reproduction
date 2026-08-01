@@ -179,8 +179,12 @@ def load_unit(
             raise AssertionError("E4 F4 or label-balance contract failed")
         if npz is not None:
             npz.parent.mkdir(parents=True, exist_ok=True)
-            tmp = npz.with_suffix(".npz.tmp")
-            np.savez(tmp, x=x, y=y, q=q)
+            tmp = npz.with_name(f".{npz.name}.{os.getpid()}.tmp")
+            # Write through a file object: np.savez appends ".npz" to a *path*
+            # whose name does not already end in it, so the temp file would land
+            # somewhere the rename cannot find.
+            with tmp.open("wb") as fh:
+                np.savez(fh, x=x, y=y, q=q)
             os.replace(tmp, npz)
             atomic_json(
                 meta,

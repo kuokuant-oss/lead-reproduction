@@ -427,6 +427,59 @@ def test_normal_rows_never_share_a_segment_cluster():
 
 
 # --------------------------------------------------------------------------
+# feature-matrix cache
+# --------------------------------------------------------------------------
+
+
+def test_feature_cache_round_trips_through_the_atomic_write(tmp_path):
+    """The cache write must land on the path the rename expects.
+
+    `np.savez` appends ".npz" to a *path* argument that does not already end in
+    it, so writing to "<name>.npz.tmp" silently produces "<name>.npz.tmp.npz"
+    and the rename fails with FileNotFoundError after the expensive build has
+    already happened. Writing through a file object avoids the rewrite; this
+    test exercises the whole write-rename-reload path rather than trusting it.
+    """
+    import os as _os
+
+    npz = tmp_path / "seed42__cell11.npz"
+    x = np.arange(12, dtype="float32").reshape(3, 4)
+    y = np.array([0, 1, 0], dtype="int8")
+    q = np.arange(8, dtype="float32").reshape(2, 4)
+
+    tmp = npz.with_name(f".{npz.name}.{_os.getpid()}.tmp")
+    with tmp.open("wb") as fh:
+        np.savez(fh, x=x, y=y, q=q)
+    assert tmp.exists(), "np.savez rewrote the temp path"
+    _os.replace(tmp, npz)
+
+    assert npz.exists()
+    assert not list(tmp_path.glob("*.tmp*")), "a temp file survived the rename"
+    with np.load(npz) as z:
+        assert np.array_equal(z["x"], x)
+        assert np.array_equal(z["y"], y)
+        assert np.array_equal(z["q"], q)
+
+
+def test_cache_key_is_seed_and_cell_only(tmp_path):
+    """Both scaler arms of a block must share one cache entry, and only that.
+
+    The cache is keyed on (context seed, cell) because the scaler is applied
+    after the cache. A key that included the arm would double the expensive
+    builds; a key that dropped the seed or cell would reuse the wrong matrix.
+    """
+    from m5_e4_runner import cache_paths
+
+    a_npz, a_meta = cache_paths(tmp_path, 42, "11")
+    b_npz, _ = cache_paths(tmp_path, 42, "11")
+    assert a_npz == b_npz
+    assert a_meta.suffix == ".json" and a_npz.suffix == ".npz"
+    for seed, cell in ((123, "11"), (42, "10"), (999, "00")):
+        other, _ = cache_paths(tmp_path, seed, cell)
+        assert other != a_npz
+
+
+# --------------------------------------------------------------------------
 # ensemble contract
 # --------------------------------------------------------------------------
 
