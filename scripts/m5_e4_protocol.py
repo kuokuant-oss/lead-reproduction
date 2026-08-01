@@ -73,12 +73,23 @@ def sha256_file(path: Path) -> str:
 
 
 def atomic_json(path: Path, payload: Any) -> str:
+    """Write JSON and return the digest of what actually landed on disk.
+
+    `newline=""` is load-bearing. Without it Python translates "\\n" to CRLF on
+    Windows, so the file would not match the digest computed from the body, and
+    freezing the same protocol on Linux and on Windows would produce different
+    artifacts for identical content.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
     body = json.dumps(payload, indent=2, sort_keys=True, default=str) + "\n"
     tmp = path.with_name(f".{path.name}.{os.getpid()}.{time.time_ns()}.tmp")
-    tmp.write_text(body, encoding="utf-8")
+    with tmp.open("w", encoding="utf-8", newline="") as fh:
+        fh.write(body)
     os.replace(tmp, path)
-    return hashlib.sha256(body.encode("utf-8")).hexdigest()
+    digest = hashlib.sha256(body.encode("utf-8")).hexdigest()
+    if sha256_file(path) != digest:
+        raise AssertionError(f"{path.name} on disk does not match its body digest")
+    return digest
 
 
 def unit_id(seed: int, cell: str, arm: str) -> str:

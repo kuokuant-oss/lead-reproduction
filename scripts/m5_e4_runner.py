@@ -56,11 +56,16 @@ def sha256_file(path: Path) -> str:
 
 
 def atomic_json(path: Path, payload: Any) -> None:
+    """Atomic write with platform-independent bytes.
+
+    `newline=""` keeps the artifact byte-identical whichever platform writes it,
+    so a digest taken here still matches after the results cross a machine
+    boundary.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(f".{path.name}.{os.getpid()}.{time.time_ns()}.tmp")
-    tmp.write_text(
-        json.dumps(payload, indent=2, sort_keys=True, default=str), encoding="utf-8"
-    )
+    with tmp.open("w", encoding="utf-8", newline="") as fh:
+        fh.write(json.dumps(payload, indent=2, sort_keys=True, default=str) + "\n")
     os.replace(tmp, path)
 
 
