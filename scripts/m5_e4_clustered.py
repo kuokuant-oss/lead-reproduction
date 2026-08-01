@@ -26,7 +26,7 @@ import pandas as pd
 
 from m5_e4_endpoints import (
     EFFECT_NAMES,
-    endpoints,
+    endpoint_value,
     factor_effect,
 )
 
@@ -104,7 +104,7 @@ def _fit_level(
     """
     vals = []
     for score in repeat_scores:
-        v = endpoints(score[idx], meter[idx], anomaly[idx])[endpoint]
+        v = endpoint_value(endpoint, score[idx], meter[idx], anomaly[idx])
         if not np.isfinite(v):
             raise DrawInvalid(endpoint)
         vals.append(v)
@@ -141,7 +141,7 @@ def draw_contrasts(
             for cell in CELLS:
                 key = (seed, cell, arm)
                 tab_cells[cell] = _fit_level(tabpfn[key], idx, meter, anomaly, endpoint)
-                tv = endpoints(trees[key][idx], meter[idx], anomaly[idx])[endpoint]
+                tv = endpoint_value(endpoint, trees[key][idx], meter[idx], anomaly[idx])
                 if not np.isfinite(tv):
                     raise DrawInvalid(endpoint)
                 tree_cells[cell] = float(tv)

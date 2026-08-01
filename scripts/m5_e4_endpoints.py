@@ -130,6 +130,41 @@ ENDPOINT_NAMES = tuple(
 )
 
 
+def endpoint_value(
+    name: str, score: np.ndarray, meter: np.ndarray, anomaly: np.ndarray
+) -> float:
+    """One endpoint, computed without the other ten.
+
+    The clustered bootstrap evaluates a single endpoint roughly half a million
+    times, and `endpoints()` computes all eleven readouts including two
+    ranking passes and a PR curve. Only the single-endpoint path is used there;
+    `test_endpoint_value_matches_the_full_dict` pins it to `endpoints()` so the
+    two can never drift apart.
+    """
+    score = np.asarray(score, dtype="float64")
+    if name == "steam_positive_vs_hotwater_negative_pairwise_auc":
+        return _pairwise_auc(
+            score[(meter == METER["steam"]) & (anomaly == 1)],
+            score[(meter == METER["hotwater"]) & (anomaly == 0)],
+        )
+    if name == "steam_positive_minus_hotwater_negative_score_margin":
+        return _margin(
+            score[(meter == METER["steam"]) & (anomaly == 1)],
+            score[(meter == METER["hotwater"]) & (anomaly == 0)],
+        )
+    if name == "chilledwater_positive_vs_chilledwater_negative_pairwise_auc":
+        return _pairwise_auc(
+            score[(meter == METER["chilledwater"]) & (anomaly == 1)],
+            score[(meter == METER["chilledwater"]) & (anomaly == 0)],
+        )
+    if name == "chilledwater_positive_minus_chilledwater_negative_score_margin":
+        return _margin(
+            score[(meter == METER["chilledwater"]) & (anomaly == 1)],
+            score[(meter == METER["chilledwater"]) & (anomaly == 0)],
+        )
+    return endpoints(score, meter, anomaly)[name]
+
+
 def fit_level_estimate(
     repeat_scores: list[np.ndarray],
     meter: np.ndarray,

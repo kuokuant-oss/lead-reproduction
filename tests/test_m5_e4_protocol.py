@@ -388,6 +388,46 @@ def test_factor_effect_matches_the_repository_formulas():
     assert out["positive_x_negative_interaction"] == pytest.approx(8 - 4 - 2 + 1)
 
 
+def test_endpoint_value_matches_the_full_dict():
+    """The bootstrap's fast path must be the same number as the full readout.
+
+    The clustered estimator calls the single-endpoint path hundreds of
+    thousands of times. If it ever diverged from `endpoints()`, the intervals
+    would silently describe a different quantity than the per-repeat records.
+    """
+    from m5_e4_endpoints import endpoint_value
+
+    q = _query(7)
+    rng = np.random.default_rng(21)
+    meter = q["meter"].to_numpy(dtype="int8")
+    anom = q["anomaly"].to_numpy(dtype="int8")
+    for trial in range(5):
+        score = rng.normal(0.5, 0.2, len(q))
+        full = endpoints(score, meter, anom)
+        for name, want in full.items():
+            got = endpoint_value(name, score, meter, anom)
+            if np.isfinite(want):
+                assert got == pytest.approx(want, rel=1e-12), f"{name} trial {trial}"
+            else:
+                assert not np.isfinite(got), name
+
+
+def test_endpoint_value_is_invalid_on_a_missing_stratum():
+    from m5_e4_endpoints import endpoint_value
+
+    q = _query()
+    keep = np.flatnonzero(q["meter"].to_numpy() != METER_HW)
+    score = np.linspace(0, 1, len(keep))
+    for name in (
+        "steam_positive_vs_hotwater_negative_pairwise_auc",
+        "steam_positive_minus_hotwater_negative_score_margin",
+    ):
+        got = endpoint_value(
+            name, score, q["meter"].to_numpy()[keep], q["anomaly"].to_numpy()[keep]
+        )
+        assert not np.isfinite(got), name
+
+
 def test_e4_endpoints_reproduce_the_e3_definitions():
     """The frozen margin source must still agree with the E3 runner."""
     try:
