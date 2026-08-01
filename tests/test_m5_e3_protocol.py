@@ -295,5 +295,50 @@ def _standalone() -> int:
     return 1 if failed else 0
 
 
+def _rec(auc: float, margin: float) -> dict:
+    return {
+        "endpoints": {
+            "steam_positive_vs_hotwater_negative_pairwise_auc": auc,
+            "steam_positive_minus_hotwater_negative_score_margin": margin,
+        }
+    }
+
+
+def test_gate_uses_student_t_and_only_steam_endpoints():
+    import sys
+
+    sys.path.insert(0, str(REPO / "scripts"))
+    from m5_e3_runner import evaluate_gate, half_width
+
+    tight = [_rec(0.90 + 0.0001 * i, 0.50 + 0.0001 * i) for i in range(8)]
+    g = evaluate_gate(tight, 0.015, 0.016)
+    assert g["n"] == 8
+    assert g["auc_pass"] and g["margin_pass"] and g["both_pass"]
+    # half width must equal the frozen Student-t formula
+    aucs = [
+        r["endpoints"]["steam_positive_vs_hotwater_negative_pairwise_auc"]
+        for r in tight
+    ]
+    assert g["auc_half_width"] == pytest.approx(half_width(aucs), rel=1e-12)
+
+    # a tight AUC with a noisy margin must fail on the margin alone
+    noisy = [_rec(0.90, 0.50 + (0.05 if i % 2 else -0.05)) for i in range(8)]
+    g2 = evaluate_gate(noisy, 0.015, 0.001)
+    assert g2["auc_pass"] is True
+    assert g2["margin_pass"] is False
+    assert g2["both_pass"] is False
+
+
+def test_gate_half_width_shrinks_with_more_repeats():
+    import sys
+
+    sys.path.insert(0, str(REPO / "scripts"))
+    from m5_e3_runner import half_width
+
+    rng = np.random.default_rng(7)
+    draws = list(rng.normal(0.9, 0.01, 40))
+    assert half_width(draws[:8]) > half_width(draws[:40])
+
+
 if __name__ == "__main__":
     raise SystemExit(_standalone())
