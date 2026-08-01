@@ -27,6 +27,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 CELLS = {
     "11": "hw_pos_present__hw_neg_present",
     "10": "hw_pos_present__hw_neg_excluded",
@@ -116,29 +118,96 @@ def unit_id(seed: int, cell: str, arm: str) -> str:
     return f"seed{seed}__cell{cell}__{arm}"
 
 
-def execution_order() -> list[dict]:
-    """The realised order of the 24 fits.
+SCHEDULE_SEED = 42
 
-    No schedule randomisation was specified for E4, and none is invented here.
-    The order is the frozen context-seed list, then the canonical policy cell
-    order, then the scaler-arm list -- every component already fixed elsewhere
-    in this protocol. It is fully deterministic and carries no seed.
+
+def canonical_blocks() -> list[tuple[int, str]]:
+    """The 12 scheduling blocks, enumerated from frozen lists only.
+
+    Built from `CONTEXT_SEEDS` and `CELL_ORDER` -- never from a dict iteration
+    or a directory listing -- so the permutation below is applied to the same
+    input on every machine and in every Python build.
     """
-    order = []
-    for seed in CONTEXT_SEEDS:
-        for cell in CELL_ORDER:
-            for arm in SCALER_ARMS:
-                order.append(
-                    {
-                        "position": len(order),
-                        "unit_id": unit_id(seed, cell, arm),
-                        "context_seed": seed,
-                        "cell": cell,
-                        "cell_dir": CELLS[cell],
-                        "scaler_arm": arm,
-                    }
-                )
-    return order
+    return [(seed, cell) for seed in CONTEXT_SEEDS for cell in CELL_ORDER]
+
+
+def execution_schedule() -> dict:
+    """Randomised execution order, blocked by (context seed, cell).
+
+    Randomising the order removes the confounding between a unit's identity and
+    its position in the run. It changes nothing scientific: the same 24 units,
+    fits, seeds, cells, arms, endpoints and estimator, in a different sequence.
+
+    Blocking is what keeps that affordable. Both scaler arms of a block run
+    back to back, so the raw feature matrix for that (seed, cell) is built and
+    digest-verified once and then transformed twice. The arm order inside a
+    block is drawn too, so "cell_specific first" is never assumed.
+
+    One generator, consumed in a fixed sequence: the block permutation first,
+    then one arm permutation per block in realised order.
+    """
+    rng = np.random.Generator(np.random.PCG64(SCHEDULE_SEED))
+    blocks = canonical_blocks()
+    block_order = [blocks[i] for i in rng.permutation(len(blocks))]
+
+    order: list[dict] = []
+    realised_blocks: list[dict] = []
+    for block_position, (seed, cell) in enumerate(block_order):
+        arms = [SCALER_ARMS[i] for i in rng.permutation(len(SCALER_ARMS))]
+        realised_blocks.append(
+            {
+                "block_position": block_position,
+                "block_id": f"seed{seed}__cell{cell}",
+                "context_seed": seed,
+                "cell": cell,
+                "cell_dir": CELLS[cell],
+                "arm_order": arms,
+            }
+        )
+        for arm in arms:
+            order.append(
+                {
+                    "position": len(order),
+                    "unit_id": unit_id(seed, cell, arm),
+                    "context_seed": seed,
+                    "cell": cell,
+                    "cell_dir": CELLS[cell],
+                    "scaler_arm": arm,
+                    "block_id": f"seed{seed}__cell{cell}",
+                    "block_position": block_position,
+                }
+            )
+
+    digest = hashlib.sha256(
+        "\n".join(u["unit_id"] for u in order).encode("utf-8")
+    ).hexdigest()
+    return {
+        "schedule_algorithm": (
+            "numpy Generator(PCG64, seed=42): permute the 12 (context_seed, cell) "
+            "blocks, then permute the 2 scaler arms within each block, consuming "
+            "one generator in that fixed sequence"
+        ),
+        "schedule_seed": SCHEDULE_SEED,
+        "schedule_rng": "numpy.random.Generator(numpy.random.PCG64(42))",
+        "block_definition": (
+            "one block is one (context_seed, cell); its two scaler arms run "
+            "consecutively so the raw feature matrix is built and verified once"
+        ),
+        "blocks": len(blocks),
+        "canonical_block_enumeration": [f"seed{s}__cell{c}" for s, c in blocks],
+        "realised_block_order": realised_blocks,
+        "realised_24_unit_order": order,
+        "realised_order_digest": digest,
+        "reshuffling_during_execution": "forbidden",
+        "resume_rule": "follow this frozen order and skip only completed units",
+        "cross_unit_gpu_parallelism": "forbidden; single GPU worker, strictly "
+        "sequential",
+    }
+
+
+def execution_order() -> list[dict]:
+    """The frozen realised order of the 24 fits."""
+    return execution_schedule()["realised_24_unit_order"]
 
 
 def ensemble_contract() -> dict:
@@ -348,9 +417,9 @@ def uncertainty_interpretation() -> dict:
     }
 
 
-def build_fit_manifest() -> list[dict]:
+def build_fit_manifest(schedule: dict) -> list[dict]:
     units = []
-    for entry in execution_order():
+    for entry in schedule["realised_24_unit_order"]:
         seed, cell, arm = entry["context_seed"], entry["cell"], entry["scaler_arm"]
         mpath = FACTORIAL_ROOT / "manifests" / f"seed{seed}" / f"{CELLS[cell]}.json"
         manifest = json.loads(mpath.read_text(encoding="utf-8"))
@@ -424,7 +493,8 @@ def main() -> int:
     if qmanifest["query_rows"] != 352:
         raise SystemExit("the screening query is not the 352-row artifact")
 
-    units = build_fit_manifest()
+    schedule = execution_schedule()
+    units = build_fit_manifest(schedule)
     if len(units) != 24:
         raise SystemExit(f"expected 24 fits, built {len(units)}")
     repeats = build_repeat_manifest(units)
@@ -502,11 +572,8 @@ def main() -> int:
             "gap_rule": "per repeat r: compute the TabPFN endpoint independently, "
             "then gap = TabPFN endpoint - the fixed tree endpoint of the same unit",
         },
-        "execution_order": execution_order(),
-        "execution_order_note": (
-            "deterministic; no schedule randomisation was specified for E4 and "
-            "none was invented"
-        ),
+        "schedule": schedule,
+        "execution_order": schedule["realised_24_unit_order"],
         "factorial": factorial_contracts(),
         "clustered_uncertainty": clustered_uncertainty(),
         "uncertainty_interpretation": uncertainty_interpretation(),

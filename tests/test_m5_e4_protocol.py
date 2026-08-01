@@ -548,11 +548,12 @@ def test_cell_11_arm_degeneracy_is_recorded_not_hidden(protocol):
     if not fit_path.exists():
         pytest.skip("E4 manifests not frozen in this environment")
     fits = json.loads(fit_path.read_text(encoding="utf-8"))["fits"]
-    assert [f["unit_id"] for f in fits if f["arms_are_identical_by_construction"]] == [
+    # a set, not a list: the execution order is randomised
+    assert {f["unit_id"] for f in fits if f["arms_are_identical_by_construction"]} == {
         f"seed{s}__cell11__{a}"
         for s in (42, 123, 999)
         for a in ("cell_specific", "frozen_reference")
-    ]
+    }
     # the tree comparators prove it empirically: exactly three collisions
     digests = [f["tree_comparator_sha256"] for f in fits]
     assert len(set(digests)) == 21
@@ -563,6 +564,138 @@ def test_cell_11_arm_degeneracy_is_recorded_not_hidden(protocol):
             if f["context_seed"] == s and f["cell"] == "11"
         ]
         assert pair[0] == pair[1]
+
+
+# --------------------------------------------------------------------------
+# randomised execution schedule (human ruling of 2026-08-02)
+# --------------------------------------------------------------------------
+
+
+def _schedule(seed=None):
+    import m5_e4_protocol as mod
+
+    if seed is None:
+        return mod.execution_schedule()
+    original = mod.SCHEDULE_SEED
+    try:
+        mod.SCHEDULE_SEED = seed
+        return mod.execution_schedule()
+    finally:
+        mod.SCHEDULE_SEED = original
+
+
+def test_schedule_is_reproducible_from_the_seed():
+    a, b = _schedule(), _schedule()
+    assert a["realised_order_digest"] == b["realised_order_digest"]
+    assert [u["unit_id"] for u in a["realised_24_unit_order"]] == [
+        u["unit_id"] for u in b["realised_24_unit_order"]
+    ]
+    assert a["schedule_seed"] == 42
+
+
+def test_a_different_seed_gives_a_different_order():
+    """Otherwise the permutation is not actually being applied."""
+    base = _schedule()["realised_order_digest"]
+    others = {_schedule(s)["realised_order_digest"] for s in (1, 7, 123, 999, 20260730)}
+    assert base not in others
+    assert len(others) == 5
+
+
+def test_every_block_appears_exactly_once():
+    sched = _schedule()
+    ids = [b["block_id"] for b in sched["realised_block_order"]]
+    assert len(ids) == 12
+    assert sorted(ids) == sorted(sched["canonical_block_enumeration"])
+    assert len(set(ids)) == 12
+
+
+def test_every_unit_appears_exactly_once():
+    order = _schedule()["realised_24_unit_order"]
+    assert len(order) == 24
+    assert len({u["unit_id"] for u in order}) == 24
+    expected = {
+        f"seed{s}__cell{c}__{a}"
+        for s in (42, 123, 999)
+        for c in ("00", "01", "10", "11")
+        for a in ("cell_specific", "frozen_reference")
+    }
+    assert {u["unit_id"] for u in order} == expected
+    assert [u["position"] for u in order] == list(range(24))
+
+
+def test_the_two_arms_of_a_block_are_adjacent():
+    """Blocking is what lets the raw feature matrix be built once per block."""
+    order = _schedule()["realised_24_unit_order"]
+    for i in range(0, 24, 2):
+        first, second = order[i], order[i + 1]
+        assert first["block_id"] == second["block_id"]
+        assert (first["context_seed"], first["cell"]) == (
+            second["context_seed"],
+            second["cell"],
+        )
+        assert {first["scaler_arm"], second["scaler_arm"]} == {
+            "cell_specific",
+            "frozen_reference",
+        }
+
+
+def test_arm_order_is_drawn_not_hardcoded():
+    """At least one block must start with frozen_reference."""
+    sched = _schedule()
+    firsts = {b["arm_order"][0] for b in sched["realised_block_order"]}
+    assert firsts == {"cell_specific", "frozen_reference"}
+
+
+def test_schedule_does_not_depend_on_dict_or_filesystem_order():
+    """The permutation input comes from frozen lists, not iteration order.
+
+    Perturbing the CELLS dict's insertion order changes dict iteration but must
+    not touch the schedule, because the block enumeration is built from
+    CONTEXT_SEEDS and CELL_ORDER.
+    """
+    import m5_e4_protocol as mod
+
+    before = _schedule()["realised_order_digest"]
+    original = mod.CELLS
+    try:
+        mod.CELLS = dict(reversed(list(original.items())))
+        assert _schedule()["realised_order_digest"] == before
+    finally:
+        mod.CELLS = original
+
+
+def test_resume_follows_the_frozen_order_and_only_skips_completed(tmp_path):
+    """A resume must replay the same sequence, not re-derive or re-shuffle it."""
+    order = [u["unit_id"] for u in _schedule()["realised_24_unit_order"]]
+    completed = {order[0], order[1], order[5]}
+    remaining = [u for u in order if u not in completed]
+    assert remaining == [u for u in order if u not in completed]
+    assert len(remaining) == 21
+    # the surviving units keep their original relative order
+    assert remaining == sorted(remaining, key=order.index)
+
+
+def test_realised_order_digest_covers_the_unit_sequence():
+    import hashlib as _h
+
+    sched = _schedule()
+    expected = _h.sha256(
+        "\n".join(u["unit_id"] for u in sched["realised_24_unit_order"]).encode("utf-8")
+    ).hexdigest()
+    assert sched["realised_order_digest"] == expected
+
+
+def test_protocol_records_the_frozen_schedule(protocol):
+    s = protocol["schedule"]
+    assert s["schedule_seed"] == 42
+    assert "PCG64" in s["schedule_rng"]
+    assert s["blocks"] == 12
+    assert len(s["realised_block_order"]) == 12
+    assert len(s["realised_24_unit_order"]) == 24
+    assert s["reshuffling_during_execution"] == "forbidden"
+    assert protocol["execution_order"] == s["realised_24_unit_order"]
+    # the frozen artifact must match what the code produces today
+    assert s["realised_order_digest"] == _schedule()["realised_order_digest"]
 
 
 def test_protocol_keeps_unresolved_labels_and_prohibitions(protocol):
