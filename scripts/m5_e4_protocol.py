@@ -65,11 +65,31 @@ SOURCE_FILES = [
 
 
 def sha256_file(path: Path) -> str:
+    """Raw byte digest. For binary inputs, which must never be normalised."""
     h = hashlib.sha256()
     with path.open("rb") as fh:
         for chunk in iter(lambda: fh.read(1 << 20), b""):
             h.update(chunk)
     return h.hexdigest()
+
+
+def sha256_source(path: Path) -> str:
+    """Digest of a tracked text file's canonical (LF) content.
+
+    A Windows checkout holds CRLF where the Linux clone holds LF, so a raw byte
+    digest of the same commit disagrees across the two machines and the remote
+    preflight fails on files nobody edited. Digesting the newline-normalised
+    content compares what Git actually stores.
+
+    The tracked files themselves are never rewritten to make this pass, and this
+    is only ever applied to text sources -- binary inputs keep `sha256_file`.
+    """
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+
+
+def rel(path: Path) -> str:
+    """Repo-relative POSIX path, so it resolves on the remote too."""
+    return path.relative_to(ROOT).as_posix()
 
 
 def atomic_json(path: Path, payload: Any) -> str:
@@ -357,16 +377,16 @@ def build_fit_manifest() -> list[dict]:
                 **entry,
                 "fits": 1,
                 "repeats": 8,
-                "context_manifest": str(mpath.relative_to(ROOT)),
+                "context_manifest": rel(mpath),
                 "context_manifest_sha256": sha256_file(mpath),
                 "context_raw_index_sha256": manifest["raw_index_sha256"],
                 "pooled_reference_raw_index_sha256": manifest[
                     "pooled_reference_raw_index_sha256"
                 ],
                 "label_counts": manifest["label_counts"],
-                "tree_comparator": str(tree.relative_to(ROOT)),
+                "tree_comparator": rel(tree),
                 "tree_comparator_sha256": sha256_file(tree),
-                "frozen_scaler": str(scaler.relative_to(ROOT)),
+                "frozen_scaler": rel(scaler),
                 "frozen_scaler_sha256": sha256_file(scaler),
                 # For cell 11 the frozen scaler is fitted on cell 11's own rows,
                 # so the two arms are the same transform and this unit is not an
@@ -412,11 +432,11 @@ def main() -> int:
         raise SystemExit(f"expected 192 repeats, built {len(repeats)}")
 
     sources = {}
-    for rel in SOURCE_FILES:
-        p = args.repo / rel
+    for relpath in SOURCE_FILES:
+        p = args.repo / relpath
         if not p.exists():
-            raise SystemExit(f"source file missing, cannot freeze: {rel}")
-        sources[rel] = sha256_file(p)
+            raise SystemExit(f"source file missing, cannot freeze: {relpath}")
+        sources[relpath] = sha256_source(p)
 
     protocol = {
         "schema": "m5_e4_formal_path_a_protocol_v1",
@@ -468,7 +488,7 @@ def main() -> int:
             },
         },
         "query": {
-            "manifest": str(QUERY_MANIFEST.relative_to(ROOT)),
+            "manifest": rel(QUERY_MANIFEST),
             "manifest_sha256": sha256_file(QUERY_MANIFEST),
             "npz_sha256": sha256_file(QUERY_NPZ),
             "raw_index_sha256": qmanifest["raw_index_sha256"],
@@ -608,6 +628,11 @@ def main() -> int:
             "changing N, cells, seeds or arms",
             "treating internal ensemble members as replicates",
         ],
+        "source_digest_method": (
+            "sha256 of the file's newline-normalised (LF) content, so a Windows "
+            "checkout and a Linux clone of the same commit agree; tracked files "
+            "are never rewritten to achieve this"
+        ),
         "source_digests": sources,
     }
 
