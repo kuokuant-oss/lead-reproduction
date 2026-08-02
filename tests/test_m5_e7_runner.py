@@ -52,3 +52,21 @@ def test_component_params_enforce_one_thread():
     assert p.component_params("lightgbm")["num_threads"] == 1
     assert p.component_params("xgboost")["nthread"] == 1
     assert p.component_params("catboost")["thread_count"] == 1
+
+
+def test_cached_f4_selection_preserves_requested_order_and_duplicates():
+    raw = np.array([20, 10, 30], dtype="int64")
+    matrix = np.arange(3 * 137, dtype="float32").reshape(3, 137)
+    requested = np.array([30, 20, 30], dtype="int64")
+    selected = r.select_cached_f4_rows(raw, matrix, requested)
+    assert selected.dtype == np.float32
+    assert np.array_equal(selected, matrix[[2, 0, 2]])
+
+
+def test_cached_f4_selection_rejects_unknown_raw_index():
+    with pytest.raises(RuntimeError, match="absent"):
+        r.select_cached_f4_rows(
+            np.array([1], dtype="int64"),
+            np.zeros((1, 137), dtype="float32"),
+            np.array([2], dtype="int64"),
+        )

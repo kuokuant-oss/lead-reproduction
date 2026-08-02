@@ -915,6 +915,24 @@ def _f4(frame: pd.DataFrame, indices: np.ndarray) -> np.ndarray:
     return matrix
 
 
+def select_cached_f4_rows(
+    cached_raw_index: np.ndarray,
+    cached_matrix: np.ndarray,
+    requested_raw_index: np.ndarray,
+) -> np.ndarray:
+    """Select frozen rows from a once-per-frame F4 matrix without recomputing it."""
+    positions = pd.Index(cached_raw_index).get_indexer(requested_raw_index)
+    if (positions < 0).any():
+        raise RuntimeError("requested frozen row is absent from cached F4 matrix")
+    selected = cached_matrix[positions]
+    if (
+        selected.shape != (len(requested_raw_index), 137)
+        or selected.dtype != np.float32
+    ):
+        raise RuntimeError("cached F4 selection contract drift")
+    return selected
+
+
 def _pool_manifest_record(fold: int, family: str, slot: str) -> dict[str, Any]:
     records = json.loads(
         (OUT / "e7_training_pool_manifest.json").read_text(encoding="utf-8")
@@ -1077,6 +1095,8 @@ def execute_oof_fold(fold: int) -> None:
     steam = validation[validation["meter"].eq(2)]
     query_indices = steam.index.to_numpy(dtype="int64")
     query = _f4(validation, query_indices)
+    train_raw_index = train.index.to_numpy(dtype="int64")
+    train_f4 = _f4(train, train_raw_index)
     inputs = OUT / "inputs"
     predictions: dict[str, np.ndarray] = {}
     for family, slots in (
@@ -1093,7 +1113,7 @@ def execute_oof_fold(fold: int) -> None:
                 )
                 continue
             indices = _frozen_indices(train, fold, family, slot)
-            x_fit = _f4(train, indices)
+            x_fit = select_cached_f4_rows(train_raw_index, train_f4, indices)
             y_fit = train.loc[indices, "anomaly"].to_numpy(dtype="int8")
             scaler = StandardScaler().fit(x_fit)
             specs = [
@@ -1165,6 +1185,8 @@ def execute_final() -> None:
     frame = _historical_frame()
     if frame["building_id"].mod(2).any():
         raise SystemExit("final pool contains odd building")
+    frame_raw_index = frame.index.to_numpy(dtype="int64")
+    frame_f4 = _f4(frame, frame_raw_index)
     empty_query = np.empty((0, 137), dtype="float32")
     inputs = OUT / "inputs"
     for record in manifest["records"]:
@@ -1185,7 +1207,7 @@ def execute_final() -> None:
             record["negative_count"],
         ) != (observed["rows"], observed["positive_rows"], observed["negative_rows"]):
             raise SystemExit(f"frozen final pool count drift: {slot}")
-        x_fit = _f4(frame, indices)
+        x_fit = select_cached_f4_rows(frame_raw_index, frame_f4, indices)
         y_fit = frame.loc[indices, "anomaly"].to_numpy(dtype="int8")
         scaler = StandardScaler().fit(x_fit)
         specs = [
