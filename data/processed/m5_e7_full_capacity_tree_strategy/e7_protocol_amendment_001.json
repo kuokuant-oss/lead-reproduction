@@ -1,0 +1,19 @@
+{
+  "OOF_design_changed": false,
+  "amendment_id": "001",
+  "authorization": "explicit_human_authorization",
+  "decision_rules_changed": false,
+  "feature_contract_changed": false,
+  "fields_added": "final all-even support/neutral pool identities",
+  "final_pool_manifest_digest": "77e4d5c5890671cd6f35f01405d7f43f796aef63adbb3d6ae7707ac6c706be39",
+  "formal_fits_before_amendment": 0,
+  "model_architecture_changed": false,
+  "new_authoritative_protocol_digest": "1b775354ee2c2487ca60da3d3e2d548fb1db7d27541a36e93cb95d6c8441d73e",
+  "odd_label_evaluations_before_amendment": 0,
+  "odd_predictions_before_amendment": 0,
+  "predecessor_protocol_commit": "c4821a0899e334a5b1354598742d47fbf992efd5",
+  "predecessor_protocol_digest": "3fc6eea12577f193fc1d6d5e7943b3a0affddc762409a921c45200a2d53c29b3",
+  "reason": "The original protocol freeze specified 32 final all-even component fits but omitted the final support and neutral row-identity manifests required to execute those fits without post-freeze resampling.",
+  "scientific_estimand_changed": false,
+  "timing": "before_any_formal_fit"
+}

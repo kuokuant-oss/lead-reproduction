@@ -813,6 +813,187 @@ def finalise_oof() -> None:
     )
 
 
+def freeze_final_all_even_pools() -> None:
+    """Create the authorised pre-execution amendment for omitted final pools."""
+    p.require_local_cpu()
+    if any((OUT / name).exists() for name in ("oof", "final", "scores")):
+        raise SystemExit("E7 AMENDMENT PRECONDITION FAILED: execution output exists")
+    predecessor = p.sha256_file(OUT / "e7_protocol.json")
+    frame = _historical_frame()
+    candidate = frame.index.to_numpy(dtype="int64")
+    if frame["building_id"].mod(2).any():
+        raise RuntimeError("final candidate contains odd buildings")
+    candidate_record = pool_record(frame, candidate)
+    records: list[dict[str, Any]] = []
+    pool_dir = OUT / "final_pools"
+    code_identity = p.sha256_file(Path(__file__))
+    feature_digest = "eab08c9a1b39ee7a74070c2ded464e3efbfb13d89dc148ef6b3bc3f443b21de3"
+    supports: dict[str, np.ndarray] = {}
+    for cell in p.SUPPORT_CELLS:
+        slot = f"s{cell}"
+        first, second = cell
+        excluded = (
+            (frame["meter"] == 3) & (frame["anomaly"] == 1) & (first == "0")
+        ) | ((frame["meter"] == 3) & (frame["anomaly"] == 0) & (second == "0"))
+        eligible = frame.loc[~excluded]
+        indices = support_pool(frame, cell)
+        supports[slot] = indices
+        stored = pool_dir / f"final_{slot}_raw_index.npy"
+        p.atomic_npy(stored, indices)
+        summary = pool_record(frame, indices)
+        records.append(
+            {
+                "schema_version": 1,
+                "phase": "final",
+                "family": "support",
+                "slot": slot,
+                "paired_slot": f"n{cell}",
+                "building_split_rule": "building_id % 2 == 0",
+                "candidate_building_count": int(frame["building_id"].nunique()),
+                "candidate_row_count": int(len(frame)),
+                "candidate_pool_digest": p.array_digest(candidate),
+                "eligible_row_count": int(len(eligible)),
+                "eligible_pool_digest": p.array_digest(
+                    eligible.index.to_numpy(dtype="int64")
+                ),
+                "sampled_row_count": summary["rows"],
+                "positive_count": summary["positive_rows"],
+                "negative_count": summary["negative_rows"],
+                "per_meter_row_counts": summary["meter_rows"],
+                "per_meter_positive_counts": summary["meter_anomalies"],
+                "raw_index_storage_location": str(stored.relative_to(OUT)),
+                "raw_index_dtype": "int64",
+                "raw_index_length": summary["rows"],
+                "raw_index_sha256": summary["raw_index_digest"],
+                "row_order_sha256": summary["row_order_digest"],
+                "sampling_algorithm_identity": "lead.sample.downsample_indices",
+                "sampling_seeds": [10, 20],
+                "source_code_sha256": code_identity,
+                "feature_contract_digest": feature_digest,
+                "protocol_predecessor_commit": p.PHASE0_COMMIT,
+                "generated_before_any_fit": True,
+                "odd_rows_used": 0,
+                "odd_labels_read": 0,
+                "historical_s11_identity_evidence": "canonical all-even full-support downsample pipeline; historical source supplies row-count/provenance but no raw-index digest",
+            }
+        )
+    for cell in p.SUPPORT_CELLS:
+        slot, paired = f"n{cell}", f"s{cell}"
+        indices = neutral_pool(frame, supports[paired], slot)
+        stored = pool_dir / f"final_{slot}_raw_index.npy"
+        p.atomic_npy(stored, indices)
+        summary = pool_record(frame, indices)
+        paired_summary = pool_record(frame, supports[paired])
+        if (summary["rows"], summary["positive_rows"], summary["negative_rows"]) != (
+            paired_summary["rows"],
+            paired_summary["positive_rows"],
+            paired_summary["negative_rows"],
+        ):
+            raise RuntimeError("E7 FINAL NEUTRAL MATCH FAILURE")
+        records.append(
+            {
+                "schema_version": 1,
+                "phase": "final",
+                "family": "neutral",
+                "slot": slot,
+                "paired_slot": paired,
+                "building_split_rule": "building_id % 2 == 0",
+                "candidate_building_count": int(frame["building_id"].nunique()),
+                "candidate_row_count": int(len(frame)),
+                "candidate_pool_digest": p.array_digest(candidate),
+                "eligible_row_count": int(len(frame)),
+                "eligible_pool_digest": p.array_digest(candidate),
+                "sampled_row_count": summary["rows"],
+                "positive_count": summary["positive_rows"],
+                "negative_count": summary["negative_rows"],
+                "per_meter_row_counts": summary["meter_rows"],
+                "per_meter_positive_counts": summary["meter_anomalies"],
+                "raw_index_storage_location": str(stored.relative_to(OUT)),
+                "raw_index_dtype": "int64",
+                "raw_index_length": summary["rows"],
+                "raw_index_sha256": summary["raw_index_digest"],
+                "row_order_sha256": summary["row_order_digest"],
+                "sampling_algorithm_identity": "lead.sample.downsample_indices+neutral_pool",
+                "sampling_seeds": list(NEUTRAL_SEEDS[slot]),
+                "source_code_sha256": code_identity,
+                "feature_contract_digest": feature_digest,
+                "protocol_predecessor_commit": p.PHASE0_COMMIT,
+                "generated_before_any_fit": True,
+                "odd_rows_used": 0,
+                "odd_labels_read": 0,
+                "paired_row_overlap": int(
+                    np.intersect1d(indices, supports[paired]).size
+                ),
+            }
+        )
+    for record in records:
+        record["protocol_predecessor_commit"] = (
+            "c4821a0899e334a5b1354598742d47fbf992efd5"
+        )
+    if len(records) != 8:
+        raise RuntimeError("final pool census drift")
+    final_manifest = {
+        "schema_version": 1,
+        "phase": "final",
+        "candidate_census": {
+            "even_buildings": int(frame["building_id"].nunique()),
+            "candidate_rows": int(len(frame)),
+            "candidate_raw_index_digest": p.array_digest(candidate),
+            "candidate_row_order_digest": p.array_digest(candidate),
+            "per_meter_rows": candidate_record["meter_rows"],
+            "per_meter_anomalies": candidate_record["meter_anomalies"],
+        },
+        "records": records,
+        "generated_before_any_formal_fit": True,
+        "odd_rows_used": 0,
+        "odd_labels_read": 0,
+    }
+    p.atomic_json(OUT / "e7_final_training_pool_manifest.json", final_manifest)
+    final_sha = p.sha256_file(OUT / "e7_final_training_pool_manifest.json")
+    protocol = json.loads((OUT / "e7_protocol.json").read_text(encoding="utf-8"))
+    protocol["pre_execution_amendment_001"] = {
+        "predecessor_protocol_commit": "c4821a0899e334a5b1354598742d47fbf992efd5",
+        "predecessor_protocol_digest": predecessor,
+        "final_training_pool_manifest_sha256": final_sha,
+        "reason": "The original protocol freeze specified 32 final all-even component fits but omitted the final support and neutral row-identity manifests required to execute those fits without post-freeze resampling.",
+    }
+    p.atomic_json(OUT / "e7_protocol.json", protocol)
+    authoritative = p.sha256_file(OUT / "e7_protocol.json")
+    amendment = {
+        "amendment_id": "001",
+        "predecessor_protocol_commit": "c4821a0899e334a5b1354598742d47fbf992efd5",
+        "predecessor_protocol_digest": predecessor,
+        "reason": protocol["pre_execution_amendment_001"]["reason"],
+        "authorization": "explicit_human_authorization",
+        "timing": "before_any_formal_fit",
+        "formal_fits_before_amendment": 0,
+        "odd_predictions_before_amendment": 0,
+        "odd_label_evaluations_before_amendment": 0,
+        "fields_added": "final all-even support/neutral pool identities",
+        "scientific_estimand_changed": False,
+        "model_architecture_changed": False,
+        "feature_contract_changed": False,
+        "OOF_design_changed": False,
+        "decision_rules_changed": False,
+        "final_pool_manifest_digest": final_sha,
+        "new_authoritative_protocol_digest": authoritative,
+    }
+    p.atomic_json(OUT / "e7_protocol_amendment_001.json", amendment)
+    inputs = json.loads((OUT / "e7_input_manifest.json").read_text(encoding="utf-8"))
+    inputs["final_training_pool_manifest_sha256"] = final_sha
+    inputs["authoritative_protocol_digest"] = authoritative
+    p.atomic_json(OUT / "e7_input_manifest.json", inputs)
+    p.atomic_json(
+        OUT / "e7_execution_coverage.json",
+        {
+            "formal_component_fits": 0,
+            "odd_predictions": 0,
+            "odd_label_evaluations": 0,
+            "amendment_001": True,
+        },
+    )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
@@ -823,6 +1004,7 @@ def parse_args() -> argparse.Namespace:
     group.add_argument("--execute-oof", action="store_true")
     group.add_argument("--execute-oof-fold", type=int, choices=range(5))
     group.add_argument("--finalise-oof", action="store_true")
+    group.add_argument("--freeze-final-pools", action="store_true")
     return parser.parse_args()
 
 
@@ -840,6 +1022,8 @@ def main() -> None:
         execute_oof_fold(args.execute_oof_fold)
     elif args.finalise_oof:
         finalise_oof()
+    elif args.freeze_final_pools:
+        freeze_final_all_even_pools()
     else:
         freeze()
 

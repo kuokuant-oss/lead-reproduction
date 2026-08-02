@@ -112,6 +112,12 @@
   },
   "name": "M5 E7 Historical-Full-Budget Support-Aware Tree Strategy",
   "phase0_commit": "2b4c9bc77c274912da9786c3f6b1cfaa43cfc84c",
+  "pre_execution_amendment_001": {
+    "final_training_pool_manifest_sha256": "77e4d5c5890671cd6f35f01405d7f43f796aef63adbb3d6ae7707ac6c706be39",
+    "predecessor_protocol_commit": "c4821a0899e334a5b1354598742d47fbf992efd5",
+    "predecessor_protocol_digest": "3fc6eea12577f193fc1d6d5e7943b3a0affddc762409a921c45200a2d53c29b3",
+    "reason": "The original protocol freeze specified 32 final all-even component fits but omitted the final support and neutral row-identity manifests required to execute those fits without post-freeze resampling."
+  },
   "schema_version": 1,
   "score_firewall": {
     "fresh_process": true,

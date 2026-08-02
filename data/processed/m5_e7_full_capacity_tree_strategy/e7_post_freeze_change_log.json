@@ -8,6 +8,14 @@
       "scope": "checkpointed OOF/all-even execution, label-free scoring bundle, and score firewall",
       "scientific_effect": "none; consumes only frozen rows, feature order, architecture, seeds, and decision rules",
       "status": "in_progress"
+    },
+    {
+      "id": "AMENDMENT-001",
+      "classification": "pre_execution_protocol_correction",
+      "scope": "final all-even support and neutral raw-index identities",
+      "reason": "The original protocol freeze specified 32 final all-even component fits but omitted the final support and neutral row-identity manifests required to execute those fits without post-freeze resampling.",
+      "scientific_effect": "none; no formal fit or prediction existed before this correction",
+      "status": "frozen"
     }
   ]
 }
