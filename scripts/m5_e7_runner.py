@@ -298,9 +298,20 @@ def run_component_batch(specs: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """
     if not specs:
         return []
-    workers = scheduler_concurrency(specs)
-    with ThreadPoolExecutor(max_workers=workers) as pool:
-        return list(pool.map(run_component, specs))
+    # Run the two measured low-RSS families together before admitting either
+    # high-RSS family.  The canonical spec identity remains unchanged; only
+    # dispatch order changes, which cannot select results.
+    low = [spec for spec in specs if spec["component"] in {"lightgbm", "catboost"}]
+    high = [spec for spec in specs if spec["component"] not in {"lightgbm", "catboost"}]
+    results: dict[str, dict[str, Any]] = {}
+    for group in (low, high):
+        if not group:
+            continue
+        workers = scheduler_concurrency(group)
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            for spec, result in zip(group, pool.map(run_component, group), strict=True):
+                results[spec["unit_id"]] = result
+    return [results[spec["unit_id"]] for spec in specs]
 
 
 def completed_slot_predictions(
