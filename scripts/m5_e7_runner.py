@@ -861,6 +861,21 @@ def freeze_score_fields() -> None:
         raise SystemExit("score freeze requires complete OOF")
     if not (OUT / "final" / "complete.json").exists():
         raise SystemExit("score freeze requires final component completion")
+    final_unit_markers = [
+        OUT
+        / "units"
+        / p.unit_id("final", "all_even", family, slot, component)
+        / "complete.json"
+        for family, slot in (
+            [("support", f"s{cell}") for cell in p.SUPPORT_CELLS]
+            + [("neutral", f"n{cell}") for cell in p.SUPPORT_CELLS]
+        )
+        for component in p.MODEL_ORDER
+    ]
+    if len(final_unit_markers) != 32 or not all(
+        path.exists() for path in final_unit_markers
+    ):
+        raise SystemExit("score freeze requires exactly 32 complete final components")
     for family in ("support", "neutral"):
         if not (OUT / "final_meta" / family / "manifest.json").exists():
             raise SystemExit(f"score freeze missing {family} meta model")
@@ -914,6 +929,17 @@ def freeze_score_fields() -> None:
             "remote_commands": 0,
             "tabpfn_calls": 0,
             "active_e6_files_read": 0,
+        },
+    )
+    p.atomic_json(
+        OUT / "e7_execution_coverage.json",
+        {
+            "canonical_successful_fits": 192,
+            "expected": 192,
+            "oof_successful_fits": 160,
+            "final_successful_fits": 32,
+            "failed_canonical_units": 0,
+            "pre_correction_attempts": 11,
         },
     )
 

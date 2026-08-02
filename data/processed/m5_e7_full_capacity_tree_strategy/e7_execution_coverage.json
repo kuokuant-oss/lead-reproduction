@@ -1,5 +1,8 @@
 {
-  "canonical_successful_fits": 0,
+  "canonical_successful_fits": 192,
   "expected": 192,
+  "failed_canonical_units": 0,
+  "final_successful_fits": 32,
+  "oof_successful_fits": 160,
   "pre_correction_attempts": 11
 }

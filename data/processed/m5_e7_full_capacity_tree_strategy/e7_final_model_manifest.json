@@ -1,0 +1,8 @@
+{
+  "canonical_component_fits": 192,
+  "final_components": 32,
+  "odd_labels_used": 0,
+  "oof_components": 160,
+  "selected_neutral_c": 0.01,
+  "selected_support_c": 0.01
+}

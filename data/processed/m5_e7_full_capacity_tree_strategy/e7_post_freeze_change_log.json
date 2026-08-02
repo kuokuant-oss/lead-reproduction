@@ -44,6 +44,13 @@
       "scope": "permit the final all-even refit input writer to persist its intentionally empty query matrix without invoking StandardScaler.transform",
       "scientific_effect": "none; final refits continue to fit the frozen all-even pools only, have no in-sample expert predictions, and leave scoring to the later label-free odd scorer",
       "status": "complete"
+    },
+    {
+      "id": "EIC-004",
+      "classification": "logging_or_validation",
+      "scope": "derive the execution-coverage artifact from the completed 160 OOF and 32 final unit markers during the score-freeze gate",
+      "scientific_effect": "none; validates and records already-completed canonical units without changing models, scores, pools, or inputs",
+      "status": "complete"
     }
   ]
 }
