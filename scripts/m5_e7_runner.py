@@ -1329,7 +1329,13 @@ def _unit_spec(
         p.atomic_npy(q_path, x_query)
         scaler_sha = _save_joblib(scaler_path, scaler)
         x_scaled = scaler.transform(x_fit).astype("float32", copy=False)
-        q_scaled = scaler.transform(x_query).astype("float32", copy=False)
+        # Final all-even refits deliberately have no query rows: their only
+        # predictions are generated later by the label-free odd scorer.
+        q_scaled = (
+            np.empty((0, x_fit.shape[1]), dtype="float32")
+            if len(x_query) == 0
+            else scaler.transform(x_query).astype("float32", copy=False)
+        )
         p.atomic_npy(scaled_x_path, x_scaled)
         p.atomic_npy(scaled_q_path, q_scaled)
         p.atomic_npy(hgb_x_path, np.nan_to_num(x_scaled, nan=0.0))

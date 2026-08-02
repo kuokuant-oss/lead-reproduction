@@ -18,7 +18,8 @@
     "fold_isolation": true,
     "tie_rule": "within 1e-4 mean AP choose smaller C"
   },
-  "selected_neutral_c": null,
-  "selected_support_c": null,
-  "selection_status": "not_run"
+  "oof_summary_sha256": "0b808f38851cea3b168e1d6e21e8af5cb20a4e0af127c6f3a511d71eb5265185",
+  "selected_neutral_c": 0.01,
+  "selected_support_c": 0.01,
+  "selection_status": "complete_even_oof_only"
 }

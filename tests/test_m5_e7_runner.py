@@ -71,3 +71,30 @@ def test_cached_f4_selection_rejects_unknown_raw_index():
             np.zeros((1, 137), dtype="float32"),
             np.array([2], dtype="int64"),
         )
+
+
+def test_unit_spec_allows_label_free_final_refit_without_query_rows(
+    tmp_path, monkeypatch
+):
+    """Final all-even models train without an in-sample prediction matrix."""
+    monkeypatch.setattr(r, "OUT", tmp_path)
+    (tmp_path / "e7_protocol.json").write_text("{}", encoding="utf-8")
+    (tmp_path / "e7_environment_manifest.json").write_text("{}", encoding="utf-8")
+    x_fit = np.arange(2 * 137, dtype="float32").reshape(2, 137)
+    spec = r._unit_spec(
+        phase="final",
+        fold_name="all_even",
+        family="support",
+        slot="s00",
+        component="lightgbm",
+        inputs=tmp_path / "inputs",
+        x_fit=x_fit,
+        y_fit=np.array([0, 1], dtype="int8"),
+        x_query=np.empty((0, 137), dtype="float32"),
+        train_indices=np.array([11, 12], dtype="int64"),
+        query_indices=np.empty(0, dtype="int64"),
+        scaler=r.StandardScaler().fit(x_fit),
+    )
+    assert spec["query_rows"] == 0
+    assert np.load(spec["scaled_x_query"]).shape == (0, 137)
+    assert np.load(spec["hgb_x_query"]).shape == (0, 137)
