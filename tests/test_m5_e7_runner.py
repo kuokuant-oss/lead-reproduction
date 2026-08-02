@@ -48,10 +48,11 @@ def test_neutral_pool_exactly_matches_paired_class_counts():
     )
 
 
-def test_component_params_enforce_one_thread():
-    assert p.component_params("lightgbm")["num_threads"] == 1
-    assert p.component_params("xgboost")["nthread"] == 1
-    assert p.component_params("catboost")["thread_count"] == 1
+def test_component_params_enforce_execution_correction_002_thread_policy():
+    assert p.component_params("lightgbm")["num_threads"] == 8
+    assert p.component_params("xgboost")["nthread"] == 8
+    assert p.component_params("catboost")["thread_count"] == 8
+    assert p.resource_environment()["OMP_NUM_THREADS"] == "8"
 
 
 def test_cached_f4_selection_preserves_requested_order_and_duplicates():

@@ -30,6 +30,13 @@
       "scope": "dynamic multi-process scheduler and shared scaled read-only memmaps for unclaimed component units",
       "scientific_effect": "none; preserves each component's single thread, frozen inputs, row order, shared scaler, seeds, model parameters, and canonical unit identity",
       "status": "in_progress"
+    },
+    {
+      "id": "EPC-002",
+      "classification": "pre_oof_execution_performance_correction",
+      "scope": "global even F4 store, fixed two-fit/eight-thread execution policy, and producer-consumer supervisor",
+      "scientific_effect": "none; authorised before OOF finalisation, after excluding prior single-thread attempts from the canonical census",
+      "status": "in_progress"
     }
   ]
 }

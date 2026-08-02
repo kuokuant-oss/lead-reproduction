@@ -102,7 +102,7 @@ def resource_environment() -> dict[str, str]:
     return {
         "NO_REMOTE": "1",
         "CUDA_VISIBLE_DEVICES": "",
-        "OMP_NUM_THREADS": "1",
+        "OMP_NUM_THREADS": "8",
         "MKL_NUM_THREADS": "1",
         "OPENBLAS_NUM_THREADS": "1",
         "NUMEXPR_NUM_THREADS": "1",
@@ -115,21 +115,21 @@ def component_params(component: str) -> dict[str, Any]:
             "n_estimators": 100,
             "verbose": -1,
             "random_state": 42,
-            "num_threads": 1,
+            "num_threads": 8,
         },
         "xgboost": {
             "n_estimators": 100,
             "eval_metric": "logloss",
             "verbosity": 0,
             "random_state": 42,
-            "nthread": 1,
+            "nthread": 8,
         },
         "catboost": {
             "iterations": 1000,
             "verbose": False,
             "random_seed": 42,
             "allow_writing_files": False,
-            "thread_count": 1,
+            "thread_count": 8,
         },
         "hist_gradient_boosting": {"max_iter": 100, "random_state": 42},
     }

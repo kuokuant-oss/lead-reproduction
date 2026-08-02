@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import ctypes
+import hashlib
 import json
 import os
 import subprocess
@@ -351,6 +352,230 @@ def _historical_frame() -> pd.DataFrame:
     if even.empty or even["building_id"].mod(2).any():
         raise RuntimeError("even-only training firewall failed")
     return even
+
+
+def build_even_f4_store() -> None:
+    """Materialise the deterministic even-only F4 representation exactly once."""
+    p.require_local_cpu()
+    store = OUT / "e7_even_f4_store"
+    manifest_path = store / "manifest.json"
+    if manifest_path.exists():
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if manifest.get("complete") and manifest.get("rows") == 10_078_945:
+            return
+        raise SystemExit("incomplete even F4 store requires explicit quarantine")
+    frame = _historical_frame()
+    raw = frame.index.to_numpy(dtype="int64")
+    if len(frame) != 10_078_945 or frame["building_id"].nunique() != 725:
+        raise SystemExit("even F4 census drift")
+    if frame["building_id"].mod(2).any() or len(raw) != len(np.unique(raw)):
+        raise SystemExit("even F4 identity gate failed")
+    store.mkdir(parents=True, exist_ok=True)
+    features_tmp = store / "features.tmp.npy"
+    features_final = store / "features.npy"
+    matrix = np.lib.format.open_memmap(
+        features_tmp, mode="w+", dtype="float32", shape=(len(frame), 137)
+    )
+    position = pd.Index(raw)
+    buildings = sorted(map(int, frame["building_id"].unique()))
+    progress: list[dict[str, Any]] = []
+    # Timestamp-merge features are building/meter-local.  Batching eight
+    # complete buildings preserves exactly the canonical values while keeping
+    # peak RAM well below a full 10-million-row pandas expansion.
+    for start in range(0, len(buildings), 8):
+        batch_ids = buildings[start : start + 8]
+        batch = frame[frame["building_id"].isin(batch_ids)]
+        batch_raw = batch.index.to_numpy(dtype="int64")
+        batch_f4 = _f4(batch, batch_raw)
+        locations = position.get_indexer(batch_raw)
+        if (locations < 0).any():
+            raise RuntimeError("even F4 store position lookup drift")
+        matrix[locations] = batch_f4
+        matrix.flush()
+        progress.append(
+            {
+                "buildings": batch_ids,
+                "rows": int(len(batch_raw)),
+                "raw_index_digest": p.array_digest(batch_raw),
+            }
+        )
+        p.atomic_json(
+            store / "build_progress.json",
+            {
+                "complete_batches": len(progress),
+                "total_batches": (len(buildings) + 7) // 8,
+            },
+        )
+    del matrix
+    features_tmp.replace(features_final)
+    raw_sha = p.atomic_npy(store / "raw_index.npy", raw)
+    values = np.load(features_final, mmap_mode="r")
+    chunks = []
+    for start in range(0, len(raw), 100_000):
+        stop = min(len(raw), start + 100_000)
+        chunk = np.ascontiguousarray(values[start:stop])
+        chunks.append(
+            {
+                "start": start,
+                "stop": stop,
+                "rows": stop - start,
+                "raw_index_digest": p.array_digest(raw[start:stop]),
+                "feature_digest": hashlib.sha256(chunk.tobytes()).hexdigest(),
+            }
+        )
+    p.atomic_json(
+        manifest_path,
+        {
+            "schema_version": 1,
+            "complete": True,
+            "rows": int(len(raw)),
+            "buildings": 725,
+            "features": 137,
+            "dtype": "float32",
+            "value_change_regime": "timestamp_merge",
+            "feature_column_digest": "eab08c9a1b39ee7a74070c2ded464e3efbfb13d89dc148ef6b3bc3f443b21de3",
+            "raw_index_digest": p.array_digest(raw),
+            "raw_index_file_sha256": raw_sha,
+            "feature_file_sha256": p.sha256_file(features_final),
+            "ordered_chunk_digest": p.sha256_bytes(p.canonical_json(chunks)),
+            "chunks": chunks,
+            "raw_index_to_position": "binary_search_over_canonical_raw_index.npy",
+            "label_fields": [],
+            "score_fields": [],
+            "build_batches": progress,
+        },
+    )
+
+
+def load_even_f4_slice(raw_index: np.ndarray) -> np.ndarray:
+    """Return a frozen raw-index request from the global read-only even store."""
+    store = OUT / "e7_even_f4_store"
+    manifest = json.loads((store / "manifest.json").read_text(encoding="utf-8"))
+    if not manifest.get("complete") or manifest.get("label_fields"):
+        raise SystemExit("invalid global even F4 store")
+    canonical = np.load(store / "raw_index.npy", mmap_mode="r")
+    positions = np.searchsorted(canonical, raw_index)
+    if (positions >= len(canonical)).any():
+        raise RuntimeError("global F4 raw-index slice drift")
+    if not np.array_equal(canonical[positions], raw_index):
+        raise RuntimeError("global F4 raw-index slice drift")
+    values = np.load(store / "features.npy", mmap_mode="r")
+    sliced = values[positions]
+    if sliced.shape != (len(raw_index), 137) or sliced.dtype != np.float32:
+        raise RuntimeError("global F4 slice contract drift")
+    return np.asarray(sliced, dtype="float32")
+
+
+def validate_even_f4_store_equivalence() -> None:
+    """Byte-compare a multi-fold canonical request against the global store."""
+    frame = _historical_frame()
+    folds = json.loads((OUT / "e7_fold_manifest.json").read_text(encoding="utf-8"))[
+        "folds"
+    ]
+    selected_buildings: list[int] = []
+    for fold in folds:
+        candidates = sorted(map(int, fold["validation_buildings"]))
+        selected_buildings.extend(candidates[:5])
+    reference = frame[frame["building_id"].isin(selected_buildings)]
+    by_meter = []
+    for meter in range(4):
+        rows = reference[reference["meter"].eq(meter)].index.to_numpy(dtype="int64")
+        if not len(rows):
+            raise SystemExit(f"equivalence fixture lacks meter {meter}")
+        by_meter.append(rows[:1250])
+    requested = np.sort(np.concatenate(by_meter).astype("int64"))
+    if (
+        len(requested) < 5000
+        or len(np.unique(reference.loc[requested, "building_id"])) < 5
+    ):
+        raise SystemExit("equivalence fixture census drift")
+    old = _f4(reference, requested)
+    stored = load_even_f4_slice(requested)
+    equal = np.array_equal(old, stored, equal_nan=True)
+    result = {
+        "complete": True,
+        "rows": int(len(requested)),
+        "raw_index_digest": p.array_digest(requested),
+        "shape_equal": old.shape == stored.shape,
+        "dtype_equal": old.dtype == stored.dtype,
+        "nan_positions_equal": bool(np.array_equal(np.isnan(old), np.isnan(stored))),
+        "byte_exact": bool(equal),
+        "max_abs_diff": float(
+            np.nanmax(np.abs(old.astype("float64") - stored.astype("float64")))
+        ),
+        "folds_covered": list(range(5)),
+        "meters_covered": [0, 1, 2, 3],
+    }
+    p.atomic_json(OUT / "e7_even_f4_store" / "equivalence_gate.json", result)
+    if not equal:
+        raise SystemExit("global even F4 equivalence gate failed")
+
+
+def write_execution_correction_002() -> None:
+    """Record the authorised pre-OOF performance correction and reset census."""
+    quarantine = OUT / "quarantine" / "pre_resource_correction_002"
+    units = sorted(item.name for item in quarantine.iterdir() if item.is_dir())
+    if len(units) != 11:
+        raise SystemExit("performance correction requires exactly 11 preserved units")
+    global_manifest = json.loads(
+        (OUT / "e7_even_f4_store" / "manifest.json").read_text(encoding="utf-8")
+    )
+    gate = json.loads(
+        (OUT / "e7_even_f4_store" / "equivalence_gate.json").read_text(encoding="utf-8")
+    )
+    p.atomic_json(
+        quarantine / "PRE_RESOURCE_CORRECTION_002.json",
+        {
+            "units": units,
+            "valid_under_previous_execution_policy": True,
+            "excluded_from_canonical_e7_run": True,
+            "exclusion_reason": "uniform multithread execution policy adopted before OOF finalisation",
+            "result_driven": False,
+            "scientific_failure": False,
+        },
+    )
+    p.atomic_json(
+        OUT / "e7_execution_resource_override_002.json",
+        {
+            "authorization": "explicit_human_authorization",
+            "predecessor_resource_override_commits": ["f636a29", "7fe18ed", "70c2dd9"],
+            "reason": "repeated feature engineering and artificial single-thread execution",
+            "old_canonical_units_quarantined": len(units),
+            "new_canonical_coverage_reset": 0,
+            "global_f4_store": {
+                "manifest_sha256": p.sha256_file(
+                    OUT / "e7_even_f4_store" / "manifest.json"
+                ),
+                "rows": global_manifest["rows"],
+                "feature_file_sha256": global_manifest["feature_file_sha256"],
+                "equivalence_gate_sha256": p.sha256_file(
+                    OUT / "e7_even_f4_store" / "equivalence_gate.json"
+                ),
+                "byte_exact": gate["byte_exact"],
+            },
+            "fallback": "per-fold single feature store only if the global equivalence gate fails",
+            "fit_concurrency": 2,
+            "threads_per_fit": 8,
+            "preparation_workers": 1,
+            "prefetch_depth": 2,
+            "scientific_estimand_changed": False,
+            "frozen_training_pools_changed": False,
+            "feature_definitions_changed": False,
+            "model_scientific_hyperparameters_changed": False,
+            "execution_thread_policy_changed": True,
+            "oof_design_changed": False,
+            "final_design_changed": False,
+            "result_driven": False,
+        },
+    )
+    p.atomic_json(
+        OUT / "e7_execution_coverage.json",
+        {
+            "canonical_successful_fits": 0,
+            "expected": 192,
+            "pre_correction_attempts": 11,
+        },
+    )
 
 
 def _unlabelled_m3_frame() -> pd.DataFrame:
@@ -1105,9 +1330,7 @@ def execute_oof_fold(fold: int) -> None:
         raise RuntimeError("odd building entered OOF")
     steam = validation[validation["meter"].eq(2)]
     query_indices = steam.index.to_numpy(dtype="int64")
-    query = _f4(validation, query_indices)
-    train_raw_index = train.index.to_numpy(dtype="int64")
-    train_f4 = _f4(train, train_raw_index)
+    query = load_even_f4_slice(query_indices)
     inputs = OUT / "inputs"
     predictions: dict[str, np.ndarray] = {}
     for family, slots in (
@@ -1124,7 +1347,7 @@ def execute_oof_fold(fold: int) -> None:
                 )
                 continue
             indices = _frozen_indices(train, fold, family, slot)
-            x_fit = select_cached_f4_rows(train_raw_index, train_f4, indices)
+            x_fit = load_even_f4_slice(indices)
             y_fit = train.loc[indices, "anomaly"].to_numpy(dtype="int8")
             scaler = StandardScaler().fit(x_fit)
             specs = [
@@ -1196,8 +1419,6 @@ def execute_final() -> None:
     frame = _historical_frame()
     if frame["building_id"].mod(2).any():
         raise SystemExit("final pool contains odd building")
-    frame_raw_index = frame.index.to_numpy(dtype="int64")
-    frame_f4 = _f4(frame, frame_raw_index)
     empty_query = np.empty((0, 137), dtype="float32")
     inputs = OUT / "inputs"
     for record in manifest["records"]:
@@ -1218,7 +1439,7 @@ def execute_final() -> None:
             record["negative_count"],
         ) != (observed["rows"], observed["positive_rows"], observed["negative_rows"]):
             raise SystemExit(f"frozen final pool count drift: {slot}")
-        x_fit = select_cached_f4_rows(frame_raw_index, frame_f4, indices)
+        x_fit = load_even_f4_slice(indices)
         y_fit = frame.loc[indices, "anomaly"].to_numpy(dtype="int8")
         scaler = StandardScaler().fit(x_fit)
         specs = [
@@ -1661,6 +1882,9 @@ def parse_args() -> argparse.Namespace:
     group.add_argument("--amend-full-holdout-scoring", action="store_true")
     group.add_argument("--build-full-label-free-store", action="store_true")
     group.add_argument("--extract-label-free-historical-scores", action="store_true")
+    group.add_argument("--build-even-f4-store", action="store_true")
+    group.add_argument("--validate-even-f4-store", action="store_true")
+    group.add_argument("--apply-execution-correction-002", action="store_true")
     return parser.parse_args()
 
 
@@ -1690,6 +1914,12 @@ def main() -> None:
         build_full_label_free_store()
     elif args.extract_label_free_historical_scores:
         extract_label_free_historical_scores()
+    elif args.build_even_f4_store:
+        build_even_f4_store()
+    elif args.validate_even_f4_store:
+        validate_even_f4_store_equivalence()
+    elif args.apply_execution_correction_002:
+        write_execution_correction_002()
     else:
         freeze()
 
