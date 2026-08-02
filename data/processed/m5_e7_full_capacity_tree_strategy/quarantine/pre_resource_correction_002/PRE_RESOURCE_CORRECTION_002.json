@@ -1,0 +1,20 @@
+{
+  "excluded_from_canonical_e7_run": true,
+  "exclusion_reason": "uniform multithread execution policy adopted before OOF finalisation",
+  "result_driven": false,
+  "scientific_failure": false,
+  "units": [
+    "oof__fold0__support__s00__catboost",
+    "oof__fold0__support__s00__hist_gradient_boosting",
+    "oof__fold0__support__s00__lightgbm",
+    "oof__fold0__support__s00__xgboost",
+    "oof__fold0__support__s01__catboost",
+    "oof__fold0__support__s01__hist_gradient_boosting",
+    "oof__fold0__support__s01__lightgbm",
+    "oof__fold0__support__s01__xgboost",
+    "oof__fold0__support__s10__catboost",
+    "oof__fold0__support__s10__lightgbm",
+    "oof__fold0__support__s10__xgboost"
+  ],
+  "valid_under_previous_execution_policy": true
+}

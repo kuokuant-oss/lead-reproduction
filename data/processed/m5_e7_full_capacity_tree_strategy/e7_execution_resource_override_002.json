@@ -1,0 +1,31 @@
+{
+  "authorization": "explicit_human_authorization",
+  "execution_thread_policy_changed": true,
+  "fallback": "per-fold single feature store only if the global equivalence gate fails",
+  "feature_definitions_changed": false,
+  "final_design_changed": false,
+  "fit_concurrency": 2,
+  "frozen_training_pools_changed": false,
+  "global_f4_store": {
+    "byte_exact": true,
+    "equivalence_gate_sha256": "ae9e9558171d8325874adf6dddac1318ae4ff51495308912ed2b02f20ef11668",
+    "feature_file_sha256": "95e4a3b865cd02f24d93a8de64080d1f4fd95ddc063f7df3a7175b2278553e3b",
+    "manifest_sha256": "40b3ef00e7e8aa19cc0de984f9065d80d4547629938dfecd326173fee2d922d5",
+    "rows": 10078945
+  },
+  "model_scientific_hyperparameters_changed": false,
+  "new_canonical_coverage_reset": 0,
+  "old_canonical_units_quarantined": 11,
+  "oof_design_changed": false,
+  "predecessor_resource_override_commits": [
+    "f636a29",
+    "7fe18ed",
+    "70c2dd9"
+  ],
+  "prefetch_depth": 2,
+  "preparation_workers": 1,
+  "reason": "repeated feature engineering and artificial single-thread execution",
+  "result_driven": false,
+  "scientific_estimand_changed": false,
+  "threads_per_fit": 8
+}

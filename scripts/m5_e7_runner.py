@@ -472,22 +472,25 @@ def validate_even_f4_store_equivalence() -> None:
     folds = json.loads((OUT / "e7_fold_manifest.json").read_text(encoding="utf-8"))[
         "folds"
     ]
-    selected_buildings: list[int] = []
+    requested_blocks: list[np.ndarray] = []
+    selected_buildings: set[int] = set()
     for fold in folds:
         candidates = sorted(map(int, fold["validation_buildings"]))
-        selected_buildings.extend(candidates[:5])
+        fold_frame = frame[frame["building_id"].isin(candidates)]
+        for meter in range(4):
+            rows = fold_frame[fold_frame["meter"].eq(meter)].index.to_numpy(
+                dtype="int64"
+            )
+            if len(rows) < 250:
+                raise SystemExit(
+                    f"equivalence fixture lacks fold {fold['fold']} meter {meter}"
+                )
+            picked = rows[:250]
+            requested_blocks.append(picked)
+            selected_buildings.update(map(int, frame.loc[picked, "building_id"]))
+    requested = np.sort(np.concatenate(requested_blocks).astype("int64"))
     reference = frame[frame["building_id"].isin(selected_buildings)]
-    by_meter = []
-    for meter in range(4):
-        rows = reference[reference["meter"].eq(meter)].index.to_numpy(dtype="int64")
-        if not len(rows):
-            raise SystemExit(f"equivalence fixture lacks meter {meter}")
-        by_meter.append(rows[:1250])
-    requested = np.sort(np.concatenate(by_meter).astype("int64"))
-    if (
-        len(requested) < 5000
-        or len(np.unique(reference.loc[requested, "building_id"])) < 5
-    ):
+    if len(requested) != 5000 or len(selected_buildings) < 5:
         raise SystemExit("equivalence fixture census drift")
     old = _f4(reference, requested)
     stored = load_even_f4_slice(requested)
