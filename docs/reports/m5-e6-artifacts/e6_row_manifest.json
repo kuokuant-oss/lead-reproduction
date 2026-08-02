@@ -1,0 +1,202 @@
+{
+  "agreeing_artifacts": [
+    {
+      "artifact": "m5_tabpfn_137_full_test_context10000_n8_predictions.npz",
+      "identical_order": true,
+      "identical_row_set": true,
+      "rows": 10137155
+    },
+    {
+      "artifact": "m5_tabpfn_137_full_test_context20000_n8_predictions.npz",
+      "identical_order": true,
+      "identical_row_set": true,
+      "rows": 10137155
+    },
+    {
+      "artifact": "m5_tabpfn_137_full_test_context50000_n8_predictions.npz",
+      "identical_order": true,
+      "identical_row_set": true,
+      "rows": 10137155
+    },
+    {
+      "artifact": "m5_tabpfn_137_full_test_context5000_n8_predictions.npz",
+      "identical_order": true,
+      "identical_row_set": true,
+      "rows": 10137155
+    },
+    {
+      "artifact": "m5_tabpfn_137_full_test_n8_predictions.npz",
+      "identical_order": true,
+      "identical_row_set": true,
+      "rows": 10137155
+    },
+    {
+      "artifact": "m5_tabpfn_17_full_test_context10000_n8_predictions.npz",
+      "identical_order": true,
+      "identical_row_set": true,
+      "rows": 10137155
+    },
+    {
+      "artifact": "m5_tabpfn_17_full_test_context20000_n8_predictions.npz",
+      "identical_order": true,
+      "identical_row_set": true,
+      "rows": 10137155
+    },
+    {
+      "artifact": "m5_tabpfn_17_full_test_context50000_n8_predictions.npz",
+      "identical_order": true,
+      "identical_row_set": true,
+      "rows": 10137155
+    },
+    {
+      "artifact": "m5_tabpfn_17_full_test_context5000_n8_predictions.npz",
+      "identical_order": true,
+      "identical_row_set": true,
+      "rows": 10137155
+    },
+    {
+      "artifact": "m5_tabpfn_17_full_test_n8_predictions.npz",
+      "identical_order": true,
+      "identical_row_set": true,
+      "rows": 10137155
+    }
+  ],
+  "columns_present_but_not_read": [
+    "tabpfn"
+  ],
+  "columns_read": [
+    "raw_index",
+    "building_id",
+    "site_id",
+    "anomaly"
+  ],
+  "findings": [],
+  "forbidden_wording": [
+    "untouched holdout",
+    "first contact",
+    "previously unseen row set"
+  ],
+  "generated": 1785648683.7648766,
+  "passed": true,
+  "per_site_anomaly": {
+    "0": 176269,
+    "1": 39135,
+    "10": 15814,
+    "11": 197,
+    "12": 755,
+    "13": 59283,
+    "14": 101532,
+    "15": 17989,
+    "2": 80897,
+    "3": 2684,
+    "4": 197,
+    "5": 14435,
+    "6": 28654,
+    "7": 15886,
+    "8": 31083,
+    "9": 52587
+  },
+  "per_site_rows": {
+    "0": 538432,
+    "1": 289853,
+    "10": 206430,
+    "11": 43626,
+    "12": 158011,
+    "13": 1334223,
+    "14": 1256775,
+    "15": 909902,
+    "2": 1263915,
+    "3": 1181463,
+    "4": 370460,
+    "5": 386496,
+    "6": 345117,
+    "7": 200594,
+    "8": 284376,
+    "9": 1367482
+  },
+  "required_wording": "natural-prevalence factorial confirmation using new factorial states on previously characterised holdout rows",
+  "row_set": {
+    "anomaly_rows": 637397,
+    "as_stored_raw_index_sha256": "6cfebd1cb2bb818f69806c0f14d66a84b81c53d37a716badd48c17b86210d893",
+    "building_id_parity": [
+      1
+    ],
+    "buildings": 724,
+    "disjoint_from_fit_half": true,
+    "natural_prevalence": 0.06287730630536871,
+    "rows": 10137155,
+    "sites": 16,
+    "sorted_raw_index_sha256": "f0867d3e86ae2b017ea6fee2d1b9f6dead2ee241948346a467ea06305e220e76",
+    "split_rule": "holdout is building_id % 2 == 1",
+    "stored_order_is_ascending": false,
+    "unique_raw_index": 10137155
+  },
+  "schema": "m5_e6_row_manifest_v1",
+  "scope": "identity audit only; no score column was opened",
+  "shard_verification_per_site": {
+    "0": {
+      "anomalies": 176269,
+      "rows": 538432
+    },
+    "1": {
+      "anomalies": 39135,
+      "rows": 289853
+    },
+    "10": {
+      "anomalies": 15814,
+      "rows": 206430
+    },
+    "11": {
+      "anomalies": 197,
+      "rows": 43626
+    },
+    "12": {
+      "anomalies": 755,
+      "rows": 158011
+    },
+    "13": {
+      "anomalies": 59283,
+      "rows": 1334223
+    },
+    "14": {
+      "anomalies": 101532,
+      "rows": 1256775
+    },
+    "15": {
+      "anomalies": 17989,
+      "rows": 909902
+    },
+    "2": {
+      "anomalies": 80897,
+      "rows": 1263915
+    },
+    "3": {
+      "anomalies": 2684,
+      "rows": 1181463
+    },
+    "4": {
+      "anomalies": 197,
+      "rows": 370460
+    },
+    "5": {
+      "anomalies": 14435,
+      "rows": 386496
+    },
+    "6": {
+      "anomalies": 28654,
+      "rows": 345117
+    },
+    "7": {
+      "anomalies": 15886,
+      "rows": 200594
+    },
+    "8": {
+      "anomalies": 31083,
+      "rows": 284376
+    },
+    "9": {
+      "anomalies": 52587,
+      "rows": 1367482
+    }
+  }
+}

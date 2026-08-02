@@ -1,0 +1,100 @@
+{
+  "base_commit": "13f92a099b02213f6bcb4b7e178c23af450bdf85",
+  "clustered_uncertainty": {
+    "auc_method": "exact cluster-weighted Mann-Whitney: sort the co-primary subset once per unit, then sweep weighted counts per draw; equals the naive resampling estimator by construction and is required to be verified against it on synthetic data and on the E5 192-row data",
+    "cluster_code": {
+      "building": 1,
+      "segment": 2
+    },
+    "draws": 1000,
+    "interval": "percentile q025 / q975",
+    "margin_method": "cluster-weighted sufficient statistics (per-cluster score sums and counts), exact",
+    "master_seed": 20260730,
+    "namespace_code": 6006,
+    "shared_draw_across": [
+      "cells",
+      "arms",
+      "seeds",
+      "TabPFN",
+      "tree",
+      "all endpoints"
+    ]
+  },
+  "co_primary_endpoints": [
+    "steam_positive_vs_hotwater_negative_pairwise_auc",
+    "steam_positive_minus_hotwater_negative_score_margin"
+  ],
+  "cost_model_sha256": "10e9937cd9fafe4e58056a7e55e39f78c011a77936e162444d23fbb4bb603e18",
+  "decision_rule_candidate": {
+    "confirmed_conditions": [
+      "AUC overall > 0",
+      "margin overall > 0",
+      "3/3 seeds positive on both endpoints",
+      "both scaler arms positive on both endpoints",
+      "building interval excludes zero on both endpoints",
+      "segment interval excludes zero on both endpoints"
+    ],
+    "minimum_practical_effect_threshold": "NOT SET \u2014 see the open items",
+    "tabpfn_specific": "the TabPFN-minus-tree gap meets the same conditions",
+    "vocabulary": [
+      "NATURAL_PREVALENCE_CONFIRMED",
+      "DIRECTIONALLY_CONSISTENT_BUT_INCONCLUSIVE",
+      "NOT_CONFIRMED",
+      "EXECUTION_INCOMPLETE"
+    ]
+  },
+  "generated": 1785649129.1875443,
+  "inherited_unchanged": {
+    "cluster_definitions": "building and segment, as in E4/E5",
+    "context_seeds": [
+      42,
+      123,
+      999
+    ],
+    "cross_cell_repeat_pairing": "forbidden",
+    "effect_formulas_and_signs": "E4/E5 exact",
+    "factorial_cell_coding": "E4/E5 exact",
+    "model_seed_factor": "not added",
+    "persisted_states": 24,
+    "row_probability_averaging": "forbidden",
+    "scaler_arms": [
+      "cell_specific",
+      "frozen_reference"
+    ],
+    "seed_aggregation": "seed-specific contrast first, then equal weight over three seeds",
+    "tree_comparators": "matched fixed, no refit"
+  },
+  "not_a_launch_artifact": true,
+  "open_items_requiring_human_ruling": [
+    "repeat policy (R1 / R8 / R1_PLUS_SENTINEL)",
+    "segment clustering, which is 91.8% singletons on the co-primary subset at natural prevalence and therefore behaves close to a row bootstrap",
+    "whether to freeze a minimum practical effect threshold",
+    "whether to run a non-holdout throughput probe to pin the context-20000 rate",
+    "machine topology if more than one GPU host is used"
+  ],
+  "primary_contrast": "negative_support_main_effect",
+  "prohibitions_this_round": [
+    "any predict on the 10,137,155-row holdout",
+    "any fit or refit",
+    "protocol freeze",
+    "launch"
+  ],
+  "question": "does the steam negative-support response established in E4 and independently replicated in E5 still hold on the complete odd-building holdout at natural prevalence?",
+  "row_manifest_sha256": "a0f3c85ac064a158dd2381812c3040362bd5f5996f14678f30a81a7f37298fa0",
+  "schema": "m5_e6_protocol_DRAFT_v1",
+  "shard_manifest_sha256": "c806a00d74b35592374dbca9a0ee71d10e0463faf56473e9332b18cba484e28d",
+  "status": "DRAFT \u2014 NOT FROZEN, NOT LAUNCHABLE",
+  "verdicts": {
+    "A": "natural_prevalence_response_confirmation",
+    "B": "natural_prevalence_tabpfn_specific_confirmation"
+  },
+  "wording_constraints": {
+    "forbidden": [
+      "untouched holdout",
+      "first contact",
+      "previously unseen row set"
+    ],
+    "mechanism": "E6 confirms the negative-support intervention as a whole; because cell 00 also flips the meter feature's modality, it may not be described as having isolated the hotwater-normal reference as the sole mechanism",
+    "required": "natural-prevalence factorial confirmation using new factorial states on previously characterised holdout rows"
+  }
+}

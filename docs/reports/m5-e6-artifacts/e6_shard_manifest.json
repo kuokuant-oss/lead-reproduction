@@ -1,0 +1,107 @@
+{
+  "order": "canonical stored order of the full-test artifacts, not sorted raw_index",
+  "pairwise_disjoint": true,
+  "plan": [
+    {
+      "canonical_position_end": 844763,
+      "canonical_position_start": 0,
+      "may_be_split_by_state": false,
+      "rows": 844763,
+      "shard": 0,
+      "states_to_score": 24
+    },
+    {
+      "canonical_position_end": 1689526,
+      "canonical_position_start": 844763,
+      "may_be_split_by_state": false,
+      "rows": 844763,
+      "shard": 1,
+      "states_to_score": 24
+    },
+    {
+      "canonical_position_end": 2534289,
+      "canonical_position_start": 1689526,
+      "may_be_split_by_state": false,
+      "rows": 844763,
+      "shard": 2,
+      "states_to_score": 24
+    },
+    {
+      "canonical_position_end": 3379052,
+      "canonical_position_start": 2534289,
+      "may_be_split_by_state": false,
+      "rows": 844763,
+      "shard": 3,
+      "states_to_score": 24
+    },
+    {
+      "canonical_position_end": 4223815,
+      "canonical_position_start": 3379052,
+      "may_be_split_by_state": false,
+      "rows": 844763,
+      "shard": 4,
+      "states_to_score": 24
+    },
+    {
+      "canonical_position_end": 5068578,
+      "canonical_position_start": 4223815,
+      "may_be_split_by_state": false,
+      "rows": 844763,
+      "shard": 5,
+      "states_to_score": 24
+    },
+    {
+      "canonical_position_end": 5913341,
+      "canonical_position_start": 5068578,
+      "may_be_split_by_state": false,
+      "rows": 844763,
+      "shard": 6,
+      "states_to_score": 24
+    },
+    {
+      "canonical_position_end": 6758104,
+      "canonical_position_start": 5913341,
+      "may_be_split_by_state": false,
+      "rows": 844763,
+      "shard": 7,
+      "states_to_score": 24
+    },
+    {
+      "canonical_position_end": 7602867,
+      "canonical_position_start": 6758104,
+      "may_be_split_by_state": false,
+      "rows": 844763,
+      "shard": 8,
+      "states_to_score": 24
+    },
+    {
+      "canonical_position_end": 8447630,
+      "canonical_position_start": 7602867,
+      "may_be_split_by_state": false,
+      "rows": 844763,
+      "shard": 9,
+      "states_to_score": 24
+    },
+    {
+      "canonical_position_end": 9292393,
+      "canonical_position_start": 8447630,
+      "may_be_split_by_state": false,
+      "rows": 844763,
+      "shard": 10,
+      "states_to_score": 24
+    },
+    {
+      "canonical_position_end": 10137155,
+      "canonical_position_start": 9292393,
+      "may_be_split_by_state": false,
+      "rows": 844762,
+      "shard": 11,
+      "states_to_score": 24
+    }
+  ],
+  "rule": "every shard is scored by all 24 states; state-based machine assignment is forbidden",
+  "schema": "m5_e6_shard_manifest_v1",
+  "shards": 12,
+  "total_rows": 10137155,
+  "union_equals_holdout": true
+}
