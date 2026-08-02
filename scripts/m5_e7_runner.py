@@ -261,23 +261,31 @@ def scheduler_concurrency(specs: list[dict[str, Any]]) -> int:
         (OUT / "e7_execution_resource_override_001.json").read_text(encoding="utf-8")
     )["new_dynamic_concurrency_policy"]
     available = _available_memory_bytes()
-    reserve = 16 * 1024**3
-    scale_up_floor = 24 * 1024**3
     # Measured first-unit RSS plus the authorised 25% safety factor.  These
     # values are resource controls only; they never depend on model scores.
     expected_peak = {
-        "lightgbm": int(3.2 * 1024**3 * 1.25),
+        "lightgbm": int(2.0 * 1024**3 * 1.25),
         "xgboost": int(6.0 * 1024**3 * 1.25),
-        "catboost": int(3.1 * 1024**3 * 1.25),
-        "hist_gradient_boosting": int(7.9 * 1024**3 * 1.25),
+        "catboost": int(1.9 * 1024**3 * 1.25),
+        "hist_gradient_boosting": int(6.5 * 1024**3 * 1.25),
     }
-    if available < scale_up_floor:
-        return 1
-    capacity = max(
-        1, (available - reserve) // max(expected_peak[s["component"]] for s in specs)
-    )
+    # The 24-GB figure is a five-minute *scale-up* signal, not a blanket
+    # prohibition on the explicitly authorised initial concurrency.  At each
+    # launch boundary we instead admit only the ordered units whose observed
+    # peak RSS (with the required 25% margin) fits into 75% of currently free
+    # physical RAM.  The separate 16-GB reserve is enforced against commit
+    # capacity by the runtime monitor; this local gate prevents sudden paging.
+    physical_budget = int(available * 0.75)
+    projected = 0
+    capacity = 0
+    for spec in specs:
+        peak = expected_peak[spec["component"]]
+        if projected + peak > physical_budget:
+            break
+        projected += peak
+        capacity += 1
     requested = min(policy["initial_concurrency"], policy["maximum_concurrent_units"])
-    return max(1, min(len(specs), requested, int(capacity)))
+    return max(1, min(len(specs), requested, capacity))
 
 
 def run_component_batch(specs: list[dict[str, Any]]) -> list[dict[str, Any]]:
