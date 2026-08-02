@@ -1,0 +1,35 @@
+{
+  "dual_worker_rounds": {
+    "A": [
+      "seed42__cell00__cell_specific",
+      "seed42__cell01__cell_specific"
+    ],
+    "B": [
+      "seed42__cell01__cell_specific",
+      "seed42__cell00__cell_specific"
+    ],
+    "C": [
+      "seed42__cell11__frozen_reference",
+      "seed42__cell00__cell_specific"
+    ]
+  },
+  "fits": "forbidden",
+  "full_holdout_scoring": "forbidden",
+  "hard_limits": {
+    "dual_worker_stall_minutes": 10,
+    "remote_setup_minutes": 45,
+    "total_benchmark_minutes": 90
+  },
+  "max_workers": 2,
+  "microbatch_is_frozen": true,
+  "microbatch_rows": 20000,
+  "microbatches_per_state": 10,
+  "probe_rows": 200000,
+  "single_worker_order": [
+    "seed42__cell00__cell_specific",
+    "seed42__cell01__cell_specific",
+    "seed42__cell11__frozen_reference"
+  ],
+  "third_worker": "forbidden",
+  "why": "正式 E6 已凍結 20,000 列 canonical microbatch 語義;本 benchmark 必須量測與正式 E6 相同的執行路徑,因此不測 40k/80k"
+}

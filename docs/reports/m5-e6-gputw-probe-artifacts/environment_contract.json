@@ -1,0 +1,29 @@
+{
+  "architecture": "x86_64",
+  "checkpoint_sha256": "d0d865d54dfbc524f5703104be90620182dca7e5fb2c16de72e9959ea18f3988",
+  "cuda_runtime": "13.0",
+  "forbidden": [
+    "latest tag",
+    "unpinned nightly build",
+    "automatic package upgrade",
+    "free resolution to newest versions",
+    "CPU fallback",
+    "torch.compile",
+    "mixed precision changes",
+    "TF32 policy changes",
+    "multi-GPU",
+    "MPS",
+    "MIG",
+    "third-party inference server"
+  ],
+  "gpu_model_required": "RTX PRO 6000",
+  "joblib": "1.5.3",
+  "numpy": "2.4.6",
+  "pandas": "3.0.3",
+  "python": "3.12.13",
+  "scikit-learn": "1.8.0",
+  "scipy_minimum": "1.11.1",
+  "source": "正式 E6 gpu-host 的已驗證版本,取自 e6_protocol.json 與 e6_tree_manifest.json 的 environment contract;未從執行中的 gpu-host 讀取",
+  "tabpfn": "8.0.8",
+  "torch": "2.12.1"
+}

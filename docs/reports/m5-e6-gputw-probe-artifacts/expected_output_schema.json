@@ -1,0 +1,66 @@
+{
+  "dual_worker_results.json": [
+    "rounds",
+    "aggregate_speedup",
+    "verdict",
+    "worker0",
+    "worker1",
+    "distinct_process_uuids"
+  ],
+  "remote_environment.json": [
+    "architecture",
+    "gpu_name",
+    "gpu_uuid",
+    "driver",
+    "cuda_runtime",
+    "compute_capability",
+    "vram_gb",
+    "cpu_model",
+    "cpu_cores",
+    "ram_gb",
+    "swap_gb",
+    "disk_free_gb",
+    "hostname",
+    "python",
+    "tabpfn",
+    "torch",
+    "numpy",
+    "pandas",
+    "scipy",
+    "sklearn",
+    "environment_digest"
+  ],
+  "required_zero_fields": {
+    "fits_performed": 0,
+    "holdout_rows_scored": 0,
+    "scores_retained": 0
+  },
+  "schema": "m5_e6_gputw_expected_output_schema_v1",
+  "sentinel_results.json": [
+    "unit_id",
+    "repeats",
+    "distinct_digests",
+    "endpoint_mean",
+    "endpoint_half_width",
+    "all_finite",
+    "process_uuid",
+    "gpu_uuid",
+    "fits_performed"
+  ],
+  "single_worker_results.json": [
+    "unit_id",
+    "reload_seconds",
+    "scale_seconds",
+    "per_batch",
+    "sustained_rows_per_second",
+    "median_rows_per_second",
+    "p05_rows_per_second",
+    "p95_rows_per_second",
+    "aggregate_rows_per_second",
+    "peak_vram_gb",
+    "peak_rss_gb",
+    "projected_state_hours",
+    "scores_retained",
+    "fits_performed"
+  ]
+}

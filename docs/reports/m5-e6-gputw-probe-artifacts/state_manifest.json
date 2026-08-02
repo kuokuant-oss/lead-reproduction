@@ -1,0 +1,69 @@
+{
+  "auto_scale_n_estimators": false,
+  "checkpoint_sha256": "d0d865d54dfbc524f5703104be90620182dca7e5fb2c16de72e9959ea18f3988",
+  "required_effective_n_estimators": 8,
+  "schema": "m5_e6_gputw_probe_state_manifest_v1",
+  "states": [
+    {
+      "cell": "00",
+      "context_file": "context__seed42__cell00__cell_specific.npz",
+      "context_seed": 42,
+      "context_sha256": "8d400b3e56f7163c1c47574760b1039975c60f67d64aa0bbf70f854ce447f764",
+      "scaler": {
+        "kind": "rebuilt_and_verified",
+        "rule": "StandardScaler().fit(該 cell 自己的 20,000 列 context)"
+      },
+      "scaler_arm": "cell_specific",
+      "scaler_verification": {
+        "categorical_columns_excluded": 1,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 136
+      },
+      "state_file": "state__seed42__cell00__cell_specific.tabpfn_fit",
+      "state_sha256": "a3144473c7ad31c446aca91337d729c20f9dd2a15efdaeb262c47564993da8b6",
+      "unit_id": "seed42__cell00__cell_specific"
+    },
+    {
+      "cell": "01",
+      "context_file": "context__seed42__cell01__cell_specific.npz",
+      "context_seed": 42,
+      "context_sha256": "4bc0240a8f78757c55f0c7ecb8986367107b35e8ea3178c107dcdf0ee1424d55",
+      "scaler": {
+        "kind": "rebuilt_and_verified",
+        "rule": "StandardScaler().fit(該 cell 自己的 20,000 列 context)"
+      },
+      "scaler_arm": "cell_specific",
+      "scaler_verification": {
+        "categorical_columns_excluded": 0,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 137
+      },
+      "state_file": "state__seed42__cell01__cell_specific.tabpfn_fit",
+      "state_sha256": "9df0c8553f8c011eed73dc71eca32f187c2b3ed2930d92402cf73a0b910bbf91",
+      "unit_id": "seed42__cell01__cell_specific"
+    },
+    {
+      "cell": "11",
+      "context_file": "context__seed42__cell11__frozen_reference.npz",
+      "context_seed": 42,
+      "context_sha256": "08704e07aff301aae146192b0e465e856d7849a1d5642909031b258d19e6df72",
+      "scaler": {
+        "file": "scaler__seed42__cell11__frozen_reference.joblib",
+        "kind": "persisted",
+        "sha256": "4a4709bd19b38ec36cd6ccaf83857906be019a23bf23a5af821806c9674d11ed"
+      },
+      "scaler_arm": "frozen_reference",
+      "scaler_verification": {
+        "categorical_columns_excluded": 0,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 137
+      },
+      "state_file": "state__seed42__cell11__frozen_reference.tabpfn_fit",
+      "state_sha256": "d9185332785ac41ce10968d0305468979506e2957427ae0e588d68dc52b6f8a4",
+      "unit_id": "seed42__cell11__frozen_reference"
+    }
+  ]
+}

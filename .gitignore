@@ -259,3 +259,9 @@ m32a-m33-prompt.md
 
 # Local reference PDFs that exceed the repo large-file gate
 docs/reference/papers/bdg2-miller-2020.pdf
+
+# GPUtw probe runtime (host keys, connection state) — never commit
+.gputw-probe-runtime/
+*.pem
+*_id_rsa
+*_id_ed25519

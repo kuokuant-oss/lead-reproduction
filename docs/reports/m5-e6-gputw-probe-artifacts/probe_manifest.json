@@ -1,0 +1,33 @@
+{
+  "full_feature_matrix_in_bundle": false,
+  "holdout_raw_index_in_bundle": false,
+  "holdout_rows_in_bundle": 0,
+  "probe": {
+    "all_even_buildings": true,
+    "content_authority": "x_sha256 + raw_index_sha256",
+    "dtype": "float32",
+    "existing_artifact_npz_sha256": "a3cfd7cfd2f449d5bb0564240ffcb2940d031af8a4660420dc84740cd4270a6b",
+    "existing_artifact_raw_index_sha256": "d4c6e4e76246a99b7a52268f11f1f4f6f78f85b25fb3b01bb6776caa9fc71e86",
+    "features": 137,
+    "holdout_intersection": 0,
+    "npz_difference_cause": "zip 容器的寫入平台標記 (create_system);陣列內容未受影響,已由 raw_index digest 相符與 hoist bit-exact 驗證",
+    "npz_file_digest_differs_from_existing_artifact": true,
+    "path": "e6_probe_matrix.npz",
+    "raw_index_matches_existing_artifact": true,
+    "raw_index_sha256": "d4c6e4e76246a99b7a52268f11f1f4f6f78f85b25fb3b01bb6776caa9fc71e86",
+    "read_from_running_gpu_host": false,
+    "rebuilt_locally": true,
+    "rows": 200000,
+    "selection_seed": 20260802,
+    "sha256": "5261943827e14e7a3584120e7e8b6e4553e605b5f7b4ac3972b07866e8d376ae",
+    "source_half": "even buildings (fit half)",
+    "x_sha256": "1e200f3af98edc22c01930ddf941b22f22f738cf9f82d8c253fe699619fb97c8"
+  },
+  "schema": "m5_e6_gputw_probe_manifest_v1",
+  "score_columns_in_bundle": false,
+  "sentinel": {
+    "path": "e6_sentinel_query.npz",
+    "rows": 352,
+    "sha256": "651ae640cc91ad382b73c7fe02c717e0df6af210d9408d4c34b74232f0bc5b6b"
+  }
+}
