@@ -1,0 +1,217 @@
+{
+  "allocation_inputs": [
+    "state identity",
+    "seed",
+    "cell",
+    "scaler arm",
+    "frozen execution order",
+    "completed count from heartbeat"
+  ],
+  "completed_states": 0,
+  "execution_order_is_interleaved": true,
+  "fully_unstarted_seed_blocks": [
+    123,
+    999
+  ],
+  "generated": 1785658231.8559659,
+  "hard_constraints": {
+    "allocation_never_inspects_scores": true,
+    "completed_states_never_rerun_and_cherry_picked": true,
+    "no_cross_host_microbatch_splice": true,
+    "no_state_splitting": true,
+    "one_state_one_host": true,
+    "one_state_one_process": true,
+    "one_state_one_worker": true,
+    "started_states_never_transfer": true
+  },
+  "interleaving_consequence": "E4 的隨機化順序把三個 seed 交錯排列,所以 seed block 不是「前 8 個、中 8 個、後 8 個」。現行 run 每完成一個 state 就可能吃掉某個 block 的完整性,窗口是持續收斂的,不是靜態的。",
+  "queue_rule": {
+    "arms_per_worker": {
+      "0": [
+        "cell_specific",
+        "frozen_reference"
+      ],
+      "1": [
+        "cell_specific",
+        "frozen_reference"
+      ]
+    },
+    "both_workers_see_both_arms": true,
+    "cells_per_worker": {
+      "0": [
+        "cell01",
+        "cell10"
+      ],
+      "1": [
+        "cell00",
+        "cell11"
+      ]
+    },
+    "depends_on_results": false,
+    "deterministic": true,
+    "next_state_only_after_previous_completes": true,
+    "one_state_at_a_time_per_worker": true,
+    "outer_queue": "explicit worker slot, 每個 state 記錄 worker ID、GPU UUID 與 process UUID",
+    "process_pool_executor_for_models": "forbidden",
+    "rule": "以 cell 為配對單位交替:依 position 序取出各 cell,第 j 個 cell 的兩個 scaler arm 一起指派給 worker (j mod 2)",
+    "states_per_worker": {
+      "0": 4,
+      "1": 4
+    },
+    "why_not_round_robin": "E4 的凍結順序把同一 cell 的兩個 arm 排成相鄰,逐一輪流會把某一個 scaler arm 整個綁在單一 worker,違反分派規則。",
+    "worker_slots": {
+      "0": [
+        "seed999__cell10__frozen_reference",
+        "seed999__cell10__cell_specific",
+        "seed999__cell01__frozen_reference",
+        "seed999__cell01__cell_specific"
+      ],
+      "1": [
+        "seed999__cell00__frozen_reference",
+        "seed999__cell00__cell_specific",
+        "seed999__cell11__cell_specific",
+        "seed999__cell11__frozen_reference"
+      ]
+    }
+  },
+  "reads_scientific_scores": false,
+  "recommendation": {
+    "action": "TRANSFER_ONE_COMPLETE_SEED_BLOCK",
+    "reason": "seed999 是仍完整未開始、且現行 run 最晚才會碰到的 block,窗口最寬(11.9 小時)。",
+    "second_block_if_two_are_wanted": [
+      123
+    ],
+    "seed": 999,
+    "unit_ids": [
+      "seed999__cell10__frozen_reference",
+      "seed999__cell10__cell_specific",
+      "seed999__cell00__frozen_reference",
+      "seed999__cell00__cell_specific",
+      "seed999__cell01__frozen_reference",
+      "seed999__cell01__cell_specific",
+      "seed999__cell11__cell_specific",
+      "seed999__cell11__frozen_reference"
+    ]
+  },
+  "schema": "m5_e6_gputw_state_allocation_v1",
+  "seed_blocks": {
+    "42": {
+      "arms": [
+        "cell_specific",
+        "frozen_reference"
+      ],
+      "cells": [
+        "00",
+        "01",
+        "10",
+        "11"
+      ],
+      "current_position": 0,
+      "first_position": 0,
+      "fully_unstarted": false,
+      "hours_until_current_run_reaches_this_block": 0.0,
+      "last_position": 21,
+      "positions": [
+        0,
+        1,
+        10,
+        11,
+        14,
+        15,
+        20,
+        21
+      ],
+      "states": 8,
+      "unit_ids": [
+        "seed42__cell11__frozen_reference",
+        "seed42__cell11__cell_specific",
+        "seed42__cell00__cell_specific",
+        "seed42__cell00__frozen_reference",
+        "seed42__cell01__cell_specific",
+        "seed42__cell01__frozen_reference",
+        "seed42__cell10__frozen_reference",
+        "seed42__cell10__cell_specific"
+      ],
+      "window_closes_at_position": 0
+    },
+    "123": {
+      "arms": [
+        "cell_specific",
+        "frozen_reference"
+      ],
+      "cells": [
+        "00",
+        "01",
+        "10",
+        "11"
+      ],
+      "current_position": 0,
+      "first_position": 2,
+      "fully_unstarted": true,
+      "hours_until_current_run_reaches_this_block": 3.98,
+      "last_position": 17,
+      "positions": [
+        2,
+        3,
+        4,
+        5,
+        12,
+        13,
+        16,
+        17
+      ],
+      "states": 8,
+      "unit_ids": [
+        "seed123__cell00__cell_specific",
+        "seed123__cell00__frozen_reference",
+        "seed123__cell01__cell_specific",
+        "seed123__cell01__frozen_reference",
+        "seed123__cell10__cell_specific",
+        "seed123__cell10__frozen_reference",
+        "seed123__cell11__cell_specific",
+        "seed123__cell11__frozen_reference"
+      ],
+      "window_closes_at_position": 2
+    },
+    "999": {
+      "arms": [
+        "cell_specific",
+        "frozen_reference"
+      ],
+      "cells": [
+        "00",
+        "01",
+        "10",
+        "11"
+      ],
+      "current_position": 0,
+      "first_position": 6,
+      "fully_unstarted": true,
+      "hours_until_current_run_reaches_this_block": 11.94,
+      "last_position": 23,
+      "positions": [
+        6,
+        7,
+        8,
+        9,
+        18,
+        19,
+        22,
+        23
+      ],
+      "states": 8,
+      "unit_ids": [
+        "seed999__cell10__frozen_reference",
+        "seed999__cell10__cell_specific",
+        "seed999__cell00__frozen_reference",
+        "seed999__cell00__cell_specific",
+        "seed999__cell01__frozen_reference",
+        "seed999__cell01__cell_specific",
+        "seed999__cell11__cell_specific",
+        "seed999__cell11__frozen_reference"
+      ],
+      "window_closes_at_position": 6
+    }
+  },
+  "state_hours_measured": 1.99
+}

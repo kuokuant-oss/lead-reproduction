@@ -1,0 +1,33 @@
+{
+  "fits_performed": 0,
+  "generated": 1785658261.048992,
+  "gputw_instance_provided": false,
+  "holdout_rows_scored": 0,
+  "planned_rounds": {
+    "A": [
+      "seed42__cell00__cell_specific",
+      "seed42__cell01__cell_specific"
+    ],
+    "B": [
+      "seed42__cell01__cell_specific",
+      "seed42__cell00__cell_specific"
+    ],
+    "C": [
+      "seed42__cell11__frozen_reference",
+      "seed42__cell00__cell_specific"
+    ]
+  },
+  "prior_expectation_not_a_verdict": "依規格,GB10 頻寬為現行機器 0.30 倍、RTX PRO 6000 為 2.00 倍。這只能排除候選,不能替代實測,因此 verdict 維持 NOT_MEASURED。",
+  "reason": "尚未執行。本輪不得自行儲值,也不得在未有人類明確建立或授權的 instance 前呼叫付費 instance create API。目前沒有任何正在運行的 GPUtw instance 被提供,因此 sentinel、單 worker 與兩 worker benchmark 都未執行。腳本、manifest 與測試已就緒,取得 instance 後可直接執行。",
+  "results": [],
+  "schema": "m5_e6_gputw_two_worker_v1",
+  "scientific": false,
+  "scores_retained": 0,
+  "status": "NOT_EXECUTED",
+  "thresholds": {
+    "beneficial_aggregate_speedup": 1.6,
+    "fixed_before_measurement": true,
+    "marginal_aggregate_speedup": 1.2
+  },
+  "verdict": "NOT_MEASURED"
+}

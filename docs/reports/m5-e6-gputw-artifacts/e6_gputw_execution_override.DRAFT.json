@@ -1,0 +1,82 @@
+{
+  "decision_rules_unchanged": true,
+  "endpoints_unchanged": true,
+  "execution_provenance_limitation": "以 seed block 分 host,會讓 execution host 與 context seed 綁定。這不是原始的單 host protocol。該 seed 內的四個 factorial cell、兩個 scaler arm、negative-support contrast、interaction 與 scaler 比較確實都留在同一個執行環境,所以 seed 內的對比不被 machine 切開;但 seed 之間的比較就同時混入了機器差異。這只削減了 machine confounding,並未消除 —— 不得宣稱已完全消除 machine confounding。",
+  "generated": 1785658231.8576713,
+  "gputw_full_holdout_scoring_this_round": "forbidden",
+  "gputw_host_candidate": "rtx_pro_6000_ws",
+  "gputw_tree_outputs": "forbidden",
+  "human_authorisation_required": true,
+  "is_frozen": false,
+  "launchable": false,
+  "no_cross_host_microbatch_splice": true,
+  "no_state_is_split": true,
+  "one_state_one_host_one_worker_one_process": true,
+  "original_execution_host": "gpu-host, single GPU worker, single tmux session",
+  "original_protocol_commit": "3a800a0",
+  "original_protocol_sha256": "10aa762bdf5617a9a829cb126c402bb87f4665fa02e715d1ae6ffa12ce8bba57",
+  "queue_rule": {
+    "arms_per_worker": {
+      "0": [
+        "cell_specific",
+        "frozen_reference"
+      ],
+      "1": [
+        "cell_specific",
+        "frozen_reference"
+      ]
+    },
+    "both_workers_see_both_arms": true,
+    "cells_per_worker": {
+      "0": [
+        "cell01",
+        "cell10"
+      ],
+      "1": [
+        "cell00",
+        "cell11"
+      ]
+    },
+    "depends_on_results": false,
+    "deterministic": true,
+    "next_state_only_after_previous_completes": true,
+    "one_state_at_a_time_per_worker": true,
+    "outer_queue": "explicit worker slot, 每個 state 記錄 worker ID、GPU UUID 與 process UUID",
+    "process_pool_executor_for_models": "forbidden",
+    "rule": "以 cell 為配對單位交替:依 position 序取出各 cell,第 j 個 cell 的兩個 scaler arm 一起指派給 worker (j mod 2)",
+    "states_per_worker": {
+      "0": 4,
+      "1": 4
+    },
+    "why_not_round_robin": "E4 的凍結順序把同一 cell 的兩個 arm 排成相鄰,逐一輪流會把某一個 scaler arm 整個綁在單一 worker,違反分派規則。",
+    "worker_slots": {
+      "0": [
+        "seed999__cell10__frozen_reference",
+        "seed999__cell10__cell_specific",
+        "seed999__cell01__frozen_reference",
+        "seed999__cell01__cell_specific"
+      ],
+      "1": [
+        "seed999__cell00__frozen_reference",
+        "seed999__cell00__cell_specific",
+        "seed999__cell11__cell_specific",
+        "seed999__cell11__frozen_reference"
+      ]
+    }
+  },
+  "requires_human_execution_override_before_use": true,
+  "schema": "m5_e6_gputw_execution_override_DRAFT_v1",
+  "states_already_started_stay_on_original_host": true,
+  "transferred_seed_block": 999,
+  "transferred_unit_ids": [
+    "seed999__cell10__frozen_reference",
+    "seed999__cell10__cell_specific",
+    "seed999__cell00__frozen_reference",
+    "seed999__cell00__cell_specific",
+    "seed999__cell01__frozen_reference",
+    "seed999__cell01__cell_specific",
+    "seed999__cell11__cell_specific",
+    "seed999__cell11__frozen_reference"
+  ],
+  "tree_outputs_unchanged": true
+}

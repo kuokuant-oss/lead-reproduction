@@ -1,0 +1,35 @@
+{
+  "checks_that_must_pass": [
+    "8 個 score digest 皆記錄",
+    "endpoint mean 與 half-width 落在 E4/E5 已知範圍",
+    "無大量 non-finite",
+    "無方向反轉",
+    "無明顯超出 E4/E5 範圍的系統性位移",
+    "effective n_estimators_ == 8",
+    "scaler exact",
+    "無 CPU fallback"
+  ],
+  "fits_performed": 0,
+  "generated": 1785658261.048992,
+  "gputw_instance_provided": false,
+  "holdout_rows_scored": 0,
+  "planned_protocol": {
+    "bitwise_cross_gpu_equality_required": false,
+    "failure_action": "標記 INCOMPATIBLE,不得進入兩 worker throughput 測試",
+    "fresh_process_per_state": true,
+    "must_compare_against_e4_e5_range": true,
+    "repeats_per_state": 8,
+    "sentinel_rows": 352
+  },
+  "planned_states": [
+    "seed42__cell00__cell_specific",
+    "seed42__cell01__cell_specific",
+    "seed42__cell11__frozen_reference"
+  ],
+  "reason": "尚未執行。本輪不得自行儲值,也不得在未有人類明確建立或授權的 instance 前呼叫付費 instance create API。目前沒有任何正在運行的 GPUtw instance 被提供,因此 sentinel、單 worker 與兩 worker benchmark 都未執行。腳本、manifest 與測試已就緒,取得 instance 後可直接執行。",
+  "results": [],
+  "schema": "m5_e6_gputw_compatibility_v1",
+  "scientific": false,
+  "scores_retained": 0,
+  "status": "NOT_EXECUTED"
+}
