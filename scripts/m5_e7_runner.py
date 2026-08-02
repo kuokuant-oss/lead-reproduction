@@ -308,7 +308,11 @@ def run_component_batch(specs: list[dict[str, Any]]) -> list[dict[str, Any]]:
     for group in (low, high):
         if not group:
             continue
-        workers = scheduler_concurrency(group)
+        # Correction 002 freezes the execution topology: two independent
+        # component subprocesses, eight model threads each.  The supervisor
+        # monitors the six-GB reserve and pagefile; it never changes model
+        # identity, input order, or the two-worker cap.
+        workers = min(2, len(group))
         with ThreadPoolExecutor(max_workers=workers) as pool:
             for spec, result in zip(group, pool.map(run_component, group), strict=True):
                 results[spec["unit_id"]] = result
@@ -1888,6 +1892,9 @@ def parse_args() -> argparse.Namespace:
     group.add_argument("--build-even-f4-store", action="store_true")
     group.add_argument("--validate-even-f4-store", action="store_true")
     group.add_argument("--apply-execution-correction-002", action="store_true")
+    group.add_argument("--score-s11-full-holdout", action="store_true")
+    group.add_argument("--score-steam-specialists", action="store_true")
+    group.add_argument("--assemble-hybrid-chunks", action="store_true")
     return parser.parse_args()
 
 
@@ -1923,6 +1930,12 @@ def main() -> None:
         validate_even_f4_store_equivalence()
     elif args.apply_execution_correction_002:
         write_execution_correction_002()
+    elif args.score_s11_full_holdout:
+        score_s11_full_holdout()
+    elif args.score_steam_specialists:
+        score_steam_specialists()
+    elif args.assemble_hybrid_chunks:
+        assemble_hybrid_chunks()
     else:
         freeze()
 
