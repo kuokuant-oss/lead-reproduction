@@ -295,6 +295,32 @@ def run_component_batch(specs: list[dict[str, Any]]) -> list[dict[str, Any]]:
         return list(pool.map(run_component, specs))
 
 
+def completed_slot_predictions(
+    phase: str, fold_name: str, family: str, slot: str, query_rows: int
+) -> list[np.ndarray] | None:
+    """Reuse only fully digest-valid historical units across a scheduler upgrade."""
+    values: list[np.ndarray] = []
+    for component in p.MODEL_ORDER:
+        unit = OUT / "units" / p.unit_id(phase, fold_name, family, slot, component)
+        marker_path = unit / "complete.json"
+        if not marker_path.exists():
+            return None
+        marker = json.loads(marker_path.read_text(encoding="utf-8"))
+        files = marker.get("files", {})
+        try:
+            for key in ("model", "scaler", "prediction"):
+                record = files[key]
+                if p.sha256_file(unit / record["path"]) != record["sha256"]:
+                    return None
+            score = np.load(unit / files["prediction"]["path"], allow_pickle=False)
+        except (KeyError, FileNotFoundError, ValueError):
+            return None
+        if score.shape != (query_rows,) or not np.isfinite(score).all():
+            return None
+        values.append(score)
+    return values
+
+
 def _historical_frame() -> pd.DataFrame:
     """Load canonical labelled M3 data only for even-building fitting."""
     import lead.data as data
@@ -1050,6 +1076,14 @@ def execute_oof_fold(fold: int) -> None:
         ("neutral", list(NEUTRAL_SEEDS)),
     ):
         for slot in slots:
+            reused = completed_slot_predictions(
+                "oof", f"fold{fold}", family, slot, len(query_indices)
+            )
+            if reused is not None:
+                predictions[slot] = np.mean(reused, axis=0, dtype="float64").astype(
+                    "float32"
+                )
+                continue
             indices = _frozen_indices(train, fold, family, slot)
             x_fit = _f4(train, indices)
             y_fit = train.loc[indices, "anomaly"].to_numpy(dtype="int8")
