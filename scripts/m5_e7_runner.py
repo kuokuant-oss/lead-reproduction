@@ -8,11 +8,13 @@ formal commands reject a dirty repository and a missing protocol freeze.
 from __future__ import annotations
 
 import argparse
+import ctypes
 import json
 import os
 import subprocess
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
@@ -130,9 +132,14 @@ def worker(spec_path: Path) -> None:
             quarantine(unit_dir, "partial_or_incompatible_checkpoint")
     unit_dir.mkdir(parents=True)
     started = time.perf_counter()
-    x_fit = np.load(spec["x_fit"], mmap_mode="r")
+    scaled_inputs = "scaled_x_fit" in spec
+    x_fit = np.load(
+        spec["scaled_x_fit"] if scaled_inputs else spec["x_fit"], mmap_mode="r"
+    )
     y_fit = np.load(spec["y_fit"], mmap_mode="r")
-    x_query = np.load(spec["x_query"], mmap_mode="r")
+    x_query = np.load(
+        spec["scaled_x_query"] if scaled_inputs else spec["x_query"], mmap_mode="r"
+    )
     if x_fit.shape[0] != y_fit.shape[0] or x_query.shape[0] != spec["query_rows"]:
         raise SystemExit("component input shape mismatch")
     scaler_ref = Path(spec["scaler_source"]["path"])
@@ -142,9 +149,23 @@ def worker(spec_path: Path) -> None:
     ):
         raise SystemExit("frozen shared scaler is missing or digest-drifted")
     scaler = joblib.load(scaler_ref)
-    fit = scaler.transform(x_fit).astype("float32", copy=False)
-    query = scaler.transform(x_query).astype("float32", copy=False)
+    # New resource-override specs point at shared, scaled, read-only memmaps.
+    # The fallback keeps an already-running pre-override worker compatible and
+    # is deliberately removed from every newly prepared slot.
+    fit = (
+        x_fit
+        if scaled_inputs
+        else scaler.transform(x_fit).astype("float32", copy=False)
+    )
+    query = (
+        x_query
+        if scaled_inputs
+        else scaler.transform(x_query).astype("float32", copy=False)
+    )
     name = spec["component"]
+    if name == "hist_gradient_boosting" and "hgb_x_fit" in spec:
+        fit = np.load(spec["hgb_x_fit"], mmap_mode="r")
+        query = np.load(spec["hgb_x_query"], mmap_mode="r")
     model = _component_model(name)
     model.fit(
         np.nan_to_num(fit, nan=0.0) if name == "hist_gradient_boosting" else fit, y_fit
@@ -207,6 +228,71 @@ def run_component(spec: dict[str, Any]) -> dict[str, Any]:
         quarantine(unit_dir, f"subprocess_returncode_{proc.returncode}")
         raise RuntimeError(f"{spec['unit_id']} failed: {proc.stderr[-500:]}")
     return validate_unit(unit_dir, spec)
+
+
+def _available_memory_bytes() -> int:
+    """Read physical available memory without importing an evaluation package."""
+    if os.name != "nt":
+        return 0
+
+    class MemoryStatus(ctypes.Structure):
+        _fields_ = [
+            ("length", ctypes.c_ulong),
+            ("memory_load", ctypes.c_ulong),
+            ("total_phys", ctypes.c_ulonglong),
+            ("avail_phys", ctypes.c_ulonglong),
+            ("total_page_file", ctypes.c_ulonglong),
+            ("avail_page_file", ctypes.c_ulonglong),
+            ("total_virtual", ctypes.c_ulonglong),
+            ("avail_virtual", ctypes.c_ulonglong),
+            ("avail_extended_virtual", ctypes.c_ulonglong),
+        ]
+
+    status = MemoryStatus()
+    status.length = ctypes.sizeof(status)
+    if not ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status)):
+        return 0
+    return int(status.avail_phys)
+
+
+def scheduler_concurrency(specs: list[dict[str, Any]]) -> int:
+    """Return a RAM-gated concurrency level for as-yet-unclaimed units only."""
+    policy = json.loads(
+        (OUT / "e7_execution_resource_override_001.json").read_text(encoding="utf-8")
+    )["new_dynamic_concurrency_policy"]
+    available = _available_memory_bytes()
+    reserve = 16 * 1024**3
+    scale_up_floor = 24 * 1024**3
+    # Measured first-unit RSS plus the authorised 25% safety factor.  These
+    # values are resource controls only; they never depend on model scores.
+    expected_peak = {
+        "lightgbm": int(3.2 * 1024**3 * 1.25),
+        "xgboost": int(6.0 * 1024**3 * 1.25),
+        "catboost": int(3.1 * 1024**3 * 1.25),
+        "hist_gradient_boosting": int(7.9 * 1024**3 * 1.25),
+    }
+    if available < scale_up_floor:
+        return 1
+    capacity = max(
+        1, (available - reserve) // max(expected_peak[s["component"]] for s in specs)
+    )
+    requested = min(policy["initial_concurrency"], policy["maximum_concurrent_units"])
+    return max(1, min(len(specs), requested, int(capacity)))
+
+
+def run_component_batch(specs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Run independent component subprocesses at the RAM-gated safe limit.
+
+    Every specification refers to the same immutable shared scaler and input
+    matrices for its expert slot.  Threading here only dispatches the already
+    isolated subprocess workers; model fitting remains CPU-process based and
+    each component preserves its one-thread contract.
+    """
+    if not specs:
+        return []
+    workers = scheduler_concurrency(specs)
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        return list(pool.map(run_component, specs))
 
 
 def _historical_frame() -> pd.DataFrame:
@@ -855,11 +941,62 @@ def _unit_spec(
         slot_root / "y.npy",
         slot_root / "query.npy",
     )
-    p.atomic_npy(x_path, x_fit)
-    p.atomic_npy(y_path, y_fit.astype("int8", copy=False))
-    p.atomic_npy(q_path, x_query)
+    scaled_x_path, scaled_q_path = (
+        slot_root / "x_scaled.npy",
+        slot_root / "query_scaled.npy",
+    )
+    hgb_x_path, hgb_q_path = (
+        slot_root / "x_scaled_nan_zero.npy",
+        slot_root / "query_scaled_nan_zero.npy",
+    )
     scaler_path = slot_root / "shared_scaler.joblib"
-    scaler_sha = _save_joblib(scaler_path, scaler)
+    input_manifest_path = slot_root / "shared_input_manifest.json"
+    input_identity = {
+        "training_raw_index_digest": p.array_digest(train_indices),
+        "validation_raw_index_digest": p.array_digest(query_indices),
+        "feature_column_digest": "eab08c9a1b39ee7a74070c2ded464e3efbfb13d89dc148ef6b3bc3f443b21de3",
+        "protocol_sha256": p.sha256_file(OUT / "e7_protocol.json"),
+        "x_shape": list(x_fit.shape),
+        "query_shape": list(x_query.shape),
+        "dtype": "float32",
+    }
+    if input_manifest_path.exists():
+        shared = json.loads(input_manifest_path.read_text(encoding="utf-8"))
+        if shared["identity"] != input_identity:
+            raise SystemExit(f"shared slot input drift: {slot_root.name}")
+    else:
+        p.atomic_npy(x_path, x_fit)
+        p.atomic_npy(y_path, y_fit.astype("int8", copy=False))
+        p.atomic_npy(q_path, x_query)
+        scaler_sha = _save_joblib(scaler_path, scaler)
+        x_scaled = scaler.transform(x_fit).astype("float32", copy=False)
+        q_scaled = scaler.transform(x_query).astype("float32", copy=False)
+        p.atomic_npy(scaled_x_path, x_scaled)
+        p.atomic_npy(scaled_q_path, q_scaled)
+        p.atomic_npy(hgb_x_path, np.nan_to_num(x_scaled, nan=0.0))
+        p.atomic_npy(hgb_q_path, np.nan_to_num(q_scaled, nan=0.0))
+        p.atomic_json(
+            input_manifest_path,
+            {
+                "identity": input_identity,
+                "files": {
+                    name: {"path": str(path), "sha256": p.sha256_file(path)}
+                    for name, path in {
+                        "x": x_path,
+                        "y": y_path,
+                        "query": q_path,
+                        "x_scaled": scaled_x_path,
+                        "query_scaled": scaled_q_path,
+                        "hgb_x_scaled": hgb_x_path,
+                        "hgb_query_scaled": hgb_q_path,
+                        "scaler": scaler_path,
+                    }.items()
+                },
+            },
+        )
+        del x_scaled, q_scaled
+    shared = json.loads(input_manifest_path.read_text(encoding="utf-8"))
+    scaler_sha = shared["files"]["scaler"]["sha256"]
     return {
         "unit_id": identity,
         "phase": phase,
@@ -871,14 +1008,19 @@ def _unit_spec(
         "x_fit": str(x_path),
         "y_fit": str(y_path),
         "x_query": str(q_path),
+        "scaled_x_fit": str(scaled_x_path),
+        "scaled_x_query": str(scaled_q_path),
+        "hgb_x_fit": str(hgb_x_path),
+        "hgb_x_query": str(hgb_q_path),
+        "shared_input_manifest_sha256": p.sha256_file(input_manifest_path),
         "query_rows": int(len(x_query)),
-        "training_raw_index_digest": p.array_digest(train_indices),
-        "training_row_order_digest": p.array_digest(train_indices),
-        "validation_raw_index_digest": p.array_digest(query_indices),
+        "training_raw_index_digest": input_identity["training_raw_index_digest"],
+        "training_row_order_digest": input_identity["training_raw_index_digest"],
+        "validation_raw_index_digest": input_identity["validation_raw_index_digest"],
         "feature_column_digest": "eab08c9a1b39ee7a74070c2ded464e3efbfb13d89dc148ef6b3bc3f443b21de3",
         "x_dtype": "float32",
         "environment_sha256": p.sha256_file(OUT / "e7_environment_manifest.json"),
-        "protocol_sha256": p.sha256_file(OUT / "e7_protocol.json"),
+        "protocol_sha256": input_identity["protocol_sha256"],
         "scaler_source": {"path": str(scaler_path), "sha256": scaler_sha},
     }
 
@@ -912,9 +1054,8 @@ def execute_oof_fold(fold: int) -> None:
             x_fit = _f4(train, indices)
             y_fit = train.loc[indices, "anomaly"].to_numpy(dtype="int8")
             scaler = StandardScaler().fit(x_fit)
-            component_scores = []
-            for component in p.MODEL_ORDER:
-                spec = _unit_spec(
+            specs = [
+                _unit_spec(
                     phase="oof",
                     fold_name=f"fold{fold}",
                     family=family,
@@ -928,7 +1069,11 @@ def execute_oof_fold(fold: int) -> None:
                     query_indices=query_indices,
                     scaler=scaler,
                 )
-                result = run_component(spec)
+                for component in p.MODEL_ORDER
+            ]
+            results = run_component_batch(specs)
+            component_scores = []
+            for spec, result in zip(specs, results, strict=True):
                 component_scores.append(
                     np.load(
                         Path(spec["unit_dir"]) / result["files"]["prediction"]["path"],
@@ -1001,8 +1146,8 @@ def execute_final() -> None:
         x_fit = _f4(frame, indices)
         y_fit = frame.loc[indices, "anomaly"].to_numpy(dtype="int8")
         scaler = StandardScaler().fit(x_fit)
-        for component in p.MODEL_ORDER:
-            spec = _unit_spec(
+        specs = [
+            _unit_spec(
                 phase="final",
                 fold_name="all_even",
                 family=family,
@@ -1016,7 +1161,9 @@ def execute_final() -> None:
                 query_indices=np.empty(0, dtype="int64"),
                 scaler=scaler,
             )
-            run_component(spec)
+            for component in p.MODEL_ORDER
+        ]
+        run_component_batch(specs)
     p.atomic_json(
         OUT / "final" / "complete.json",
         {"expected_component_fits": 32, "complete": True, "odd_predictions": 0},

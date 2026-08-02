@@ -1,0 +1,55 @@
+{
+  "override_id": "E7_EXECUTION_RESOURCE_OVERRIDE_001",
+  "authorization": "explicit_human_authorization",
+  "reason": "low CPU utilisation caused by overly conservative scheduler",
+  "scientific_estimand_changed": false,
+  "training_inputs_changed": false,
+  "model_parameters_changed": false,
+  "component_thread_count_changed": false,
+  "expected_formal_fits_changed": false,
+  "previous_concurrency": 1,
+  "new_dynamic_concurrency_policy": {
+    "initial_formula": "max(4, min(8, floor(logical_cpu_count * 0.50)))",
+    "initial_concurrency": 8,
+    "maximum_formula": "min(16, floor(logical_cpu_count * 0.75))",
+    "maximum_concurrent_units": 16,
+    "minimum_concurrency": 2,
+    "evaluation_interval_seconds": 300,
+    "per_component_threads": 1,
+    "scale_up_step": 2,
+    "scale_down_step": 2
+  },
+  "logical_cpu_count": 32,
+  "physical_cpu_count": 24,
+  "total_ram_bytes": 33958178816,
+  "minimum_free_ram_bytes": 25769803776,
+  "system_reserve_bytes": 17179869184,
+  "model_family_concurrency_caps": {
+    "catboost": "derived from observed peak RSS plus 25 percent safety factor",
+    "xgboost": "derived from observed peak RSS plus 25 percent safety factor",
+    "lightgbm": "fills remaining safe capacity",
+    "hist_gradient_boosting": "fills remaining safe capacity"
+  },
+  "memory_pressure_rules": {
+    "scale_up_requires": "available RAM > max(24 GB, 25% total RAM), commit < 75% limit, no pagefile growth",
+    "scale_down_when": "available RAM < max(16 GB, 15% total RAM), commit > 85% limit, pagefile grows > 1 GB, OOM, or thrashing",
+    "launch_gate": "fit-process RSS + expected peak RSS + 16 GB reserve must fit safely within commit capacity"
+  },
+  "disk_pressure_rules": {
+    "scale_up_requires": "disk active time not sustained above 90% and no artifact write backlog",
+    "scale_down_when": "disk active time sustained above 95% with increasing queue or delayed atomic writes"
+  },
+  "retry_rules": "same digest-valid inputs; at most three consecutive failures per canonical unit; failed attempts quarantined; no result selection",
+  "effective_before_unit_ids": [
+    "oof__fold0__support__s00__lightgbm",
+    "oof__fold0__support__s00__xgboost"
+  ],
+  "effective_after_unit_ids": [
+    "oof__fold0__support__s00__catboost",
+    "oof__fold0__support__s00__hist_gradient_boosting"
+  ],
+  "completed_units_unaffected": true,
+  "running_units_not_interrupted": true,
+  "classification": "execution_resource_override",
+  "scientific_protocol_change": false
+}

@@ -23,6 +23,13 @@
       "scope": "complete odd-holdout hybrid score-generation scope",
       "scientific_effect": "steam remains the primary endpoint; no training pool, OOF design, feature, architecture, or meta-model changes",
       "status": "frozen"
+    },
+    {
+      "id": "ERO-001",
+      "classification": "execution_resource_override",
+      "scope": "dynamic multi-process scheduler and shared scaled read-only memmaps for unclaimed component units",
+      "scientific_effect": "none; preserves each component's single thread, frozen inputs, row order, shared scaler, seeds, model parameters, and canonical unit identity",
+      "status": "in_progress"
     }
   ]
 }
