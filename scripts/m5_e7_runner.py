@@ -325,6 +325,172 @@ def build_full_label_free_store() -> None:
     )
 
 
+def extract_label_free_historical_scores() -> None:
+    """Extract only score fields from A001; deliberately never touch anomaly."""
+    source = (
+        PHASE0_ARTIFACT_ROOT / "data" / "processed" / "m3_figure_predictions_50_50.npz"
+    )
+    fields = ("lightgbm", "xgboost", "catboost", "hist_gradient_boosting", "ensemble")
+    output = OUT / "historical_label_free"
+    with np.load(source, allow_pickle=False) as artifact:
+        for field in fields:
+            p.atomic_npy(output / f"{field}.npy", artifact[field].astype("float32"))
+    p.atomic_json(
+        OUT / "e7_historical_score_extract_manifest.json",
+        {
+            "rows": 10137155,
+            "fields": list(fields),
+            "source_arrays_read": list(fields),
+            "forbidden_arrays_not_read": ["anomaly", "validation_raw_index"],
+            "canonical_identity": "A002 positional order",
+        },
+    )
+
+
+def _load_final_component(family: str, slot: str, component: str) -> tuple[Any, Any]:
+    unit = OUT / "units" / p.unit_id("final", "all_even", family, slot, component)
+    marker = json.loads((unit / "complete.json").read_text(encoding="utf-8"))
+    return joblib.load(unit / marker["files"]["model"]["path"]), joblib.load(
+        unit / marker["files"]["scaler"]["path"]
+    )
+
+
+def _load_meta(family: str) -> tuple[Any, Any]:
+    root = OUT / "final_meta" / family
+    return joblib.load(root / "model.joblib"), joblib.load(root / "scaler.joblib")
+
+
+def score_s11_full_holdout() -> None:
+    """Label-free s11 component and ensemble scoring over all canonical chunks."""
+    models = {
+        name: _load_final_component("support", "s11", name) for name in p.MODEL_ORDER
+    }
+    feature_manifest = json.loads(
+        (OUT / "e7_full_holdout_feature_manifest.json").read_text(encoding="utf-8")
+    )
+    out = OUT / "scores" / "s11_full"
+    for number, chunk in enumerate(feature_manifest["chunks"]):
+        features = np.load(
+            OUT / "full_holdout_store" / f"chunk_{number:03d}" / "features.npy",
+            allow_pickle=False,
+        )
+        scores = {}
+        for component, (model, scaler) in models.items():
+            scores[component] = _predict(
+                component,
+                model,
+                scaler.transform(features).astype("float32", copy=False),
+            )
+            p.atomic_npy(
+                out / f"chunk_{number:03d}" / f"{component}.npy", scores[component]
+            )
+        p.atomic_npy(
+            out / f"chunk_{number:03d}" / "ensemble.npy",
+            np.mean(list(scores.values()), axis=0, dtype="float64").astype("float32"),
+        )
+
+
+def score_steam_specialists() -> None:
+    """Score frozen support/neutral experts only where the label-free router says steam."""
+    manifest = json.loads(
+        (OUT / "e7_full_holdout_feature_manifest.json").read_text(encoding="utf-8")
+    )
+    experts = [("support", f"s{cell}") for cell in p.SUPPORT_CELLS] + [
+        ("neutral", f"n{cell}") for cell in p.SUPPORT_CELLS
+    ]
+    loaded = {
+        slot: {
+            component: _load_final_component(family, slot, component)
+            for component in p.MODEL_ORDER
+        }
+        for family, slot in experts
+    }
+    out = OUT / "scores" / "steam_specialists"
+    for number, _ in enumerate(manifest["chunks"]):
+        root = OUT / "full_holdout_store" / f"chunk_{number:03d}"
+        meter = np.load(root / "meter.npy", allow_pickle=False)
+        rows = meter == 2
+        if not rows.any():
+            continue
+        features = np.load(root / "features.npy", allow_pickle=False)[rows]
+        p.atomic_npy(
+            out / f"chunk_{number:03d}" / "raw_index.npy",
+            np.load(root / "raw_index.npy", allow_pickle=False)[rows],
+        )
+        for slot, components in loaded.items():
+            values = []
+            for component, (model, scaler) in components.items():
+                score = _predict(
+                    component,
+                    model,
+                    scaler.transform(features).astype("float32", copy=False),
+                )
+                p.atomic_npy(
+                    out / f"chunk_{number:03d}" / f"{slot}_{component}.npy", score
+                )
+                values.append(score)
+            p.atomic_npy(
+                out / f"chunk_{number:03d}" / f"{slot}.npy",
+                np.mean(values, axis=0, dtype="float64").astype("float32"),
+            )
+
+
+def assemble_hybrid_chunks() -> None:
+    """Route label-free final scores exactly by meter; no outcome-dependent branch exists."""
+    support_model, support_scaler = _load_meta("support")
+    neutral_model, neutral_scaler = _load_meta("neutral")
+    manifest = json.loads(
+        (OUT / "e7_full_holdout_feature_manifest.json").read_text(encoding="utf-8")
+    )
+    output = OUT / "scores" / "hybrid"
+    for number, _ in enumerate(manifest["chunks"]):
+        base = OUT / "full_holdout_store" / f"chunk_{number:03d}"
+        meter = np.load(base / "meter.npy", allow_pickle=False)
+        s11 = np.load(
+            OUT / "scores" / "s11_full" / f"chunk_{number:03d}" / "ensemble.npy",
+            allow_pickle=False,
+        )
+        historical = np.load(
+            OUT / "historical_label_free" / "ensemble.npy", mmap_mode="r"
+        )[manifest["chunks"][number]["start"] : manifest["chunks"][number]["stop"]]
+        deploy, locked, deploy_n, locked_n = (
+            s11.copy(),
+            historical.copy(),
+            s11.copy(),
+            historical.copy(),
+        )
+        rows = meter == 2
+        if rows.any():
+            specialist = OUT / "scores" / "steam_specialists" / f"chunk_{number:03d}"
+            support = {
+                f"s{cell}": np.load(specialist / f"s{cell}.npy", allow_pickle=False)
+                for cell in p.SUPPORT_CELLS
+            }
+            neutral = {
+                f"n{cell}": np.load(specialist / f"n{cell}.npy", allow_pickle=False)
+                for cell in p.SUPPORT_CELLS
+            }
+            support_score = support_model.predict_proba(
+                support_scaler.transform(p.factor_features(support, "s"))
+            )[:, 1].astype("float32")
+            neutral_score = neutral_model.predict_proba(
+                neutral_scaler.transform(p.factor_features(neutral, "n"))
+            )[:, 1].astype("float32")
+            deploy[rows] = support_score
+            locked[rows] = support_score
+            deploy_n[rows] = neutral_score
+            locked_n[rows] = neutral_score
+        for name, value in {
+            "deployable_refit_hybrid": deploy,
+            "locked_reference_hybrid": locked,
+            "deployable_refit_neutral_hybrid": deploy_n,
+            "locked_reference_neutral_hybrid": locked_n,
+        }.items():
+            p.atomic_npy(
+                output / f"chunk_{number:03d}" / f"{name}.npy", value.astype("float32")
+            )
+
+
 def deterministic_folds(even: pd.DataFrame) -> dict[str, Any]:
     steam = even[even["meter"].eq(2)]
     census = steam.groupby("building_id", sort=True).agg(
@@ -1272,6 +1438,7 @@ def parse_args() -> argparse.Namespace:
     group.add_argument("--fit-final-meta", action="store_true")
     group.add_argument("--amend-full-holdout-scoring", action="store_true")
     group.add_argument("--build-full-label-free-store", action="store_true")
+    group.add_argument("--extract-label-free-historical-scores", action="store_true")
     return parser.parse_args()
 
 
@@ -1299,6 +1466,8 @@ def main() -> None:
         amend_full_holdout_scoring_scope()
     elif args.build_full_label_free_store:
         build_full_label_free_store()
+    elif args.extract_label_free_historical_scores:
+        extract_label_free_historical_scores()
     else:
         freeze()
 
