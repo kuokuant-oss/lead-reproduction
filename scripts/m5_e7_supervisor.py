@@ -19,6 +19,9 @@ ROOT = p.ROOT
 OUT = p.ARTIFACT_ROOT
 RUNTIME = OUT / "runtime"
 
+for _name, _value in p.resource_environment().items():
+    os.environ[_name] = _value
+
 
 def _completed() -> int:
     root = OUT / "units"
