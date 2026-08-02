@@ -373,45 +373,6 @@ def test_state_manifest_covers_24_states_in_e4_order():
     assert set(Counter(r["unit_id"] for r in reps).values()) == {8}
 
 
-def _standalone() -> int:
-    import inspect
-    import traceback
-
-    proto = None
-    p = CANONICAL / "e5_protocol.json"
-    if p.exists():
-        proto = json.loads(p.read_text(encoding="utf-8"))["protocol"]
-    passed = failed = skipped = 0
-    for name, fn in sorted(globals().items()):
-        if not name.startswith("test_") or not callable(fn):
-            continue
-        try:
-            if "protocol" in inspect.signature(fn).parameters:
-                if proto is None:
-                    print(f"SKIP {name}: protocol not frozen")
-                    skipped += 1
-                    continue
-                fn(proto)
-            else:
-                fn()
-            print(f"PASS {name}")
-            passed += 1
-        except Exception as exc:  # noqa: BLE001
-            if type(exc).__name__ == "_Skip":
-                print(f"SKIP {name}: {exc}")
-                skipped += 1
-                continue
-            failed += 1
-            print(f"FAIL {name}: {exc}")
-            traceback.print_exc()
-    print(f"\n{passed} passed, {failed} failed, {skipped} skipped")
-    return 1 if failed else 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(_standalone())
-
-
 # --------------------------------------------------------------------------
 # the fixed-tree execution override (human ruling of 2026-08-02)
 # --------------------------------------------------------------------------
@@ -501,3 +462,50 @@ def test_input_manifest_carries_the_override(tree_override):
         inputs["base_192_row_feature_sha256"]
         == tree_override["shared_input_requirement"]["sha256"]
     )
+
+
+def _standalone() -> int:
+    import inspect
+    import traceback
+
+    proto = None
+    p = CANONICAL / "e5_protocol.json"
+    if p.exists():
+        proto = json.loads(p.read_text(encoding="utf-8"))["protocol"]
+    passed = failed = skipped = 0
+    for name, fn in sorted(globals().items()):
+        if not name.startswith("test_") or not callable(fn):
+            continue
+        try:
+            params = inspect.signature(fn).parameters
+            if "tree_override" in params:
+                op = CANONICAL / "e5_tree_execution_override.json"
+                if not op.exists():
+                    print(f"SKIP {name}: override not frozen")
+                    skipped += 1
+                    continue
+                fn(json.loads(op.read_text(encoding="utf-8")))
+            elif "protocol" in params:
+                if proto is None:
+                    print(f"SKIP {name}: protocol not frozen")
+                    skipped += 1
+                    continue
+                fn(proto)
+            else:
+                fn()
+            print(f"PASS {name}")
+            passed += 1
+        except Exception as exc:  # noqa: BLE001
+            if type(exc).__name__ == "_Skip":
+                print(f"SKIP {name}: {exc}")
+                skipped += 1
+                continue
+            failed += 1
+            print(f"FAIL {name}: {exc}")
+            traceback.print_exc()
+    print(f"\n{passed} passed, {failed} failed, {skipped} skipped")
+    return 1 if failed else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(_standalone())
