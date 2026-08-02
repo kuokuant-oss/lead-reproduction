@@ -98,11 +98,11 @@ def state_ensemble(state_path: Path) -> dict:
     }
 
 
-def validate_manifest(staged: Path, failures: list[str]) -> int:
+def validate_manifest(staged: Path, failures: list[str]) -> dict[str, str]:
     path = staged / MANIFEST
     if not path.exists():
         failures.append(f"missing {MANIFEST}")
-        return 0
+        return {}
     entries = {}
     for line in path.read_text(encoding="utf-8").splitlines():
         digest, rel = line.split("  ", 1)
@@ -118,7 +118,7 @@ def validate_manifest(staged: Path, failures: list[str]) -> int:
     }
     for rel in sorted(on_disk - set(entries) - LOCALLY_DERIVED):
         failures.append(f"file present but absent from the remote manifest: {rel}")
-    return len(entries)
+    return entries
 
 
 def validate_unit(staged: Path, spec: dict, proto: dict, failures: list[str]) -> dict:
@@ -292,7 +292,7 @@ def main() -> int:
     specs = read_json(args.canonical / "e4_fit_manifest.json")["fits"]
     _, MET, ANOM = load_query(proto, args.repo_root)
 
-    n_files = validate_manifest(args.staged, failures)
+    entries = validate_manifest(args.staged, failures)
 
     order = [u["unit_id"] for u in proto["schedule"]["realised_24_unit_order"]]
     staged_units = sorted(p.name for p in args.staged.glob("seed*") if p.is_dir())
@@ -339,7 +339,7 @@ def main() -> int:
             f"{len(by_state)} distinct states, want at least 21",
         )
 
-    print(f"files verified : {n_files}")
+    print(f"files verified : {len(entries)}")
     print(f"units validated: {len(units)}")
     for u in units:
         print(
@@ -371,6 +371,22 @@ def main() -> int:
             shutil.rmtree(dst)
         staging.replace(dst)
         print(f"imported {uid}")
+
+    # Everything else the manifest attests to, which is the run's own logs.
+    # Importing only the unit directories left the canonical root unable to
+    # satisfy its own manifest: the logs were referenced but absent, so
+    # self-validation failed on files that were never a science defect.
+    for rel in sorted(entries):
+        if rel.split("/", 1)[0] in set(order):
+            continue
+        src = args.staged / rel
+        dst = args.canonical / rel
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        tmp = dst.with_name(f".incoming_{dst.name}")
+        shutil.copy2(src, tmp)
+        tmp.replace(dst)
+        print(f"imported {rel}")
+
     shutil.copy2(args.staged / MANIFEST, args.canonical / MANIFEST)
     print("IMPORT COMPLETE")
     return 0
