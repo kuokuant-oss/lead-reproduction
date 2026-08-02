@@ -129,6 +129,7 @@ def main() -> None:
         ("full_s11", "--score-s11-full-holdout"),
         ("steam_specialists", "--score-steam-specialists"),
         ("hybrid", "--assemble-hybrid-chunks"),
+        ("score_freeze", "--freeze-score-fields"),
     ):
         _run_phase(name, argument, started)
 

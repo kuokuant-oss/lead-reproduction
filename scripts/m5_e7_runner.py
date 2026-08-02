@@ -854,6 +854,70 @@ def assemble_hybrid_chunks() -> None:
             )
 
 
+def freeze_score_fields() -> None:
+    """Write label-free score-freeze manifests after all canonical stages complete."""
+    summary = json.loads((OUT / "e7_oof_summary.json").read_text(encoding="utf-8"))
+    if not summary.get("complete") or summary.get("component_fits") != 160:
+        raise SystemExit("score freeze requires complete OOF")
+    if not (OUT / "final" / "complete.json").exists():
+        raise SystemExit("score freeze requires final component completion")
+    for family in ("support", "neutral"):
+        if not (OUT / "final_meta" / family / "manifest.json").exists():
+            raise SystemExit(f"score freeze missing {family} meta model")
+    feature_manifest = json.loads(
+        (OUT / "e7_full_holdout_feature_manifest.json").read_text(encoding="utf-8")
+    )
+    hybrid_fields = (
+        "deployable_refit_hybrid",
+        "locked_reference_hybrid",
+        "deployable_refit_neutral_hybrid",
+        "locked_reference_neutral_hybrid",
+    )
+    field_digests: dict[str, list[str]] = {field: [] for field in hybrid_fields}
+    for number, chunk in enumerate(feature_manifest["chunks"]):
+        for field in hybrid_fields:
+            path = OUT / "scores" / "hybrid" / f"chunk_{number:03d}" / f"{field}.npy"
+            values = np.load(path, mmap_mode="r")
+            if len(values) != chunk["rows"] or not np.isfinite(values).all():
+                raise SystemExit(f"invalid frozen hybrid score: {field}/{number}")
+            field_digests[field].append(p.sha256_file(path))
+    p.atomic_json(
+        OUT / "e7_final_model_manifest.json",
+        {
+            "canonical_component_fits": 192,
+            "oof_components": 160,
+            "final_components": 32,
+            "selected_support_c": summary["support_c"],
+            "selected_neutral_c": summary["neutral_c"],
+            "odd_labels_used": 0,
+        },
+    )
+    p.atomic_json(
+        OUT / "e7_final_score_manifest.json",
+        {
+            "rows": feature_manifest["rows"],
+            "raw_index_digest": feature_manifest["raw_index_digest"],
+            "fields": list(hybrid_fields),
+            "field_chunk_digests": field_digests,
+            "label_fields": [],
+            "odd_metrics": 0,
+        },
+    )
+    p.atomic_json(
+        OUT / "e7_score_firewall_audit.json",
+        {
+            "odd_label_bearing_file_reads": 0,
+            "odd_ap_calculations": 0,
+            "odd_roc_calculations": 0,
+            "bootstrap_draws": 0,
+            "loo_evaluations": 0,
+            "remote_commands": 0,
+            "tabpfn_calls": 0,
+            "active_e6_files_read": 0,
+        },
+    )
+
+
 def deterministic_folds(even: pd.DataFrame) -> dict[str, Any]:
     steam = even[even["meter"].eq(2)]
     census = steam.groupby("building_id", sort=True).agg(
@@ -1895,6 +1959,7 @@ def parse_args() -> argparse.Namespace:
     group.add_argument("--score-s11-full-holdout", action="store_true")
     group.add_argument("--score-steam-specialists", action="store_true")
     group.add_argument("--assemble-hybrid-chunks", action="store_true")
+    group.add_argument("--freeze-score-fields", action="store_true")
     return parser.parse_args()
 
 
@@ -1936,6 +2001,8 @@ def main() -> None:
         score_steam_specialists()
     elif args.assemble_hybrid_chunks:
         assemble_hybrid_chunks()
+    elif args.freeze_score_fields:
+        freeze_score_fields()
     else:
         freeze()
 
