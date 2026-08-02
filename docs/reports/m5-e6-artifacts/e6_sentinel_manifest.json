@@ -1,0 +1,26 @@
+{
+  "e4_e5_reference_half_widths": {
+    "e5_steam_auc_half_width_range": [
+      0.000415,
+      0.00979
+    ],
+    "e5_steam_margin_half_width_range": [
+      0.000334,
+      0.00644
+    ]
+  },
+  "is_a_full_holdout_repeat": false,
+  "may_enter_any_endpoint": false,
+  "npz_sha256": "51993f578652d5b948315cba1360d22487c2137d1b8379f620293b87d1b598b7",
+  "path": "data/processed/m5_context_stories/queries/screening",
+  "purpose": "reload-time inference variability, environment and runtime drift, and whether both sit inside the range E4 and E5 established",
+  "query": "original 352-row screening query",
+  "raw_index_sha256": "06874156adf0290d188ecd28dad19df37065db10bd0b92c91522789ba7718575",
+  "repeats_per_state": 8,
+  "rows": 352,
+  "schema": "m5_e6_sentinel_manifest_v1",
+  "states": 24,
+  "stored_separately_from_holdout_scores": true,
+  "total_calls": 192,
+  "total_row_scores": 67584
+}

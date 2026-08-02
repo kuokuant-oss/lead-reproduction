@@ -27,16 +27,27 @@ FEATURES = 137
 # Measured, not assumed. Sources are named beside each value.
 MEASURED = {
     "tabpfn_rows_per_second_steady": {
+        "value": 1414.0,
+        "source": "e6_throughput_probe.json, lowest sustained rate across the "
+        "three probe states on 200,000 replicated non-holdout rows; no holdout "
+        "row was scored and no score was kept",
+        "config": "137 features, context 20000, gpu-host, microbatch 20000",
+    },
+    "tabpfn_rows_per_second_all_in": {
+        "value": 1414.0 / 1.20,
+        "source": "the same probe with the 20% engineering-overhead factor the "
+        "launch gate applied; the probe's first-batch penalty was under 1%, so "
+        "this overhead is scheduling and reload, not warm-up",
+        "config": "same",
+    },
+    "tabpfn_rows_per_second_context100000_anchor": {
         "value": 330.0,
         "source": "m5_tabpfn_137_batch_runner.log steady state (second half of "
         "the run) and throughput_rows_per_second_per_gpu recorded in "
-        "m5_tabpfn_137_remaining_batch_plan.json",
+        "m5_tabpfn_137_remaining_batch_plan.json; superseded as the planning "
+        "anchor by the direct context-20000 probe above, retained because the "
+        "design audit's published estimates were derived from it",
         "config": "137 features, context 100000, gpu-host, microbatch 20000",
-    },
-    "tabpfn_rows_per_second_all_in": {
-        "value": 82.4,
-        "source": "same log, whole span including warm-up and stalls",
-        "config": "same",
     },
     "tree_rows_per_second": {
         "value": 309_483,
@@ -191,11 +202,18 @@ def cost_model() -> dict:
         "one_state_full_pass_hours_steady": one_pass_h,
         "one_state_full_pass_hours_all_in": one_pass_h_lo,
         "context_caveat": (
-            "the 330 rows/s anchor was measured at context 100000; E6 uses "
-            "context 20000, so this is an upper bound on time and the true E6 "
-            "rate is unmeasured. Pinning it needs a throughput probe, which can "
-            "run on replicated non-holdout rows and produce no holdout "
-            "prediction."
+            "resolved. The design audit could only anchor on a context-100000 "
+            "measurement of 330 rows/s, which bounded the time from above "
+            "without pinning it. The non-holdout throughput probe measured the "
+            "actual context-20000 configuration at 1,414 rows/s sustained, 4.3x "
+            "faster, cutting the 24-state projection from 204.8 h to 47.8 h "
+            "(57.3 h with 20% overhead) against a 336 h limit."
+        ),
+        "supersedes_design_audit_estimates": (
+            "every wall-clock figure in m5-e6-cost-model.md and "
+            "m5-e6-execution-topology.md that was derived from the 330 rows/s "
+            "anchor is superseded by this model; the 8.5 h per-state figure "
+            "quoted there is now 1.99 h"
         ),
         "repeat_policies": [
             policy("R1", 1),

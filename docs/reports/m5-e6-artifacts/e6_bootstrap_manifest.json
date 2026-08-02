@@ -1,0 +1,45 @@
+{
+  "approximate_auc": "forbidden",
+  "auc_estimator": "exact cluster-weighted Mann-Whitney; sort once per unit, O(n) weighted sweep per draw; ties contribute 0.5",
+  "cluster_code": {
+    "building": 1,
+    "segment": 2
+  },
+  "co_primary_subset": {
+    "building_clusters": 215,
+    "hotwater_negative_rows": 545430,
+    "segment_clusters": 594297,
+    "segment_singleton_clusters": 545430,
+    "segment_singleton_fraction": 0.9177734365140662,
+    "steam_positive_rows": 48888,
+    "total_rows": 594318
+  },
+  "construction": "np.random.SeedSequence([20260730, 6006, cluster_code[cluster_type], draw_id]) then PCG64 Generator",
+  "draw_ids": [
+    0,
+    999
+  ],
+  "draws": 1000,
+  "interval": "percentile q025 / q975",
+  "margin_estimator": "exact cluster-weighted sufficient statistics",
+  "master_seed": 20260730,
+  "namespace_code": 6006,
+  "schema": "m5_e6_bootstrap_manifest_v1",
+  "segment_degeneracy_disclosure_required": "the co-primary subset has 594,297 segment clusters of which 545,430 hotwater-negative rows are singletons, 91.8% of the total; the negative side therefore behaves close to a row bootstrap and the segment interval must not be described as cluster-level corroboration equal in independence to the building interval",
+  "segment_may_not_be_redefined": true,
+  "segment_may_not_be_removed_from_the_decision_rule": true,
+  "segment_may_not_become_site_cluster": true,
+  "shared_within_a_draw": [
+    "all cells",
+    "all arms",
+    "all context seeds",
+    "TabPFN",
+    "tree",
+    "all co-primary endpoints"
+  ],
+  "verified_against_naive_resampling": {
+    "real_e5_192_row_data": true,
+    "synthetic_with_ties": true,
+    "tolerance": "1e-12 relative"
+  }
+}

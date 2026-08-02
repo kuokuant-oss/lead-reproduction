@@ -1,5 +1,11 @@
 # M5 E6 — execution topology
 
+> **Timing figures updated 2026-08-02.** This report was written against the
+> context-100,000 anchor of 330 rows/s. The non-holdout throughput probe
+> measured the real context-20,000 configuration at 1,414 rows/s, so a state
+> costs **1.99 h**, not 8.5 h, and R1 costs **2.4 days**, not 8.5. The
+> topology recommendation is unchanged and is now easier to defend.
+
 ## Unitization: two candidates
 
 ### A. State-major
@@ -10,7 +16,8 @@ commits.
 - 24 processes, 24 reloads
 - one state's 10.1M scores come from **one process and one fixed microbatch
   partition** — a *canonical single-process batched pass*
-- a failure at 90% of a state costs up to 8.5 h of that state
+- a failure at 90% of a state costs up to 1.99 h of that state (8.5 h under
+  the superseded context-100000 anchor)
 - output is naturally one vector per state
 
 ### B. Row-shard-major
@@ -46,9 +53,9 @@ UUID, and the importer must refuse a state whose batches do not. That keeps
 "one state, one canonical single-process batched pass" true by construction
 instead of by convention, which is what makes it checkable.
 
-The failure cost is the honest objection: up to 8.5 h lost. It is bounded by
+The failure cost is the honest objection: up to 1.99 h lost. It is bounded by
 resuming *within* a state only if the resumed process re-scores every batch it
-did not itself write — that is, a resume restarts the state. At 8.5 h per state
+did not itself write — that is, a resume restarts the state. At 1.99 h per state
 and 20,000-row checkpoints for progress reporting, that is acceptable; the
 alternative buys cheaper restarts with a permanently ambiguous estimand.
 
@@ -75,8 +82,11 @@ one that decided E4. If more than one GPU host is used:
   evidence behind it
 
 Until such a gate has been run and passed, the recommendation stays single-host.
-At 8.5 days for R1 that is tolerable; buying 4 days by introducing an unverified
-cross-machine seam into the final confirmation stage is not a good trade.
+At 2.4 days for R1 that is easily tolerable; buying a day by introducing an
+unverified cross-machine seam into the final confirmation stage is not a good
+trade. The throughput probe made this argument stronger, not weaker: the
+single-host schedule is now short enough that multi-machine has almost nothing
+left to buy.
 
 ### Trees — the laptop, as in E5
 

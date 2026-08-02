@@ -4,7 +4,43 @@ Every figure is measured or read from an existing artifact. Nothing is
 extrapolated from E5's 192-row inference time, which is dominated by fixed
 overhead and would badly misstate a 10.1M-row pass.
 
-## Measured inputs
+> **Superseded, 2026-08-02.** This report was written against a context-100,000
+> anchor of 330 rows/s, the only TabPFN throughput measurement that existed at
+> the time. The non-holdout throughput probe has since measured the actual
+> context-20,000 configuration at **1,414 rows/s**, 4.3× faster. Every wall-clock
+> figure below is superseded by the "Measured directly" section; the original
+> numbers are kept so the size of the correction is visible rather than quietly
+> edited away.
+
+## Measured directly (supersedes the anchor)
+
+`e6_throughput_probe.json`, sha256 `afe80b11…b46279`. Three E4 states, 200,000
+replicated **even-building** rows, ten 20,000-row microbatches each. No holdout
+row was scored and no score was retained.
+
+| Quantity | Value |
+|---|---:|
+| sustained throughput, worst of three states | **1,414 rows/s** |
+| median throughput | 1,422–1,425 rows/s |
+| first-batch penalty | < 1% |
+| cold reload | 0.3–1.6 s |
+| peak VRAM | 1.87 GB |
+| peak RSS | 3.05–3.25 GB |
+| swap used | 0 |
+| one state, one full pass | **1.99 h** |
+| 24 states | **47.8 h** |
+| 24 states + 20% overhead | **57.3 h ≈ 2.4 d** |
+| launch gate limit | 336 h |
+| verdict | **PASSED** |
+
+The 20% overhead covers scheduling and reload, not warm-up: the probe's
+first-batch penalty was under 1%, so there is no measurable warm-up to price.
+
+**The gate was not a formality.** At the measured rate, `R8` projects to
+**382.4 h**, which is *above* the 336 h limit. `R1_PLUS_SENTINEL` is what makes
+E6 executable at all, not merely what makes it cheaper.
+
+## Measured inputs (original anchor)
 
 | Quantity | Value | Source |
 |---|---:|---|
@@ -14,30 +50,28 @@ overhead and would badly misstate a 10.1M-row pass.
 | Weighted-AUC sweep | 23 ms per draw | measured on the real 594,318-row co-primary subset with synthetic scores |
 | Microbatch / checkpoint | 20,000 rows, **516 per state** | `m5_tabpfn_137_remaining_batch_plan.json`; the 516 is counted from `e6_microbatch_manifest.json` |
 
-**Caveat that matters.** The 330 rows/s anchor was measured at **context
-100,000**. E6 uses **context 20,000**. TabPFN attends over its context, so E6
-should be faster — but by how much is unmeasured, and this audit refuses to
-assume a factor. Treat 330 rows/s as an *upper bound on time*. Pinning the real
-rate needs a throughput probe, which can run on replicated non-holdout rows and
-produce no holdout prediction. That is an open item.
+**Caveat that mattered, now resolved.** The 330 rows/s anchor was measured at
+**context 100,000**. E6 uses **context 20,000**. TabPFN attends over its context,
+so E6 should be faster — but by how much was unmeasured, and this audit refused
+to assume a factor. The probe measured it: 4.3×.
 
-## Per-state cost
+## Per-state cost (superseded)
 
-| | Steady (330 rows/s) | All-in (82.4 rows/s) |
-|---|---:|---:|
-| one state, one full pass | **8.53 h** | 34.17 h |
+| | Steady (330 rows/s) | All-in (82.4 rows/s) | **Measured (1,414 rows/s)** |
+|---|---:|---:|---:|
+| one state, one full pass | 8.53 h | 34.17 h | **1.99 h** |
 
 ## Repeat policies
 
-| Policy | `predict_proba` calls | Row scores | Wall clock (steady) | Output (float32) |
-|---|---:|---:|---:|---:|
-| **R1** — 24 × 1 pass | 12,384 | 243,291,720 | **204.8 h ≈ 8.5 d** | 0.97 GB |
-| **R8** — 24 × 8 passes | 99,072 | 1,946,333,760 | **1,638 h ≈ 68.3 d** | 7.79 GB |
-| **R1_PLUS_SENTINEL** | 12,384 + 192 sentinel | 243,291,720 | **204.8 h ≈ 8.5 d** | 0.97 GB |
+| Policy | `predict_proba` calls | Row scores | Anchor (330 r/s) | **Measured (1,414 r/s)** | Output (float32) |
+|---|---:|---:|---:|---:|---:|
+| **R1** — 24 × 1 pass | 12,384 | 243,291,720 | 204.8 h ≈ 8.5 d | **47.8 h ≈ 2.0 d** | 0.97 GB |
+| **R8** — 24 × 8 passes | 99,072 | 1,946,333,760 | 1,638 h ≈ 68.3 d | **382.4 h ≈ 15.9 d** | 7.79 GB |
+| **R1_PLUS_SENTINEL** | 12,384 + 192 sentinel | 243,291,720 | 204.8 h ≈ 8.5 d | **47.8 h ≈ 2.0 d** | 0.97 GB |
 
-At the all-in rate those become 34 d, 273 d, and 34 d. R8 is not a schedule
-anyone will run; it is priced here so the comparison is on the record rather
-than asserted.
+R8 is not a schedule anyone will run; it is priced here so the comparison is on
+the record rather than asserted. Even at the measured rate it exceeds the launch
+gate.
 
 `R1_PLUS_SENTINEL` adds, after each of the 24 reloads, 8 repeats on a fixed
 352-row sentinel — about 70 s in total across the whole run, which does not move
@@ -61,7 +95,7 @@ the wall clock. Sentinel results are kept out of every full-holdout endpoint.
 | 24 fixed-tree comparators over the whole holdout | **0.22 h ≈ 13 min** |
 | clustered intervals, 1000 draws × 2 clusterings × 24 units | **0.31 h ≈ 19 min** |
 | archive of R1 outputs | ~1 GB, minutes to transfer |
-| worst-case recompute after a failure | **one complete state pass = 10,137,155 rows ≈ 8.53 h** |
+| worst-case recompute after a failure | **one complete state pass = 10,137,155 rows ≈ 1.99 h** (8.53 h under the superseded anchor) |
 
 The tree half is about 0.1% of the TabPFN cost. It is not a scheduling concern,
 which is worth stating plainly because the E5 override made it look like the
@@ -85,8 +119,9 @@ when hotwater negatives outnumber steam positives 11:1 and overall prevalence is
 6.3%. That is answered by one clean pass per state; repeating the pass eight
 times does not make the prevalence question better answered.
 
-**R8 costs 68 days of exclusive GPU time.** At the all-in historical rate it is
-nine months. That is not a trade against R1's 8.5 days; it is a different
+**R8 costs 15.9 days of exclusive GPU time at the measured rate**, and 68 days
+at the superseded anchor. Either way it is above the 336 h launch gate, so it
+was never available. That is not a trade against R1's 2.4 days; it is a different
 project.
 
 The sentinel is the part that must not be dropped. R1 alone cannot distinguish a
@@ -119,5 +154,5 @@ rejects the superseded numbers by value so they cannot drift back.
 microbatch. That is the progress granularity, not the scientific one. A state is
 one canonical single-process batched pass, so a process failure quarantines the
 partial state and the state restarts from canonical row 0. The correct figure is
-**one complete state pass — 10,137,155 rows, about 8.53 h**. Completed states are
+**one complete state pass — 10,137,155 rows, about 1.99 h**. Completed states are
 skipped on restart; the failed one is not resumed mid-way.

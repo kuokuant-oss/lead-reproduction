@@ -1,18 +1,23 @@
 {
   "basis": "measured, not extrapolated from E5's 192-row timing",
   "clustered_uncertainty_hours": 0.30666666666666664,
-  "context_caveat": "the 330 rows/s anchor was measured at context 100000; E6 uses context 20000, so this is an upper bound on time and the true E6 rate is unmeasured. Pinning it needs a throughput probe, which can run on replicated non-holdout rows and produce no holdout prediction.",
-  "generated": 1785649964.8207092,
+  "context_caveat": "resolved. The design audit could only anchor on a context-100000 measurement of 330 rows/s, which bounded the time from above without pinning it. The non-holdout throughput probe measured the actual context-20000 configuration at 1,414 rows/s sustained, 4.3x faster, cutting the 24-state projection from 204.8 h to 47.8 h (57.3 h with 20% overhead) against a 336 h limit.",
+  "generated": 1785651733.698801,
   "measured_inputs": {
     "tabpfn_rows_per_second_all_in": {
       "config": "same",
-      "source": "same log, whole span including warm-up and stalls",
-      "value": 82.4
+      "source": "the same probe with the 20% engineering-overhead factor the launch gate applied; the probe's first-batch penalty was under 1%, so this overhead is scheduling and reload, not warm-up",
+      "value": 1178.3333333333335
+    },
+    "tabpfn_rows_per_second_context100000_anchor": {
+      "config": "137 features, context 100000, gpu-host, microbatch 20000",
+      "source": "m5_tabpfn_137_batch_runner.log steady state (second half of the run) and throughput_rows_per_second_per_gpu recorded in m5_tabpfn_137_remaining_batch_plan.json; superseded as the planning anchor by the direct context-20000 probe above, retained because the design audit's published estimates were derived from it",
+      "value": 330.0
     },
     "tabpfn_rows_per_second_steady": {
-      "config": "137 features, context 100000, gpu-host, microbatch 20000",
-      "source": "m5_tabpfn_137_batch_runner.log steady state (second half of the run) and throughput_rows_per_second_per_gpu recorded in m5_tabpfn_137_remaining_batch_plan.json",
-      "value": 330.0
+      "config": "137 features, context 20000, gpu-host, microbatch 20000",
+      "source": "e6_throughput_probe.json, lowest sustained rate across the three probe states on 200,000 replicated non-holdout rows; no holdout row was scored and no score was kept",
+      "value": 1414.0
     },
     "tree_rows_per_second": {
       "config": "lightgbm 4.6.0, xgboost 3.2.0, catboost 1.2.10, sklearn 1.8.0",
@@ -25,8 +30,8 @@
       "value": 0.023
     }
   },
-  "one_state_full_pass_hours_all_in": 34.173257146709815,
-  "one_state_full_pass_hours_steady": 8.532958754208755,
+  "one_state_full_pass_hours_all_in": 2.389711221122112,
+  "one_state_full_pass_hours_steady": 1.9914260176017602,
   "raw_feature_rebuild": {
     "built_once_shared_by_all_24_states": true,
     "output_bytes_float32": 5555160940,
@@ -46,9 +51,9 @@
       "row_scores": 243291720,
       "sentinel_repeats_per_state": 0,
       "sentinel_rows": 0,
-      "wall_clock_days_steady": 8.532958754208755,
-      "wall_clock_hours_all_in": 820.1581715210356,
-      "wall_clock_hours_steady": 204.7910101010101
+      "wall_clock_days_steady": 1.99142601760176,
+      "wall_clock_hours_all_in": 57.353069306930685,
+      "wall_clock_hours_steady": 47.79422442244224
     },
     {
       "full_holdout_passes_per_state": 8,
@@ -61,9 +66,9 @@
       "row_scores": 1946333760,
       "sentinel_repeats_per_state": 0,
       "sentinel_rows": 0,
-      "wall_clock_days_steady": 68.26367003367004,
-      "wall_clock_hours_all_in": 6561.265372168285,
-      "wall_clock_hours_steady": 1638.3280808080808
+      "wall_clock_days_steady": 15.93140814081408,
+      "wall_clock_hours_all_in": 458.8245544554455,
+      "wall_clock_hours_steady": 382.3537953795379
     },
     {
       "full_holdout_passes_per_state": 1,
@@ -76,14 +81,14 @@
       "row_scores": 243291720,
       "sentinel_repeats_per_state": 8,
       "sentinel_rows": 352,
-      "wall_clock_days_steady": 8.532958754208755,
-      "wall_clock_hours_all_in": 820.1781715210356,
-      "wall_clock_hours_steady": 204.8110101010101
+      "wall_clock_days_steady": 1.99142601760176,
+      "wall_clock_hours_all_in": 57.37306930693069,
+      "wall_clock_hours_steady": 47.814224422442244
     }
   ],
   "restart_cost": {
     "checkpoint_rows": 20000,
-    "max_recompute_hours_on_failure_steady": 8.532958754208755,
+    "max_recompute_hours_on_failure_steady": 1.9914260176017602,
     "max_recompute_rows_on_failure": 10137155,
     "microbatch_checkpoints_are_progress_only": true,
     "note": "a microbatch checkpoint records progress, not scientific completion. A state is one canonical single-process batched pass, so a process failure quarantines the partial state and the state restarts from canonical row 0. Completed states are skipped.",
@@ -135,6 +140,7 @@
     },
     "rows": 10137155
   },
+  "supersedes_design_audit_estimates": "every wall-clock figure in m5-e6-cost-model.md and m5-e6-execution-topology.md that was derived from the 330 rows/s anchor is superseded by this model; the 8.5 h per-state figure quoted there is now 1.99 h",
   "tree_full_test_hours": 0.2183675139937681,
   "tree_note": "24 comparators over the whole holdout is about 13 minutes; the tree half is not a cost driver"
 }

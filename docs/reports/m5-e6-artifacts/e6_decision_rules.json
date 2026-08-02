@@ -1,0 +1,35 @@
+{
+  "co_primary_endpoints": [
+    "steam_positive_vs_hotwater_negative_pairwise_auc",
+    "steam_positive_minus_hotwater_negative_score_margin"
+  ],
+  "interaction": "secondary; AUC and margin must be reported together and neither may be selected alone",
+  "interval_containing_zero_is_not_proof_of_absence": true,
+  "magnitude_claim_rule": "an interval excluding zero does not license the claim that the magnitude reproduced; discrepant values must be reported as discrepant",
+  "mandatory_comparison_columns": [
+    "E4 effect",
+    "E5 effect",
+    "E6 effect",
+    "E6/E5 ratio",
+    "E6 minus E5 absolute difference"
+  ],
+  "minimum_practical_effect_threshold": "NOT SET",
+  "primary_contrast": "negative_support_main_effect",
+  "response_confirmation_conditions": [
+    "AUC overall > 0",
+    "margin overall > 0",
+    "AUC and margin both positive in 3/3 context seeds",
+    "both scaler arms positive",
+    "building interval excludes zero on both endpoints",
+    "segment interval excludes zero on both endpoints"
+  ],
+  "schema": "m5_e6_decision_rules_v1",
+  "tabpfn_specific_conditions": "the TabPFN-minus-tree gap meets every condition above on both endpoints",
+  "thresholds_may_not_change_after_seeing_results": true,
+  "vocabulary": [
+    "NATURAL_PREVALENCE_CONFIRMED",
+    "DIRECTIONALLY_CONSISTENT_BUT_INCONCLUSIVE",
+    "NOT_CONFIRMED",
+    "EXECUTION_INCOMPLETE"
+  ]
+}

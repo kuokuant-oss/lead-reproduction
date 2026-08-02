@@ -1,0 +1,278 @@
+{
+  "protocol": {
+    "authorization": {
+      "authorized_scope": "E6 natural-prevalence factorial confirmation only",
+      "execution_status": "HUMAN_AUTHORIZED_FOR_EXECUTION",
+      "human_authorization_date": "2026-08-02"
+    },
+    "base_commit": "cd06c52aa12022bbb5fd37801a1fe18f56716022",
+    "census": {
+      "derivation": "counted from the microbatch manifest, not divided",
+      "full_holdout_predict_proba_calls_all_states": 12384,
+      "full_holdout_predict_proba_calls_per_state": 516,
+      "full_holdout_row_scores": 243291720,
+      "microbatches_per_state": 516,
+      "r1_plus_sentinel_total_calls": 12576,
+      "r8_full_holdout_calls_all_states": 99072,
+      "r8_row_scores": 1946333760,
+      "rows_covered": 10137155,
+      "sentinel_predict_proba_calls_all_states": 192,
+      "sentinel_predict_proba_calls_per_state": 8,
+      "sentinel_row_scores": 67584
+    },
+    "design_audit_commit": "dc7445fa57ac33fb202a8b7367b9294baf4c7c46",
+    "e5_completion_commit": "13f92a099b02213f6bcb4b7e178c23af450bdf85",
+    "estimand": {
+      "definition": [
+        "one persisted state",
+        "one fresh process UUID",
+        "a fixed microbatch partition in a fixed order",
+        "one predict_proba per microbatch",
+        "every holdout row scored exactly once",
+        "all microbatches completed inside that one process",
+        "the state-level score field formed only after all complete"
+      ],
+      "differs_from_e4_e5": "E4 and E5 averaged 8 repeats per fit before forming contrasts; E6 does not",
+      "interval_conditioning": "clustered intervals are conditional on the realized batched pass and do not cover same-state full-holdout inference-repeat variation",
+      "name": "canonical single-process batched pass",
+      "not_called": [
+        "one inference realization",
+        "one predict_proba realization",
+        "one full-vector repeat"
+      ]
+    },
+    "execution_mode": "E6_NATURAL_PREVALENCE_FACTORIAL_CONFIRMATION",
+    "execution_order": {
+      "inherited_from_e4": true,
+      "realised_order_digest": "63ca76f1167768252b29992fd791c450ba33447f5908b8938f1b67d0ecc732e3",
+      "reshuffling": "forbidden",
+      "units": [
+        {
+          "position": 0,
+          "unit_id": "seed42__cell11__frozen_reference"
+        },
+        {
+          "position": 1,
+          "unit_id": "seed42__cell11__cell_specific"
+        },
+        {
+          "position": 2,
+          "unit_id": "seed123__cell00__cell_specific"
+        },
+        {
+          "position": 3,
+          "unit_id": "seed123__cell00__frozen_reference"
+        },
+        {
+          "position": 4,
+          "unit_id": "seed123__cell01__cell_specific"
+        },
+        {
+          "position": 5,
+          "unit_id": "seed123__cell01__frozen_reference"
+        },
+        {
+          "position": 6,
+          "unit_id": "seed999__cell10__frozen_reference"
+        },
+        {
+          "position": 7,
+          "unit_id": "seed999__cell10__cell_specific"
+        },
+        {
+          "position": 8,
+          "unit_id": "seed999__cell00__frozen_reference"
+        },
+        {
+          "position": 9,
+          "unit_id": "seed999__cell00__cell_specific"
+        },
+        {
+          "position": 10,
+          "unit_id": "seed42__cell00__cell_specific"
+        },
+        {
+          "position": 11,
+          "unit_id": "seed42__cell00__frozen_reference"
+        },
+        {
+          "position": 12,
+          "unit_id": "seed123__cell10__cell_specific"
+        },
+        {
+          "position": 13,
+          "unit_id": "seed123__cell10__frozen_reference"
+        },
+        {
+          "position": 14,
+          "unit_id": "seed42__cell01__cell_specific"
+        },
+        {
+          "position": 15,
+          "unit_id": "seed42__cell01__frozen_reference"
+        },
+        {
+          "position": 16,
+          "unit_id": "seed123__cell11__cell_specific"
+        },
+        {
+          "position": 17,
+          "unit_id": "seed123__cell11__frozen_reference"
+        },
+        {
+          "position": 18,
+          "unit_id": "seed999__cell01__frozen_reference"
+        },
+        {
+          "position": 19,
+          "unit_id": "seed999__cell01__cell_specific"
+        },
+        {
+          "position": 20,
+          "unit_id": "seed42__cell10__frozen_reference"
+        },
+        {
+          "position": 21,
+          "unit_id": "seed42__cell10__cell_specific"
+        },
+        {
+          "position": 22,
+          "unit_id": "seed999__cell11__cell_specific"
+        },
+        {
+          "position": 23,
+          "unit_id": "seed999__cell11__frozen_reference"
+        }
+      ]
+    },
+    "feature_artifact": {
+      "built_once_shared_by_both_hosts": true,
+      "dtype": "float32",
+      "float64_upcast": "hard_failure",
+      "not_the_context100000_scaled_artifact": true,
+      "sha256": "21d6b9871bdb0d56f3fe7e73d169d8efb782e9ca9bc83e6781159788a0e44e41",
+      "shape": [
+        10137155,
+        137
+      ]
+    },
+    "forbidden_wording": [
+      "untouched replication",
+      "first contact with the holdout",
+      "previously unseen row set"
+    ],
+    "grid": {
+      "cells": {
+        "00": "hw_pos_excluded__hw_neg_excluded",
+        "01": "hw_pos_excluded__hw_neg_present",
+        "10": "hw_pos_present__hw_neg_excluded",
+        "11": "hw_pos_present__hw_neg_present"
+      },
+      "context_seeds": [
+        42,
+        123,
+        999
+      ],
+      "model_seed": 42,
+      "scaler_arms": [
+        "cell_specific",
+        "frozen_reference"
+      ],
+      "states": 24
+    },
+    "holdout": {
+      "anomaly_rows": 637397,
+      "buildings": 724,
+      "natural_prevalence": 0.06287730630536871,
+      "order": "canonical stored order, not sorted by raw_index",
+      "rows": 10137155,
+      "sites": 16,
+      "sorted_raw_index_sha256": "f0867d3e86ae2b017ea6fee2d1b9f6dead2ee241948346a467ea06305e220e76"
+    },
+    "machine_topology": {
+      "gpu_host_tree_outputs": "forbidden",
+      "multi_machine_tabpfn": "forbidden",
+      "process_pool_executor": "forbidden",
+      "state_based_machine_assignment": "forbidden",
+      "tabpfn_host": "gpu-host, single GPU worker, single tmux session",
+      "tree_host": "original laptop environment"
+    },
+    "mechanism_limitation": "cell 00 removes hotwater support and simultaneously flips the meter feature from numerical to categorical, so E6 confirms the negative-support intervention as a whole and may not be described as having isolated the hotwater-normal reference as the sole mechanism",
+    "prohibitions": [
+      "any fit or refit",
+      "a second full-holdout pass",
+      "Path B",
+      "representation ablation",
+      "500k",
+      "site transfer",
+      "TabPFN 8.1.0 as science",
+      "manuscript change",
+      "changing states, seeds, cells, arms or endpoints",
+      "gpu-host tree outputs",
+      "multi-machine TabPFN",
+      "pooling meters into one primary AUC",
+      "site-transfer claims",
+      "best seed, best arm or best site selection"
+    ],
+    "question": "does the steam negative-support response established in E4 and independently replicated in E5 still hold on the complete odd-building holdout at natural prevalence?",
+    "repeat_policy": {
+      "eight_full_holdout_passes": "forbidden",
+      "full_holdout_passes_per_state": 1,
+      "name": "R1_PLUS_SENTINEL",
+      "sentinel_may_enter_endpoints": false,
+      "sentinel_repeats_per_state": 8
+    },
+    "required_wording": "E6 is a natural-prevalence factorial confirmation using new factorial states on previously characterised holdout rows",
+    "resume_and_fail_closed": {
+      "maximum_recomputation_on_failure": "one complete state pass",
+      "microbatch_atomic_write": true,
+      "microbatch_completion_is_not_scientific_completion": true,
+      "on_interruption": [
+        "write INTERRUPTED_INCOMPLETE",
+        "stop the whole run",
+        "do not resume from the next microbatch",
+        "do not splice new-process output onto old-process output",
+        "quarantine the entire partial state",
+        "restart that state from canonical row 0",
+        "completed states may be skipped"
+      ],
+      "state_completion_requires": [
+        "all expected microbatches complete",
+        "row union equals the full holdout",
+        "no missing or duplicate rows",
+        "a single process UUID",
+        "one state digest throughout",
+        "scaler verification complete",
+        "all outputs finite",
+        "sentinel complete",
+        "atomic completion marker"
+      ]
+    },
+    "schema": "m5_e6_natural_prevalence_protocol_v1",
+    "source_digest_method": "sha256 over newline-normalised content",
+    "source_digests": {
+      "scripts/m5_e4_endpoints.py": "7347930e7234c7270f194d566ac15709b6f3cbe089cd07cff0b007c680844c31",
+      "scripts/m5_e5_guard.py": "324a8ace0a94798de31718100b3fccb93da508a5916169a52bb13c5c020fd517",
+      "scripts/m5_e6_analysis.py": "be135d34c7f69da253695a91e1bd91fcd1ba0dd90680dd72e67ef5f75781a142",
+      "scripts/m5_e6_clustered.py": "f684684d2afbb502b172a7b6790ed5bb8a66f13964dbe19925c8972d4d88d029",
+      "scripts/m5_e6_decision.py": "d09a1d77c24173d5f7c7a961f8fece566c47953f30c8f6be2d38a17c4c69d10a",
+      "scripts/m5_e6_features.py": "1f693cc6df8cb1a191edfefbd0ed5a52f469bc90f4cb7a980c655daff25921b5",
+      "scripts/m5_e6_microbatch.py": "a794344e1fb5a6b70630e1cc6ae8846a10a8cfcb6edfbbba064d35ead205b1e0",
+      "scripts/m5_e6_preflight.py": "3cdea05a13324422a6d17c187c1b828e83984768ec53ad59254d6a94adac2efd",
+      "scripts/m5_e6_probe.py": "3e2c9e775e546be2e1e6d8506bc3ad25ea30f2480ea032ed212c650faf9f2bdd",
+      "scripts/m5_e6_protocol.py": "528eb1bd253bf844367fd440ec1b366c0d27ab22ef9782a0c6f3d58d1259505b",
+      "scripts/m5_e6_row_audit.py": "1e7ff4da4b8ea692e689a12053c21bc587d79d629042bce8789a641303d0a657",
+      "scripts/m5_e6_runner.py": "b76831810b9334b59faf513beee7623f1cf585ec3b4c68f16512532b74b342a3",
+      "scripts/m5_e6_trees.py": "3b429bc9f798a2cf93c96d88c1a89ecef14b0848bf3fbe4f99e88e4af0eb4a50"
+    },
+    "tabpfn": {
+      "auto_scale_n_estimators": false,
+      "checkpoint_sha256": "d0d865d54dfbc524f5703104be90620182dca7e5fb2c16de72e9959ea18f3988",
+      "cpu_fallback": "prohibited",
+      "mismatch_policy": "hard_failure",
+      "requested_n_estimators": 8,
+      "required_effective_n_estimators_": 8,
+      "version": "8.0.8"
+    }
+  }
+}

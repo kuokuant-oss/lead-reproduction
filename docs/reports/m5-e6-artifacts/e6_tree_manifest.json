@@ -1,0 +1,244 @@
+{
+  "artificial_replicates": false,
+  "environment_contract": {
+    "catboost": "1.2.10",
+    "joblib": "1.5.3",
+    "lightgbm": "4.6.0",
+    "numpy": "2.4.6",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "python": "3.13.13",
+    "sklearn": "1.8.0",
+    "xgboost": "3.2.0"
+  },
+  "execution_host": "original laptop environment",
+  "gpu_host_tree_outputs_prohibited": true,
+  "identity_gate": {
+    "exact_rows_required": "352/352",
+    "max_abs_diff_required": 0.0,
+    "query": "E4 frozen 352-row comparator",
+    "run_before_and_after_holdout_scoring": true,
+    "sampling_not_permitted": true,
+    "tolerance_not_permitted": true,
+    "units_required": 24
+  },
+  "refit": false,
+  "schema": "m5_e6_tree_manifest_v1",
+  "units": [
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed42/hw_pos_present__hw_neg_present/frozen_reference/predictions.npz",
+      "e4_comparator_sha256": "17b216e42eef32dad9da56e7f2513a162bac5f6854547c0e0d9e0501125e04f3",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed42/hw_pos_present__hw_neg_present/frozen_reference/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "e40317982a3aed6d40e5159cedb33f8ab73ccec3a516672d32b9112d00048dc3",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed42/hw_pos_present__hw_neg_present/frozen_reference/scaler.joblib",
+      "tree_scaler_sha256": "4a4709bd19b38ec36cd6ccaf83857906be019a23bf23a5af821806c9674d11ed",
+      "unit_id": "seed42__cell11__frozen_reference"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed42/hw_pos_present__hw_neg_present/cell_specific/predictions.npz",
+      "e4_comparator_sha256": "17b216e42eef32dad9da56e7f2513a162bac5f6854547c0e0d9e0501125e04f3",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed42/hw_pos_present__hw_neg_present/cell_specific/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "a594466a5f129460e645ea037eb857fed7f23aa023c8b86da830ae69a74267c8",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed42/hw_pos_present__hw_neg_present/cell_specific/scaler.joblib",
+      "tree_scaler_sha256": "4a4709bd19b38ec36cd6ccaf83857906be019a23bf23a5af821806c9674d11ed",
+      "unit_id": "seed42__cell11__cell_specific"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed123/hw_pos_excluded__hw_neg_excluded/cell_specific/predictions.npz",
+      "e4_comparator_sha256": "c75c765fd231e2d70d27bdde70a3e38c4b2dba92a60a3d5a157566779d322b25",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed123/hw_pos_excluded__hw_neg_excluded/cell_specific/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "5954510da94f473bfad42445cb26896481881d78bc2d7bf08fd3e471ccf6dcfd",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed123/hw_pos_excluded__hw_neg_excluded/cell_specific/scaler.joblib",
+      "tree_scaler_sha256": "eb338e78dd28675453c2797bd84ad16affaee99ba58e97d3160b741752be1394",
+      "unit_id": "seed123__cell00__cell_specific"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed123/hw_pos_excluded__hw_neg_excluded/frozen_reference/predictions.npz",
+      "e4_comparator_sha256": "cc95feb87798a7b63c874e3e50f26e821f9aff00437b2ed974c4e4e7c5fc6573",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed123/hw_pos_excluded__hw_neg_excluded/frozen_reference/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "ad4687ae67e223ba607b4f416a31d5557c1e86a3ab764c5a5dc12789a1f64408",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed123/hw_pos_excluded__hw_neg_excluded/frozen_reference/scaler.joblib",
+      "tree_scaler_sha256": "150130af769519b460de82a96bf6d76888b059c6d1e261367d7d3cb770be6e8b",
+      "unit_id": "seed123__cell00__frozen_reference"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed123/hw_pos_excluded__hw_neg_present/cell_specific/predictions.npz",
+      "e4_comparator_sha256": "b1ac96b9338ffd890fe02e10325bd80d2f728f6bf0d5dba9876c543dd4ed12d3",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed123/hw_pos_excluded__hw_neg_present/cell_specific/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "3f79db97cb70f47d515f3cd1546773fcc4b012dca804f09d0057bf544c10a0db",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed123/hw_pos_excluded__hw_neg_present/cell_specific/scaler.joblib",
+      "tree_scaler_sha256": "ac72c1ff73feed09bdcf7011aab0c10b42cec515bf368a8754f420b026ba7f17",
+      "unit_id": "seed123__cell01__cell_specific"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed123/hw_pos_excluded__hw_neg_present/frozen_reference/predictions.npz",
+      "e4_comparator_sha256": "b67a475a8064765ce50724023dfe684fd79cce9bc9cb86cab6e33c83726b2962",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed123/hw_pos_excluded__hw_neg_present/frozen_reference/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "7f1395f733fcc596745603ee2d49b5d675a2606ff782d579ea572002e72638d6",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed123/hw_pos_excluded__hw_neg_present/frozen_reference/scaler.joblib",
+      "tree_scaler_sha256": "150130af769519b460de82a96bf6d76888b059c6d1e261367d7d3cb770be6e8b",
+      "unit_id": "seed123__cell01__frozen_reference"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed999/hw_pos_present__hw_neg_excluded/frozen_reference/predictions.npz",
+      "e4_comparator_sha256": "455243c9c2ea094c5c4c7644543a89a5859fc1f4018f3060e7174e03315cc8db",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed999/hw_pos_present__hw_neg_excluded/frozen_reference/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "206ac801463f9401991a1f9c577f3971d0a71b2f694bb02005324febdcc1ed7e",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed999/hw_pos_present__hw_neg_excluded/frozen_reference/scaler.joblib",
+      "tree_scaler_sha256": "a74bd06b7e39961b1f291269f1523257869db27962a73d1d438569525717b4ab",
+      "unit_id": "seed999__cell10__frozen_reference"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed999/hw_pos_present__hw_neg_excluded/cell_specific/predictions.npz",
+      "e4_comparator_sha256": "4a2ef0c8ff41e9e0d4205445e2bd5b86baf963a57cbbc1d354a4ff98d2d72586",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed999/hw_pos_present__hw_neg_excluded/cell_specific/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "504f8579cf2f459d268bb5ab877401409e59482470f144d54aa3329b3bae0625",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed999/hw_pos_present__hw_neg_excluded/cell_specific/scaler.joblib",
+      "tree_scaler_sha256": "b5777b7b2997eca885284a3796a4e1ade625f58dcccbbed48c39517ae78a0ae8",
+      "unit_id": "seed999__cell10__cell_specific"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed999/hw_pos_excluded__hw_neg_excluded/frozen_reference/predictions.npz",
+      "e4_comparator_sha256": "5e9d58b749a27662a028e10ebf4ee7e9d314eaa3db9f625f33bacc9933fa55a0",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed999/hw_pos_excluded__hw_neg_excluded/frozen_reference/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "a20fcd9ac90d90de152e7cdc2cab5ee60cd612151303927bdd5675fa33eb5ec2",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed999/hw_pos_excluded__hw_neg_excluded/frozen_reference/scaler.joblib",
+      "tree_scaler_sha256": "a74bd06b7e39961b1f291269f1523257869db27962a73d1d438569525717b4ab",
+      "unit_id": "seed999__cell00__frozen_reference"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed999/hw_pos_excluded__hw_neg_excluded/cell_specific/predictions.npz",
+      "e4_comparator_sha256": "e0e6bfdbc3c92fdb26bf7c20202b474016374223cdbbb7618cc2312a5a0c04d4",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed999/hw_pos_excluded__hw_neg_excluded/cell_specific/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "b43ba45cdf60cea1a4e463d14a0d6836117e02267d377280d4857f89f5644237",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed999/hw_pos_excluded__hw_neg_excluded/cell_specific/scaler.joblib",
+      "tree_scaler_sha256": "1c166320a5c4368a2eb63d1bef80e34ba613ea9aca1a44ce4e5fb0b0f9ac45ac",
+      "unit_id": "seed999__cell00__cell_specific"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed42/hw_pos_excluded__hw_neg_excluded/cell_specific/predictions.npz",
+      "e4_comparator_sha256": "3b68499202cdc4176cc12471829c0ae4f9c85b079f95bc039a84efea9748de1e",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed42/hw_pos_excluded__hw_neg_excluded/cell_specific/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "99b70c8b33be9ba043ce35538b58ac750fe199b1c7859cb1ceb7950a3ed8c413",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed42/hw_pos_excluded__hw_neg_excluded/cell_specific/scaler.joblib",
+      "tree_scaler_sha256": "2cb7e64d853034a79d955cdc7d7b763d2bf995b4fe11e675d2ef0f4ebb17e71c",
+      "unit_id": "seed42__cell00__cell_specific"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed42/hw_pos_excluded__hw_neg_excluded/frozen_reference/predictions.npz",
+      "e4_comparator_sha256": "9b99c230bfed2d769ac6f284e4acd2c6db98294edc74f5ca6a3a46826aafb7e1",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed42/hw_pos_excluded__hw_neg_excluded/frozen_reference/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "8a0414cce6a3ee53b98635b8a54e4cb5751ee9481c1bb90d8df23d65518b737b",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed42/hw_pos_excluded__hw_neg_excluded/frozen_reference/scaler.joblib",
+      "tree_scaler_sha256": "4a4709bd19b38ec36cd6ccaf83857906be019a23bf23a5af821806c9674d11ed",
+      "unit_id": "seed42__cell00__frozen_reference"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed123/hw_pos_present__hw_neg_excluded/cell_specific/predictions.npz",
+      "e4_comparator_sha256": "edb0a55f865c788533d68410d4399981fed72651ddcd37243dc0979c1717d534",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed123/hw_pos_present__hw_neg_excluded/cell_specific/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "036969a05f524ce1bf0e4e734efa96ad55cb48af4b1acbc3365bf9593a7ce4e0",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed123/hw_pos_present__hw_neg_excluded/cell_specific/scaler.joblib",
+      "tree_scaler_sha256": "47408ea6bb4d3f3cee439edbb5a71a50b3836210e1416c096312571889811956",
+      "unit_id": "seed123__cell10__cell_specific"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed123/hw_pos_present__hw_neg_excluded/frozen_reference/predictions.npz",
+      "e4_comparator_sha256": "d3856fbc94d44af9c12529f189ae614e5a0bff98105ff52e3e35701af5697f4b",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed123/hw_pos_present__hw_neg_excluded/frozen_reference/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "18584a04af1b95e1af8eaa2683749a37cb6ec83875329b51df28ab6120f5ca83",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed123/hw_pos_present__hw_neg_excluded/frozen_reference/scaler.joblib",
+      "tree_scaler_sha256": "150130af769519b460de82a96bf6d76888b059c6d1e261367d7d3cb770be6e8b",
+      "unit_id": "seed123__cell10__frozen_reference"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed42/hw_pos_excluded__hw_neg_present/cell_specific/predictions.npz",
+      "e4_comparator_sha256": "517063e7063b69b09651181bd767e8c61eaa097bae5f6e3e64679f71ff3aae41",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed42/hw_pos_excluded__hw_neg_present/cell_specific/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "0998dcd7498fd8d0e63f1b7baee5c13527b2754c4a490f2b098152fc8e70c459",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed42/hw_pos_excluded__hw_neg_present/cell_specific/scaler.joblib",
+      "tree_scaler_sha256": "6b00fb89fa0cfd82b8815dd2a691fdf2443c7178d3232ef6a91272bf458f4686",
+      "unit_id": "seed42__cell01__cell_specific"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed42/hw_pos_excluded__hw_neg_present/frozen_reference/predictions.npz",
+      "e4_comparator_sha256": "17e6fdd7fab024351cf8f23be008e1610af85e410066e4af2ac4e51e9ac06b21",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed42/hw_pos_excluded__hw_neg_present/frozen_reference/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "d8b10469844fbd41f70f969ba2b585ea09d2bbd40dc835ed1a6d41040d83db19",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed42/hw_pos_excluded__hw_neg_present/frozen_reference/scaler.joblib",
+      "tree_scaler_sha256": "4a4709bd19b38ec36cd6ccaf83857906be019a23bf23a5af821806c9674d11ed",
+      "unit_id": "seed42__cell01__frozen_reference"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed123/hw_pos_present__hw_neg_present/cell_specific/predictions.npz",
+      "e4_comparator_sha256": "56e29692d657d4052076740b279e30d4f12c86f20fd31e9432a5e48aae7554e0",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed123/hw_pos_present__hw_neg_present/cell_specific/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "0b33315bbbc6d9d57a2def74456d86dc43cab427faef08c1aac4daebf07f470c",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed123/hw_pos_present__hw_neg_present/cell_specific/scaler.joblib",
+      "tree_scaler_sha256": "150130af769519b460de82a96bf6d76888b059c6d1e261367d7d3cb770be6e8b",
+      "unit_id": "seed123__cell11__cell_specific"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed123/hw_pos_present__hw_neg_present/frozen_reference/predictions.npz",
+      "e4_comparator_sha256": "56e29692d657d4052076740b279e30d4f12c86f20fd31e9432a5e48aae7554e0",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed123/hw_pos_present__hw_neg_present/frozen_reference/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "706aa8cd14cc3cfccded9aa4b916e49c09fc29c8bc047d49fb2b36802cca11c1",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed123/hw_pos_present__hw_neg_present/frozen_reference/scaler.joblib",
+      "tree_scaler_sha256": "150130af769519b460de82a96bf6d76888b059c6d1e261367d7d3cb770be6e8b",
+      "unit_id": "seed123__cell11__frozen_reference"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed999/hw_pos_excluded__hw_neg_present/frozen_reference/predictions.npz",
+      "e4_comparator_sha256": "3afac90f52c53fc13910a134eac9c58fab7168f73e3d25270a499751cf67e07d",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed999/hw_pos_excluded__hw_neg_present/frozen_reference/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "b597749f900c87f11b3bf31af99e7f2cea479b007a978f40d6cead5cd161371a",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed999/hw_pos_excluded__hw_neg_present/frozen_reference/scaler.joblib",
+      "tree_scaler_sha256": "a74bd06b7e39961b1f291269f1523257869db27962a73d1d438569525717b4ab",
+      "unit_id": "seed999__cell01__frozen_reference"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed999/hw_pos_excluded__hw_neg_present/cell_specific/predictions.npz",
+      "e4_comparator_sha256": "6b16039eab71d22e8303e70a4d3ef54e29a64bd49c820a7783f97fd1cc36f22d",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed999/hw_pos_excluded__hw_neg_present/cell_specific/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "97ead40659f4f9fb059a6edc5b6727801cab5e8d0b46cb8ce9fe8cfe7b8bf997",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed999/hw_pos_excluded__hw_neg_present/cell_specific/scaler.joblib",
+      "tree_scaler_sha256": "429ed62d75853c35d95bc74664248a6ea0eefaa590e055130bb1b2ca7a5550ad",
+      "unit_id": "seed999__cell01__cell_specific"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed42/hw_pos_present__hw_neg_excluded/frozen_reference/predictions.npz",
+      "e4_comparator_sha256": "50ea900cb9ca60484affcc4291164a329f9952dc72c8bfe1809f46645126ca9f",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed42/hw_pos_present__hw_neg_excluded/frozen_reference/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "fbc14fb61a306cb4b8fda8937c6c1816399079d93eb595fd9f09122567ba8c06",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed42/hw_pos_present__hw_neg_excluded/frozen_reference/scaler.joblib",
+      "tree_scaler_sha256": "4a4709bd19b38ec36cd6ccaf83857906be019a23bf23a5af821806c9674d11ed",
+      "unit_id": "seed42__cell10__frozen_reference"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed42/hw_pos_present__hw_neg_excluded/cell_specific/predictions.npz",
+      "e4_comparator_sha256": "028df208449c40d658f71aa9a4d6953f785060d8f9472b9baae969ee8a13516e",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed42/hw_pos_present__hw_neg_excluded/cell_specific/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "ceff27b1c69e1f4dfd69f98faad397792b41dd7c6909a5fadbb0594cac85974e",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed42/hw_pos_present__hw_neg_excluded/cell_specific/scaler.joblib",
+      "tree_scaler_sha256": "7a3b3f4c0883ee7e3ec66cc61dfeea46376782462597ce246f80dc489b440b1e",
+      "unit_id": "seed42__cell10__cell_specific"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed999/hw_pos_present__hw_neg_present/cell_specific/predictions.npz",
+      "e4_comparator_sha256": "fe1ec905a4657eca5f77da928cc9b8db0755d3a01ec696c72f84647d3f61f53b",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed999/hw_pos_present__hw_neg_present/cell_specific/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "972e0cfbe75d3cfa95b6d58abf3cac28c94b7525d138888ebac26a517fa71e20",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed999/hw_pos_present__hw_neg_present/cell_specific/scaler.joblib",
+      "tree_scaler_sha256": "a74bd06b7e39961b1f291269f1523257869db27962a73d1d438569525717b4ab",
+      "unit_id": "seed999__cell11__cell_specific"
+    },
+    {
+      "e4_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed999/hw_pos_present__hw_neg_present/frozen_reference/predictions.npz",
+      "e4_comparator_sha256": "fe1ec905a4657eca5f77da928cc9b8db0755d3a01ec696c72f84647d3f61f53b",
+      "tree_ensemble": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed999/hw_pos_present__hw_neg_present/frozen_reference/tree_ensemble.joblib",
+      "tree_ensemble_sha256": "19e7141037bfcc33fa7303d92934159457ab43250b34191e8426a98a886367f8",
+      "tree_scaler": "data/processed/m5_hotwater_label_factorial/recovery/states/trees/seed999/hw_pos_present__hw_neg_present/frozen_reference/scaler.joblib",
+      "tree_scaler_sha256": "a74bd06b7e39961b1f291269f1523257869db27962a73d1d438569525717b4ab",
+      "unit_id": "seed999__cell11__frozen_reference"
+    }
+  ]
+}
