@@ -1,0 +1,69 @@
+{
+  "authority": "human operator ruling",
+  "clustered_estimator_unchanged": true,
+  "comparator_gate": {
+    "exact_rows_required": "352/352 per unit",
+    "max_abs_diff_required": 0.0,
+    "on_failure": "stop the whole of E5",
+    "sampling_not_permitted": true,
+    "tolerance_not_permitted": true,
+    "units_required": 24
+  },
+  "comparator_identity_requirement": "bit_exact_on_e4_352_query",
+  "decision_rules_unchanged": true,
+  "endpoints_unchanged": true,
+  "gpu_host_reproduction": {
+    "bit_exact_rows": 0,
+    "host": "gpu-host, WSL2 Ubuntu, Python 3.12.13, Linux",
+    "max_abs_difference": 0.1245,
+    "mean_abs_difference": 0.008149,
+    "rows": 352,
+    "verdict": "cannot reproduce E4's frozen comparator"
+  },
+  "gpu_host_tree_outputs_prohibited": true,
+  "human_decision": "OPTION_A",
+  "issued": "2026-08-02",
+  "laptop_bit_exact_evidence": {
+    "bit_exact_rows": "352/352 on every unit tested",
+    "host": "laptop, Windows-11-10.0.26200-SP0, Python 3.13.13",
+    "max_abs_difference": 0.0,
+    "units_tested_before_the_ruling": [
+      "seed42__cell11__cell_specific",
+      "seed42__cell11__frozen_reference",
+      "seed999__cell00__cell_specific"
+    ],
+    "verdict": "reproduces E4's frozen comparator exactly"
+  },
+  "no_refit": true,
+  "observed_hard_failure": {
+    "first_unit": "seed42__cell11__frozen_reference",
+    "message": "the reloaded tree does not reproduce E4's 352-row comparator",
+    "ruled_out_by_diagnosis": [
+      "scaler: recovery, frozen and refitted scalers all gave the identical error, so the scaler is not the variable",
+      "query matrix: the E4 cached 352-row matrix is bit-identical to a fresh build",
+      "threshold flipping: all 352 rows differ and none are exact, which is systemic rather than a few rows crossing a split",
+      "tree reliability: E4's own reproduction gate passed 24/24 tree rows; its 13 failures were all TabPFN"
+    ],
+    "where": "m5_e5_trees.py comparator identity gate on gpu-host"
+  },
+  "original_rule": "all E5 scientific scoring executes on gpu-host, in a fresh clean clone; the laptop is forbidden from scoring the 192-row query",
+  "protocol_history_rewritten": false,
+  "reporting_requirement": "this is an execution-provenance limitation and must not be described as a new scientific factor",
+  "root_cause": "the tree ensembles were fitted in the laptop environment recorded in recovery/environment_provenance_trees.json (Windows 11, Python 3.13.13, torch 2.12.1+cu126); gradient-boosting inference is not bit-reproducible across that and gpu-host's Linux / Python 3.12.13 build, and the compiled lightgbm/xgboost/catboost packages on gpu-host were reinstalled on 2026-08-01",
+  "schema": "m5_e5_tree_execution_override_v1",
+  "scientific_design_unchanged": true,
+  "shared_input_requirement": {
+    "base_192_row_feature_matrix": "one artifact, used by both hosts",
+    "laptop_may_not_build_its_own": true,
+    "sha256": "e6b44c9ccc902cd6dfa6f1fce07ad98d9af1af52dab32faaf36b148d12ab0482",
+    "shape": [
+      192,
+      137
+    ]
+  },
+  "states_unchanged": true,
+  "supplements": "e5_protocol.json",
+  "tabpfn_execution_host": "gpu-host",
+  "tabpfn_specific_threshold_not_lowered": true,
+  "tree_execution_host": "original laptop environment"
+}

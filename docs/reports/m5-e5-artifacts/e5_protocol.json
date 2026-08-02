@@ -1,0 +1,363 @@
+{
+  "protocol": {
+    "authorization": {
+      "authorized_scope": "E5 independent replication only",
+      "execution_status": "HUMAN_AUTHORIZED_FOR_EXECUTION",
+      "human_authorization_date": "2026-08-02"
+    },
+    "base_commit": "52f4ed21101efb000d996d5910c1046477aebef6",
+    "clustered_uncertainty": {
+      "cluster_code": {
+        "building": 1,
+        "segment": 2
+      },
+      "construction": "np.random.SeedSequence([20260730, 5005, cluster_code[cluster_type], draw_id]) then PCG64 Generator",
+      "draw_ids": [
+        0,
+        999
+      ],
+      "draws": 1000,
+      "estimator": "identical to E4, scripts/m5_e4_clustered.py",
+      "interval": "percentile q025 / q975",
+      "master_seed": 20260730,
+      "namespace_code": 5005,
+      "repeats_averaged_within_the_state_after_scoring_each": true,
+      "scaler_interaction_formed_inside_the_draw": true,
+      "shared_within_a_draw": [
+        "cells",
+        "arms",
+        "context seeds",
+        "repeats",
+        "the fixed tree"
+      ],
+      "three_seed_contrast_averaged_with_equal_weight_inside_the_draw": true
+    },
+    "completion_census": {
+      "duplicate": 0,
+      "effective_n_estimators_": 8,
+      "fits_performed": 0,
+      "interrupted": 0,
+      "missing": 0,
+      "same_process_repeats": 192,
+      "score_vector_length": 192,
+      "states_reloaded": 24,
+      "stderr_bytes": 0,
+      "tabpfn_score_vectors": 192,
+      "tmp_files": 0,
+      "tree_score_vectors": 24
+    },
+    "decision_rules": {
+      "DIRECTIONALLY_CONSISTENT_BUT_INCONCLUSIVE": [
+        "overall AUC and margin both positive",
+        "no arm reversed overall",
+        "at least 2/3 seeds positive on both endpoints",
+        "but the clustered intervals or the full 3/3 condition did not pass"
+      ],
+      "EXECUTION_INCOMPLETE": "coverage, provenance or ensemble validation incomplete",
+      "NOT_REPLICATED": [
+        "any co-primary overall effect <= 0",
+        "or any scaler arm reversed overall on any co-primary endpoint",
+        "or any co-primary endpoint with at least 2/3 seeds non-positive"
+      ],
+      "REPLICATED": [
+        "AUC negative-support main effect > 0",
+        "margin negative-support main effect > 0",
+        "AUC and margin both positive in 3/3 context seeds",
+        "both scaler arms positive",
+        "building and segment 95% intervals exclude zero on both endpoints"
+      ],
+      "TABPFN_SPECIFIC_REPLICATED": "the TabPFN-minus-tree gap meets every REPLICATED condition on both endpoints",
+      "co_primary_endpoints": [
+        "steam_positive_vs_hotwater_negative_pairwise_auc",
+        "steam_positive_minus_hotwater_negative_score_margin"
+      ],
+      "interval_containing_zero_is_not_proof_of_absence": true,
+      "primary_replication_target": "hotwater-negative support main effect on steam separation",
+      "thresholds_may_not_change_after_seeing_results": true,
+      "vocabulary": [
+        "REPLICATED",
+        "DIRECTIONALLY_CONSISTENT_BUT_INCONCLUSIVE",
+        "NOT_REPLICATED",
+        "EXECUTION_INCOMPLETE"
+      ]
+    },
+    "e4_completion_commit": "9a336faa5f80ab7acb68533057d908d0723a90cf",
+    "endpoints": {
+      "chilledwater": "absent from this query; no chilledwater endpoint may be added and no other query may be substituted",
+      "co_primary": [
+        "steam_positive_vs_hotwater_negative_pairwise_auc",
+        "steam_positive_minus_hotwater_negative_score_margin"
+      ],
+      "forbidden": [
+        "averaging the 8 row-probability vectors and scoring once",
+        "pairing repeat IDs across cells or states"
+      ],
+      "per_state": "compute the endpoint on each of the 8 repeat score vectors, then average the 8 endpoint values",
+      "secondary_may_not_control_the_decision": [
+        "positive_support_main_effect",
+        "positive_x_negative_interaction",
+        "scaler_arm_interaction",
+        "hw01 local manipulation checks",
+        "global and within-group rank, kept separate from score"
+      ]
+    },
+    "ensemble": {
+      "auto_scale_n_estimators": false,
+      "eight_repeats_are_not_eight_fits": true,
+      "internal_members_are_not_replicates": true,
+      "mismatch_policy": "hard_failure",
+      "requested_n_estimators": 8,
+      "required_effective_n_estimators_": 8,
+      "verified_after_every_reload": [
+        "tabpfn version 8.0.8",
+        "state digest",
+        "requested n_estimators == 8",
+        "auto_scale_n_estimators is False",
+        "effective n_estimators_ == 8",
+        "runtime configs/pipelines/pipeline_seeds/subsample_feature_indices all == 8"
+      ]
+    },
+    "execution_mode": "E5_INDEPENDENT_REPLICATION",
+    "execution_order": {
+      "inherited_from_e4": true,
+      "realised_order_digest": "63ca76f1167768252b29992fd791c450ba33447f5908b8938f1b67d0ecc732e3",
+      "reshuffling": "forbidden",
+      "units": [
+        {
+          "position": 0,
+          "unit_id": "seed42__cell11__frozen_reference"
+        },
+        {
+          "position": 1,
+          "unit_id": "seed42__cell11__cell_specific"
+        },
+        {
+          "position": 2,
+          "unit_id": "seed123__cell00__cell_specific"
+        },
+        {
+          "position": 3,
+          "unit_id": "seed123__cell00__frozen_reference"
+        },
+        {
+          "position": 4,
+          "unit_id": "seed123__cell01__cell_specific"
+        },
+        {
+          "position": 5,
+          "unit_id": "seed123__cell01__frozen_reference"
+        },
+        {
+          "position": 6,
+          "unit_id": "seed999__cell10__frozen_reference"
+        },
+        {
+          "position": 7,
+          "unit_id": "seed999__cell10__cell_specific"
+        },
+        {
+          "position": 8,
+          "unit_id": "seed999__cell00__frozen_reference"
+        },
+        {
+          "position": 9,
+          "unit_id": "seed999__cell00__cell_specific"
+        },
+        {
+          "position": 10,
+          "unit_id": "seed42__cell00__cell_specific"
+        },
+        {
+          "position": 11,
+          "unit_id": "seed42__cell00__frozen_reference"
+        },
+        {
+          "position": 12,
+          "unit_id": "seed123__cell10__cell_specific"
+        },
+        {
+          "position": 13,
+          "unit_id": "seed123__cell10__frozen_reference"
+        },
+        {
+          "position": 14,
+          "unit_id": "seed42__cell01__cell_specific"
+        },
+        {
+          "position": 15,
+          "unit_id": "seed42__cell01__frozen_reference"
+        },
+        {
+          "position": 16,
+          "unit_id": "seed123__cell11__cell_specific"
+        },
+        {
+          "position": 17,
+          "unit_id": "seed123__cell11__frozen_reference"
+        },
+        {
+          "position": 18,
+          "unit_id": "seed999__cell01__frozen_reference"
+        },
+        {
+          "position": 19,
+          "unit_id": "seed999__cell01__cell_specific"
+        },
+        {
+          "position": 20,
+          "unit_id": "seed42__cell10__frozen_reference"
+        },
+        {
+          "position": 21,
+          "unit_id": "seed42__cell10__cell_specific"
+        },
+        {
+          "position": 22,
+          "unit_id": "seed999__cell11__cell_specific"
+        },
+        {
+          "position": 23,
+          "unit_id": "seed999__cell11__frozen_reference"
+        }
+      ]
+    },
+    "inherited_from_e4": {
+      "cells": {
+        "00": "hw_pos_excluded__hw_neg_excluded",
+        "01": "hw_pos_excluded__hw_neg_present",
+        "10": "hw_pos_present__hw_neg_excluded",
+        "11": "hw_pos_present__hw_neg_present"
+      },
+      "checkpoint": "v3",
+      "clustered_code": "scripts/m5_e4_clustered.py",
+      "context_n": 20000,
+      "context_seeds": [
+        42,
+        123,
+        999
+      ],
+      "endpoint_code": "scripts/m5_e4_endpoints.py",
+      "factorial_code": "scripts/m5_e4_endpoints.py::factor_effect",
+      "feature_set": "F4_137",
+      "model_seed": 42,
+      "scaler_arms": [
+        "cell_specific",
+        "frozen_reference"
+      ],
+      "scientific_tabpfn_version": "8.0.8"
+    },
+    "lifecycle": {
+      "all_scoring_is_after_fresh_process_reload": true,
+      "atomic_completion_marker_before_next_state": true,
+      "one_state_per_fresh_process": true,
+      "repeats_per_state": 8,
+      "score_vector_length": 192,
+      "separate_fresh_process_diagnostic": "not applicable; every E5 score is already a fresh-process reload"
+    },
+    "not_a_rediscovery": [
+      "no mechanism re-exploration",
+      "no endpoint re-selection",
+      "no cell re-selection",
+      "no protocol adjustment using results"
+    ],
+    "prohibitions": [
+      "E6 full test",
+      "any refit",
+      "Path B",
+      "representation ablation",
+      "500k",
+      "site transfer",
+      "tree refit",
+      "TabPFN 8.1.0 as science",
+      "manuscript change",
+      "scoring the 10,137,155-row holdout",
+      "adding or removing query rows"
+    ],
+    "pure_rescoring": {
+      "permitted_pipeline": "load_fitted_tabpfn_model -> verify state -> transform the fixed query -> predict_proba",
+      "prohibited_calls": [
+        "model.fit",
+        "fit_from_scratch",
+        "context resampling",
+        "model seed change",
+        "scaler re-selection",
+        "tree refit"
+      ],
+      "refit_prohibited": true,
+      "runtime_guard": "scripts/m5_e5_guard.py replaces every fit entry point with a raising stub before any model is loaded"
+    },
+    "query": {
+      "anomaly_counts": {
+        "0": 64,
+        "1": 128
+      },
+      "buildings": 80,
+      "chilledwater_rows": 0,
+      "endpoint_selector_check": {
+        "hw01_negative_is_meter3_anomaly0": true,
+        "steam_positive_is_meter2_anomaly1": true
+      },
+      "manifest_sha256": "1eca40088db317dc71ec71aa46060da3cc1078ba32b114551dab3d5ec69dc92d",
+      "meter_counts": {
+        "2": 64,
+        "3": 128
+      },
+      "overlap_with_screening_query": 0,
+      "path": "data/processed/m5_hotwater_label_factorial/independent_query",
+      "queries_npz_sha256": "d780f0f8a96c47f49ffe061a72906728f1301056555350cabd979348aa41a2a0",
+      "raw_index_sha256": "2fc4a638a2a0880f2b4d7feac87875c941d155f5fe5172b75b13d041b654fa16",
+      "rows": 192,
+      "rows_may_not_be_added_removed_replaced_or_resampled": true,
+      "segments": 174,
+      "strata": {
+        "hw01_negative": 64,
+        "hw01_positive": 64,
+        "steam_positive": 64
+      },
+      "unique_rows": 192
+    },
+    "resume_and_fail_closed": {
+      "concurrent_gpu_workers": "forbidden",
+      "cpu_fallback": "prohibited",
+      "on_failure": "write INTERRUPTED_INCOMPLETE and stop the whole run",
+      "one_subprocess_per_state": true,
+      "process_pool_executor": "forbidden",
+      "reload_backfill": "forbidden",
+      "silent_retry": "forbidden",
+      "single_gpu_worker": true
+    },
+    "scaler_policy": {
+      "arm_is_inherited_never_reselected": true,
+      "cell_11_arms_still_scored_separately": true,
+      "cell_specific": "not persisted by E4; rebuild with E4's exact code from the same 20,000 context rows and verify by transforming that matrix and comparing to the scaled X_train inside the E4 state",
+      "frozen_reference": "load the persisted scalers/seed{S}_pooled_reference.joblib and verify its digest",
+      "must_verify": [
+        "137 feature order",
+        "query raw_index order",
+        "transformed query shape == (192, 137)",
+        "float dtype identical to E4"
+      ],
+      "transformed_query_cache": "permitted, keyed on the scaler identity; it may never merge or skip a state",
+      "verification_is_mandatory": "no scoring without it"
+    },
+    "schema": "m5_e5_independent_replication_protocol_v1",
+    "scientific_role": "does the steam negative-support response E4 established reproduce on a completely independent, never-scored 192-row query with zero overlap with the 352-row screening query?",
+    "source_digest_method": "sha256 over newline-normalised content",
+    "source_digests": {
+      "scripts/m5_e4_clustered.py": "72d6bbf4403f261c24d3f277604251c3d2dab47ac71d5f0448f84aba5b120f84",
+      "scripts/m5_e4_endpoints.py": "7347930e7234c7270f194d566ac15709b6f3cbe089cd07cff0b007c680844c31",
+      "scripts/m5_e5_analysis.py": "36e943662443c39e7d895482c588bf885299f6cf5434164b58007c6134917c14",
+      "scripts/m5_e5_decision.py": "1236a3c5225584ea2e84f464f57e085471cf7471da4cf571471786259db58548",
+      "scripts/m5_e5_guard.py": "324a8ace0a94798de31718100b3fccb93da508a5916169a52bb13c5c020fd517",
+      "scripts/m5_e5_protocol.py": "ae919c14c770d2f27ce44fda1d5a1b5a622e31e26cee45d43ff458b6dcb0c45e",
+      "scripts/m5_e5_runner.py": "fdc3a36b1423a64e94a68b5ba39a6ca6023e45bff5067d39d9d52e4adfda22ee"
+    },
+    "trees": {
+      "artificial_replicates": false,
+      "note": "E4's tree comparators cover the 352-row query only; the fixed tree must be reloadable to score the 192-row query, and if it cannot be uniquely located E5 stops before any scientific scoring",
+      "one_score_vector_per_unit": true,
+      "refit": false,
+      "role": "matched_row_fixed_comparator"
+    }
+  }
+}

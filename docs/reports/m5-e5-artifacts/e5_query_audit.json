@@ -1,0 +1,30 @@
+{
+  "anomaly_counts": {
+    "0": 64,
+    "1": 128
+  },
+  "buildings": 80,
+  "chilledwater_rows": 0,
+  "endpoint_selector_check": {
+    "hw01_negative_is_meter3_anomaly0": true,
+    "steam_positive_is_meter2_anomaly1": true
+  },
+  "manifest_sha256": "1eca40088db317dc71ec71aa46060da3cc1078ba32b114551dab3d5ec69dc92d",
+  "meter_counts": {
+    "2": 64,
+    "3": 128
+  },
+  "overlap_with_screening_query": 0,
+  "path": "data/processed/m5_hotwater_label_factorial/independent_query",
+  "queries_npz_sha256": "d780f0f8a96c47f49ffe061a72906728f1301056555350cabd979348aa41a2a0",
+  "raw_index_sha256": "2fc4a638a2a0880f2b4d7feac87875c941d155f5fe5172b75b13d041b654fa16",
+  "rows": 192,
+  "rows_may_not_be_added_removed_replaced_or_resampled": true,
+  "segments": 174,
+  "strata": {
+    "hw01_negative": 64,
+    "hw01_positive": 64,
+    "steam_positive": 64
+  },
+  "unique_rows": 192
+}

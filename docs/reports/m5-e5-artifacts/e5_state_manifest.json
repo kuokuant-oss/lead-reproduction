@@ -1,0 +1,508 @@
+{
+  "states": [
+    {
+      "cell": "11",
+      "cell_dir": "hw_pos_present__hw_neg_present",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed42/hw_pos_present__hw_neg_present.json",
+      "context_manifest_sha256": "d2d6af07ed4c93dacc9f0a4fc7e9a0223e3aeba88a321d34fd0dc6db2cc7d59e",
+      "context_seed": 42,
+      "e4_process_uuid": "2402f9d7-d414-4c55-a3e3-27b88d1e3ecb",
+      "position": 0,
+      "repeats": 8,
+      "scaler_arm": "frozen_reference",
+      "scaler_source": {
+        "kind": "persisted",
+        "path": "data/processed/m5_hotwater_label_factorial/scalers/seed42_pooled_reference.joblib",
+        "sha256": "4a4709bd19b38ec36cd6ccaf83857906be019a23bf23a5af821806c9674d11ed"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed42__cell11__frozen_reference/model.tabpfn_fit",
+      "state_sha256": "d9185332785ac41ce10968d0305468979506e2957427ae0e588d68dc52b6f8a4",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed42/hw_pos_present__hw_neg_present/frozen_reference/predictions.npz",
+      "tree_comparator_sha256": "17b216e42eef32dad9da56e7f2513a162bac5f6854547c0e0d9e0501125e04f3",
+      "unit_id": "seed42__cell11__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "cell_dir": "hw_pos_present__hw_neg_present",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed42/hw_pos_present__hw_neg_present.json",
+      "context_manifest_sha256": "d2d6af07ed4c93dacc9f0a4fc7e9a0223e3aeba88a321d34fd0dc6db2cc7d59e",
+      "context_seed": 42,
+      "e4_process_uuid": "6378c093-001f-413a-97ee-4bb7e8164afe",
+      "position": 1,
+      "repeats": 8,
+      "scaler_arm": "cell_specific",
+      "scaler_source": {
+        "kind": "rebuilt_and_verified",
+        "rule": "StandardScaler().fit(this cell's own 20,000 context rows), exactly as E4's runner did",
+        "verification": "transform the same raw context matrix and compare to the scaled X_train stored inside the E4 state's executor; the rebuild is rejected unless it reproduces it"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed42__cell11__cell_specific/model.tabpfn_fit",
+      "state_sha256": "9ff1784a3a4aa838073595ab84258b1cbf7de7c4e0c4c4ceda9b09ea1f4ec909",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed42/hw_pos_present__hw_neg_present/cell_specific/predictions.npz",
+      "tree_comparator_sha256": "17b216e42eef32dad9da56e7f2513a162bac5f6854547c0e0d9e0501125e04f3",
+      "unit_id": "seed42__cell11__cell_specific"
+    },
+    {
+      "cell": "00",
+      "cell_dir": "hw_pos_excluded__hw_neg_excluded",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed123/hw_pos_excluded__hw_neg_excluded.json",
+      "context_manifest_sha256": "c2b00dead56b1e78289f22ebc1cb4b1e90a066e5ee1d2b9c4c426347dfdf88fb",
+      "context_seed": 123,
+      "e4_process_uuid": "fc289d9e-2fdc-4f69-8131-22a9e0982f08",
+      "position": 2,
+      "repeats": 8,
+      "scaler_arm": "cell_specific",
+      "scaler_source": {
+        "kind": "rebuilt_and_verified",
+        "rule": "StandardScaler().fit(this cell's own 20,000 context rows), exactly as E4's runner did",
+        "verification": "transform the same raw context matrix and compare to the scaled X_train stored inside the E4 state's executor; the rebuild is rejected unless it reproduces it"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed123__cell00__cell_specific/model.tabpfn_fit",
+      "state_sha256": "c0f8444140521c2bf6714a30f2fadbfe45da3046974cd392e57d568f362c2970",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed123/hw_pos_excluded__hw_neg_excluded/cell_specific/predictions.npz",
+      "tree_comparator_sha256": "c75c765fd231e2d70d27bdde70a3e38c4b2dba92a60a3d5a157566779d322b25",
+      "unit_id": "seed123__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "cell_dir": "hw_pos_excluded__hw_neg_excluded",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed123/hw_pos_excluded__hw_neg_excluded.json",
+      "context_manifest_sha256": "c2b00dead56b1e78289f22ebc1cb4b1e90a066e5ee1d2b9c4c426347dfdf88fb",
+      "context_seed": 123,
+      "e4_process_uuid": "05f8b8fb-d7ef-497a-b470-68b3f648decd",
+      "position": 3,
+      "repeats": 8,
+      "scaler_arm": "frozen_reference",
+      "scaler_source": {
+        "kind": "persisted",
+        "path": "data/processed/m5_hotwater_label_factorial/scalers/seed123_pooled_reference.joblib",
+        "sha256": "150130af769519b460de82a96bf6d76888b059c6d1e261367d7d3cb770be6e8b"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed123__cell00__frozen_reference/model.tabpfn_fit",
+      "state_sha256": "a35815f177cfb1367f49bdf36e4a4a3ae21e381adfcd7a57fe30f194c098637b",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed123/hw_pos_excluded__hw_neg_excluded/frozen_reference/predictions.npz",
+      "tree_comparator_sha256": "cc95feb87798a7b63c874e3e50f26e821f9aff00437b2ed974c4e4e7c5fc6573",
+      "unit_id": "seed123__cell00__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "cell_dir": "hw_pos_excluded__hw_neg_present",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed123/hw_pos_excluded__hw_neg_present.json",
+      "context_manifest_sha256": "d28f5ef7204dddd371d9fb2bb5617e5b682c0f258f26ab08261bafe75f15cf64",
+      "context_seed": 123,
+      "e4_process_uuid": "3fc60bc0-4929-4a0c-825a-291b7ee03c7a",
+      "position": 4,
+      "repeats": 8,
+      "scaler_arm": "cell_specific",
+      "scaler_source": {
+        "kind": "rebuilt_and_verified",
+        "rule": "StandardScaler().fit(this cell's own 20,000 context rows), exactly as E4's runner did",
+        "verification": "transform the same raw context matrix and compare to the scaled X_train stored inside the E4 state's executor; the rebuild is rejected unless it reproduces it"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed123__cell01__cell_specific/model.tabpfn_fit",
+      "state_sha256": "e1c4313f78ce27adf7efc2eaa79fa0789154be9a053d3b4a55b642ce65fc3262",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed123/hw_pos_excluded__hw_neg_present/cell_specific/predictions.npz",
+      "tree_comparator_sha256": "b1ac96b9338ffd890fe02e10325bd80d2f728f6bf0d5dba9876c543dd4ed12d3",
+      "unit_id": "seed123__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "cell_dir": "hw_pos_excluded__hw_neg_present",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed123/hw_pos_excluded__hw_neg_present.json",
+      "context_manifest_sha256": "d28f5ef7204dddd371d9fb2bb5617e5b682c0f258f26ab08261bafe75f15cf64",
+      "context_seed": 123,
+      "e4_process_uuid": "21fa7141-5354-45a2-bf17-6129a7e5433a",
+      "position": 5,
+      "repeats": 8,
+      "scaler_arm": "frozen_reference",
+      "scaler_source": {
+        "kind": "persisted",
+        "path": "data/processed/m5_hotwater_label_factorial/scalers/seed123_pooled_reference.joblib",
+        "sha256": "150130af769519b460de82a96bf6d76888b059c6d1e261367d7d3cb770be6e8b"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed123__cell01__frozen_reference/model.tabpfn_fit",
+      "state_sha256": "91ec9baae7938479c150f6f7410474eb5a758ad79f101ca7c4b1ec529871f362",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed123/hw_pos_excluded__hw_neg_present/frozen_reference/predictions.npz",
+      "tree_comparator_sha256": "b67a475a8064765ce50724023dfe684fd79cce9bc9cb86cab6e33c83726b2962",
+      "unit_id": "seed123__cell01__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "cell_dir": "hw_pos_present__hw_neg_excluded",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed999/hw_pos_present__hw_neg_excluded.json",
+      "context_manifest_sha256": "08b4c043d45ffb2eadb19e9f03b44e81500b1f891eef34e733f8288450ebecff",
+      "context_seed": 999,
+      "e4_process_uuid": "fd62718b-0e38-42ed-bbbe-8a03f9d3d325",
+      "position": 6,
+      "repeats": 8,
+      "scaler_arm": "frozen_reference",
+      "scaler_source": {
+        "kind": "persisted",
+        "path": "data/processed/m5_hotwater_label_factorial/scalers/seed999_pooled_reference.joblib",
+        "sha256": "a74bd06b7e39961b1f291269f1523257869db27962a73d1d438569525717b4ab"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed999__cell10__frozen_reference/model.tabpfn_fit",
+      "state_sha256": "4fabd3a377ed06cf3115aa7bb31d475e0079e783f6be9d0bea327107679af17b",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed999/hw_pos_present__hw_neg_excluded/frozen_reference/predictions.npz",
+      "tree_comparator_sha256": "455243c9c2ea094c5c4c7644543a89a5859fc1f4018f3060e7174e03315cc8db",
+      "unit_id": "seed999__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "cell_dir": "hw_pos_present__hw_neg_excluded",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed999/hw_pos_present__hw_neg_excluded.json",
+      "context_manifest_sha256": "08b4c043d45ffb2eadb19e9f03b44e81500b1f891eef34e733f8288450ebecff",
+      "context_seed": 999,
+      "e4_process_uuid": "74784800-5de5-4333-8726-87e8a578e808",
+      "position": 7,
+      "repeats": 8,
+      "scaler_arm": "cell_specific",
+      "scaler_source": {
+        "kind": "rebuilt_and_verified",
+        "rule": "StandardScaler().fit(this cell's own 20,000 context rows), exactly as E4's runner did",
+        "verification": "transform the same raw context matrix and compare to the scaled X_train stored inside the E4 state's executor; the rebuild is rejected unless it reproduces it"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed999__cell10__cell_specific/model.tabpfn_fit",
+      "state_sha256": "90946cd90c6462e8230276e3f56050196ac380e32fca79d72377fe7b3f3688fb",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed999/hw_pos_present__hw_neg_excluded/cell_specific/predictions.npz",
+      "tree_comparator_sha256": "4a2ef0c8ff41e9e0d4205445e2bd5b86baf963a57cbbc1d354a4ff98d2d72586",
+      "unit_id": "seed999__cell10__cell_specific"
+    },
+    {
+      "cell": "00",
+      "cell_dir": "hw_pos_excluded__hw_neg_excluded",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed999/hw_pos_excluded__hw_neg_excluded.json",
+      "context_manifest_sha256": "95c044cca124d7481549e64e353388e0e110dd3cee9eca3c1d64ac9960e5e684",
+      "context_seed": 999,
+      "e4_process_uuid": "965c899f-aca4-44a1-8bd8-5e8682ac19d2",
+      "position": 8,
+      "repeats": 8,
+      "scaler_arm": "frozen_reference",
+      "scaler_source": {
+        "kind": "persisted",
+        "path": "data/processed/m5_hotwater_label_factorial/scalers/seed999_pooled_reference.joblib",
+        "sha256": "a74bd06b7e39961b1f291269f1523257869db27962a73d1d438569525717b4ab"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed999__cell00__frozen_reference/model.tabpfn_fit",
+      "state_sha256": "982b5fbb5877ace13218e34455f95b6b1e62be07e9449a74cf52b35399380f2f",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed999/hw_pos_excluded__hw_neg_excluded/frozen_reference/predictions.npz",
+      "tree_comparator_sha256": "5e9d58b749a27662a028e10ebf4ee7e9d314eaa3db9f625f33bacc9933fa55a0",
+      "unit_id": "seed999__cell00__frozen_reference"
+    },
+    {
+      "cell": "00",
+      "cell_dir": "hw_pos_excluded__hw_neg_excluded",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed999/hw_pos_excluded__hw_neg_excluded.json",
+      "context_manifest_sha256": "95c044cca124d7481549e64e353388e0e110dd3cee9eca3c1d64ac9960e5e684",
+      "context_seed": 999,
+      "e4_process_uuid": "a53764b1-8af2-4e30-809c-22fe9cd5fd4d",
+      "position": 9,
+      "repeats": 8,
+      "scaler_arm": "cell_specific",
+      "scaler_source": {
+        "kind": "rebuilt_and_verified",
+        "rule": "StandardScaler().fit(this cell's own 20,000 context rows), exactly as E4's runner did",
+        "verification": "transform the same raw context matrix and compare to the scaled X_train stored inside the E4 state's executor; the rebuild is rejected unless it reproduces it"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed999__cell00__cell_specific/model.tabpfn_fit",
+      "state_sha256": "ec38a7bc63ffd7a0f0151edd98d0a6423452633528e5f40ba5cf4d3406d48bc4",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed999/hw_pos_excluded__hw_neg_excluded/cell_specific/predictions.npz",
+      "tree_comparator_sha256": "e0e6bfdbc3c92fdb26bf7c20202b474016374223cdbbb7618cc2312a5a0c04d4",
+      "unit_id": "seed999__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "cell_dir": "hw_pos_excluded__hw_neg_excluded",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed42/hw_pos_excluded__hw_neg_excluded.json",
+      "context_manifest_sha256": "6b34dadbd87a50c6d19e0497057b841f7b2e59a79c33f3cdbaf7e800451825b7",
+      "context_seed": 42,
+      "e4_process_uuid": "bb7870c4-658e-4590-ab27-de3bc003b977",
+      "position": 10,
+      "repeats": 8,
+      "scaler_arm": "cell_specific",
+      "scaler_source": {
+        "kind": "rebuilt_and_verified",
+        "rule": "StandardScaler().fit(this cell's own 20,000 context rows), exactly as E4's runner did",
+        "verification": "transform the same raw context matrix and compare to the scaled X_train stored inside the E4 state's executor; the rebuild is rejected unless it reproduces it"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed42__cell00__cell_specific/model.tabpfn_fit",
+      "state_sha256": "a3144473c7ad31c446aca91337d729c20f9dd2a15efdaeb262c47564993da8b6",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed42/hw_pos_excluded__hw_neg_excluded/cell_specific/predictions.npz",
+      "tree_comparator_sha256": "3b68499202cdc4176cc12471829c0ae4f9c85b079f95bc039a84efea9748de1e",
+      "unit_id": "seed42__cell00__cell_specific"
+    },
+    {
+      "cell": "00",
+      "cell_dir": "hw_pos_excluded__hw_neg_excluded",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed42/hw_pos_excluded__hw_neg_excluded.json",
+      "context_manifest_sha256": "6b34dadbd87a50c6d19e0497057b841f7b2e59a79c33f3cdbaf7e800451825b7",
+      "context_seed": 42,
+      "e4_process_uuid": "d43abf7a-14cc-40c9-b638-826973a943fa",
+      "position": 11,
+      "repeats": 8,
+      "scaler_arm": "frozen_reference",
+      "scaler_source": {
+        "kind": "persisted",
+        "path": "data/processed/m5_hotwater_label_factorial/scalers/seed42_pooled_reference.joblib",
+        "sha256": "4a4709bd19b38ec36cd6ccaf83857906be019a23bf23a5af821806c9674d11ed"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed42__cell00__frozen_reference/model.tabpfn_fit",
+      "state_sha256": "efcddcd0b87e615f9420fa0d89e337d1f08f29e8b0df94b66e2c0974c8bb3c35",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed42/hw_pos_excluded__hw_neg_excluded/frozen_reference/predictions.npz",
+      "tree_comparator_sha256": "9b99c230bfed2d769ac6f284e4acd2c6db98294edc74f5ca6a3a46826aafb7e1",
+      "unit_id": "seed42__cell00__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "cell_dir": "hw_pos_present__hw_neg_excluded",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed123/hw_pos_present__hw_neg_excluded.json",
+      "context_manifest_sha256": "6bde9c2ececbb0a5a3fc4fa8fed059110ac4683653315e78df0fbefcdeee1e84",
+      "context_seed": 123,
+      "e4_process_uuid": "8e3334ec-bdf5-4496-aad4-b8fa5af71f0b",
+      "position": 12,
+      "repeats": 8,
+      "scaler_arm": "cell_specific",
+      "scaler_source": {
+        "kind": "rebuilt_and_verified",
+        "rule": "StandardScaler().fit(this cell's own 20,000 context rows), exactly as E4's runner did",
+        "verification": "transform the same raw context matrix and compare to the scaled X_train stored inside the E4 state's executor; the rebuild is rejected unless it reproduces it"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed123__cell10__cell_specific/model.tabpfn_fit",
+      "state_sha256": "cb6e796cf5dfab4e2f1172309845bd5dd16b29d52a71045d72c374bb07ecbb1d",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed123/hw_pos_present__hw_neg_excluded/cell_specific/predictions.npz",
+      "tree_comparator_sha256": "edb0a55f865c788533d68410d4399981fed72651ddcd37243dc0979c1717d534",
+      "unit_id": "seed123__cell10__cell_specific"
+    },
+    {
+      "cell": "10",
+      "cell_dir": "hw_pos_present__hw_neg_excluded",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed123/hw_pos_present__hw_neg_excluded.json",
+      "context_manifest_sha256": "6bde9c2ececbb0a5a3fc4fa8fed059110ac4683653315e78df0fbefcdeee1e84",
+      "context_seed": 123,
+      "e4_process_uuid": "9906fe2d-972c-4e31-ae43-2dd9c0f3fc46",
+      "position": 13,
+      "repeats": 8,
+      "scaler_arm": "frozen_reference",
+      "scaler_source": {
+        "kind": "persisted",
+        "path": "data/processed/m5_hotwater_label_factorial/scalers/seed123_pooled_reference.joblib",
+        "sha256": "150130af769519b460de82a96bf6d76888b059c6d1e261367d7d3cb770be6e8b"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed123__cell10__frozen_reference/model.tabpfn_fit",
+      "state_sha256": "f37f9152566fc7c09c3f0187f6c38b5a800726f9b5b7725c3d8d9ee45b92cb2d",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed123/hw_pos_present__hw_neg_excluded/frozen_reference/predictions.npz",
+      "tree_comparator_sha256": "d3856fbc94d44af9c12529f189ae614e5a0bff98105ff52e3e35701af5697f4b",
+      "unit_id": "seed123__cell10__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "cell_dir": "hw_pos_excluded__hw_neg_present",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed42/hw_pos_excluded__hw_neg_present.json",
+      "context_manifest_sha256": "aaced63fb51283b44cf6cc87564bae362f0813281d50693f7a4f946b55982456",
+      "context_seed": 42,
+      "e4_process_uuid": "0f1c6fdb-b2b8-4775-84b3-da9db9ba78a3",
+      "position": 14,
+      "repeats": 8,
+      "scaler_arm": "cell_specific",
+      "scaler_source": {
+        "kind": "rebuilt_and_verified",
+        "rule": "StandardScaler().fit(this cell's own 20,000 context rows), exactly as E4's runner did",
+        "verification": "transform the same raw context matrix and compare to the scaled X_train stored inside the E4 state's executor; the rebuild is rejected unless it reproduces it"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed42__cell01__cell_specific/model.tabpfn_fit",
+      "state_sha256": "9df0c8553f8c011eed73dc71eca32f187c2b3ed2930d92402cf73a0b910bbf91",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed42/hw_pos_excluded__hw_neg_present/cell_specific/predictions.npz",
+      "tree_comparator_sha256": "517063e7063b69b09651181bd767e8c61eaa097bae5f6e3e64679f71ff3aae41",
+      "unit_id": "seed42__cell01__cell_specific"
+    },
+    {
+      "cell": "01",
+      "cell_dir": "hw_pos_excluded__hw_neg_present",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed42/hw_pos_excluded__hw_neg_present.json",
+      "context_manifest_sha256": "aaced63fb51283b44cf6cc87564bae362f0813281d50693f7a4f946b55982456",
+      "context_seed": 42,
+      "e4_process_uuid": "cc07ef5c-ca23-4499-9b96-8182e597f1da",
+      "position": 15,
+      "repeats": 8,
+      "scaler_arm": "frozen_reference",
+      "scaler_source": {
+        "kind": "persisted",
+        "path": "data/processed/m5_hotwater_label_factorial/scalers/seed42_pooled_reference.joblib",
+        "sha256": "4a4709bd19b38ec36cd6ccaf83857906be019a23bf23a5af821806c9674d11ed"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed42__cell01__frozen_reference/model.tabpfn_fit",
+      "state_sha256": "3df36867fdf3da819845c4e195c2028af5b60b88058dcb6dd2bfd19b86ddd5b7",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed42/hw_pos_excluded__hw_neg_present/frozen_reference/predictions.npz",
+      "tree_comparator_sha256": "17e6fdd7fab024351cf8f23be008e1610af85e410066e4af2ac4e51e9ac06b21",
+      "unit_id": "seed42__cell01__frozen_reference"
+    },
+    {
+      "cell": "11",
+      "cell_dir": "hw_pos_present__hw_neg_present",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed123/hw_pos_present__hw_neg_present.json",
+      "context_manifest_sha256": "ceb472fc8a9a626eb9828b4fd5308f0ab40f07becdd79eaf710f6dbd0daeccf5",
+      "context_seed": 123,
+      "e4_process_uuid": "b3e0a8c5-b79f-478c-8fbe-238031048689",
+      "position": 16,
+      "repeats": 8,
+      "scaler_arm": "cell_specific",
+      "scaler_source": {
+        "kind": "rebuilt_and_verified",
+        "rule": "StandardScaler().fit(this cell's own 20,000 context rows), exactly as E4's runner did",
+        "verification": "transform the same raw context matrix and compare to the scaled X_train stored inside the E4 state's executor; the rebuild is rejected unless it reproduces it"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed123__cell11__cell_specific/model.tabpfn_fit",
+      "state_sha256": "870094568a428705a45130c8831762607926ea8ee2a093e39a7c6549834c2842",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed123/hw_pos_present__hw_neg_present/cell_specific/predictions.npz",
+      "tree_comparator_sha256": "56e29692d657d4052076740b279e30d4f12c86f20fd31e9432a5e48aae7554e0",
+      "unit_id": "seed123__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "cell_dir": "hw_pos_present__hw_neg_present",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed123/hw_pos_present__hw_neg_present.json",
+      "context_manifest_sha256": "ceb472fc8a9a626eb9828b4fd5308f0ab40f07becdd79eaf710f6dbd0daeccf5",
+      "context_seed": 123,
+      "e4_process_uuid": "2ea5c8ca-df1c-49a8-beee-d6f360ff63e4",
+      "position": 17,
+      "repeats": 8,
+      "scaler_arm": "frozen_reference",
+      "scaler_source": {
+        "kind": "persisted",
+        "path": "data/processed/m5_hotwater_label_factorial/scalers/seed123_pooled_reference.joblib",
+        "sha256": "150130af769519b460de82a96bf6d76888b059c6d1e261367d7d3cb770be6e8b"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed123__cell11__frozen_reference/model.tabpfn_fit",
+      "state_sha256": "668a03c92cbaa7456223e45c4af1f6d5a03a0c618cbdd42f348f726385923187",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed123/hw_pos_present__hw_neg_present/frozen_reference/predictions.npz",
+      "tree_comparator_sha256": "56e29692d657d4052076740b279e30d4f12c86f20fd31e9432a5e48aae7554e0",
+      "unit_id": "seed123__cell11__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "cell_dir": "hw_pos_excluded__hw_neg_present",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed999/hw_pos_excluded__hw_neg_present.json",
+      "context_manifest_sha256": "797d662432d5c6a9c7b15290158a764e2a8f79ffa1a87e3b390b99f1fabc549c",
+      "context_seed": 999,
+      "e4_process_uuid": "30d2c655-daeb-425e-831a-68cd38472c69",
+      "position": 18,
+      "repeats": 8,
+      "scaler_arm": "frozen_reference",
+      "scaler_source": {
+        "kind": "persisted",
+        "path": "data/processed/m5_hotwater_label_factorial/scalers/seed999_pooled_reference.joblib",
+        "sha256": "a74bd06b7e39961b1f291269f1523257869db27962a73d1d438569525717b4ab"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed999__cell01__frozen_reference/model.tabpfn_fit",
+      "state_sha256": "f58a0a766f0cbcb5990e330dccde4765bfd054d07c8a243a2510382abbf1047b",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed999/hw_pos_excluded__hw_neg_present/frozen_reference/predictions.npz",
+      "tree_comparator_sha256": "3afac90f52c53fc13910a134eac9c58fab7168f73e3d25270a499751cf67e07d",
+      "unit_id": "seed999__cell01__frozen_reference"
+    },
+    {
+      "cell": "01",
+      "cell_dir": "hw_pos_excluded__hw_neg_present",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed999/hw_pos_excluded__hw_neg_present.json",
+      "context_manifest_sha256": "797d662432d5c6a9c7b15290158a764e2a8f79ffa1a87e3b390b99f1fabc549c",
+      "context_seed": 999,
+      "e4_process_uuid": "099cca7e-1741-4667-ba22-9443339f3bfa",
+      "position": 19,
+      "repeats": 8,
+      "scaler_arm": "cell_specific",
+      "scaler_source": {
+        "kind": "rebuilt_and_verified",
+        "rule": "StandardScaler().fit(this cell's own 20,000 context rows), exactly as E4's runner did",
+        "verification": "transform the same raw context matrix and compare to the scaled X_train stored inside the E4 state's executor; the rebuild is rejected unless it reproduces it"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed999__cell01__cell_specific/model.tabpfn_fit",
+      "state_sha256": "3dd045999b68c45237e8fdc72f5ffed7d2497d9086b8ed6a968650a994157c54",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed999/hw_pos_excluded__hw_neg_present/cell_specific/predictions.npz",
+      "tree_comparator_sha256": "6b16039eab71d22e8303e70a4d3ef54e29a64bd49c820a7783f97fd1cc36f22d",
+      "unit_id": "seed999__cell01__cell_specific"
+    },
+    {
+      "cell": "10",
+      "cell_dir": "hw_pos_present__hw_neg_excluded",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed42/hw_pos_present__hw_neg_excluded.json",
+      "context_manifest_sha256": "e25127264d193e939479672a853129ad13c7797dd362326a9a9d2327d61611df",
+      "context_seed": 42,
+      "e4_process_uuid": "8be61357-f348-4909-b1d7-70965b1d9d51",
+      "position": 20,
+      "repeats": 8,
+      "scaler_arm": "frozen_reference",
+      "scaler_source": {
+        "kind": "persisted",
+        "path": "data/processed/m5_hotwater_label_factorial/scalers/seed42_pooled_reference.joblib",
+        "sha256": "4a4709bd19b38ec36cd6ccaf83857906be019a23bf23a5af821806c9674d11ed"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed42__cell10__frozen_reference/model.tabpfn_fit",
+      "state_sha256": "6aadc4e0f6cc724201f7c7dd6a7b8519599032068328f5f77963d8c219ca5259",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed42/hw_pos_present__hw_neg_excluded/frozen_reference/predictions.npz",
+      "tree_comparator_sha256": "50ea900cb9ca60484affcc4291164a329f9952dc72c8bfe1809f46645126ca9f",
+      "unit_id": "seed42__cell10__frozen_reference"
+    },
+    {
+      "cell": "10",
+      "cell_dir": "hw_pos_present__hw_neg_excluded",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed42/hw_pos_present__hw_neg_excluded.json",
+      "context_manifest_sha256": "e25127264d193e939479672a853129ad13c7797dd362326a9a9d2327d61611df",
+      "context_seed": 42,
+      "e4_process_uuid": "b05e0989-8eae-431d-a308-74c207b9189f",
+      "position": 21,
+      "repeats": 8,
+      "scaler_arm": "cell_specific",
+      "scaler_source": {
+        "kind": "rebuilt_and_verified",
+        "rule": "StandardScaler().fit(this cell's own 20,000 context rows), exactly as E4's runner did",
+        "verification": "transform the same raw context matrix and compare to the scaled X_train stored inside the E4 state's executor; the rebuild is rejected unless it reproduces it"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed42__cell10__cell_specific/model.tabpfn_fit",
+      "state_sha256": "1e89562a57ddb1d48db5ae20fd0b06876fa37459adc4f24b825c7d6f18876da7",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed42/hw_pos_present__hw_neg_excluded/cell_specific/predictions.npz",
+      "tree_comparator_sha256": "028df208449c40d658f71aa9a4d6953f785060d8f9472b9baae969ee8a13516e",
+      "unit_id": "seed42__cell10__cell_specific"
+    },
+    {
+      "cell": "11",
+      "cell_dir": "hw_pos_present__hw_neg_present",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed999/hw_pos_present__hw_neg_present.json",
+      "context_manifest_sha256": "e56d1738d21f169c68207c7e9079dc7e57e022ad36b1c0778330ea2e898eadb4",
+      "context_seed": 999,
+      "e4_process_uuid": "9d1e9a53-b2df-44e9-a6b5-0e9b6fc69a4c",
+      "position": 22,
+      "repeats": 8,
+      "scaler_arm": "cell_specific",
+      "scaler_source": {
+        "kind": "rebuilt_and_verified",
+        "rule": "StandardScaler().fit(this cell's own 20,000 context rows), exactly as E4's runner did",
+        "verification": "transform the same raw context matrix and compare to the scaled X_train stored inside the E4 state's executor; the rebuild is rejected unless it reproduces it"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed999__cell11__cell_specific/model.tabpfn_fit",
+      "state_sha256": "208aedb03e71b25895cd26680f7808271c8d2d00abb4bcb855c1c1d7b0e6052a",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed999/hw_pos_present__hw_neg_present/cell_specific/predictions.npz",
+      "tree_comparator_sha256": "fe1ec905a4657eca5f77da928cc9b8db0755d3a01ec696c72f84647d3f61f53b",
+      "unit_id": "seed999__cell11__cell_specific"
+    },
+    {
+      "cell": "11",
+      "cell_dir": "hw_pos_present__hw_neg_present",
+      "context_manifest": "data/processed/m5_hotwater_label_factorial/manifests/seed999/hw_pos_present__hw_neg_present.json",
+      "context_manifest_sha256": "e56d1738d21f169c68207c7e9079dc7e57e022ad36b1c0778330ea2e898eadb4",
+      "context_seed": 999,
+      "e4_process_uuid": "414f4156-bf5a-4350-b29f-c9b6bccbccb8",
+      "position": 23,
+      "repeats": 8,
+      "scaler_arm": "frozen_reference",
+      "scaler_source": {
+        "kind": "persisted",
+        "path": "data/processed/m5_hotwater_label_factorial/scalers/seed999_pooled_reference.joblib",
+        "sha256": "a74bd06b7e39961b1f291269f1523257869db27962a73d1d438569525717b4ab"
+      },
+      "state_path": "data/processed/m5_e4_formal_path_a/seed999__cell11__frozen_reference/model.tabpfn_fit",
+      "state_sha256": "383fd4cdfd75028ea424335ac21ae9fcf79f3b5b86efc56cc64a16ac3d3e5625",
+      "tree_comparator": "data/processed/m5_hotwater_label_factorial/predictions/trees/seed999/hw_pos_present__hw_neg_present/frozen_reference/predictions.npz",
+      "tree_comparator_sha256": "fe1ec905a4657eca5f77da928cc9b8db0755d3a01ec696c72f84647d3f61f53b",
+      "unit_id": "seed999__cell11__frozen_reference"
+    }
+  ]
+}

@@ -41,6 +41,7 @@ LOCALLY_DERIVED = frozenset(
     {
         MANIFEST,
         "e5_query_audit.json",
+        "e5_tree_execution_override.json",
         "e5_protocol.json",
         "e5_state_manifest.json",
         "e5_repeat_manifest.json",
@@ -51,10 +52,11 @@ LOCALLY_DERIVED = frozenset(
         "e5_decision.json",
     }
 )
+# E5 produces no state: it reloads E4's. A unit directory therefore holds only
+# its reload record, its completion marker and its repeats.
 REQUIRED_UNIT_FILES = (
     "reload_start.json",
     "UNIT_COMPLETE.json",
-    "model.tabpfn_fit",
 )
 
 
@@ -100,6 +102,37 @@ def state_ensemble(state_path: Path) -> dict:
     }
 
 
+def rederive_tree(spec: dict, repo_root: Path, feature_npz: Path) -> np.ndarray:
+    """The tree score, recomputed from the persisted ensemble and shared input.
+
+    This is the anchor the tree half rests on. It needs no frame load: the
+    192-row feature matrix is the artifact both hosts agreed on, and the
+    ensemble and its scaler are persisted alongside E4.
+    """
+    import joblib
+
+    from run_m5_story_ae_probe import load_tree_runner
+
+    d = (
+        repo_root
+        / "data/processed/m5_hotwater_label_factorial/recovery/states/trees"
+        / f"seed{spec['context_seed']}"
+        / spec["cell_dir"]
+        / spec["scaler_arm"]
+    )
+    saved = joblib.load(d / "tree_ensemble.joblib")
+    scaler = joblib.load(d / "scaler.joblib")
+    with np.load(feature_npz) as z:
+        raw = np.asarray(z["q"])
+    runner = load_tree_runner()
+    x = scaler.transform(raw).astype("float32")
+    stacked = [
+        runner.predict_probability(n, saved["models"][n], x)
+        for n in saved["model_order"]
+    ]
+    return np.asarray(np.mean(stacked, axis=0).astype("float32"), dtype="float64")
+
+
 def validate_manifest(staged: Path, failures: list[str]) -> dict[str, str]:
     path = staged / MANIFEST
     if not path.exists():
@@ -119,8 +152,19 @@ def validate_manifest(staged: Path, failures: list[str]) -> dict[str, str]:
         p.relative_to(staged).as_posix() for p in staged.rglob("*") if p.is_file()
     }
     for rel in sorted(on_disk - set(entries) - LOCALLY_DERIVED):
+        # trees/ was scored on the laptop under the override, so it cannot be in
+        # the remote manifest. It is not exempt from checking -- it carries its
+        # own manifest with per-file digests and a 24/24 bit-exact gate, and
+        # validate_trees below refuses it if any of that is missing.
+        if rel.startswith("trees/"):
+            continue
         failures.append(f"file present but absent from the remote manifest: {rel}")
     return entries
+
+
+REPO_ROOT: Path = Path(".")
+FEATURE_NPZ: Path = Path(".")
+SPEC_BY_UID: dict = {}
 
 
 def validate_unit(staged: Path, spec: dict, proto: dict, failures: list[str]) -> dict:
@@ -138,8 +182,17 @@ def validate_unit(staged: Path, spec: dict, proto: dict, failures: list[str]) ->
 
     complete = read_json(root / "UNIT_COMPLETE.json")
     start = read_json(root / "reload_start.json")
-    state_path = root / "model.tabpfn_fit"
+    # The state lives in the E4 result root, named by the frozen state manifest.
+    state_path = REPO_ROOT / spec["state_path"]
+    if not state_path.exists():
+        failures.append(f"{uid}: the E4 state is missing at {spec['state_path']}")
+        return {}
     state_sha = sha256_file(state_path)
+    check(
+        failures,
+        state_sha == spec["state_sha256"],
+        f"{uid}: the E4 state digest does not match the frozen manifest",
+    )
 
     check(
         failures,
@@ -275,6 +328,7 @@ def validate_unit(staged: Path, spec: dict, proto: dict, failures: list[str]) ->
     }
 
 
+QUERY_INDEX: np.ndarray = np.empty(0, dtype="int64")
 MET: np.ndarray = np.empty(0, dtype="int8")
 ANOM: np.ndarray = np.empty(0, dtype="int8")
 
@@ -299,6 +353,12 @@ def main() -> int:
     ap.add_argument("--staged", type=Path, required=True)
     ap.add_argument("--canonical", type=Path, required=True)
     ap.add_argument("--repo-root", type=Path, required=True)
+    ap.add_argument(
+        "--feature-npz",
+        type=Path,
+        required=True,
+        help="the shared 192x137 artifact both hosts scored",
+    )
     ap.add_argument("--apply", action="store_true")
     args = ap.parse_args()
 
@@ -309,7 +369,11 @@ def main() -> int:
         return 1
     proto = read_json(proto_path)["protocol"]
     specs = read_json(args.canonical / "e5_state_manifest.json")["states"]
-    _, MET, ANOM = load_query(proto, args.repo_root)
+    QI, MET, ANOM = load_query(proto, args.repo_root)
+    globals()["REPO_ROOT"] = args.repo_root
+    globals()["FEATURE_NPZ"] = args.feature_npz
+    globals()["SPEC_BY_UID"] = {sp["unit_id"]: sp for sp in specs}
+    globals()["QUERY_INDEX"] = QI
 
     entries = validate_manifest(args.staged, failures)
 
@@ -356,6 +420,99 @@ def main() -> int:
             failures,
             len(by_state) >= 21,
             f"{len(by_state)} distinct states, want at least 21",
+        )
+
+    # The tree half was scored on the laptop under the override, so it is not in
+    # the remote manifest. It gets its own checks rather than a free pass.
+    tdir = args.staged / "trees"
+    tman = tdir / "e5_tree_manifest.json"
+    if not tman.exists():
+        failures.append("missing trees/e5_tree_manifest.json")
+    else:
+        tm = read_json(tman)
+        ovr_path = args.canonical / "e5_tree_execution_override.json"
+        ovr = read_json(ovr_path) if ovr_path.exists() else {}
+        check(failures, tm["units"] == 24, f"tree manifest has {tm['units']} units")
+        check(
+            failures,
+            tm["gate_units_bit_exact"] == 24,
+            f"{tm.get('gate_units_bit_exact')}/24 trees passed the bit-exact gate",
+        )
+        check(failures, tm["refit"] is False, "a tree refit was recorded")
+        check(
+            failures,
+            tm["artificial_replicates"] is False,
+            "the tree manifest declares artificial replicates",
+        )
+        check(
+            failures,
+            tm["execution_host"] == "original laptop environment",
+            f"tree execution host is {tm.get('execution_host')}",
+        )
+        check(
+            failures,
+            tm["base_192_row_feature_sha256"]
+            == ovr.get("shared_input_requirement", {}).get("sha256"),
+            "the tree half used a different 192-row feature artifact",
+        )
+        check(
+            failures,
+            sha256_file(ovr_path) == tm["override_sha256"]
+            if ovr_path.exists()
+            else False,
+            "the tree manifest cites a different override artifact",
+        )
+        for rec in tm["records"]:
+            uid = rec["unit_id"]
+            npz = tdir / f"{uid}.npz"
+            check(failures, npz.exists(), f"{uid}: missing tree score vector")
+            if not npz.exists():
+                continue
+            check(
+                failures,
+                sha256_file(npz) == rec["npz_sha256"],
+                f"{uid}: tree npz digest drifted",
+            )
+            # Recompute rather than believe. A tampered vector plus a
+            # regenerated tree manifest is internally consistent, so the only
+            # unforgeable check is re-deriving the score from the persisted
+            # ensemble and the shared feature artifact.
+            want = rederive_tree(SPEC_BY_UID[uid], REPO_ROOT, FEATURE_NPZ)
+            with np.load(npz) as z:
+                got = np.asarray(z["score"], dtype="float64")
+            check(
+                failures,
+                got.shape == want.shape and np.array_equal(got, want),
+                f"{uid}: the tree score does not reproduce from the persisted "
+                "ensemble and the shared feature artifact",
+            )
+            check(
+                failures,
+                rec["replicates"] == 1,
+                f"{uid}: tree has {rec['replicates']} replicates, must be 1",
+            )
+            check(
+                failures,
+                rec["max_abs_diff"] == 0.0 and rec["exact_rows"] == 352,
+                f"{uid}: tree is not bit-exact against E4's comparator",
+            )
+            with np.load(npz) as z:
+                sc = np.asarray(z["score"], dtype="float64")
+                ri = np.asarray(z["raw_index"], dtype="int64")
+            check(
+                failures,
+                sc.size == QUERY_ROWS and np.all(np.isfinite(sc)),
+                f"{uid}: tree score is not 192 finite values",
+            )
+            check(
+                failures,
+                np.array_equal(ri, QUERY_INDEX),
+                f"{uid}: tree rows are not the frozen query rows in order",
+            )
+        check(
+            failures,
+            {r["unit_id"] for r in tm["records"]} == set(order),
+            "the tree half does not cover the same 24 units",
         )
 
     print(f"files verified : {len(entries)}")
@@ -405,6 +562,21 @@ def main() -> int:
         shutil.copy2(src, tmp)
         tmp.replace(dst)
         print(f"imported {rel}")
+
+    # The tree half, which is validated above but is not in the remote manifest
+    # because the laptop produced it. Omitting it would leave the canonical root
+    # unable to satisfy its own tree manifest.
+    tsrc = args.staged / "trees"
+    if tsrc.is_dir():
+        tdst = args.canonical / "trees"
+        staging = args.canonical / ".incoming_trees"
+        if staging.exists():
+            shutil.rmtree(staging)
+        shutil.copytree(tsrc, staging)
+        if tdst.exists():
+            shutil.rmtree(tdst)
+        staging.replace(tdst)
+        print(f"imported trees/ ({len(list(tdst.glob('*.npz')))} score vectors)")
 
     shutil.copy2(args.staged / MANIFEST, args.canonical / MANIFEST)
     print("IMPORT COMPLETE")

@@ -111,8 +111,13 @@ def main() -> int:
             "the override fixed; the laptop must score the same input as gpu-host"
         )
     with np.load(args.query192) as z:
-        raw_q192 = np.asarray(z["q"], dtype="float64")
+        # Stored dtype. The original factorial run scaled the float32 feature
+        # matrix, and the gate below certifies that float32 path; upcasting here
+        # would score through a path the gate never checked.
+        raw_q192 = np.asarray(z["q"])
         q_index = np.asarray(z["raw_index"], dtype="int64")
+    if raw_q192.dtype != np.float32:
+        raise SystemExit(f"192-row matrix dtype is {raw_q192.dtype}, expected float32")
     if raw_q192.shape != (QUERY_ROWS, FEATURES):
         raise SystemExit(f"192-row matrix shape {raw_q192.shape}")
 

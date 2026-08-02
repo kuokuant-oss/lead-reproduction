@@ -1,0 +1,426 @@
+{
+  "A_response_replication": {
+    "criteria": {
+      "at_least_two_of_three_seeds_positive": true,
+      "both_arms_positive": true,
+      "both_clustered_intervals_exclude_zero_upward": true,
+      "overall_positive_on_both_endpoints": true,
+      "three_of_three_seeds_positive": true
+    },
+    "detail": {
+      "steam_positive_minus_hotwater_negative_score_margin": {
+        "cell_specific": {
+          "clustered": {
+            "building": {
+              "excludes_zero": true,
+              "excludes_zero_positive": true,
+              "q025": 0.5678981121545463,
+              "q975": 0.6308364094817758
+            },
+            "segment": {
+              "excludes_zero": true,
+              "excludes_zero_positive": true,
+              "q025": 0.5696291536432679,
+              "q975": 0.6276641543039893
+            }
+          },
+          "overall": 0.5991606464985887,
+          "per_seed": {
+            "123": 0.6008401202640279,
+            "42": 0.5975587745060214,
+            "999": 0.5990830447257167
+          },
+          "range": 0.0032813457580065375,
+          "sample_sd": 0.0016420487271276468,
+          "seeds_positive": 3,
+          "sign_consistency": "3/3 positive"
+        },
+        "frozen_reference": {
+          "clustered": {
+            "building": {
+              "excludes_zero": true,
+              "excludes_zero_positive": true,
+              "q025": 0.5673082542751282,
+              "q975": 0.6301515388846245
+            },
+            "segment": {
+              "excludes_zero": true,
+              "excludes_zero_positive": true,
+              "q025": 0.5678675251132115,
+              "q975": 0.6262552605874964
+            }
+          },
+          "overall": 0.59823222157068,
+          "per_seed": {
+            "123": 0.6036321386374848,
+            "42": 0.5944288851236337,
+            "999": 0.5966356409509217
+          },
+          "range": 0.009203253513851095,
+          "sample_sd": 0.004804869516084084,
+          "seeds_positive": 3,
+          "sign_consistency": "3/3 positive"
+        }
+      },
+      "steam_positive_vs_hotwater_negative_pairwise_auc": {
+        "cell_specific": {
+          "clustered": {
+            "building": {
+              "excludes_zero": true,
+              "excludes_zero_positive": true,
+              "q025": 0.33119884672619043,
+              "q975": 0.475268189026306
+            },
+            "segment": {
+              "excludes_zero": true,
+              "excludes_zero_positive": true,
+              "q025": 0.34670537704213433,
+              "q975": 0.4645663339120371
+            }
+          },
+          "overall": 0.4048665364583333,
+          "per_seed": {
+            "123": 0.39837646484375,
+            "42": 0.3866729736328125,
+            "999": 0.4295501708984375
+          },
+          "range": 0.042877197265625,
+          "sample_sd": 0.022163128919686526,
+          "seeds_positive": 3,
+          "sign_consistency": "3/3 positive"
+        },
+        "frozen_reference": {
+          "clustered": {
+            "building": {
+              "excludes_zero": true,
+              "excludes_zero_positive": true,
+              "q025": 0.3304281424011136,
+              "q975": 0.47468914706137455
+            },
+            "segment": {
+              "excludes_zero": true,
+              "excludes_zero_positive": true,
+              "q025": 0.3453814259829671,
+              "q975": 0.46495949409220305
+            }
+          },
+          "overall": 0.4044748942057292,
+          "per_seed": {
+            "123": 0.40130615234375,
+            "42": 0.383697509765625,
+            "999": 0.4284210205078125
+          },
+          "range": 0.0447235107421875,
+          "sample_sd": 0.022529509471303066,
+          "seeds_positive": 3,
+          "sign_consistency": "3/3 positive"
+        }
+      }
+    },
+    "per_endpoint": {
+      "steam_positive_minus_hotwater_negative_score_margin": {
+        "intervals_exclude_zero": true,
+        "overall_positive": true,
+        "seeds_positive_per_arm": {
+          "cell_specific": 3,
+          "frozen_reference": 3
+        }
+      },
+      "steam_positive_vs_hotwater_negative_pairwise_auc": {
+        "intervals_exclude_zero": true,
+        "overall_positive": true,
+        "seeds_positive_per_arm": {
+          "cell_specific": 3,
+          "frozen_reference": 3
+        }
+      }
+    },
+    "verdict": "REPLICATED"
+  },
+  "B_tabpfn_specific_replication": {
+    "criteria": {
+      "at_least_two_of_three_seeds_positive": true,
+      "both_arms_positive": true,
+      "both_clustered_intervals_exclude_zero_upward": true,
+      "overall_positive_on_both_endpoints": true,
+      "three_of_three_seeds_positive": true
+    },
+    "detail": {
+      "steam_positive_minus_hotwater_negative_score_margin": {
+        "cell_specific": {
+          "clustered": {
+            "building": {
+              "excludes_zero": true,
+              "excludes_zero_positive": true,
+              "q025": 0.06025698061839688,
+              "q975": 0.14249652380460334
+            },
+            "segment": {
+              "excludes_zero": true,
+              "excludes_zero_positive": true,
+              "q025": 0.06744704070810537,
+              "q975": 0.13348221833923288
+            }
+          },
+          "overall": 0.10099023309152659,
+          "per_seed": {
+            "123": 0.07987562113260438,
+            "42": 0.11661528871509041,
+            "999": 0.10647978942688496
+          },
+          "range": 0.036739667582486035,
+          "sample_sd": 0.01897504189948467,
+          "seeds_positive": 3,
+          "sign_consistency": "3/3 positive"
+        },
+        "frozen_reference": {
+          "clustered": {
+            "building": {
+              "excludes_zero": true,
+              "excludes_zero_positive": true,
+              "q025": 0.05886332587177139,
+              "q975": 0.14289102573975426
+            },
+            "segment": {
+              "excludes_zero": true,
+              "excludes_zero_positive": true,
+              "q025": 0.06617942570179902,
+              "q975": 0.13403500015818345
+            }
+          },
+          "overall": 0.10026367414470568,
+          "per_seed": {
+            "123": 0.08207193186691164,
+            "42": 0.11715742688816988,
+            "999": 0.10156166367903552
+          },
+          "range": 0.03508549502125824,
+          "sample_sd": 0.017578725006242815,
+          "seeds_positive": 3,
+          "sign_consistency": "3/3 positive"
+        }
+      },
+      "steam_positive_vs_hotwater_negative_pairwise_auc": {
+        "cell_specific": {
+          "clustered": {
+            "building": {
+              "excludes_zero": true,
+              "excludes_zero_positive": true,
+              "q025": 0.0316911841144781,
+              "q975": 0.13010763986579293
+            },
+            "segment": {
+              "excludes_zero": true,
+              "excludes_zero_positive": true,
+              "q025": 0.04016448331232771,
+              "q975": 0.12513369460764845
+            }
+          },
+          "overall": 0.08274332682291667,
+          "per_seed": {
+            "123": 0.0552978515625,
+            "42": 0.0969390869140625,
+            "999": 0.0959930419921875
+          },
+          "range": 0.0416412353515625,
+          "sample_sd": 0.02377318519784757,
+          "seeds_positive": 3,
+          "sign_consistency": "3/3 positive"
+        },
+        "frozen_reference": {
+          "clustered": {
+            "building": {
+              "excludes_zero": true,
+              "excludes_zero_positive": true,
+              "q025": 0.03885951335827501,
+              "q975": 0.13652007797897978
+            },
+            "segment": {
+              "excludes_zero": true,
+              "excludes_zero_positive": true,
+              "q025": 0.048012209513435024,
+              "q975": 0.13133221812909315
+            }
+          },
+          "overall": 0.08898417154947917,
+          "per_seed": {
+            "123": 0.06982421875,
+            "42": 0.101043701171875,
+            "999": 0.0960845947265625
+          },
+          "range": 0.031219482421875,
+          "sample_sd": 0.016777247320185967,
+          "seeds_positive": 3,
+          "sign_consistency": "3/3 positive"
+        }
+      }
+    },
+    "per_endpoint": {
+      "steam_positive_minus_hotwater_negative_score_margin": {
+        "intervals_exclude_zero": true,
+        "overall_positive": true,
+        "seeds_positive_per_arm": {
+          "cell_specific": 3,
+          "frozen_reference": 3
+        }
+      },
+      "steam_positive_vs_hotwater_negative_pairwise_auc": {
+        "intervals_exclude_zero": true,
+        "overall_positive": true,
+        "seeds_positive_per_arm": {
+          "cell_specific": 3,
+          "frozen_reference": 3
+        }
+      }
+    },
+    "verdict": "REPLICATED"
+  },
+  "authorises": [],
+  "co_primary_endpoints": [
+    "steam_positive_vs_hotwater_negative_pairwise_auc",
+    "steam_positive_minus_hotwater_negative_score_margin"
+  ],
+  "coverage": {
+    "distinct_process_uuids": 24,
+    "distinct_state_identities": 24,
+    "effective_n_estimators_": [
+      8
+    ],
+    "fits_performed": 0,
+    "same_process_repeats": 192,
+    "scaler_verified_exact": true,
+    "score_vector_length": 192,
+    "states_reloaded": 24,
+    "tree_score_vectors": 24
+  },
+  "coverage_failures": [],
+  "e4_reference": {
+    "negative_support_main_effect_auc": 0.4118,
+    "negative_support_main_effect_margin": 0.6312,
+    "note": "E4 values on the 352-row screening query, for orientation only; E5's verdict is decided by E5's own frozen rules",
+    "tabpfn_minus_tree_auc": 0.1237,
+    "tabpfn_minus_tree_margin": 0.1522
+  },
+  "fixed_tree_response": {
+    "steam_positive_minus_hotwater_negative_score_margin": {
+      "cell_specific": {
+        "clustered": {
+          "building": {
+            "excludes_zero": true,
+            "excludes_zero_positive": true,
+            "q025": 0.4652401655453516,
+            "q975": 0.5297268115248676
+          },
+          "segment": {
+            "excludes_zero": true,
+            "excludes_zero_positive": true,
+            "q025": 0.4719823635877128,
+            "q975": 0.5250150813590327
+          }
+        },
+        "overall": 0.4981704134070621,
+        "per_seed": {
+          "123": 0.5209644991314235,
+          "42": 0.48094348579093094,
+          "999": 0.49260325529883175
+        },
+        "range": 0.04002101334049257,
+        "sample_sd": 0.02058313178919809,
+        "seeds_positive": 3,
+        "sign_consistency": "3/3 positive"
+      },
+      "frozen_reference": {
+        "clustered": {
+          "building": {
+            "excludes_zero": true,
+            "excludes_zero_positive": true,
+            "q025": 0.4633560322355288,
+            "q975": 0.5298939281658817
+          },
+          "segment": {
+            "excludes_zero": true,
+            "excludes_zero_positive": true,
+            "q025": 0.4712962943106558,
+            "q975": 0.5257093590377718
+          }
+        },
+        "overall": 0.49796854742597435,
+        "per_seed": {
+          "123": 0.5215602067705731,
+          "42": 0.4772714582354638,
+          "999": 0.4950739772718862
+        },
+        "range": 0.044288748535109335,
+        "sample_sd": 0.022285807456411375,
+        "seeds_positive": 3,
+        "sign_consistency": "3/3 positive"
+      }
+    },
+    "steam_positive_vs_hotwater_negative_pairwise_auc": {
+      "cell_specific": {
+        "clustered": {
+          "building": {
+            "excludes_zero": true,
+            "excludes_zero_positive": true,
+            "q025": 0.25865973126339736,
+            "q975": 0.3850347631053397
+          },
+          "segment": {
+            "excludes_zero": true,
+            "excludes_zero_positive": true,
+            "q025": 0.27407855339105336,
+            "q975": 0.3715655467617558
+          }
+        },
+        "overall": 0.3221232096354167,
+        "per_seed": {
+          "123": 0.34307861328125,
+          "42": 0.28973388671875,
+          "999": 0.33355712890625
+        },
+        "range": 0.0533447265625,
+        "sample_sd": 0.028451113254597326,
+        "seeds_positive": 3,
+        "sign_consistency": "3/3 positive"
+      },
+      "frozen_reference": {
+        "clustered": {
+          "building": {
+            "excludes_zero": true,
+            "excludes_zero_positive": true,
+            "q025": 0.25029633419932107,
+            "q975": 0.3793197673176948
+          },
+          "segment": {
+            "excludes_zero": true,
+            "excludes_zero_positive": true,
+            "q025": 0.26419760495023015,
+            "q975": 0.3670445126424446
+          }
+        },
+        "overall": 0.31549072265625,
+        "per_seed": {
+          "123": 0.33148193359375,
+          "42": 0.28265380859375,
+          "999": 0.33233642578125
+        },
+        "range": 0.0496826171875,
+        "sample_sd": 0.0284408110483093,
+        "seeds_positive": 3,
+        "sign_consistency": "3/3 positive"
+      }
+    }
+  },
+  "generated": 1785636944.594432,
+  "interval_containing_zero_is_not_proof_of_absence": true,
+  "protocol_sha256": "f417ca5c58e5607085e00cc910b55de91b6f373d2c2922d724e1485a5005a4d0",
+  "replication_target": "hotwater-negative support main effect on steam separation",
+  "schema": "m5_e5_decision_v1",
+  "thresholds_frozen_before_scoring": true,
+  "vocabulary": [
+    "REPLICATED",
+    "DIRECTIONALLY_CONSISTENT_BUT_INCONCLUSIVE",
+    "NOT_REPLICATED",
+    "EXECUTION_INCOMPLETE"
+  ]
+}

@@ -1,0 +1,2379 @@
+{
+  "chilledwater": "absent from the 192-row query; no chilledwater endpoint is computed and no other query was substituted",
+  "coverage": {
+    "distinct_process_uuids": 24,
+    "distinct_state_identities": 24,
+    "effective_n_estimators_": [
+      8
+    ],
+    "fits_performed": 0,
+    "same_process_repeats": 192,
+    "scaler_verified_exact": true,
+    "score_vector_length": 192,
+    "states_reloaded": 24,
+    "tree_score_vectors": 24
+  },
+  "generated": 1785636934.5211082,
+  "per_state": {
+    "seed123__cell00__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "00",
+      "cell_dir": "hw_pos_excluded__hw_neg_excluded",
+      "context_seed": 123,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.00500207607257361,
+          "max": 0.5445963541666667,
+          "mean": 0.5329081217447917,
+          "min": 0.526611328125,
+          "n": 8,
+          "sd": 0.005983194849744586
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.004608896634967603,
+          "max": 0.1340563779231161,
+          "mean": 0.12400473713933025,
+          "min": 0.11810196086298674,
+          "n": 8,
+          "sd": 0.005512896287312014
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.007400098374773294,
+          "max": 0.741943359375,
+          "mean": 0.72418212890625,
+          "min": 0.71435546875,
+          "n": 8,
+          "sd": 0.008851570796036767
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 1.0033241150013055,
+      "process_uuid": "03af98a1-4f30-4fd3-8acb-a467c77109b3",
+      "scaler_arm": "cell_specific",
+      "scaler_verification": {
+        "categorical_columns_excluded": 1,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 136
+      },
+      "state_sha256": "c0f8444140521c2bf6714a30f2fadbfe45da3046974cd392e57d568f362c2970",
+      "unit_id": "seed123__cell00__cell_specific"
+    },
+    "seed123__cell00__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "00",
+      "cell_dir": "hw_pos_excluded__hw_neg_excluded",
+      "context_seed": 123,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.00640690594040012,
+          "max": 0.54345703125,
+          "mean": 0.533905029296875,
+          "min": 0.5185546875,
+          "n": 8,
+          "sd": 0.00766357129904203
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.006247915006837321,
+          "max": 0.13243867014534771,
+          "mean": 0.12049639985343674,
+          "min": 0.1072891125222668,
+          "n": 8,
+          "sd": 0.007473395515817768
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.009789789942887548,
+          "max": 0.744384765625,
+          "mean": 0.725250244140625,
+          "min": 0.703125,
+          "n": 8,
+          "sd": 0.011709981998780197
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 0.9982928230019752,
+      "process_uuid": "52db0da3-6ecc-452b-907a-b8dd762cf196",
+      "scaler_arm": "frozen_reference",
+      "scaler_verification": {
+        "categorical_columns_excluded": 1,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 136
+      },
+      "state_sha256": "a35815f177cfb1367f49bdf36e4a4a3ae21e381adfcd7a57fe30f194c098637b",
+      "unit_id": "seed123__cell00__frozen_reference"
+    },
+    "seed123__cell01__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "01",
+      "cell_dir": "hw_pos_excluded__hw_neg_present",
+      "context_seed": 123,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.0003333047969212104,
+          "max": 0.8245442708333333,
+          "mean": 0.8240559895833333,
+          "min": 0.8234049479166667,
+          "n": 8,
+          "sd": 0.00039867997115607736
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.0009125082124168966,
+          "max": 0.8051626786318877,
+          "mean": 0.8040322512399669,
+          "min": 0.8020392381269801,
+          "n": 8,
+          "sd": 0.0010914896850165946
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.0004355452428852672,
+          "max": 0.9892578125,
+          "mean": 0.988433837890625,
+          "min": 0.987548828125,
+          "n": 8,
+          "sd": 0.0005209740948064193
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 1.1837899460006156,
+      "process_uuid": "0325c219-1d91-4d5e-8de4-f00db7ded09a",
+      "scaler_arm": "cell_specific",
+      "scaler_verification": {
+        "categorical_columns_excluded": 0,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 137
+      },
+      "state_sha256": "e1c4313f78ce27adf7efc2eaa79fa0789154be9a053d3b4a55b642ce65fc3262",
+      "unit_id": "seed123__cell01__cell_specific"
+    },
+    "seed123__cell01__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "01",
+      "cell_dir": "hw_pos_excluded__hw_neg_present",
+      "context_seed": 123,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.0006545976263071927,
+          "max": 0.82470703125,
+          "mean": 0.8235270182291667,
+          "min": 0.8225911458333334,
+          "n": 8,
+          "sd": 0.0007829919196652902
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.002598075317472575,
+          "max": 0.8067937495630133,
+          "mean": 0.8035353278086568,
+          "min": 0.7977549780255515,
+          "n": 8,
+          "sd": 0.00310766782296306
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.0006431326828664135,
+          "max": 0.989501953125,
+          "mean": 0.98809814453125,
+          "min": 0.987060546875,
+          "n": 8,
+          "sd": 0.000769278215684737
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 1.0831731569996919,
+      "process_uuid": "c46cc440-1748-4e8b-b22b-d8929505855d",
+      "scaler_arm": "frozen_reference",
+      "scaler_verification": {
+        "categorical_columns_excluded": 0,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 137
+      },
+      "state_sha256": "91ec9baae7938479c150f6f7410474eb5a758ad79f101ca7c4b1ec529871f362",
+      "unit_id": "seed123__cell01__frozen_reference"
+    },
+    "seed123__cell10__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "10",
+      "cell_dir": "hw_pos_present__hw_neg_excluded",
+      "context_seed": 123,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.003244567023803729,
+          "max": 0.3203125,
+          "mean": 0.3140767415364583,
+          "min": 0.30826822916666663,
+          "n": 8,
+          "sd": 0.0038809639087486938
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.0013851518650383017,
+          "max": -0.08453653124161065,
+          "mean": -0.08776684122858569,
+          "min": -0.08989289589226246,
+          "n": 8,
+          "sd": 0.0016568387575015863
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.009386014349768676,
+          "max": 0.37109375,
+          "mean": 0.354461669921875,
+          "min": 0.3369140625,
+          "n": 8,
+          "sd": 0.011227008926369802
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 0.9497164159984095,
+      "process_uuid": "d8167eae-19b5-4314-8a62-bacead187742",
+      "scaler_arm": "cell_specific",
+      "scaler_verification": {
+        "categorical_columns_excluded": 0,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 137
+      },
+      "state_sha256": "cb6e796cf5dfab4e2f1172309845bd5dd16b29d52a71045d72c374bb07ecbb1d",
+      "unit_id": "seed123__cell10__cell_specific"
+    },
+    "seed123__cell10__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "10",
+      "cell_dir": "hw_pos_present__hw_neg_excluded",
+      "context_seed": 123,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.0022228254206641176,
+          "max": 0.314208984375,
+          "mean": 0.3115234375,
+          "min": 0.30769856770833337,
+          "n": 8,
+          "sd": 0.002658815542954375
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.00033409978884088744,
+          "max": -0.08843724033795297,
+          "mean": -0.08897865962353535,
+          "min": -0.08972831850405782,
+          "n": 8,
+          "sd": 0.00039963089463072827
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.006146905920214517,
+          "max": 0.35595703125,
+          "mean": 0.347869873046875,
+          "min": 0.3369140625,
+          "n": 8,
+          "sd": 0.0073525742731796045
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 1.129017503997602,
+      "process_uuid": "0b3bcbb1-4b4e-4098-b34c-1df8dbe4ddab",
+      "scaler_arm": "frozen_reference",
+      "scaler_verification": {
+        "categorical_columns_excluded": 0,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 137
+      },
+      "state_sha256": "f37f9152566fc7c09c3f0187f6c38b5a800726f9b5b7725c3d8d9ee45b92cb2d",
+      "unit_id": "seed123__cell10__frozen_reference"
+    },
+    "seed123__cell11__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "11",
+      "cell_dir": "hw_pos_present__hw_neg_present",
+      "context_seed": 123,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.0016342448662300232,
+          "max": 0.68310546875,
+          "mean": 0.6796976725260416,
+          "min": 0.677734375,
+          "n": 8,
+          "sd": 0.001954789436422573
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.004950472126269885,
+          "max": 0.4407956887589535,
+          "mean": 0.4338858851988334,
+          "min": 0.4206343213445507,
+          "n": 8,
+          "sd": 0.0059214691859859215
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.001933249915177713,
+          "max": 0.8896484375,
+          "mean": 0.886962890625,
+          "min": 0.882568359375,
+          "n": 8,
+          "sd": 0.0023124420276577533
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 0.9882502279942855,
+      "process_uuid": "f57fef94-5d32-4fb6-a0da-91b00900d9b8",
+      "scaler_arm": "cell_specific",
+      "scaler_verification": {
+        "categorical_columns_excluded": 0,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 137
+      },
+      "state_sha256": "870094568a428705a45130c8831762607926ea8ee2a093e39a7c6549834c2842",
+      "unit_id": "seed123__cell11__cell_specific"
+    },
+    "seed123__cell11__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "11",
+      "cell_dir": "hw_pos_present__hw_neg_present",
+      "context_seed": 123,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.0013847665431488397,
+          "max": 0.6830240885416666,
+          "mean": 0.680694580078125,
+          "min": 0.678466796875,
+          "n": 8,
+          "sd": 0.0016563778576849755
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.005147223393413962,
+          "max": 0.44158829933439847,
+          "mean": 0.43524668969621416,
+          "min": 0.4234430325741414,
+          "n": 8,
+          "sd": 0.00615681170200877
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.0013918219276937954,
+          "max": 0.8896484375,
+          "mean": 0.88763427734375,
+          "min": 0.884521484375,
+          "n": 8,
+          "sd": 0.0016648171016828436
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 1.058184560999507,
+      "process_uuid": "004a35d4-8c67-4c79-9305-4f0f0eca9592",
+      "scaler_arm": "frozen_reference",
+      "scaler_verification": {
+        "categorical_columns_excluded": 0,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 137
+      },
+      "state_sha256": "668a03c92cbaa7456223e45c4af1f6d5a03a0c618cbdd42f348f726385923187",
+      "unit_id": "seed123__cell11__frozen_reference"
+    },
+    "seed42__cell00__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "00",
+      "cell_dir": "hw_pos_excluded__hw_neg_excluded",
+      "context_seed": 42,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.008023911445984374,
+          "max": 0.5536295572916666,
+          "mean": 0.5387776692708334,
+          "min": 0.5235188802083333,
+          "n": 8,
+          "sd": 0.009597740006724748
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.00261743839865796,
+          "max": 0.15775548611418344,
+          "mean": 0.152489376552694,
+          "min": 0.1487362298357766,
+          "n": 8,
+          "sd": 0.0031308288237040928
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.006371594367256652,
+          "max": 0.747802734375,
+          "mean": 0.73565673828125,
+          "min": 0.7216796875,
+          "n": 8,
+          "sd": 0.0076213336322206865
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 1.012410537005053,
+      "process_uuid": "2ee678e5-fe6e-4c36-baea-644554c53caf",
+      "scaler_arm": "cell_specific",
+      "scaler_verification": {
+        "categorical_columns_excluded": 1,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 136
+      },
+      "state_sha256": "a3144473c7ad31c446aca91337d729c20f9dd2a15efdaeb262c47564993da8b6",
+      "unit_id": "seed42__cell00__cell_specific"
+    },
+    "seed42__cell00__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "00",
+      "cell_dir": "hw_pos_excluded__hw_neg_excluded",
+      "context_seed": 42,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.004232436234117852,
+          "max": 0.5509440104166666,
+          "mean": 0.540252685546875,
+          "min": 0.5347493489583334,
+          "n": 8,
+          "sd": 0.005062596072197909
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.00546625468397056,
+          "max": 0.17058391546015628,
+          "mean": 0.15808755588113854,
+          "min": 0.1502042816573521,
+          "n": 8,
+          "sd": 0.006538418528228727
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.006147450501959044,
+          "max": 0.749267578125,
+          "mean": 0.740478515625,
+          "min": 0.72802734375,
+          "n": 8,
+          "sd": 0.007353225670447829
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 0.9051474199950462,
+      "process_uuid": "7ccbbafb-3b08-4b6f-a38b-5ed1f4960d53",
+      "scaler_arm": "frozen_reference",
+      "scaler_verification": {
+        "categorical_columns_excluded": 1,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 136
+      },
+      "state_sha256": "efcddcd0b87e615f9420fa0d89e337d1f08f29e8b0df94b66e2c0974c8bb3c35",
+      "unit_id": "seed42__cell00__frozen_reference"
+    },
+    "seed42__cell01__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "01",
+      "cell_dir": "hw_pos_excluded__hw_neg_present",
+      "context_seed": 42,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.00037606847975605294,
+          "max": 0.8291015625,
+          "mean": 0.8285624186197917,
+          "min": 0.8277994791666667,
+          "n": 8,
+          "sd": 0.0004498314217100663
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.0015214367276671801,
+          "max": 0.8266816692765815,
+          "mean": 0.8249517425509971,
+          "min": 0.8210229848226334,
+          "n": 8,
+          "sd": 0.0018198548484903254
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.0005563010116819932,
+          "max": 0.99365234375,
+          "mean": 0.9930419921875,
+          "min": 0.99169921875,
+          "n": 8,
+          "sd": 0.0006654151795598114
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 0.9829657779991976,
+      "process_uuid": "567898c6-ff75-45ed-ae8d-51d26726f142",
+      "scaler_arm": "cell_specific",
+      "scaler_verification": {
+        "categorical_columns_excluded": 0,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 137
+      },
+      "state_sha256": "9df0c8553f8c011eed73dc71eca32f187c2b3ed2930d92402cf73a0b910bbf91",
+      "unit_id": "seed42__cell01__cell_specific"
+    },
+    "seed42__cell01__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "01",
+      "cell_dir": "hw_pos_excluded__hw_neg_present",
+      "context_seed": 42,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.0004906113770013961,
+          "max": 0.8291829427083334,
+          "mean": 0.8283284505208334,
+          "min": 0.82763671875,
+          "n": 8,
+          "sd": 0.0005868410279075489
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.0015782025587181242,
+          "max": 0.8292243737856211,
+          "mean": 0.8255361045246161,
+          "min": 0.8226002648416681,
+          "n": 8,
+          "sd": 0.0018877548610166705
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.0006980456650689363,
+          "max": 0.993896484375,
+          "mean": 0.992523193359375,
+          "min": 0.99169921875,
+          "n": 8,
+          "sd": 0.0008349619573014866
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 0.970908048999263,
+      "process_uuid": "a7766f1f-dd1f-40d6-8d4c-93979713ab12",
+      "scaler_arm": "frozen_reference",
+      "scaler_verification": {
+        "categorical_columns_excluded": 0,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 137
+      },
+      "state_sha256": "3df36867fdf3da819845c4e195c2028af5b60b88058dcb6dd2bfd19b86ddd5b7",
+      "unit_id": "seed42__cell01__frozen_reference"
+    },
+    "seed42__cell10__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "10",
+      "cell_dir": "hw_pos_present__hw_neg_excluded",
+      "context_seed": 42,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.001957759350662219,
+          "max": 0.3388671875,
+          "mean": 0.33511861165364587,
+          "min": 0.33097330729166663,
+          "n": 8,
+          "sd": 0.002341758800540337
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.0016850763513449195,
+          "max": -0.05546157970093191,
+          "mean": -0.05714212072780356,
+          "min": -0.06167350756004453,
+          "n": 8,
+          "sd": 0.002015591126667127
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.003830934389097614,
+          "max": 0.395263671875,
+          "mean": 0.3902587890625,
+          "min": 0.380126953125,
+          "n": 8,
+          "sd": 0.004582342726100346
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 0.9901774019963341,
+      "process_uuid": "adf68b3c-c61a-4d40-80ab-c77f386fa2c0",
+      "scaler_arm": "cell_specific",
+      "scaler_verification": {
+        "categorical_columns_excluded": 0,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 137
+      },
+      "state_sha256": "1e89562a57ddb1d48db5ae20fd0b06876fa37459adc4f24b825c7d6f18876da7",
+      "unit_id": "seed42__cell10__cell_specific"
+    },
+    "seed42__cell10__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "10",
+      "cell_dir": "hw_pos_present__hw_neg_excluded",
+      "context_seed": 42,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.002689095622120346,
+          "max": 0.339111328125,
+          "mean": 0.3356730143229167,
+          "min": 0.32820638020833337,
+          "n": 8,
+          "sd": 0.003216541060812585
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.0015580877007961458,
+          "max": -0.05518020410090685,
+          "mean": -0.057166780810803175,
+          "min": -0.06065432436298579,
+          "n": 8,
+          "sd": 0.001863694628310093
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.006513563895897884,
+          "max": 0.401611328125,
+          "mean": 0.392303466796875,
+          "min": 0.375244140625,
+          "n": 8,
+          "sd": 0.007791149392769454
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 1.2244225419999566,
+      "process_uuid": "e72802c9-6673-47cd-9f01-3dbaa5de6df3",
+      "scaler_arm": "frozen_reference",
+      "scaler_verification": {
+        "categorical_columns_excluded": 0,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 137
+      },
+      "state_sha256": "6aadc4e0f6cc724201f7c7dd6a7b8519599032068328f5f77963d8c219ca5259",
+      "unit_id": "seed42__cell10__frozen_reference"
+    },
+    "seed42__cell11__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "11",
+      "cell_dir": "hw_pos_present__hw_neg_present",
+      "context_seed": 42,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.0019932046202951244,
+          "max": 0.6756184895833334,
+          "mean": 0.6718343098958333,
+          "min": 0.6678059895833334,
+          "n": 8,
+          "sd": 0.002384156387389969
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.002769507668840175,
+          "max": 0.46993365741946036,
+          "mean": 0.46551306228593603,
+          "min": 0.46137522746721515,
+          "n": 8,
+          "sd": 0.0033127253124735083
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.0022844256197289805,
+          "max": 0.910888671875,
+          "mean": 0.906219482421875,
+          "min": 0.9013671875,
+          "n": 8,
+          "sd": 0.002732498147625059
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 0.9351511109998683,
+      "process_uuid": "f193c2c5-84aa-42cf-95c5-f7402057627a",
+      "scaler_arm": "cell_specific",
+      "scaler_verification": {
+        "categorical_columns_excluded": 0,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 137
+      },
+      "state_sha256": "9ff1784a3a4aa838073595ab84258b1cbf7de7c4e0c4c4ceda9b09ea1f4ec909",
+      "unit_id": "seed42__cell11__cell_specific"
+    },
+    "seed42__cell11__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "11",
+      "cell_dir": "hw_pos_present__hw_neg_present",
+      "context_seed": 42,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.0024833144649166325,
+          "max": 0.6765950520833334,
+          "mean": 0.6724751790364584,
+          "min": 0.66845703125,
+          "n": 8,
+          "sd": 0.002970397511195943
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.004713644422785059,
+          "max": 0.47186689449154073,
+          "mean": 0.4642424407929866,
+          "min": 0.45371917508600745,
+          "n": 8,
+          "sd": 0.005638189548649618
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.0033498198080436424,
+          "max": 0.913330078125,
+          "mean": 0.90765380859375,
+          "min": 0.900146484375,
+          "n": 8,
+          "sd": 0.0040068612176757685
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 1.235560280001664,
+      "process_uuid": "20018429-ec2e-479d-9ffb-07893fa35594",
+      "scaler_arm": "frozen_reference",
+      "scaler_verification": {
+        "categorical_columns_excluded": 0,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 137
+      },
+      "state_sha256": "d9185332785ac41ce10968d0305468979506e2957427ae0e588d68dc52b6f8a4",
+      "unit_id": "seed42__cell11__frozen_reference"
+    },
+    "seed999__cell00__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "00",
+      "cell_dir": "hw_pos_excluded__hw_neg_excluded",
+      "context_seed": 999,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.005563299849385275,
+          "max": 0.543701171875,
+          "mean": 0.533599853515625,
+          "min": 0.5252278645833333,
+          "n": 8,
+          "sd": 0.00665449835697935
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.003401651982913232,
+          "max": 0.14134947714046575,
+          "mean": 0.13542598608182743,
+          "min": 0.1302671245066449,
+          "n": 8,
+          "sd": 0.004068859875279396
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.006228956855337061,
+          "max": 0.7392578125,
+          "mean": 0.72393798828125,
+          "min": 0.71435546875,
+          "n": 8,
+          "sd": 0.007450718868607428
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 1.1842575869959546,
+      "process_uuid": "c79185f2-1dab-42f9-a3df-e3acada3e1c4",
+      "scaler_arm": "cell_specific",
+      "scaler_verification": {
+        "categorical_columns_excluded": 1,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 136
+      },
+      "state_sha256": "ec38a7bc63ffd7a0f0151edd98d0a6423452633528e5f40ba5cf4d3406d48bc4",
+      "unit_id": "seed999__cell00__cell_specific"
+    },
+    "seed999__cell00__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "00",
+      "cell_dir": "hw_pos_excluded__hw_neg_excluded",
+      "context_seed": 999,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.0048140608225772695,
+          "max": 0.5441080729166667,
+          "mean": 0.5379130045572917,
+          "min": 0.5283203125,
+          "n": 8,
+          "sd": 0.005758301853490581
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.0023336203179328305,
+          "max": 0.14418721027323045,
+          "mean": 0.13980377619918727,
+          "min": 0.13548979899496771,
+          "n": 8,
+          "sd": 0.002791342007785821
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.004090507769061025,
+          "max": 0.736328125,
+          "mean": 0.72906494140625,
+          "min": 0.72119140625,
+          "n": 8,
+          "sd": 0.004892829429540025
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 1.0292086769986781,
+      "process_uuid": "d502bdfa-ae5a-46e3-8114-f7ead882bfa0",
+      "scaler_arm": "frozen_reference",
+      "scaler_verification": {
+        "categorical_columns_excluded": 1,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 136
+      },
+      "state_sha256": "982b5fbb5877ace13218e34455f95b6b1e62be07e9449a74cf52b35399380f2f",
+      "unit_id": "seed999__cell00__frozen_reference"
+    },
+    "seed999__cell01__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "01",
+      "cell_dir": "hw_pos_excluded__hw_neg_present",
+      "context_seed": 999,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.0003734216305820717,
+          "max": 0.8230794270833334,
+          "mean": 0.8225199381510417,
+          "min": 0.8216959635416667,
+          "n": 8,
+          "sd": 0.0004466654134135018
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.0017101770572770147,
+          "max": 0.8201531862683282,
+          "mean": 0.8173951648302591,
+          "min": 0.8132307187572394,
+          "n": 8,
+          "sd": 0.0020456151431512658
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.0005448157226913918,
+          "max": 0.986328125,
+          "mean": 0.985198974609375,
+          "min": 0.984375,
+          "n": 8,
+          "sd": 0.000651677139406208
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 0.9559344739973312,
+      "process_uuid": "6c7c7ebb-9d8a-4d2f-badb-0f8425edcbd3",
+      "scaler_arm": "cell_specific",
+      "scaler_verification": {
+        "categorical_columns_excluded": 0,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 137
+      },
+      "state_sha256": "3dd045999b68c45237e8fdc72f5ffed7d2497d9086b8ed6a968650a994157c54",
+      "unit_id": "seed999__cell01__cell_specific"
+    },
+    "seed999__cell01__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "01",
+      "cell_dir": "hw_pos_excluded__hw_neg_present",
+      "context_seed": 999,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.00039796023814563455,
+          "max": 0.8231608072916667,
+          "mean": 0.8224080403645833,
+          "min": 0.821533203125,
+          "n": 8,
+          "sd": 0.0004760170802542407
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.0018011492113118698,
+          "max": 0.820137452602296,
+          "mean": 0.8163731155129881,
+          "min": 0.8134437910106271,
+          "n": 8,
+          "sd": 0.002154430786015223
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.0004145426070800125,
+          "max": 0.98583984375,
+          "mean": 0.985076904296875,
+          "min": 0.984375,
+          "n": 8,
+          "sd": 0.0004958519534079566
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 1.1805052170020645,
+      "process_uuid": "63105bb2-814d-4786-b76c-ce0269e3d40d",
+      "scaler_arm": "frozen_reference",
+      "scaler_verification": {
+        "categorical_columns_excluded": 0,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 137
+      },
+      "state_sha256": "f58a0a766f0cbcb5990e330dccde4765bfd054d07c8a243a2510382abbf1047b",
+      "unit_id": "seed999__cell01__frozen_reference"
+    },
+    "seed999__cell10__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "10",
+      "cell_dir": "hw_pos_present__hw_neg_excluded",
+      "context_seed": 999,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.0018705801586096707,
+          "max": 0.2880859375,
+          "mean": 0.28411865234375,
+          "min": 0.2805989583333333,
+          "n": 8,
+          "sd": 0.002237480079999941
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.001634221104996117,
+          "max": -0.07653484452748671,
+          "mean": -0.07910161264589988,
+          "min": -0.08125972165726125,
+          "n": 8,
+          "sd": 0.0019547610146052577
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.004025982360488764,
+          "max": 0.290283203125,
+          "mean": 0.28338623046875,
+          "min": 0.27587890625,
+          "n": 8,
+          "sd": 0.004815647857999354
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 0.9678213030056213,
+      "process_uuid": "35ac23b6-db3a-4654-aca1-33e2405115cb",
+      "scaler_arm": "cell_specific",
+      "scaler_verification": {
+        "categorical_columns_excluded": 0,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 137
+      },
+      "state_sha256": "90946cd90c6462e8230276e3f56050196ac380e32fca79d72377fe7b3f3688fb",
+      "unit_id": "seed999__cell10__cell_specific"
+    },
+    "seed999__cell10__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "10",
+      "cell_dir": "hw_pos_present__hw_neg_excluded",
+      "context_seed": 999,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.004009400153143664,
+          "max": 0.2884928385416667,
+          "mean": 0.28177897135416663,
+          "min": 0.2744140625,
+          "n": 8,
+          "sd": 0.004795813178129411
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.0017532240141740873,
+          "max": -0.07677735108882189,
+          "mean": -0.08000400301534683,
+          "min": -0.08300559711642563,
+          "n": 8,
+          "sd": 0.0020971054297976312
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.008245460188613208,
+          "max": 0.293701171875,
+          "mean": 0.278472900390625,
+          "min": 0.2626953125,
+          "n": 8,
+          "sd": 0.00986274383246269
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 0.969716913998127,
+      "process_uuid": "6e942b04-bb8c-4198-9ba9-2aa959826cab",
+      "scaler_arm": "frozen_reference",
+      "scaler_verification": {
+        "categorical_columns_excluded": 0,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 137
+      },
+      "state_sha256": "4fabd3a377ed06cf3115aa7bb31d475e0079e783f6be9d0bea327107679af17b",
+      "unit_id": "seed999__cell10__frozen_reference"
+    },
+    "seed999__cell11__cell_specific": {
+      "bitwise_identical_repeats": false,
+      "cell": "11",
+      "cell_dir": "hw_pos_present__hw_neg_present",
+      "context_seed": 999,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.0025693799709047057,
+          "max": 0.6756998697916667,
+          "mean": 0.6695760091145833,
+          "min": 0.6650390625,
+          "n": 8,
+          "sd": 0.003073344104709775
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.006440025473574685,
+          "max": 0.4540912394004408,
+          "mean": 0.4370952980571019,
+          "min": 0.42903464240953326,
+          "n": 8,
+          "sd": 0.0077031869741019336
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.003197567769168367,
+          "max": 0.885498046875,
+          "mean": 0.8812255859375,
+          "min": 0.87353515625,
+          "n": 8,
+          "sd": 0.003824746111538854
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 0.9685491119962535,
+      "process_uuid": "f99e4c74-2376-49e4-aeac-9abfe4609416",
+      "scaler_arm": "cell_specific",
+      "scaler_verification": {
+        "categorical_columns_excluded": 0,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 137
+      },
+      "state_sha256": "208aedb03e71b25895cd26680f7808271c8d2d00abb4bcb855c1c1d7b0e6052a",
+      "unit_id": "seed999__cell11__cell_specific"
+    },
+    "seed999__cell11__frozen_reference": {
+      "bitwise_identical_repeats": false,
+      "cell": "11",
+      "cell_dir": "hw_pos_present__hw_neg_present",
+      "context_seed": 999,
+      "distinct_score_digests": 8,
+      "endpoints": {
+        "RESOLUTION_LIMITED_DIAGNOSTIC_chilledwater_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_global_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_minus_chilledwater_negative_score_margin": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_vs_chilledwater_negative_pairwise_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_positive_within_meter_rank": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_pr_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "chilledwater_within_meter_roc_auc": {
+          "available": false,
+          "reason": "stratum absent from the 192-row query"
+        },
+        "steam_positive_global_rank": {
+          "available": true,
+          "half_width": 0.0020410667031975226,
+          "max": 0.6714680989583333,
+          "mean": 0.6682942708333333,
+          "min": 0.6647135416666667,
+          "n": 8,
+          "sd": 0.0024414062499999827
+        },
+        "steam_positive_minus_hotwater_negative_score_margin": {
+          "available": true,
+          "half_width": 0.00481685799500108,
+          "max": 0.4478315041633323,
+          "mean": 0.43669793957269576,
+          "min": 0.4299259293329669,
+          "n": 8,
+          "sd": 0.0057616476697870895
+        },
+        "steam_positive_vs_hotwater_negative_pairwise_auc": {
+          "available": true,
+          "half_width": 0.0027963092703541326,
+          "max": 0.885498046875,
+          "mean": 0.879302978515625,
+          "min": 0.87548828125,
+          "n": 8,
+          "sd": 0.003344783842135315
+        },
+        "steam_positive_within_meter_rank": {
+          "available": true,
+          "half_width": 0.0,
+          "max": 0.5078125,
+          "mean": 0.5078125,
+          "min": 0.5078125,
+          "n": 8,
+          "sd": 0.0
+        }
+      },
+      "ensemble": {
+        "auto_scale_n_estimators": false,
+        "effective_n_estimators_": 8,
+        "len_ensemble_configs_": 8,
+        "requested_n_estimators": 8,
+        "runtime_ensemble_containers": {
+          "configs": 8,
+          "pipeline_seeds": 8,
+          "pipelines": 8,
+          "subsample_feature_indices": 8
+        }
+      },
+      "fits_performed": 0,
+      "load_seconds": 0.9443459340036497,
+      "process_uuid": "a68bdfe4-d660-4ae8-92f2-f274f9c8fe8f",
+      "scaler_arm": "frozen_reference",
+      "scaler_verification": {
+        "categorical_columns_excluded": 0,
+        "exact": true,
+        "max_abs_difference": 0.0,
+        "numeric_columns_compared": 137
+      },
+      "state_sha256": "383fd4cdfd75028ea424335ac21ae9fcf79f3b5b86efc56cc64a16ac3d3e5625",
+      "unit_id": "seed999__cell11__frozen_reference"
+    }
+  },
+  "protocol_sha256": "f417ca5c58e5607085e00cc910b55de91b6f373d2c2922d724e1485a5005a4d0",
+  "query": {
+    "anomaly_counts": {
+      "0": 64,
+      "1": 128
+    },
+    "buildings": 80,
+    "chilledwater_rows": 0,
+    "endpoint_selector_check": {
+      "hw01_negative_is_meter3_anomaly0": true,
+      "steam_positive_is_meter2_anomaly1": true
+    },
+    "manifest_sha256": "1eca40088db317dc71ec71aa46060da3cc1078ba32b114551dab3d5ec69dc92d",
+    "meter_counts": {
+      "2": 64,
+      "3": 128
+    },
+    "overlap_with_screening_query": 0,
+    "path": "data/processed/m5_hotwater_label_factorial/independent_query",
+    "queries_npz_sha256": "d780f0f8a96c47f49ffe061a72906728f1301056555350cabd979348aa41a2a0",
+    "raw_index_sha256": "2fc4a638a2a0880f2b4d7feac87875c941d155f5fe5172b75b13d041b654fa16",
+    "rows": 192,
+    "rows_may_not_be_added_removed_replaced_or_resampled": true,
+    "segments": 174,
+    "strata": {
+      "hw01_negative": 64,
+      "hw01_positive": 64,
+      "steam_positive": 64
+    },
+    "unique_rows": 192
+  },
+  "schema": "m5_e5_summary_v1"
+}
