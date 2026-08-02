@@ -410,3 +410,94 @@ def _standalone() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(_standalone())
+
+
+# --------------------------------------------------------------------------
+# the fixed-tree execution override (human ruling of 2026-08-02)
+# --------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def tree_override() -> dict:
+    p = CANONICAL / "e5_tree_execution_override.json"
+    if not p.exists():
+        pytest.skip("tree execution override not frozen in this environment")
+    return json.loads(p.read_text(encoding="utf-8"))
+
+
+def test_override_supplements_rather_than_rewrites_the_protocol(tree_override):
+    assert tree_override["supplements"] == "e5_protocol.json"
+    assert tree_override["protocol_history_rewritten"] is False
+    assert tree_override["original_rule"].startswith("all E5 scientific scoring")
+
+
+def test_override_records_the_evidence_on_both_hosts(tree_override):
+    """The ruling must carry what broke the rule, not just the conclusion."""
+    g = tree_override["gpu_host_reproduction"]
+    laptop = tree_override["laptop_bit_exact_evidence"]
+    assert g["bit_exact_rows"] == 0
+    assert g["max_abs_difference"] > 0
+    assert laptop["max_abs_difference"] == 0.0
+    assert tree_override["observed_hard_failure"]["first_unit"]
+    assert len(tree_override["observed_hard_failure"]["ruled_out_by_diagnosis"]) >= 4
+
+
+def test_override_changes_only_where_trees_run(tree_override):
+    assert tree_override["human_decision"] == "OPTION_A"
+    assert tree_override["tabpfn_execution_host"] == "gpu-host"
+    assert tree_override["tree_execution_host"] == "original laptop environment"
+    assert tree_override["no_refit"] is True
+    assert tree_override["gpu_host_tree_outputs_prohibited"] is True
+    for unchanged in (
+        "scientific_design_unchanged",
+        "decision_rules_unchanged",
+        "endpoints_unchanged",
+        "states_unchanged",
+        "clustered_estimator_unchanged",
+        "tabpfn_specific_threshold_not_lowered",
+    ):
+        assert tree_override[unchanged] is True
+
+
+def test_override_requires_bit_exact_identity_with_no_sampling(tree_override):
+    assert tree_override["comparator_identity_requirement"] == (
+        "bit_exact_on_e4_352_query"
+    )
+    gate = tree_override["comparator_gate"]
+    assert gate["units_required"] == 24
+    assert gate["max_abs_diff_required"] == 0.0
+    assert gate["sampling_not_permitted"] is True
+    assert gate["tolerance_not_permitted"] is True
+    assert gate["on_failure"].startswith("stop")
+
+
+def test_override_pins_one_shared_feature_matrix(tree_override):
+    """Both hosts must score the same input artifact, not two equal-looking ones."""
+    s = tree_override["shared_input_requirement"]
+    assert s["shape"] == [192, 137]
+    assert len(s["sha256"]) == 64
+    assert s["laptop_may_not_build_its_own"] is True
+
+
+def test_override_is_labelled_a_provenance_limitation(tree_override):
+    assert "execution-provenance limitation" in tree_override["reporting_requirement"]
+    assert "not be" in tree_override["reporting_requirement"]
+
+
+def test_input_manifest_carries_the_override(tree_override):
+    import hashlib
+
+    p = CANONICAL / "e5_input_manifest.json"
+    if not p.exists():
+        pytest.skip("E5 input manifest not present")
+    inputs = json.loads(p.read_text(encoding="utf-8"))
+    actual = hashlib.sha256(
+        (CANONICAL / "e5_tree_execution_override.json").read_bytes()
+    ).hexdigest()
+    assert inputs["tree_execution_override_sha256"] == actual
+    assert inputs["tabpfn_execution_host"] == "gpu-host"
+    assert inputs["tree_execution_host"] == "original laptop environment"
+    assert (
+        inputs["base_192_row_feature_sha256"]
+        == tree_override["shared_input_requirement"]["sha256"]
+    )
