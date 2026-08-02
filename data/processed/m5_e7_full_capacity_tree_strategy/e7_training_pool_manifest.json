@@ -1,0 +1,897 @@
+{
+  "all_even_historical_rows": 10078945,
+  "odd_labels_used": 0,
+  "records": [
+    {
+      "family": "support",
+      "fold": 0,
+      "meter_anomalies": {
+        "0": 518438,
+        "1": 291736,
+        "2": 116998
+      },
+      "meter_rows": {
+        "0": 1121702,
+        "1": 479704,
+        "2": 252938
+      },
+      "negative_rows": 927172,
+      "positive_rows": 927172,
+      "raw_index_digest": "7643334f4b2de418f525f994d4d08ab2ed17116efab341c7d779f957610cc378",
+      "row_order_digest": "7643334f4b2de418f525f994d4d08ab2ed17116efab341c7d779f957610cc378",
+      "rows": 1854344,
+      "slot": "s00"
+    },
+    {
+      "family": "neutral",
+      "fold": 0,
+      "meter_anomalies": {
+        "0": 476308,
+        "1": 268266,
+        "2": 107576,
+        "3": 75022
+      },
+      "meter_rows": {
+        "0": 1043988,
+        "1": 446705,
+        "2": 234993,
+        "3": 128658
+      },
+      "negative_rows": 927172,
+      "paired_support": "s00",
+      "positive_rows": 927172,
+      "raw_index_digest": "9b9fe51600f6c2cd8c230609d2a80569828041e1c5bde504a9ade85fc831bd65",
+      "row_order_digest": "9b9fe51600f6c2cd8c230609d2a80569828041e1c5bde504a9ade85fc831bd65",
+      "rows": 1854344,
+      "slot": "n00"
+    },
+    {
+      "family": "support",
+      "fold": 0,
+      "meter_anomalies": {
+        "0": 518438,
+        "1": 291736,
+        "2": 116998,
+        "3": 0
+      },
+      "meter_rows": {
+        "0": 1086289,
+        "1": 469760,
+        "2": 244517,
+        "3": 53778
+      },
+      "negative_rows": 927172,
+      "positive_rows": 927172,
+      "raw_index_digest": "6a4dfbfb47c0b5e0544b233d7ee7f456239056e5fd7c9ea6f4bcd9c36df7698f",
+      "row_order_digest": "6a4dfbfb47c0b5e0544b233d7ee7f456239056e5fd7c9ea6f4bcd9c36df7698f",
+      "rows": 1854344,
+      "slot": "s01"
+    },
+    {
+      "family": "neutral",
+      "fold": 0,
+      "meter_anomalies": {
+        "0": 476520,
+        "1": 268156,
+        "2": 107480,
+        "3": 75016
+      },
+      "meter_rows": {
+        "0": 1045008,
+        "1": 446269,
+        "2": 234706,
+        "3": 128361
+      },
+      "negative_rows": 927172,
+      "paired_support": "s01",
+      "positive_rows": 927172,
+      "raw_index_digest": "cb00ef1b3a90cf642632059ace3b53a6bc16ccb011d952b204b772d8e76b5eae",
+      "row_order_digest": "cb00ef1b3a90cf642632059ace3b53a6bc16ccb011d952b204b772d8e76b5eae",
+      "rows": 1854344,
+      "slot": "n01"
+    },
+    {
+      "family": "support",
+      "fold": 0,
+      "meter_anomalies": {
+        "0": 518438,
+        "1": 291736,
+        "2": 116998,
+        "3": 81584
+      },
+      "meter_rows": {
+        "0": 1174819,
+        "1": 496288,
+        "2": 264821,
+        "3": 81584
+      },
+      "negative_rows": 1008756,
+      "positive_rows": 1008756,
+      "raw_index_digest": "a8a0bbe4573363903a8eea845fab240b4451f0817470199529a18f2596e8de35",
+      "row_order_digest": "a8a0bbe4573363903a8eea845fab240b4451f0817470199529a18f2596e8de35",
+      "rows": 2017512,
+      "slot": "s10"
+    },
+    {
+      "family": "neutral",
+      "fold": 0,
+      "meter_anomalies": {
+        "0": 518438,
+        "1": 291736,
+        "2": 116998,
+        "3": 81584
+      },
+      "meter_rows": {
+        "0": 1136325,
+        "1": 485235,
+        "2": 255750,
+        "3": 140202
+      },
+      "negative_rows": 1008756,
+      "paired_support": "s10",
+      "positive_rows": 1008756,
+      "raw_index_digest": "da62e8a45e62e8bfe1dc91cacff4890136517edb22e604c33ca1b22ad5539f2f",
+      "row_order_digest": "da62e8a45e62e8bfe1dc91cacff4890136517edb22e604c33ca1b22ad5539f2f",
+      "rows": 2017512,
+      "slot": "n10"
+    },
+    {
+      "family": "support",
+      "fold": 0,
+      "meter_anomalies": {
+        "0": 518438,
+        "1": 291736,
+        "2": 116998,
+        "3": 81584
+      },
+      "meter_rows": {
+        "0": 1136200,
+        "1": 485426,
+        "2": 255748,
+        "3": 140138
+      },
+      "negative_rows": 1008756,
+      "positive_rows": 1008756,
+      "raw_index_digest": "90f5c6ca06a5a9ddceed67c1f373ecd79eead07bccba30822f60b42a95256388",
+      "row_order_digest": "90f5c6ca06a5a9ddceed67c1f373ecd79eead07bccba30822f60b42a95256388",
+      "rows": 2017512,
+      "slot": "s11"
+    },
+    {
+      "family": "neutral",
+      "fold": 0,
+      "meter_anomalies": {
+        "0": 518438,
+        "1": 291736,
+        "2": 116998,
+        "3": 81584
+      },
+      "meter_rows": {
+        "0": 1136392,
+        "1": 485001,
+        "2": 255860,
+        "3": 140259
+      },
+      "negative_rows": 1008756,
+      "paired_support": "s11",
+      "positive_rows": 1008756,
+      "raw_index_digest": "fa921624cdc3701d38f704cdf3a4ede50cbe4f026c2e8022056fafdf98991aba",
+      "row_order_digest": "fa921624cdc3701d38f704cdf3a4ede50cbe4f026c2e8022056fafdf98991aba",
+      "rows": 2017512,
+      "slot": "n11"
+    },
+    {
+      "family": "support",
+      "fold": 1,
+      "meter_anomalies": {
+        "0": 544314,
+        "1": 327946,
+        "2": 120588
+      },
+      "meter_rows": {
+        "0": 1178244,
+        "1": 542820,
+        "2": 264632
+      },
+      "negative_rows": 992848,
+      "positive_rows": 992848,
+      "raw_index_digest": "2d563b7323e28b3c0383843143ea0a188620ea7cbd0cb635faa6c37d5786954f",
+      "row_order_digest": "2d563b7323e28b3c0383843143ea0a188620ea7cbd0cb635faa6c37d5786954f",
+      "rows": 1985696,
+      "slot": "s00"
+    },
+    {
+      "family": "neutral",
+      "fold": 1,
+      "meter_anomalies": {
+        "0": 492516,
+        "1": 296866,
+        "2": 109454,
+        "3": 94012
+      },
+      "meter_rows": {
+        "0": 1087552,
+        "1": 497382,
+        "2": 244492,
+        "3": 156270
+      },
+      "negative_rows": 992848,
+      "paired_support": "s00",
+      "positive_rows": 992848,
+      "raw_index_digest": "cb4c5ec72a1aeb98c5a47216d9a8b1026ca327243c81802572b3adc36e4c7fb4",
+      "row_order_digest": "cb4c5ec72a1aeb98c5a47216d9a8b1026ca327243c81802572b3adc36e4c7fb4",
+      "rows": 1985696,
+      "slot": "n00"
+    },
+    {
+      "family": "support",
+      "fold": 1,
+      "meter_anomalies": {
+        "0": 544314,
+        "1": 327946,
+        "2": 120588,
+        "3": 0
+      },
+      "meter_rows": {
+        "0": 1139783,
+        "1": 528149,
+        "2": 255133,
+        "3": 62631
+      },
+      "negative_rows": 992848,
+      "positive_rows": 992848,
+      "raw_index_digest": "d2a8a162f4a5e17723b5a9353ca639359359d67d529c7dda2bab505a7a3cac14",
+      "row_order_digest": "d2a8a162f4a5e17723b5a9353ca639359359d67d529c7dda2bab505a7a3cac14",
+      "rows": 1985696,
+      "slot": "s01"
+    },
+    {
+      "family": "neutral",
+      "fold": 1,
+      "meter_anomalies": {
+        "0": 493074,
+        "1": 296816,
+        "2": 109022,
+        "3": 93936
+      },
+      "meter_rows": {
+        "0": 1086936,
+        "1": 498310,
+        "2": 243940,
+        "3": 156510
+      },
+      "negative_rows": 992848,
+      "paired_support": "s01",
+      "positive_rows": 992848,
+      "raw_index_digest": "3ed783d6bef2d3ad63ae496e2f2ad119651aa9d2bafa37db3e38c3cb5b0b282a",
+      "row_order_digest": "3ed783d6bef2d3ad63ae496e2f2ad119651aa9d2bafa37db3e38c3cb5b0b282a",
+      "rows": 1985696,
+      "slot": "n01"
+    },
+    {
+      "family": "support",
+      "fold": 1,
+      "meter_anomalies": {
+        "0": 544314,
+        "1": 327946,
+        "2": 120588,
+        "3": 103630
+      },
+      "meter_rows": {
+        "0": 1244462,
+        "1": 565294,
+        "2": 279570,
+        "3": 103630
+      },
+      "negative_rows": 1096478,
+      "positive_rows": 1096478,
+      "raw_index_digest": "3139b340ad155bc76977cf13a8a23abfdc52c6b2d01102106d69a6ed841c7564",
+      "row_order_digest": "3139b340ad155bc76977cf13a8a23abfdc52c6b2d01102106d69a6ed841c7564",
+      "rows": 2192956,
+      "slot": "s10"
+    },
+    {
+      "family": "neutral",
+      "fold": 1,
+      "meter_anomalies": {
+        "0": 544314,
+        "1": 327946,
+        "2": 120588,
+        "3": 103630
+      },
+      "meter_rows": {
+        "0": 1201257,
+        "1": 549551,
+        "2": 269294,
+        "3": 172854
+      },
+      "negative_rows": 1096478,
+      "paired_support": "s10",
+      "positive_rows": 1096478,
+      "raw_index_digest": "fbb5de870efcad44729d28882bd21b8522238ae73b7962981b80c7f567382799",
+      "row_order_digest": "fbb5de870efcad44729d28882bd21b8522238ae73b7962981b80c7f567382799",
+      "rows": 2192956,
+      "slot": "n10"
+    },
+    {
+      "family": "support",
+      "fold": 1,
+      "meter_anomalies": {
+        "0": 544314,
+        "1": 327946,
+        "2": 120588,
+        "3": 103630
+      },
+      "meter_rows": {
+        "0": 1202022,
+        "1": 549027,
+        "2": 269157,
+        "3": 172750
+      },
+      "negative_rows": 1096478,
+      "positive_rows": 1096478,
+      "raw_index_digest": "0fa771a6c7243c9873bf79201e883f8ff46c2301259de3c602123ffadcf90840",
+      "row_order_digest": "0fa771a6c7243c9873bf79201e883f8ff46c2301259de3c602123ffadcf90840",
+      "rows": 2192956,
+      "slot": "s11"
+    },
+    {
+      "family": "neutral",
+      "fold": 1,
+      "meter_anomalies": {
+        "0": 544314,
+        "1": 327946,
+        "2": 120588,
+        "3": 103630
+      },
+      "meter_rows": {
+        "0": 1200420,
+        "1": 550048,
+        "2": 270042,
+        "3": 172446
+      },
+      "negative_rows": 1096478,
+      "paired_support": "s11",
+      "positive_rows": 1096478,
+      "raw_index_digest": "f82382d14bcb8f7cf6fe545a780ce1342deadabfd404337341a80c28fcbc0394",
+      "row_order_digest": "f82382d14bcb8f7cf6fe545a780ce1342deadabfd404337341a80c28fcbc0394",
+      "rows": 2192956,
+      "slot": "n11"
+    },
+    {
+      "family": "support",
+      "fold": 2,
+      "meter_anomalies": {
+        "0": 556918,
+        "1": 364788,
+        "2": 122212
+      },
+      "meter_rows": {
+        "0": 1228408,
+        "1": 585935,
+        "2": 273493
+      },
+      "negative_rows": 1043918,
+      "positive_rows": 1043918,
+      "raw_index_digest": "ad43433580cedb650e954c1a3225916304d3bd7bffae729086e3511d85f81d2a",
+      "row_order_digest": "ad43433580cedb650e954c1a3225916304d3bd7bffae729086e3511d85f81d2a",
+      "rows": 2087836,
+      "slot": "s00"
+    },
+    {
+      "family": "neutral",
+      "fold": 2,
+      "meter_anomalies": {
+        "0": 508398,
+        "1": 332800,
+        "2": 111300,
+        "3": 91420
+      },
+      "meter_rows": {
+        "0": 1138946,
+        "1": 540407,
+        "2": 252867,
+        "3": 155616
+      },
+      "negative_rows": 1043918,
+      "paired_support": "s00",
+      "positive_rows": 1043918,
+      "raw_index_digest": "caab0cffefd35e7c755c1bc53efd4e418e92d2e1ee6e2ede5aac63d05b18986b",
+      "row_order_digest": "caab0cffefd35e7c755c1bc53efd4e418e92d2e1ee6e2ede5aac63d05b18986b",
+      "rows": 2087836,
+      "slot": "n00"
+    },
+    {
+      "family": "support",
+      "fold": 2,
+      "meter_anomalies": {
+        "0": 556918,
+        "1": 364788,
+        "2": 122212,
+        "3": 0
+      },
+      "meter_rows": {
+        "0": 1187205,
+        "1": 572510,
+        "2": 264289,
+        "3": 63832
+      },
+      "negative_rows": 1043918,
+      "positive_rows": 1043918,
+      "raw_index_digest": "27684bcb67cbd4d45a5b12c197f980a778b4cfd7bcfc22ef0e6723e20012e3e2",
+      "row_order_digest": "27684bcb67cbd4d45a5b12c197f980a778b4cfd7bcfc22ef0e6723e20012e3e2",
+      "rows": 2087836,
+      "slot": "s01"
+    },
+    {
+      "family": "neutral",
+      "fold": 2,
+      "meter_anomalies": {
+        "0": 508530,
+        "1": 332906,
+        "2": 111404,
+        "3": 91078
+      },
+      "meter_rows": {
+        "0": 1138583,
+        "1": 540867,
+        "2": 253286,
+        "3": 155100
+      },
+      "negative_rows": 1043918,
+      "paired_support": "s01",
+      "positive_rows": 1043918,
+      "raw_index_digest": "8846bfe263d5453331e64148b6f18c50a52727ec834a55458ea8ee4af9f055fc",
+      "row_order_digest": "8846bfe263d5453331e64148b6f18c50a52727ec834a55458ea8ee4af9f055fc",
+      "rows": 2087836,
+      "slot": "n01"
+    },
+    {
+      "family": "support",
+      "fold": 2,
+      "meter_anomalies": {
+        "0": 556918,
+        "1": 364788,
+        "2": 122212,
+        "3": 99956
+      },
+      "meter_rows": {
+        "0": 1292762,
+        "1": 607194,
+        "2": 287836,
+        "3": 99956
+      },
+      "negative_rows": 1143874,
+      "positive_rows": 1143874,
+      "raw_index_digest": "e3e1647ccc2129b6d54912bcac9860e9f0fcdf7e4058304d62ad03f382ffc882",
+      "row_order_digest": "e3e1647ccc2129b6d54912bcac9860e9f0fcdf7e4058304d62ad03f382ffc882",
+      "rows": 2287748,
+      "slot": "s10"
+    },
+    {
+      "family": "neutral",
+      "fold": 2,
+      "meter_anomalies": {
+        "0": 556918,
+        "1": 364788,
+        "2": 122212,
+        "3": 99956
+      },
+      "meter_rows": {
+        "0": 1247910,
+        "1": 592202,
+        "2": 277199,
+        "3": 170437
+      },
+      "negative_rows": 1143874,
+      "paired_support": "s10",
+      "positive_rows": 1143874,
+      "raw_index_digest": "4d526ac9ed3d3a291929f36cd61086367138763464a74529571bfc5ebb544cd9",
+      "row_order_digest": "4d526ac9ed3d3a291929f36cd61086367138763464a74529571bfc5ebb544cd9",
+      "rows": 2287748,
+      "slot": "n10"
+    },
+    {
+      "family": "support",
+      "fold": 2,
+      "meter_anomalies": {
+        "0": 556918,
+        "1": 364788,
+        "2": 122212,
+        "3": 99956
+      },
+      "meter_rows": {
+        "0": 1247371,
+        "1": 592543,
+        "2": 277961,
+        "3": 169873
+      },
+      "negative_rows": 1143874,
+      "positive_rows": 1143874,
+      "raw_index_digest": "a29c21ea2826d19c4858b738768487db7dca4dfdcf5127f32aba34d45c8712d6",
+      "row_order_digest": "a29c21ea2826d19c4858b738768487db7dca4dfdcf5127f32aba34d45c8712d6",
+      "rows": 2287748,
+      "slot": "s11"
+    },
+    {
+      "family": "neutral",
+      "fold": 2,
+      "meter_anomalies": {
+        "0": 556918,
+        "1": 364788,
+        "2": 122212,
+        "3": 99956
+      },
+      "meter_rows": {
+        "0": 1247697,
+        "1": 592095,
+        "2": 277377,
+        "3": 170579
+      },
+      "negative_rows": 1143874,
+      "paired_support": "s11",
+      "positive_rows": 1143874,
+      "raw_index_digest": "eeace0e5329cbcdc0fd7e421495770b955d8f8c5e8b770b31f8719ba3bef3b62",
+      "row_order_digest": "eeace0e5329cbcdc0fd7e421495770b955d8f8c5e8b770b31f8719ba3bef3b62",
+      "rows": 2287748,
+      "slot": "n11"
+    },
+    {
+      "family": "support",
+      "fold": 3,
+      "meter_anomalies": {
+        "0": 556970,
+        "1": 311546,
+        "2": 126934
+      },
+      "meter_rows": {
+        "0": 1196906,
+        "1": 523225,
+        "2": 270769
+      },
+      "negative_rows": 995450,
+      "positive_rows": 995450,
+      "raw_index_digest": "0540177a6fd636a5e3cefe467470949dea6e7acf4db34d24dbcd51d112f33bd3",
+      "row_order_digest": "0540177a6fd636a5e3cefe467470949dea6e7acf4db34d24dbcd51d112f33bd3",
+      "rows": 1990900,
+      "slot": "s00"
+    },
+    {
+      "family": "neutral",
+      "fold": 3,
+      "meter_anomalies": {
+        "0": 517522,
+        "1": 289860,
+        "2": 117890,
+        "3": 70178
+      },
+      "meter_rows": {
+        "0": 1120082,
+        "1": 489538,
+        "2": 253809,
+        "3": 127471
+      },
+      "negative_rows": 995450,
+      "paired_support": "s00",
+      "positive_rows": 995450,
+      "raw_index_digest": "cd925e44ffd075c60800029a475d0042f9a30365864a7d43a8a3996d31ffc1c3",
+      "row_order_digest": "cd925e44ffd075c60800029a475d0042f9a30365864a7d43a8a3996d31ffc1c3",
+      "rows": 1990900,
+      "slot": "n00"
+    },
+    {
+      "family": "support",
+      "fold": 3,
+      "meter_anomalies": {
+        "0": 556970,
+        "1": 311546,
+        "2": 126934,
+        "3": 0
+      },
+      "meter_rows": {
+        "0": 1158989,
+        "1": 511312,
+        "2": 263251,
+        "3": 57348
+      },
+      "negative_rows": 995450,
+      "positive_rows": 995450,
+      "raw_index_digest": "ebb0d2429094b548b2f370714a66313306e8528450455047076e100cdec49bc8",
+      "row_order_digest": "ebb0d2429094b548b2f370714a66313306e8528450455047076e100cdec49bc8",
+      "rows": 1990900,
+      "slot": "s01"
+    },
+    {
+      "family": "neutral",
+      "fold": 3,
+      "meter_anomalies": {
+        "0": 517712,
+        "1": 289606,
+        "2": 117902,
+        "3": 70230
+      },
+      "meter_rows": {
+        "0": 1119826,
+        "1": 489411,
+        "2": 254075,
+        "3": 127588
+      },
+      "negative_rows": 995450,
+      "paired_support": "s01",
+      "positive_rows": 995450,
+      "raw_index_digest": "d7dddfe2acd385be8ab3584c16ee3f0bd096a426c98e7072a6ad93d296048e3b",
+      "row_order_digest": "d7dddfe2acd385be8ab3584c16ee3f0bd096a426c98e7072a6ad93d296048e3b",
+      "rows": 1990900,
+      "slot": "n01"
+    },
+    {
+      "family": "support",
+      "fold": 3,
+      "meter_anomalies": {
+        "0": 556970,
+        "1": 311546,
+        "2": 126934,
+        "3": 75508
+      },
+      "meter_rows": {
+        "0": 1245423,
+        "1": 539398,
+        "2": 281587,
+        "3": 75508
+      },
+      "negative_rows": 1070958,
+      "positive_rows": 1070958,
+      "raw_index_digest": "4ad519bd52737dd8c68d8113b5222de3d16f622ef1ce4b9992f2137ebdfbe8ae",
+      "row_order_digest": "4ad519bd52737dd8c68d8113b5222de3d16f622ef1ce4b9992f2137ebdfbe8ae",
+      "rows": 2141916,
+      "slot": "s10"
+    },
+    {
+      "family": "neutral",
+      "fold": 3,
+      "meter_anomalies": {
+        "0": 556970,
+        "1": 311546,
+        "2": 126934,
+        "3": 75508
+      },
+      "meter_rows": {
+        "0": 1205316,
+        "1": 526442,
+        "2": 273276,
+        "3": 136882
+      },
+      "negative_rows": 1070958,
+      "paired_support": "s10",
+      "positive_rows": 1070958,
+      "raw_index_digest": "404d48d340f48bb1c14486da4e62c74320a14df24fc0b2032cae80ebbcb902a2",
+      "row_order_digest": "404d48d340f48bb1c14486da4e62c74320a14df24fc0b2032cae80ebbcb902a2",
+      "rows": 2141916,
+      "slot": "n10"
+    },
+    {
+      "family": "support",
+      "fold": 3,
+      "meter_anomalies": {
+        "0": 556970,
+        "1": 311546,
+        "2": 126934,
+        "3": 75508
+      },
+      "meter_rows": {
+        "0": 1204571,
+        "1": 526575,
+        "2": 273598,
+        "3": 137172
+      },
+      "negative_rows": 1070958,
+      "positive_rows": 1070958,
+      "raw_index_digest": "aec756073f216a6a29d414e35a6dadf5cf3299b315820ee60dea2cff9d9f81c9",
+      "row_order_digest": "aec756073f216a6a29d414e35a6dadf5cf3299b315820ee60dea2cff9d9f81c9",
+      "rows": 2141916,
+      "slot": "s11"
+    },
+    {
+      "family": "neutral",
+      "fold": 3,
+      "meter_anomalies": {
+        "0": 556970,
+        "1": 311546,
+        "2": 126934,
+        "3": 75508
+      },
+      "meter_rows": {
+        "0": 1205638,
+        "1": 525877,
+        "2": 272935,
+        "3": 137466
+      },
+      "negative_rows": 1070958,
+      "paired_support": "s11",
+      "positive_rows": 1070958,
+      "raw_index_digest": "e407e970c1e5eb9fbf88f1515fe57bab3d126e3264b299e12701983c09a79f45",
+      "row_order_digest": "e407e970c1e5eb9fbf88f1515fe57bab3d126e3264b299e12701983c09a79f45",
+      "rows": 2141916,
+      "slot": "n11"
+    },
+    {
+      "family": "support",
+      "fold": 4,
+      "meter_anomalies": {
+        "0": 547712,
+        "1": 331864,
+        "2": 129036
+      },
+      "meter_rows": {
+        "0": 1198542,
+        "1": 544358,
+        "2": 274324
+      },
+      "negative_rows": 1008612,
+      "positive_rows": 1008612,
+      "raw_index_digest": "f1dbee5f1b80c0a28ca472fcf15bec895d3e4a5db9510c933a78ca1da62dcd16",
+      "row_order_digest": "f1dbee5f1b80c0a28ca472fcf15bec895d3e4a5db9510c933a78ca1da62dcd16",
+      "rows": 2017224,
+      "slot": "s00"
+    },
+    {
+      "family": "neutral",
+      "fold": 4,
+      "meter_anomalies": {
+        "0": 503438,
+        "1": 305404,
+        "2": 118918,
+        "3": 80852
+      },
+      "meter_rows": {
+        "0": 1111274,
+        "1": 504271,
+        "2": 255531,
+        "3": 146148
+      },
+      "negative_rows": 1008612,
+      "paired_support": "s00",
+      "positive_rows": 1008612,
+      "raw_index_digest": "10bd669443b31fbd4d0c081a2e593901f1b38fa1280d5b776fa3bb5018daf033",
+      "row_order_digest": "10bd669443b31fbd4d0c081a2e593901f1b38fa1280d5b776fa3bb5018daf033",
+      "rows": 2017224,
+      "slot": "n00"
+    },
+    {
+      "family": "support",
+      "fold": 4,
+      "meter_anomalies": {
+        "0": 547712,
+        "1": 331864,
+        "2": 129036,
+        "3": 0
+      },
+      "meter_rows": {
+        "0": 1155779,
+        "1": 530117,
+        "2": 266306,
+        "3": 65022
+      },
+      "negative_rows": 1008612,
+      "positive_rows": 1008612,
+      "raw_index_digest": "69692408ff341adf0464f16f10cdb612ef0a2abe4fdd0963c64f796166f7bf2d",
+      "row_order_digest": "69692408ff341adf0464f16f10cdb612ef0a2abe4fdd0963c64f796166f7bf2d",
+      "rows": 2017224,
+      "slot": "s01"
+    },
+    {
+      "family": "neutral",
+      "fold": 4,
+      "meter_anomalies": {
+        "0": 503652,
+        "1": 305416,
+        "2": 118624,
+        "3": 80920
+      },
+      "meter_rows": {
+        "0": 1112353,
+        "1": 503611,
+        "2": 255248,
+        "3": 146012
+      },
+      "negative_rows": 1008612,
+      "paired_support": "s01",
+      "positive_rows": 1008612,
+      "raw_index_digest": "a700445fd73012fe069ca9ed753caacd1666e2ec82ad0803a8cfa5cc97a6c943",
+      "row_order_digest": "a700445fd73012fe069ca9ed753caacd1666e2ec82ad0803a8cfa5cc97a6c943",
+      "rows": 2017224,
+      "slot": "n01"
+    },
+    {
+      "family": "support",
+      "fold": 4,
+      "meter_anomalies": {
+        "0": 547712,
+        "1": 331864,
+        "2": 129036,
+        "3": 87938
+      },
+      "meter_rows": {
+        "0": 1255236,
+        "1": 562923,
+        "2": 287003,
+        "3": 87938
+      },
+      "negative_rows": 1096550,
+      "positive_rows": 1096550,
+      "raw_index_digest": "6ad9de2bb6205632e5b862d6b7c75b8c7490ab3b32ddc538216185d80fd68c83",
+      "row_order_digest": "6ad9de2bb6205632e5b862d6b7c75b8c7490ab3b32ddc538216185d80fd68c83",
+      "rows": 2193100,
+      "slot": "s10"
+    },
+    {
+      "family": "neutral",
+      "fold": 4,
+      "meter_anomalies": {
+        "0": 547712,
+        "1": 331864,
+        "2": 129036,
+        "3": 87938
+      },
+      "meter_rows": {
+        "0": 1208580,
+        "1": 547801,
+        "2": 277807,
+        "3": 158912
+      },
+      "negative_rows": 1096550,
+      "paired_support": "s10",
+      "positive_rows": 1096550,
+      "raw_index_digest": "c79efcc46f9b44c670e4f919d7fe72f8e95410de3c58467afc5875d3b7c31ff1",
+      "row_order_digest": "c79efcc46f9b44c670e4f919d7fe72f8e95410de3c58467afc5875d3b7c31ff1",
+      "rows": 2193100,
+      "slot": "n10"
+    },
+    {
+      "family": "support",
+      "fold": 4,
+      "meter_anomalies": {
+        "0": 547712,
+        "1": 331864,
+        "2": 129036,
+        "3": 87938
+      },
+      "meter_rows": {
+        "0": 1208701,
+        "1": 547437,
+        "2": 278282,
+        "3": 158680
+      },
+      "negative_rows": 1096550,
+      "positive_rows": 1096550,
+      "raw_index_digest": "8ca71b78b77fac6627e9c69795781633436593bc622c6d04704b23630a46dce6",
+      "row_order_digest": "8ca71b78b77fac6627e9c69795781633436593bc622c6d04704b23630a46dce6",
+      "rows": 2193100,
+      "slot": "s11"
+    },
+    {
+      "family": "neutral",
+      "fold": 4,
+      "meter_anomalies": {
+        "0": 547712,
+        "1": 331864,
+        "2": 129036,
+        "3": 87938
+      },
+      "meter_rows": {
+        "0": 1208862,
+        "1": 547889,
+        "2": 277545,
+        "3": 158804
+      },
+      "negative_rows": 1096550,
+      "paired_support": "s11",
+      "positive_rows": 1096550,
+      "raw_index_digest": "a40e4b03cdebfcbc9db97bc5187a54e7d52251e9a7ba98f3430415ae69bf8228",
+      "row_order_digest": "a40e4b03cdebfcbc9db97bc5187a54e7d52251e9a7ba98f3430415ae69bf8228",
+      "rows": 2193100,
+      "slot": "n11"
+    }
+  ],
+  "schema_version": 1
+}

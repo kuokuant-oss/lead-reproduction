@@ -1,0 +1,139 @@
+{
+  "bootstrap": {
+    "cluster": "odd steam building_id",
+    "cluster_code": 1,
+    "draws": 1000,
+    "estimator": "exact_weighted_average_precision",
+    "master_seed": 20260802,
+    "namespace_code": 7007
+  },
+  "census": {
+    "final_component_fits": 32,
+    "oof_component_fits": 160,
+    "total_component_fits": 192
+  },
+  "decision": {
+    "delta_ap_min": 0.01,
+    "labels": [
+      "E7_FULL_CAPACITY_CONTEXT_STRATEGY_CONFIRMED",
+      "E7_GAIN_NOT_CONTEXT_SPECIFIC",
+      "E7_DIRECTIONALLY_CONSISTENT_BUT_INCONCLUSIVE",
+      "E7_NOT_CONFIRMED",
+      "E7_EXECUTION_INCOMPLETE"
+    ]
+  },
+  "execution": {
+    "active_e6_allowed": false,
+    "local_cpu_only": true,
+    "process_pool_allowed": false,
+    "remote_commands_allowed": false,
+    "subprocess_component_execution": true,
+    "tabpfn_allowed": false
+  },
+  "experts": {
+    "component_params": {
+      "catboost": {
+        "allow_writing_files": false,
+        "iterations": 1000,
+        "random_seed": 42,
+        "thread_count": 1,
+        "verbose": false
+      },
+      "hist_gradient_boosting": {
+        "max_iter": 100,
+        "random_state": 42
+      },
+      "lightgbm": {
+        "n_estimators": 100,
+        "num_threads": 1,
+        "random_state": 42,
+        "verbose": -1
+      },
+      "xgboost": {
+        "eval_metric": "logloss",
+        "n_estimators": 100,
+        "nthread": 1,
+        "random_state": 42,
+        "verbosity": 0
+      }
+    },
+    "components": [
+      "lightgbm",
+      "xgboost",
+      "catboost",
+      "hist_gradient_boosting"
+    ],
+    "ensemble": "equal_weight_probability_mean",
+    "neutral_slots": [
+      "n00",
+      "n01",
+      "n10",
+      "n11"
+    ],
+    "support_slots": [
+      "00",
+      "01",
+      "10",
+      "11"
+    ]
+  },
+  "features": {
+    "count": 137,
+    "dtype": "float32",
+    "tag": "F4",
+    "value_change_regime": "timestamp_merge"
+  },
+  "historical_downsampling": {
+    "order": "[negative_seed10, positive, negative_seed20, positive]",
+    "positive_rows_duplicated": true,
+    "seeds": [
+      10,
+      20
+    ]
+  },
+  "meta_model": {
+    "cs": [
+      0.001,
+      0.01,
+      0.1,
+      1.0,
+      10.0
+    ],
+    "estimator": "StandardScaler + LogisticRegression(lbfgs, L2)",
+    "features": [
+      "s11",
+      "grand_mean",
+      "negative_support_response",
+      "positive_support_response",
+      "interaction"
+    ],
+    "fold_isolation": true,
+    "tie_rule": "within 1e-4 mean AP choose smaller C"
+  },
+  "name": "M5 E7 Historical-Full-Budget Support-Aware Tree Strategy",
+  "phase0_commit": "2b4c9bc77c274912da9786c3f6b1cfaa43cfc84c",
+  "schema_version": 1,
+  "score_firewall": {
+    "fresh_process": true,
+    "odd_anomaly_labels_read": false,
+    "outputs": [
+      "support experts",
+      "neutral experts",
+      "support_stack",
+      "neutral_stack",
+      "component scores",
+      "canonical raw_index"
+    ]
+  },
+  "split": {
+    "balance": [
+      "steam_rows",
+      "steam_anomalies",
+      "site_distribution"
+    ],
+    "fit": "building_id % 2 == 0",
+    "holdout": "building_id % 2 == 1",
+    "outer_folds": 5,
+    "unit": "building_id"
+  }
+}

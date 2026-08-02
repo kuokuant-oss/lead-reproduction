@@ -1,0 +1,9 @@
+{
+  "components_per_expert": 4,
+  "slots": [
+    "s00",
+    "s01",
+    "s10",
+    "s11"
+  ]
+}

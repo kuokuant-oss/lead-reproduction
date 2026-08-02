@@ -1,0 +1,22 @@
+{
+  "packages": {
+    "catboost": "1.2.10",
+    "joblib": "1.5.3",
+    "lightgbm": "4.6.0",
+    "numpy": "2.4.6",
+    "sklearn": "1.8.0",
+    "xgboost": "3.2.0"
+  },
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.13",
+  "python_executable": "C:\\Users\\tonykuo\\.codex\\worktrees\\f851\\lead-reproduction\\.e7-venv\\Scripts\\python.exe",
+  "resource_environment": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "MKL_NUM_THREADS": "1",
+    "NO_REMOTE": "1",
+    "NUMEXPR_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1"
+  },
+  "tree_device": "cpu_only"
+}

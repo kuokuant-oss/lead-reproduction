@@ -1,0 +1,24 @@
+{
+  "contract": {
+    "cs": [
+      0.001,
+      0.01,
+      0.1,
+      1.0,
+      10.0
+    ],
+    "estimator": "StandardScaler + LogisticRegression(lbfgs, L2)",
+    "features": [
+      "s11",
+      "grand_mean",
+      "negative_support_response",
+      "positive_support_response",
+      "interaction"
+    ],
+    "fold_isolation": true,
+    "tie_rule": "within 1e-4 mean AP choose smaller C"
+  },
+  "selected_neutral_c": null,
+  "selected_support_c": null,
+  "selection_status": "not_run"
+}

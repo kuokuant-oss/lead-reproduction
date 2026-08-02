@@ -1,0 +1,8 @@
+{
+  "cluster": "odd steam building_id",
+  "cluster_code": 1,
+  "draws": 1000,
+  "estimator": "exact_weighted_average_precision",
+  "master_seed": 20260802,
+  "namespace_code": 7007
+}
