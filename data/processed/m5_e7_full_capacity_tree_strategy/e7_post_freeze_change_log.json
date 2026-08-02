@@ -16,6 +16,13 @@
       "reason": "The original protocol freeze specified 32 final all-even component fits but omitted the final support and neutral row-identity manifests required to execute those fits without post-freeze resampling.",
       "scientific_effect": "none; no formal fit or prediction existed before this correction",
       "status": "frozen"
+    },
+    {
+      "id": "AMENDMENT-002",
+      "classification": "pre_execution_protocol_correction",
+      "scope": "complete odd-holdout hybrid score-generation scope",
+      "scientific_effect": "steam remains the primary endpoint; no training pool, OOF design, feature, architecture, or meta-model changes",
+      "status": "frozen"
     }
   ]
 }

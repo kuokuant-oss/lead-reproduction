@@ -149,7 +149,11 @@ def worker(spec_path: Path) -> None:
     model.fit(
         np.nan_to_num(fit, nan=0.0) if name == "hist_gradient_boosting" else fit, y_fit
     )
-    scores = _predict(name, model, query)
+    scores = (
+        np.empty(0, dtype="float32")
+        if len(query) == 0
+        else _predict(name, model, query)
+    )
     files = {
         "model": {
             "path": "model.joblib",
@@ -216,6 +220,109 @@ def _historical_frame() -> pd.DataFrame:
     if even.empty or even["building_id"].mod(2).any():
         raise RuntimeError("even-only training firewall failed")
     return even
+
+
+def _unlabelled_m3_frame() -> pd.DataFrame:
+    """Canonical M3 feature frame that never opens bad_meter_readings.csv."""
+    import lead.data as data
+
+    data.M3 = PHASE0_ARTIFACT_ROOT / "data" / "raw" / "m3"
+    train = pd.read_csv(
+        data.M3 / "train.csv",
+        dtype={"building_id": "int16", "meter": "int8", "meter_reading": "float32"},
+    )
+    train = data._add_time_features(train)
+    meta = data._building_metadata()
+    train = train.merge(
+        meta[
+            [
+                "building_id",
+                "site_id",
+                "primary_use_enc",
+                "log_square_feet",
+                "year_built",
+                "floor_count",
+            ]
+        ],
+        on="building_id",
+        how="left",
+    )
+    weather = data._weather_frame(include_budslab_features=False)
+    weather_cols = [
+        "site_id",
+        "timestamp",
+        "air_temperature",
+        "cloud_coverage",
+        "dew_temperature",
+        "precip_depth_1_hr",
+        "sea_level_pressure",
+        "wind_direction",
+        "wind_speed",
+    ]
+    train = train.merge(weather[weather_cols], on=["site_id", "timestamp"], how="left")
+    return train[["building_id", "site_id", "timestamp", *data.BASELINE_FEATURE_COLS]]
+
+
+def build_full_label_free_store() -> None:
+    """Build canonical all-meter odd feature chunks without any label artifact."""
+    source = (
+        PHASE0_ARTIFACT_ROOT
+        / "data"
+        / "processed"
+        / "m5_tabpfn_137_full_test_n8_predictions.npz"
+    )
+    with np.load(source, allow_pickle=False) as identity:
+        raw = identity["raw_index"].astype("int64")
+        building = identity["building_id"].astype("int16")
+        site = identity["site_id"].astype("int8")
+    if (
+        len(raw) != 10_137_155
+        or len(np.unique(raw)) != len(raw)
+        or np.any(building % 2 == 0)
+    ):
+        raise SystemExit("label-free canonical holdout identity gate failed")
+    frame = _unlabelled_m3_frame()
+    odd = frame.iloc[raw].copy()
+    if not np.array_equal(
+        odd["building_id"].to_numpy(dtype="int16"), building
+    ) or not np.array_equal(odd["site_id"].to_numpy(dtype="int8"), site):
+        raise SystemExit("label-free identity reconstruction drift")
+    features = _f4(odd, odd.index.to_numpy(dtype="int64"))
+    store = OUT / "full_holdout_store"
+    chunks = []
+    for start in range(0, len(raw), 100_000):
+        stop = min(len(raw), start + 100_000)
+        root = store / f"chunk_{start // 100_000:03d}"
+        p.atomic_npy(root / "raw_index.npy", raw[start:stop])
+        p.atomic_npy(
+            root / "meter.npy", odd["meter"].to_numpy(dtype="int8")[start:stop]
+        )
+        p.atomic_npy(root / "building_id.npy", building[start:stop])
+        p.atomic_npy(root / "site_id.npy", site[start:stop])
+        p.atomic_npy(root / "features.npy", features[start:stop])
+        chunks.append(
+            {
+                "start": start,
+                "stop": stop,
+                "rows": stop - start,
+                "raw_index_digest": p.array_digest(raw[start:stop]),
+                "feature_sha256": p.sha256_file(root / "features.npy"),
+                "dtype": "float32",
+            }
+        )
+    p.atomic_json(
+        OUT / "e7_full_holdout_feature_manifest.json",
+        {
+            "schema_version": 1,
+            "rows": len(raw),
+            "chunks": chunks,
+            "chunk_rows": 100000,
+            "raw_index_digest": p.array_digest(raw),
+            "feature_column_digest": "eab08c9a1b39ee7a74070c2ded464e3efbfb13d89dc148ef6b3bc3f443b21de3",
+            "label_fields": [],
+            "source_arrays_read": ["raw_index", "building_id", "site_id"],
+        },
+    )
 
 
 def deterministic_folds(even: pd.DataFrame) -> dict[str, Any]:
@@ -695,6 +802,61 @@ def execute_oof() -> None:
         execute_oof_fold(fold)
 
 
+def execute_final() -> None:
+    """Fit exactly the eight amendment-frozen final pools, with no resampling."""
+    p.require_local_cpu()
+    manifest_path = OUT / "e7_final_training_pool_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if len(manifest["records"]) != 8:
+        raise SystemExit("final manifest must have exactly eight records")
+    frame = _historical_frame()
+    if frame["building_id"].mod(2).any():
+        raise SystemExit("final pool contains odd building")
+    empty_query = np.empty((0, 137), dtype="float32")
+    inputs = OUT / "inputs"
+    for record in manifest["records"]:
+        slot, family = record["slot"], record["family"]
+        indices = np.load(
+            OUT / record["raw_index_storage_location"], allow_pickle=False
+        )
+        observed = pool_record(frame, indices)
+        for expected, actual in (
+            (record["raw_index_sha256"], observed["raw_index_digest"]),
+            (record["row_order_sha256"], observed["row_order_digest"]),
+        ):
+            if expected != actual:
+                raise SystemExit(f"frozen final pool drift: {slot}")
+        if (
+            record["sampled_row_count"],
+            record["positive_count"],
+            record["negative_count"],
+        ) != (observed["rows"], observed["positive_rows"], observed["negative_rows"]):
+            raise SystemExit(f"frozen final pool count drift: {slot}")
+        x_fit = _f4(frame, indices)
+        y_fit = frame.loc[indices, "anomaly"].to_numpy(dtype="int8")
+        scaler = StandardScaler().fit(x_fit)
+        for component in p.MODEL_ORDER:
+            spec = _unit_spec(
+                phase="final",
+                fold_name="all_even",
+                family=family,
+                slot=slot,
+                component=component,
+                inputs=inputs,
+                x_fit=x_fit,
+                y_fit=y_fit,
+                x_query=empty_query,
+                train_indices=indices,
+                query_indices=np.empty(0, dtype="int64"),
+                scaler=scaler,
+            )
+            run_component(spec)
+    p.atomic_json(
+        OUT / "final" / "complete.json",
+        {"expected_component_fits": 32, "complete": True, "odd_predictions": 0},
+    )
+
+
 def _select_c(
     features: list[np.ndarray], labels: list[np.ndarray]
 ) -> tuple[float, dict[str, list[float]], list[np.ndarray]]:
@@ -811,6 +973,107 @@ def finalise_oof() -> None:
             "oof_summary_sha256": p.sha256_file(OUT / "e7_oof_summary.json"),
         },
     )
+
+
+def fit_final_meta_models() -> None:
+    """Fit final meta models from OOF blocks only; final expert scores are refused."""
+    from sklearn.linear_model import LogisticRegression
+
+    summary = json.loads((OUT / "e7_oof_summary.json").read_text(encoding="utf-8"))
+    if not summary.get("complete") or summary.get("component_fits") != 160:
+        raise SystemExit("final meta requires complete 160-component OOF only")
+    meta = json.loads((OUT / "e7_meta_model_manifest.json").read_text(encoding="utf-8"))
+    for family, prefix, value in (
+        ("support", "s", meta["selected_support_c"]),
+        ("neutral", "n", meta["selected_neutral_c"]),
+    ):
+        features, labels = [], []
+        for fold in range(5):
+            root = OUT / "oof" / f"fold{fold}"
+            scores = {
+                f"{prefix}{cell}": np.load(
+                    root / f"{prefix}{cell}.npy", allow_pickle=False
+                )
+                for cell in p.SUPPORT_CELLS
+            }
+            features.append(p.factor_features(scores, prefix))
+            labels.append(np.load(root / "labels.npy", allow_pickle=False))
+        x, y = np.concatenate(features), np.concatenate(labels)
+        scaler = StandardScaler().fit(x)
+        model = LogisticRegression(
+            C=value, solver="lbfgs", max_iter=5000, class_weight=None, random_state=42
+        ).fit(scaler.transform(x), y)
+        target = OUT / "final_meta" / family
+        _save_joblib(target / "scaler.joblib", scaler)
+        _save_joblib(target / "model.joblib", model)
+        p.atomic_json(
+            target / "manifest.json",
+            {
+                "family": family,
+                "selected_c": value,
+                "source": "complete_even_building_oof_predictions_only",
+                "oof_summary_sha256": p.sha256_file(OUT / "e7_oof_summary.json"),
+                "feature_names": p.protocol()["meta_model"]["features"],
+            },
+        )
+
+
+def amend_full_holdout_scoring_scope() -> None:
+    """Apply the explicitly authorised pre-fit hybrid scoring-scope amendment."""
+    if any((OUT / name).exists() for name in ("oof", "final", "scores")):
+        raise SystemExit("scoring-scope amendment requires zero prior execution")
+    predecessor = p.sha256_file(OUT / "e7_protocol.json")
+    protocol = json.loads((OUT / "e7_protocol.json").read_text(encoding="utf-8"))
+    protocol["pre_execution_amendment_002"] = {
+        "predecessor_amendment_commit": "ec10c50eb5b0bb78e322a5bcdf4a1d47e362df87",
+        "predecessor_authoritative_protocol_digest": predecessor,
+        "reason": "The frozen E7 protocol correctly specified steam as the primary scientific endpoint, but the score-generation scope was too narrow for the intended hybrid deployment strategy. The hybrid must emit a complete odd-holdout prediction vector: support-aware scores for steam and ordinary full-support Tree scores for all other meters.",
+        "training_pool_changed": False,
+        "OOF_design_changed": False,
+        "feature_contract_changed": False,
+        "Tree_architecture_changed": False,
+        "meta_model_changed": False,
+        "steam_primary_endpoint_changed": False,
+        "score_generation_scope_changed": True,
+        "previous_scope": "odd steam only",
+        "new_scope": "complete odd holdout hybrid",
+        "routing": {
+            "steam": "support_stack",
+            "nonsteam": "final_s11_ensemble",
+            "locked_nonsteam": "historical_full_tree_ensemble",
+        },
+    }
+    p.atomic_json(OUT / "e7_protocol.json", protocol)
+    authoritative = p.sha256_file(OUT / "e7_protocol.json")
+    p.atomic_json(
+        OUT / "e7_protocol_amendment_002.json",
+        {
+            "amendment_id": "E7_AMENDMENT_002",
+            "predecessor_amendment_commit": "ec10c50eb5b0bb78e322a5bcdf4a1d47e362df87",
+            "predecessor_authoritative_protocol_digest": predecessor,
+            "explicit_human_authorization": True,
+            "timing": "before_any_formal_fit",
+            "formal_fits_before_amendment": 0,
+            "odd_predictions_before_amendment": 0,
+            "odd_label_reads_before_amendment": 0,
+            "training_pool_changed": False,
+            "OOF_design_changed": False,
+            "feature_contract_changed": False,
+            "Tree_architecture_changed": False,
+            "meta_model_changed": False,
+            "steam_primary_endpoint_changed": False,
+            "score_generation_scope_changed": True,
+            "previous_scope": "odd steam only",
+            "new_scope": "complete odd holdout hybrid",
+            "final_hybrid_routing_rule": protocol["pre_execution_amendment_002"][
+                "routing"
+            ],
+            "new_authoritative_protocol_digest": authoritative,
+        },
+    )
+    inputs = json.loads((OUT / "e7_input_manifest.json").read_text(encoding="utf-8"))
+    inputs["authoritative_protocol_digest"] = authoritative
+    p.atomic_json(OUT / "e7_input_manifest.json", inputs)
 
 
 def freeze_final_all_even_pools() -> None:
@@ -1005,6 +1268,10 @@ def parse_args() -> argparse.Namespace:
     group.add_argument("--execute-oof-fold", type=int, choices=range(5))
     group.add_argument("--finalise-oof", action="store_true")
     group.add_argument("--freeze-final-pools", action="store_true")
+    group.add_argument("--execute-final", action="store_true")
+    group.add_argument("--fit-final-meta", action="store_true")
+    group.add_argument("--amend-full-holdout-scoring", action="store_true")
+    group.add_argument("--build-full-label-free-store", action="store_true")
     return parser.parse_args()
 
 
@@ -1024,6 +1291,14 @@ def main() -> None:
         finalise_oof()
     elif args.freeze_final_pools:
         freeze_final_all_even_pools()
+    elif args.execute_final:
+        execute_final()
+    elif args.fit_final_meta:
+        fit_final_meta_models()
+    elif args.amend_full_holdout_scoring:
+        amend_full_holdout_scoring_scope()
+    elif args.build_full_label_free_store:
+        build_full_label_free_store()
     else:
         freeze()
 

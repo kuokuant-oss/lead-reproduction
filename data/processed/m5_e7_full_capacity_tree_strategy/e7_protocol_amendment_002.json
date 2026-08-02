@@ -1,0 +1,25 @@
+{
+  "OOF_design_changed": false,
+  "Tree_architecture_changed": false,
+  "amendment_id": "E7_AMENDMENT_002",
+  "explicit_human_authorization": true,
+  "feature_contract_changed": false,
+  "final_hybrid_routing_rule": {
+    "locked_nonsteam": "historical_full_tree_ensemble",
+    "nonsteam": "final_s11_ensemble",
+    "steam": "support_stack"
+  },
+  "formal_fits_before_amendment": 0,
+  "meta_model_changed": false,
+  "new_authoritative_protocol_digest": "23772529891031ce900d45290b57c807c0d0cd116aaad3b3e16e4511c17a2982",
+  "new_scope": "complete odd holdout hybrid",
+  "odd_label_reads_before_amendment": 0,
+  "odd_predictions_before_amendment": 0,
+  "predecessor_amendment_commit": "ec10c50eb5b0bb78e322a5bcdf4a1d47e362df87",
+  "predecessor_authoritative_protocol_digest": "1b775354ee2c2487ca60da3d3e2d548fb1db7d27541a36e93cb95d6c8441d73e",
+  "previous_scope": "odd steam only",
+  "score_generation_scope_changed": true,
+  "steam_primary_endpoint_changed": false,
+  "timing": "before_any_formal_fit",
+  "training_pool_changed": false
+}
