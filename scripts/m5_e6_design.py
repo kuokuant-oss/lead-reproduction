@@ -153,12 +153,23 @@ def cost_model() -> dict:
     tree_h = STATES * ROWS / MEASURED["tree_rows_per_second"]["value"] / 3600
     f32 = 4
 
+    mb = json.loads(
+        (ROOT / "data/processed/m5_e6_protocol/e6_microbatch_manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )["census"]
+    per_state = mb["full_holdout_predict_proba_calls_per_state"]
+
     def policy(name, passes, sentinel=False):
-        calls = STATES * passes * (ROWS / 20_000)  # microbatched predict_proba calls
+        # Counted from the microbatch manifest. Dividing ROWS by the microbatch
+        # size undercounts, because every shard ends in a short batch.
+        calls = STATES * passes * per_state + (STATES * 8 if sentinel else 0)
         return {
             "policy": name,
             "full_holdout_passes_per_state": passes,
-            "predict_proba_calls_full_holdout": int(round(calls)),
+            "predict_proba_calls_total": int(calls),
+            "predict_proba_calls_full_holdout": STATES * passes * per_state,
+            "microbatches_per_state": per_state,
             "row_scores": STATES * passes * ROWS,
             "wall_clock_hours_steady": STATES * passes * one_pass_h
             + (0.02 if sentinel else 0.0),
@@ -211,10 +222,14 @@ def cost_model() -> dict:
         / 3600,
         "restart_cost": {
             "checkpoint_rows": 20_000,
-            "max_recompute_rows_on_failure": 20_000,
-            "max_recompute_seconds_steady": 20_000 / rps,
-            "note": "per-microbatch atomic checkpoints bound a failure to one "
-            "microbatch, as the 137-feature run already demonstrated",
+            "microbatch_checkpoints_are_progress_only": True,
+            "max_recompute_rows_on_failure": ROWS,
+            "max_recompute_hours_on_failure_steady": one_pass_h,
+            "unit_of_recomputation": "one complete state pass",
+            "note": "a microbatch checkpoint records progress, not scientific "
+            "completion. A state is one canonical single-process batched pass, "
+            "so a process failure quarantines the partial state and the state "
+            "restarts from canonical row 0. Completed states are skipped.",
         },
     }
 

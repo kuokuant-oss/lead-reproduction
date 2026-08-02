@@ -24,7 +24,7 @@
     "steam_positive_vs_hotwater_negative_pairwise_auc",
     "steam_positive_minus_hotwater_negative_score_margin"
   ],
-  "cost_model_sha256": "10e9937cd9fafe4e58056a7e55e39f78c011a77936e162444d23fbb4bb603e18",
+  "cost_model_sha256": "baa80aa87456f236956847a11c1195cd5820eb9ab06f9679c0c6b93fca1a0af0",
   "decision_rule_candidate": {
     "confirmed_conditions": [
       "AUC overall > 0",
@@ -43,7 +43,7 @@
       "EXECUTION_INCOMPLETE"
     ]
   },
-  "generated": 1785649129.1875443,
+  "generated": 1785649964.8219073,
   "inherited_unchanged": {
     "cluster_definitions": "building and segment, as in E4/E5",
     "context_seeds": [

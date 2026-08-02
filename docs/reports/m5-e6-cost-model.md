@@ -12,7 +12,7 @@ overhead and would badly misstate a 10.1M-row pass.
 | TabPFN throughput, all-in | 82.4 rows/s | same log across the whole 7.35 h span, including warm-up and stalls |
 | Fixed-tree throughput | **309,483 rows/s** | synthetic 500,000 × 137 float32 rows through the four-model ensemble on the laptop; no real holdout row scored |
 | Weighted-AUC sweep | 23 ms per draw | measured on the real 594,318-row co-primary subset with synthetic scores |
-| Microbatch / checkpoint | 20,000 rows | `m5_tabpfn_137_remaining_batch_plan.json` |
+| Microbatch / checkpoint | 20,000 rows, **516 per state** | `m5_tabpfn_137_remaining_batch_plan.json`; the 516 is counted from `e6_microbatch_manifest.json` |
 
 **Caveat that matters.** The 330 rows/s anchor was measured at **context
 100,000**. E6 uses **context 20,000**. TabPFN attends over its context, so E6
@@ -31,9 +31,9 @@ produce no holdout prediction. That is an open item.
 
 | Policy | `predict_proba` calls | Row scores | Wall clock (steady) | Output (float32) |
 |---|---:|---:|---:|---:|
-| **R1** — 24 × 1 pass | 12,165 | 243,291,720 | **204.8 h ≈ 8.5 d** | 0.97 GB |
-| **R8** — 24 × 8 passes | 97,317 | 1,946,333,760 | **1,638 h ≈ 68.3 d** | 7.79 GB |
-| **R1_PLUS_SENTINEL** | 12,165 | 243,291,720 | **204.8 h ≈ 8.5 d** | 0.97 GB |
+| **R1** — 24 × 1 pass | 12,384 | 243,291,720 | **204.8 h ≈ 8.5 d** | 0.97 GB |
+| **R8** — 24 × 8 passes | 99,072 | 1,946,333,760 | **1,638 h ≈ 68.3 d** | 7.79 GB |
+| **R1_PLUS_SENTINEL** | 12,384 + 192 sentinel | 243,291,720 | **204.8 h ≈ 8.5 d** | 0.97 GB |
 
 At the all-in rate those become 34 d, 273 d, and 34 d. R8 is not a schedule
 anyone will run; it is priced here so the comparison is on the record rather
@@ -61,7 +61,7 @@ the wall clock. Sentinel results are kept out of every full-holdout endpoint.
 | 24 fixed-tree comparators over the whole holdout | **0.22 h ≈ 13 min** |
 | clustered intervals, 1000 draws × 2 clusterings × 24 units | **0.31 h ≈ 19 min** |
 | archive of R1 outputs | ~1 GB, minutes to transfer |
-| worst-case recompute after a failure | one microbatch = 20,000 rows ≈ 61 s at steady rate |
+| worst-case recompute after a failure | **one complete state pass = 10,137,155 rows ≈ 8.53 h** |
 
 The tree half is about 0.1% of the TabPFN cost. It is not a scheduling concern,
 which is worth stating plainly because the E5 override made it look like the
@@ -103,3 +103,21 @@ and the report must say so rather than let the reader assume E4/E5's estimand
 carried over. E4/E5 averaged 8 repeats per fit before forming contrasts; E6
 under R1 does not, and that difference belongs in the methods, not in a
 footnote.
+
+## Corrections to the first audit
+
+Two figures in the original audit were wrong and are superseded here.
+
+**Call census.** The audit divided 10,137,155 by 20,000 and reported 12,165
+full-holdout calls. Every one of the 12 shards ends in a short microbatch, so
+the true count is a sum of ceilings: **516 microbatches per state, 12,384 calls
+across 24 states**, and **99,072** for R8 rather than 97,317. All call counts are
+now derived programmatically from `e6_microbatch_manifest.json`, and a test
+rejects the superseded numbers by value so they cannot drift back.
+
+**Failure recomputation.** The audit wrote that a failure costs one 20,000-row
+microbatch. That is the progress granularity, not the scientific one. A state is
+one canonical single-process batched pass, so a process failure quarantines the
+partial state and the state restarts from canonical row 0. The correct figure is
+**one complete state pass — 10,137,155 rows, about 8.53 h**. Completed states are
+skipped on restart; the failed one is not resumed mid-way.

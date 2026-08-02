@@ -8,8 +8,8 @@ One fresh process loads one state and streams the whole holdout through it, then
 commits.
 
 - 24 processes, 24 reloads
-- one state's 10.1M scores come from **one process and one realization** — the
-  clean stochastic semantics
+- one state's 10.1M scores come from **one process and one fixed microbatch
+  partition** — a *canonical single-process batched pass*
 - a failure at 90% of a state costs up to 8.5 h of that state
 - output is naturally one vector per state
 
@@ -43,8 +43,8 @@ qualification.
 **Recommendation: A, state-major**, with per-microbatch atomic checkpoints
 recording the owning process UUID. A state's batches must all carry the same
 UUID, and the importer must refuse a state whose batches do not. That keeps
-"one state, one realization" true by construction instead of by convention,
-which is what makes it checkable.
+"one state, one canonical single-process batched pass" true by construction
+instead of by convention, which is what makes it checkable.
 
 The failure cost is the honest objection: up to 8.5 h lost. It is bounded by
 resuming *within* a state only if the resumed process re-scores every batch it
@@ -122,3 +122,31 @@ are two separate states.
 - a partially scored holdout may not produce any scientific decision — the
   existing batch plan shows per-batch prevalence ranging from 3.1% to 15.6%, so
   partial coverage is not a representative sample
+
+## Naming the estimand correctly
+
+A state's output is **not** one inference realization, one `predict_proba`
+realization, or one full-vector repeat. It is built from 516 `predict_proba`
+calls. The frozen name is:
+
+> **canonical single-process batched pass**
+
+defined as: one persisted state; one fresh process UUID; a fixed microbatch
+partition in a fixed order; one `predict_proba` per microbatch; every holdout row
+scored exactly once; all microbatches completed inside that one process; and the
+state-level score field formed only after all of them complete.
+
+What this means for the intervals, and it must appear in the results report
+rather than be left for the reader to infer:
+
+- E6's full score field is assembled from many microbatch `predict_proba` calls,
+  all within one fixed process and one fixed batch partition.
+- E6's clustered intervals are conditional on **that realized batched pass**.
+  They do not cover same-state full-holdout inference-repeat variation, because
+  E6 performs one pass, not eight.
+- The sentinel measures reload-time inference variability, environment and
+  runtime drift, and whether both sit inside the range E4 and E5 established. It
+  is not a full-holdout repeat and never enters an endpoint.
+
+E4 and E5 averaged 8 repeats per fit before forming contrasts. E6 does not. That
+is a real difference in the estimand and belongs in the methods.

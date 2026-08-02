@@ -344,6 +344,86 @@ def test_draft_forbids_the_untouched_wording():
     assert "sole mechanism" in w["mechanism"]
 
 
+# --------------------------------------------------------------------------
+# the microbatch manifest and the corrected census
+# --------------------------------------------------------------------------
+
+PROTOCOL = MAIN / "data" / "processed" / "m5_e6_protocol"
+
+
+def _microbatches():
+    p = PROTOCOL / "e6_microbatch_manifest.json"
+    if not p.exists():
+        pytest.skip("E6 microbatch manifest not built in this environment")
+    return json.loads(p.read_text(encoding="utf-8"))
+
+
+def test_microbatches_tile_the_holdout_exactly_once():
+    m = _microbatches()
+    mbs = sorted(m["microbatches"], key=lambda x: x["canonical_start"])
+    assert mbs[0]["canonical_start"] == 0
+    assert mbs[-1]["canonical_stop"] == HOLDOUT_ROWS
+    total = 0
+    for a, b in zip(mbs, mbs[1:]):
+        assert a["canonical_stop"] == b["canonical_start"], "gap or overlap"
+        total += a["row_count"]
+    total += mbs[-1]["row_count"]
+    assert total == HOLDOUT_ROWS
+    assert m["census"]["rows_covered"] == HOLDOUT_ROWS
+
+
+def test_no_microbatch_exceeds_the_maximum():
+    m = _microbatches()
+    assert all(x["row_count"] <= m["microbatch_max_rows"] for x in m["microbatches"])
+    assert all(x["row_count"] > 0 for x in m["microbatches"])
+
+
+def test_call_census_rejects_the_hand_written_audit_numbers():
+    """The audit divided rows by microbatch size. Every shard ends short."""
+    c = _microbatches()["census"]
+    assert c["microbatches_per_state"] == 516
+    assert c["full_holdout_predict_proba_calls_all_states"] == 12_384
+    assert c["r8_full_holdout_calls_all_states"] == 99_072
+    # the superseded figures must not reappear
+    assert c["full_holdout_predict_proba_calls_all_states"] != 12_165
+    assert c["r8_full_holdout_calls_all_states"] != 97_317
+
+
+def test_sentinel_census_is_24_by_8():
+    c = _microbatches()["census"]
+    assert c["sentinel_predict_proba_calls_per_state"] == 8
+    assert c["sentinel_predict_proba_calls_all_states"] == 192
+    assert c["r1_plus_sentinel_total_calls"] == 12_384 + 192
+    assert c["sentinel_row_scores"] == 352 * 8 * 24
+
+
+def test_cost_model_call_counts_come_from_the_manifest():
+    by = {p["policy"]: p for p in _cost()["repeat_policies"]}
+    c = _microbatches()["census"]
+    assert (
+        by["R1"]["predict_proba_calls_full_holdout"]
+        == (c["full_holdout_predict_proba_calls_all_states"])
+    )
+    assert (
+        by["R8"]["predict_proba_calls_full_holdout"]
+        == (c["r8_full_holdout_calls_all_states"])
+    )
+    assert (
+        by["R1_PLUS_SENTINEL"]["predict_proba_calls_total"]
+        == (c["r1_plus_sentinel_total_calls"])
+    )
+    assert by["R1"]["microbatches_per_state"] == 516
+
+
+def test_failure_recomputation_is_a_whole_state_not_a_microbatch():
+    """A microbatch checkpoint is progress, not scientific completion."""
+    r = _cost()["restart_cost"]
+    assert r["unit_of_recomputation"] == "one complete state pass"
+    assert r["max_recompute_rows_on_failure"] == HOLDOUT_ROWS
+    assert r["microbatch_checkpoints_are_progress_only"] is True
+    assert r["max_recompute_rows_on_failure"] != 20_000
+
+
 def _standalone() -> int:
     import traceback
 

@@ -2,7 +2,7 @@
   "basis": "measured, not extrapolated from E5's 192-row timing",
   "clustered_uncertainty_hours": 0.30666666666666664,
   "context_caveat": "the 330 rows/s anchor was measured at context 100000; E6 uses context 20000, so this is an upper bound on time and the true E6 rate is unmeasured. Pinning it needs a throughput probe, which can run on replicated non-holdout rows and produce no holdout prediction.",
-  "generated": 1785649129.1864104,
+  "generated": 1785649964.8207092,
   "measured_inputs": {
     "tabpfn_rows_per_second_all_in": {
       "config": "same",
@@ -37,10 +37,12 @@
   "repeat_policies": [
     {
       "full_holdout_passes_per_state": 1,
+      "microbatches_per_state": 516,
       "output_bytes_float32": 973166880,
       "output_gb_float32": 0.97316688,
       "policy": "R1",
-      "predict_proba_calls_full_holdout": 12165,
+      "predict_proba_calls_full_holdout": 12384,
+      "predict_proba_calls_total": 12384,
       "row_scores": 243291720,
       "sentinel_repeats_per_state": 0,
       "sentinel_rows": 0,
@@ -50,10 +52,12 @@
     },
     {
       "full_holdout_passes_per_state": 8,
+      "microbatches_per_state": 516,
       "output_bytes_float32": 7785335040,
       "output_gb_float32": 7.78533504,
       "policy": "R8",
-      "predict_proba_calls_full_holdout": 97317,
+      "predict_proba_calls_full_holdout": 99072,
+      "predict_proba_calls_total": 99072,
       "row_scores": 1946333760,
       "sentinel_repeats_per_state": 0,
       "sentinel_rows": 0,
@@ -63,10 +67,12 @@
     },
     {
       "full_holdout_passes_per_state": 1,
+      "microbatches_per_state": 516,
       "output_bytes_float32": 973166880,
       "output_gb_float32": 0.97316688,
       "policy": "R1_PLUS_SENTINEL",
-      "predict_proba_calls_full_holdout": 12165,
+      "predict_proba_calls_full_holdout": 12384,
+      "predict_proba_calls_total": 12576,
       "row_scores": 243291720,
       "sentinel_repeats_per_state": 8,
       "sentinel_rows": 352,
@@ -77,9 +83,11 @@
   ],
   "restart_cost": {
     "checkpoint_rows": 20000,
-    "max_recompute_rows_on_failure": 20000,
-    "max_recompute_seconds_steady": 60.60606060606061,
-    "note": "per-microbatch atomic checkpoints bound a failure to one microbatch, as the 137-feature run already demonstrated"
+    "max_recompute_hours_on_failure_steady": 8.532958754208755,
+    "max_recompute_rows_on_failure": 10137155,
+    "microbatch_checkpoints_are_progress_only": true,
+    "note": "a microbatch checkpoint records progress, not scientific completion. A state is one canonical single-process batched pass, so a process failure quarantines the partial state and the state restarts from canonical row 0. Completed states are skipped.",
+    "unit_of_recomputation": "one complete state pass"
   },
   "schema": "m5_e6_cost_model_v1",
   "strata": {
