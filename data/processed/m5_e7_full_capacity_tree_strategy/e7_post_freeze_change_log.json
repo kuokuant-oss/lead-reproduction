@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "frozen_protocol_commit": "c4821a0899e334a5b1354598742d47fbf992efd5",
+  "changes": [
+    {
+      "id": "PF-001",
+      "classification": "implementation_completion",
+      "scope": "checkpointed OOF/all-even execution, label-free scoring bundle, and score firewall",
+      "scientific_effect": "none; consumes only frozen rows, feature order, architecture, seeds, and decision rules",
+      "status": "in_progress"
+    }
+  ]
+}

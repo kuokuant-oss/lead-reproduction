@@ -135,8 +135,14 @@ def worker(spec_path: Path) -> None:
     x_query = np.load(spec["x_query"], mmap_mode="r")
     if x_fit.shape[0] != y_fit.shape[0] or x_query.shape[0] != spec["query_rows"]:
         raise SystemExit("component input shape mismatch")
-    scaler = StandardScaler()
-    fit = scaler.fit_transform(x_fit).astype("float32", copy=False)
+    scaler_ref = Path(spec["scaler_source"]["path"])
+    if (
+        not scaler_ref.exists()
+        or p.sha256_file(scaler_ref) != spec["scaler_source"]["sha256"]
+    ):
+        raise SystemExit("frozen shared scaler is missing or digest-drifted")
+    scaler = joblib.load(scaler_ref)
+    fit = scaler.transform(x_fit).astype("float32", copy=False)
     query = scaler.transform(x_query).astype("float32", copy=False)
     name = spec["component"]
     model = _component_model(name)
@@ -399,6 +405,9 @@ def bounded_validation() -> None:
         p.atomic_npy(inputs / "x.npy", x)
         p.atomic_npy(inputs / "y.npy", y)
         p.atomic_npy(inputs / "q.npy", q)
+        scaler = StandardScaler().fit(x)
+        scaler_path = inputs / "shared_scaler.joblib"
+        scaler_sha = _save_joblib(scaler_path, scaler)
         spec = {
             "unit_id": unit,
             "unit_dir": str(root / "units" / unit),
@@ -407,6 +416,7 @@ def bounded_validation() -> None:
             "y_fit": str(inputs / "y.npy"),
             "x_query": str(inputs / "q.npy"),
             "query_rows": len(q),
+            "scaler_source": {"path": str(scaler_path), "sha256": scaler_sha},
             "mode": "bounded_non_scientific_validation",
         }
         run_component(spec)
@@ -491,6 +501,318 @@ def freeze() -> None:
     p.atomic_json(OUT / "e7_decision_rules.json", p.protocol()["decision"])
 
 
+def _f4(frame: pd.DataFrame, indices: np.ndarray) -> np.ndarray:
+    """Build frozen timestamp-merge F4 values in requested raw-index order."""
+    from lead.data import SHIFTS
+    from lead.features import add_value_change_features
+    from lead.m5_context import feature_names
+
+    columns = feature_names("F4")
+    if len(columns) != 137:
+        raise RuntimeError("F4 feature count drift")
+    tagged = frame.copy()
+    tagged["__raw_index_carrier"] = tagged.index.to_numpy(dtype="int64")
+    built = add_value_change_features(
+        tagged, list(SHIFTS), value_change_regime="timestamp_merge"
+    )
+    built.index = built["__raw_index_carrier"].to_numpy(dtype="int64")
+    matrix = built.loc[indices, columns].to_numpy(dtype="float32", copy=True)
+    if matrix.shape != (len(indices), 137) or matrix.dtype != np.float32:
+        raise RuntimeError("F4 matrix contract drift")
+    return matrix
+
+
+def _pool_manifest_record(fold: int, family: str, slot: str) -> dict[str, Any]:
+    records = json.loads(
+        (OUT / "e7_training_pool_manifest.json").read_text(encoding="utf-8")
+    )["records"]
+    matches = [
+        r
+        for r in records
+        if r["fold"] == fold and r["family"] == family and r["slot"] == slot
+    ]
+    if len(matches) != 1:
+        raise RuntimeError(
+            f"missing or duplicate frozen pool record: {fold}/{family}/{slot}"
+        )
+    return matches[0]
+
+
+def _frozen_indices(
+    train: pd.DataFrame, fold: int, family: str, slot: str
+) -> np.ndarray:
+    indices = (
+        support_pool(train, slot[1:])
+        if family == "support"
+        else neutral_pool(train, support_pool(train, slot[1:]), slot)
+    )
+    record = _pool_manifest_record(fold, family, slot)
+    observed = pool_record(train, indices)
+    for key in (
+        "rows",
+        "positive_rows",
+        "negative_rows",
+        "raw_index_digest",
+        "row_order_digest",
+    ):
+        if observed[key] != record[key]:
+            raise RuntimeError(f"frozen pool drift for {fold}/{family}/{slot}: {key}")
+    return indices
+
+
+def _unit_spec(
+    *,
+    phase: str,
+    fold_name: str,
+    family: str,
+    slot: str,
+    component: str,
+    inputs: Path,
+    x_fit: np.ndarray,
+    y_fit: np.ndarray,
+    x_query: np.ndarray,
+    train_indices: np.ndarray,
+    query_indices: np.ndarray,
+    scaler: StandardScaler,
+) -> dict[str, Any]:
+    identity = p.unit_id(phase, fold_name, family, slot, component)
+    slot_root = inputs / f"{phase}__{fold_name}__{family}__{slot}"
+    x_path, y_path, q_path = (
+        slot_root / "x.npy",
+        slot_root / "y.npy",
+        slot_root / "query.npy",
+    )
+    p.atomic_npy(x_path, x_fit)
+    p.atomic_npy(y_path, y_fit.astype("int8", copy=False))
+    p.atomic_npy(q_path, x_query)
+    scaler_path = slot_root / "shared_scaler.joblib"
+    scaler_sha = _save_joblib(scaler_path, scaler)
+    return {
+        "unit_id": identity,
+        "phase": phase,
+        "fold": fold_name,
+        "family": family,
+        "slot": slot,
+        "component": component,
+        "unit_dir": str(OUT / "units" / identity),
+        "x_fit": str(x_path),
+        "y_fit": str(y_path),
+        "x_query": str(q_path),
+        "query_rows": int(len(x_query)),
+        "training_raw_index_digest": p.array_digest(train_indices),
+        "training_row_order_digest": p.array_digest(train_indices),
+        "validation_raw_index_digest": p.array_digest(query_indices),
+        "feature_column_digest": "eab08c9a1b39ee7a74070c2ded464e3efbfb13d89dc148ef6b3bc3f443b21de3",
+        "x_dtype": "float32",
+        "environment_sha256": p.sha256_file(OUT / "e7_environment_manifest.json"),
+        "protocol_sha256": p.sha256_file(OUT / "e7_protocol.json"),
+        "scaler_source": {"path": str(scaler_path), "sha256": scaler_sha},
+    }
+
+
+def execute_oof_fold(fold: int) -> None:
+    """Fit the frozen 32 components for one OOF fold; no odd rows are loaded."""
+    p.require_local_cpu()
+    write_status("oof", 0, 160, f"preparing fold {fold}")
+    manifest = json.loads((OUT / "e7_fold_manifest.json").read_text(encoding="utf-8"))[
+        "folds"
+    ][fold]
+    frame = _historical_frame()
+    validation_buildings = set(manifest["validation_buildings"])
+    train = frame[~frame["building_id"].isin(validation_buildings)].copy()
+    validation = frame[frame["building_id"].isin(validation_buildings)].copy()
+    if set(train["building_id"]) & set(validation["building_id"]):
+        raise RuntimeError("validation-building any-meter leakage")
+    if train["building_id"].mod(2).any() or validation["building_id"].mod(2).any():
+        raise RuntimeError("odd building entered OOF")
+    steam = validation[validation["meter"].eq(2)]
+    query_indices = steam.index.to_numpy(dtype="int64")
+    query = _f4(validation, query_indices)
+    inputs = OUT / "inputs"
+    predictions: dict[str, np.ndarray] = {}
+    for family, slots in (
+        ("support", [f"s{x}" for x in p.SUPPORT_CELLS]),
+        ("neutral", list(NEUTRAL_SEEDS)),
+    ):
+        for slot in slots:
+            indices = _frozen_indices(train, fold, family, slot)
+            x_fit = _f4(train, indices)
+            y_fit = train.loc[indices, "anomaly"].to_numpy(dtype="int8")
+            scaler = StandardScaler().fit(x_fit)
+            component_scores = []
+            for component in p.MODEL_ORDER:
+                spec = _unit_spec(
+                    phase="oof",
+                    fold_name=f"fold{fold}",
+                    family=family,
+                    slot=slot,
+                    component=component,
+                    inputs=inputs,
+                    x_fit=x_fit,
+                    y_fit=y_fit,
+                    x_query=query,
+                    train_indices=indices,
+                    query_indices=query_indices,
+                    scaler=scaler,
+                )
+                result = run_component(spec)
+                component_scores.append(
+                    np.load(
+                        Path(spec["unit_dir"]) / result["files"]["prediction"]["path"],
+                        allow_pickle=False,
+                    )
+                )
+            ensemble = np.mean(component_scores, axis=0, dtype="float64").astype(
+                "float32"
+            )
+            if not np.isfinite(ensemble).all():
+                raise RuntimeError("non-finite OOF ensemble")
+            predictions[slot] = ensemble
+            p.atomic_npy(OUT / "oof" / f"fold{fold}" / f"{slot}.npy", ensemble)
+    p.atomic_npy(OUT / "oof" / f"fold{fold}" / "raw_index.npy", query_indices)
+    p.atomic_npy(
+        OUT / "oof" / f"fold{fold}" / "labels.npy",
+        steam["anomaly"].to_numpy(dtype="int8"),
+    )
+    p.atomic_json(
+        OUT / "oof" / f"fold{fold}" / "complete.json",
+        {
+            "fold": fold,
+            "query_rows": int(len(query_indices)),
+            "query_raw_index_digest": p.array_digest(query_indices),
+            "slots": {
+                key: p.sha256_file(OUT / "oof" / f"fold{fold}" / f"{key}.npy")
+                for key in predictions
+            },
+            "complete": True,
+            "odd_predictions": 0,
+        },
+    )
+
+
+def execute_oof() -> None:
+    for fold in range(5):
+        execute_oof_fold(fold)
+
+
+def _select_c(
+    features: list[np.ndarray], labels: list[np.ndarray]
+) -> tuple[float, dict[str, list[float]], list[np.ndarray]]:
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.metrics import average_precision_score
+
+    outcomes: dict[str, list[float]] = {}
+    predictions_by_c: dict[float, list[np.ndarray]] = {}
+    for value in p.CS:
+        blocks: list[np.ndarray] = []
+        scores: list[float] = []
+        for held in range(5):
+            train_x = np.concatenate([features[i] for i in range(5) if i != held])
+            train_y = np.concatenate([labels[i] for i in range(5) if i != held])
+            scaler = StandardScaler().fit(train_x)
+            model = LogisticRegression(
+                C=value,
+                solver="lbfgs",
+                max_iter=5000,
+                class_weight=None,
+                random_state=42,
+            )
+            model.fit(scaler.transform(train_x), train_y)
+            score = model.predict_proba(scaler.transform(features[held]))[:, 1].astype(
+                "float32"
+            )
+            blocks.append(score)
+            scores.append(float(average_precision_score(labels[held], score)))
+        outcomes[str(value)] = scores
+        predictions_by_c[value] = blocks
+    means = {float(key): float(np.mean(value)) for key, value in outcomes.items()}
+    best = max(means.values())
+    chosen = min(value for value in p.CS if best - means[value] < 1e-4)
+    return chosen, outcomes, predictions_by_c[chosen]
+
+
+def finalise_oof() -> None:
+    from sklearn.metrics import average_precision_score
+
+    raw_blocks, labels, support, neutral = [], [], [], []
+    for fold in range(5):
+        root = OUT / "oof" / f"fold{fold}"
+        marker = root / "complete.json"
+        if not marker.exists():
+            raise SystemExit(f"cannot finalise OOF: missing fold {fold}")
+        values = {
+            slot: np.load(root / f"{slot}.npy", allow_pickle=False)
+            for slot in [f"s{x}" for x in p.SUPPORT_CELLS] + list(NEUTRAL_SEEDS)
+        }
+        count = len(values["s11"])
+        if any(
+            len(value) != count or not np.isfinite(value).all()
+            for value in values.values()
+        ):
+            raise SystemExit(f"invalid OOF score field in fold {fold}")
+        raw_blocks.append(np.load(root / "raw_index.npy", allow_pickle=False))
+        labels.append(np.load(root / "labels.npy", allow_pickle=False))
+        support.append(p.factor_features(values, "s"))
+        neutral.append(p.factor_features(values, "n"))
+    support_c, support_grid, support_stack = _select_c(support, labels)
+    neutral_c, neutral_grid, neutral_stack = _select_c(neutral, labels)
+    rows = []
+    for fold in range(5):
+        s11 = support[fold][:, 0]
+        rows.append(
+            {
+                "fold": fold,
+                "rows": int(len(labels[fold])),
+                "prevalence": float(labels[fold].mean()),
+                "s11_ap": float(average_precision_score(labels[fold], s11)),
+                "support_stack_ap": float(
+                    average_precision_score(labels[fold], support_stack[fold])
+                ),
+                "neutral_stack_ap": float(
+                    average_precision_score(labels[fold], neutral_stack[fold])
+                ),
+            }
+        )
+        p.atomic_npy(
+            OUT / "oof" / f"fold{fold}" / "support_stack.npy", support_stack[fold]
+        )
+        p.atomic_npy(
+            OUT / "oof" / f"fold{fold}" / "neutral_stack.npy", neutral_stack[fold]
+        )
+    summary = {
+        "complete": True,
+        "component_fits": 160,
+        "odd_predictions": 0,
+        "support_c": support_c,
+        "neutral_c": neutral_c,
+        "support_grid_fold_aps": support_grid,
+        "neutral_grid_fold_aps": neutral_grid,
+        "folds": rows,
+        "oof_raw_index_digest": p.array_digest(np.concatenate(raw_blocks)),
+    }
+    p.atomic_json(OUT / "e7_oof_summary.json", summary)
+    p.atomic_json(
+        OUT / "e7_oof_manifest.json",
+        {
+            "expected_component_fits": 160,
+            "completed_component_fits": 160,
+            "expected_ensembles": 40,
+            "complete": True,
+            "summary_sha256": p.sha256_file(OUT / "e7_oof_summary.json"),
+        },
+    )
+    p.atomic_json(
+        OUT / "e7_meta_model_manifest.json",
+        {
+            "selected_support_c": support_c,
+            "selected_neutral_c": neutral_c,
+            "selection_status": "complete_even_oof_only",
+            "contract": p.protocol()["meta_model"],
+            "oof_summary_sha256": p.sha256_file(OUT / "e7_oof_summary.json"),
+        },
+    )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
@@ -498,6 +820,9 @@ def parse_args() -> argparse.Namespace:
     group.add_argument("--prepare-manifests", action="store_true")
     group.add_argument("--bounded-validation", action="store_true")
     group.add_argument("--freeze", action="store_true")
+    group.add_argument("--execute-oof", action="store_true")
+    group.add_argument("--execute-oof-fold", type=int, choices=range(5))
+    group.add_argument("--finalise-oof", action="store_true")
     return parser.parse_args()
 
 
@@ -509,6 +834,12 @@ def main() -> None:
         prepare_manifests()
     elif args.bounded_validation:
         bounded_validation()
+    elif args.execute_oof:
+        execute_oof()
+    elif args.execute_oof_fold is not None:
+        execute_oof_fold(args.execute_oof_fold)
+    elif args.finalise_oof:
+        finalise_oof()
     else:
         freeze()
 
