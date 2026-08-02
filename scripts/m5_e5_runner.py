@@ -74,7 +74,15 @@ def state_context(state_path: Path) -> tuple[np.ndarray, list[bool]]:
 
 
 def verify_scaler(scaler: Any, raw_context: np.ndarray, state_path: Path) -> dict:
-    """Reject the scaler unless it reproduces E4's scaled context exactly."""
+    """Reject the scaler unless it reproduces E4's scaled context exactly.
+
+    `raw_context` must carry the dtype E4 fed the scaler. E4 read the cached
+    float32 matrix and transformed it directly; upcasting to float64 first
+    changes the arithmetic and the comparison fails on the last bit for reasons
+    that have nothing to do with the scaler being right.
+    """
+    if raw_context.dtype != np.float32:
+        raise AssertionError(f"context dtype is {raw_context.dtype}; E4 scaled float32")
     x_train, numeric = state_context(state_path)
     if raw_context.shape != x_train.shape:
         raise AssertionError(
@@ -152,7 +160,9 @@ def load_inputs(spec: dict, proto: dict, root: Path, cache_root: Path) -> dict:
     if meta["context_manifest_sha256"] != spec["context_manifest_sha256"]:
         raise AssertionError(f"{ctx_npz.name}: built from a different context manifest")
     with np.load(ctx_npz) as z:
-        raw_context = np.asarray(z["x"], dtype="float64")
+        # Stored dtype, not upcast: E4 passed the cached float32 array straight
+        # to the scaler, and transforming a float64 copy changes the last bit.
+        raw_context = np.asarray(z["x"])
     if raw_context.shape != (20_000, FEATURES):
         raise AssertionError(f"context shape {raw_context.shape}")
 
@@ -163,7 +173,7 @@ def load_inputs(spec: dict, proto: dict, root: Path, cache_root: Path) -> dict:
     if q_meta["raw_index_sha256"] != proto["query"]["raw_index_sha256"]:
         raise AssertionError("query192 cache was built from a different query")
     with np.load(q_npz) as z:
-        raw_query = np.asarray(z["q"], dtype="float64")
+        raw_query = np.asarray(z["q"])
         q_raw_index = np.asarray(z["raw_index"], dtype="int64")
         q_meter = np.asarray(z["meter"], dtype="int8")
         q_anom = np.asarray(z["anomaly"], dtype="int8")
