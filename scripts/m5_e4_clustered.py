@@ -39,14 +39,21 @@ ARMS = ("cell_specific", "frozen_reference")
 CELLS = ("00", "01", "10", "11")
 
 
-def draw_generator(cluster_type: str, draw_id: int) -> np.random.Generator:
-    """Addressable per-draw generator. Never a shared sequential stream."""
+def draw_generator(
+    cluster_type: str, draw_id: int, namespace: int = NAMESPACE_CODE
+) -> np.random.Generator:
+    """Addressable per-draw generator. Never a shared sequential stream.
+
+    `namespace` separates one stage's draws from another's while keeping the
+    construction identical: E4 uses 4004, E5 uses 5005. The default preserves
+    E4's stream exactly, so an E4 result recomputed today is unchanged.
+    """
     if cluster_type not in CLUSTER_CODE:
         raise KeyError(f"unknown cluster type {cluster_type!r}")
     if not 0 <= draw_id < DRAWS:
         raise ValueError(f"draw_id {draw_id} outside the frozen range 0..{DRAWS - 1}")
     seq = np.random.SeedSequence(
-        [MASTER_SEED, NAMESPACE_CODE, CLUSTER_CODE[cluster_type], draw_id]
+        [MASTER_SEED, namespace, CLUSTER_CODE[cluster_type], draw_id]
     )
     return np.random.Generator(np.random.PCG64(seq))
 
@@ -180,6 +187,7 @@ def run_cluster_bootstrap(
     query: pd.DataFrame,
     endpoint: str,
     draws: int = DRAWS,
+    namespace: int = NAMESPACE_CODE,
 ) -> dict:
     """Percentile intervals over `draws` addressable clustered draws."""
     raw = query["raw_index"].to_numpy(dtype="int64")
@@ -195,7 +203,7 @@ def run_cluster_bootstrap(
     samples: dict[str, list[float]] = {}
     invalid = 0
     for draw_id in range(draws):
-        rng = draw_generator(cluster_type, draw_id)
+        rng = draw_generator(cluster_type, draw_id, namespace)
         idx = resample_rows(rng, names, members)
         try:
             row = draw_contrasts(
@@ -220,6 +228,7 @@ def run_cluster_bootstrap(
     out = {
         "cluster": cluster_type,
         "endpoint": endpoint,
+        "namespace_code": namespace,
         "draws_requested": draws,
         "draws_valid": draws - invalid,
         "draws_invalid": invalid,
