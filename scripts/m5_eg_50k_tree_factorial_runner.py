@@ -133,6 +133,11 @@ def heartbeat(out: Path, **extra: Any) -> None:
     )
 
 
+def scientific_provenance(value: dict[str, Any]) -> dict[str, Any]:
+    """Compare only result-affecting fields across a heartbeat-only code fix."""
+    return {key: item for key, item in value.items() if key != "repository_commit"}
+
+
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--preflight", type=Path, required=True)
@@ -239,10 +244,10 @@ def fit_or_load(
         target = out / "models" / f"cell{cell}" / f"{name}.joblib"
         if target.is_file():
             saved = joblib.load(target)
-            if saved.get("provenance") != provenance | {
-                "cell": cell,
-                "component": name,
-            }:
+            expected = provenance | {"cell": cell, "component": name}
+            if scientific_provenance(
+                saved.get("provenance", {})
+            ) != scientific_provenance(expected):
                 raise ValueError(f"{cell}/{name}: cached component provenance mismatch")
             models[name] = saved["model"]
             continue
@@ -261,7 +266,7 @@ def fit_or_load(
         heartbeat(
             out,
             phase="fit",
-            completed_models=sum((out / "models").glob("cell*/*.joblib")),
+            completed_models=sum(1 for _ in (out / "models").glob("cell*/*.joblib")),
             expected_models=16,
             active=f"{cell}/{name}",
         )
