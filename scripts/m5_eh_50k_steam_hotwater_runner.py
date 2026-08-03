@@ -304,7 +304,7 @@ def score(
             root,
             phase="score",
             active=f"{name}/{start}:{end}",
-            completed_models=16,
+            completed_models=expected_models,
             expected_models=expected_models,
         )
     values = {k: np.empty(len(raw), dtype="float32") for k in MODEL_ORDER}
