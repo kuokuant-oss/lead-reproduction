@@ -236,6 +236,7 @@ data/processed/m5_meter_specific_learner_gap/
 data/processed/m5_e0_validation/
 !data/processed/legacy/
 !data/processed/legacy/README.md
+data/processed/legacy/*.npz
 !models/.gitkeep
 
 # Notebooks
