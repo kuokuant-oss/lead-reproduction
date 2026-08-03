@@ -7,11 +7,11 @@ import json
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 
 from m5_ei_all_even_steam_hotwater_runner import (  # noqa: E402
     ROOT,
     atomic_json,
-    build_features_keeping_index,
     feature_columns,
     file_digest,
     fit_models,
@@ -21,10 +21,59 @@ from m5_ei_all_even_steam_hotwater_runner import (  # noqa: E402
     repo_commit,
     score,
 )
+from lead import SHIFTS  # noqa: E402
 
 
 NAMES = ("steam_100k", "steam_hw_100k")
 EXPECTED_COMPONENT_FITS = len(NAMES) * 4
+
+
+def build_selected_timestamp_features(
+    source: pd.DataFrame, raw_index: np.ndarray
+) -> pd.DataFrame:
+    """Compute exact timestamp-merge F4 values only for requested rows.
+
+    ``add_value_change_features`` materializes 120 columns for every source
+    row.  For this 100K experiment that would create the same multi-gigabyte
+    all-even temporary as an all-data fit.  Timestamp-merge values for a row
+    depend only on its same-building/same-meter source reading at each frozen
+    timestamp offset, so this indexed implementation has identical F4
+    semantics while materializing the 137-column matrix only for the frozen
+    context or the Steam holdout.
+    """
+    if not source.index.is_unique or len(raw_index) != len(np.unique(raw_index)):
+        raise ValueError("source and requested raw_index must be unique")
+    selected = source.loc[raw_index].copy()
+    key_columns = ["building_id", "meter", "timestamp"]
+    source_keys = pd.MultiIndex.from_frame(source[key_columns])
+    if not source_keys.is_unique:
+        raise ValueError("timestamp-merge source keys are not unique")
+    readings = source["meter_reading"].to_numpy()
+    selected_readings = selected["meter_reading"].to_numpy()
+    value_columns: dict[str, np.ndarray] = {}
+    for shift in SHIFTS:
+        shifted_timestamps = selected["timestamp"] - pd.Timedelta(hours=shift)
+        lookup = pd.MultiIndex.from_arrays(
+            [
+                selected["building_id"].to_numpy(),
+                selected["meter"].to_numpy(),
+                shifted_timestamps.to_numpy(),
+            ],
+            names=key_columns,
+        )
+        locations = source_keys.get_indexer(lookup)
+        shifted = np.full(len(selected), np.nan, dtype="float64")
+        present = locations >= 0
+        shifted[present] = readings[locations[present]]
+        value_columns[f"lag_value_diff_{shift}"] = (selected_readings - shifted).astype(
+            "float32"
+        )
+        value_columns[f"lag_value_ratio_{shift}"] = (
+            (selected_readings + 1) / (shifted + 1)
+        ).astype("float32")
+    return pd.concat(
+        [selected, pd.DataFrame(value_columns, index=selected.index)], axis=1
+    )
 
 
 def main() -> int:
@@ -86,8 +135,6 @@ def main() -> int:
     steam_raw_index = canonical_raw_index[
         frame.loc[canonical_raw_index, "meter"].to_numpy() == 2
     ]
-    full_even_features = build_features_keeping_index(frame.loc[even])
-    columns = feature_columns(137, list(full_even_features.columns))
     odd_features = None
     for name in NAMES:
         raw_index = np.asarray(items[name]["raw_index"], dtype="int64")
@@ -99,6 +146,13 @@ def main() -> int:
             or len(np.unique(raw_index)) != len(raw_index)
         ):
             raise AssertionError(f"{name}: frozen pool identity gate failed")
+        source = frame.loc[even & frame.meter.isin(items[name]["meters"]).to_numpy()]
+        selected_features = build_selected_timestamp_features(source, raw_index)
+        columns = feature_columns(137, list(selected_features.columns))
+        if not np.array_equal(
+            selected_features.index.to_numpy(dtype="int64"), raw_index
+        ):
+            raise AssertionError(f"{name}: selected feature order drift")
         base_provenance = {
             "preflight_sha256": file_digest(args.preflight),
             "source_sha256": preflight["source_sha256"],
@@ -109,7 +163,7 @@ def main() -> int:
         scaler, models, provenance = fit_models(
             name,
             raw_index,
-            full_even_features,
+            selected_features,
             frame,
             columns,
             args.out,
@@ -118,7 +172,8 @@ def main() -> int:
             expected_models=EXPECTED_COMPONENT_FITS,
         )
         if odd_features is None:
-            odd_features = build_features_keeping_index(frame.loc[~even])
+            odd_steam = frame.loc[(~even) & (frame.meter.to_numpy() == 2)]
+            odd_features = build_selected_timestamp_features(odd_steam, steam_raw_index)
         score(
             name,
             models,
