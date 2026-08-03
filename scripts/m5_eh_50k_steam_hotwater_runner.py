@@ -199,6 +199,7 @@ def fit_models(
     root: Path,
     base: dict[str, Any],
     resume: bool,
+    expected_models: int = 16,
 ) -> tuple[StandardScaler, dict[str, Any], dict[str, Any]]:
     selected = train_full.loc[raw]
     if not np.array_equal(selected.index.to_numpy(dtype="int64"), raw):
@@ -259,7 +260,7 @@ def fit_models(
             phase="fit",
             active=f"{name}/{component}",
             completed_models=sum(1 for _ in (root / "models").glob("*/*.joblib")),
-            expected_models=16,
+            expected_models=expected_models,
         )
     return scaler, models, provenance
 
@@ -274,6 +275,7 @@ def score(
     root: Path,
     batch: int,
     provenance: dict[str, Any],
+    expected_models: int = 16,
 ) -> None:
     cell = root / "scores" / name
     spans = [
@@ -303,7 +305,7 @@ def score(
             phase="score",
             active=f"{name}/{start}:{end}",
             completed_models=16,
-            expected_models=16,
+            expected_models=expected_models,
         )
     values = {k: np.empty(len(raw), dtype="float32") for k in MODEL_ORDER}
     for start, end in spans:
