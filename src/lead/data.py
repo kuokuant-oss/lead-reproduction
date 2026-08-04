@@ -40,6 +40,8 @@ BASELINE_FEATURE_COLS = [
     "wind_speed",
 ]
 
+BASELINE_FEATURE_COLS_WITH_BUILDING_ID = ["building_id", *BASELINE_FEATURE_COLS]
+
 SHIFTS = (
     list(range(-24, 0))
     + list(range(1, 25))

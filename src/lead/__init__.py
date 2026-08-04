@@ -8,6 +8,7 @@ numeric parity even though tree boosters such as LightGBM are scale-invariant.
 
 from .data import (
     BASELINE_FEATURE_COLS,
+    BASELINE_FEATURE_COLS_WITH_BUILDING_ID,
     BUILDING_META_FEATURE_COLS,
     CYCLIC_FEATURE_COLS,
     DOWNSAMPLE_SEEDS,
@@ -60,6 +61,7 @@ __all__ = [
     "MODEL_SEEDS",
     "SHUFFLE_SEEDS",
     "BASELINE_FEATURE_COLS",
+    "BASELINE_FEATURE_COLS_WITH_BUILDING_ID",
     "BUILDING_META_FEATURE_COLS",
     "CYCLIC_FEATURE_COLS",
     "M3_3_EXTRA_FEATURE_COLS",

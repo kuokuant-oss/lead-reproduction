@@ -12,6 +12,7 @@ from sklearn.preprocessing import StandardScaler
 
 from lead import (
     BASELINE_FEATURE_COLS,
+    BASELINE_FEATURE_COLS_WITH_BUILDING_ID,
     DOWNSAMPLE_SEEDS,
     PROC,
     RANDOM_STATE,
@@ -38,16 +39,18 @@ def run_regime(
     val_split: pd.DataFrame,
     value_cols: list[str],
     regime: str,
+    baseline_feature_cols: list[str],
 ) -> dict[str, object]:
     if regime == "offline":
-        feature_cols = BASELINE_FEATURE_COLS + value_cols
+        feature_cols = [*baseline_feature_cols, *value_cols]
     elif regime == "causal":
         past_cols = [c for c in value_cols if "_-" not in c]
-        feature_cols = BASELINE_FEATURE_COLS + past_cols
+        feature_cols = [*baseline_feature_cols, *past_cols]
     else:
         raise ValueError(f"Unknown regime: {regime}")
 
-    expected_features = 137 if regime == "offline" else 77
+    expected_value_change_features = 120 if regime == "offline" else 60
+    expected_features = len(baseline_feature_cols) + expected_value_change_features
     if len(feature_cols) != expected_features:
         raise AssertionError(
             f"{regime} expected {expected_features} features, got {len(feature_cols)}"
@@ -73,7 +76,7 @@ def run_regime(
     )
     return {
         "n_features": int(len(feature_cols)),
-        "n_value_change_features": int(len(feature_cols) - len(BASELINE_FEATURE_COLS)),
+        "n_value_change_features": int(len(feature_cols) - len(baseline_feature_cols)),
         "n_train_downsampled": int(len(ds_idx)),
         "run": run,
     }
@@ -87,12 +90,22 @@ def parse_args() -> argparse.Namespace:
         default=PROC / "m3_50_50_ensemble_results.json",
         help="Output JSON path.",
     )
+    parser.add_argument(
+        "--include-building-id",
+        action="store_true",
+        help="Include raw building_id as the first baseline feature.",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
     t0 = time.time()
+    baseline_feature_cols = (
+        BASELINE_FEATURE_COLS_WITH_BUILDING_ID
+        if args.include_building_id
+        else BASELINE_FEATURE_COLS
+    )
     if len(SHIFTS) != 60 or len(PAST_SHIFTS) != 30 or len(FUTURE_SHIFTS) != 30:
         raise AssertionError("Unexpected value-change shift set")
 
@@ -128,8 +141,20 @@ def main() -> None:
         )
 
     regimes = {
-        "offline": run_regime(train_full, val_full, value_cols, "offline"),
-        "causal": run_regime(train_full, val_full, value_cols, "causal"),
+        "offline": run_regime(
+            train_full,
+            val_full,
+            value_cols,
+            "offline",
+            baseline_feature_cols,
+        ),
+        "causal": run_regime(
+            train_full,
+            val_full,
+            value_cols,
+            "causal",
+            baseline_feature_cols,
+        ),
     }
     causal_auc = regimes["causal"]["run"]["ensemble"]["val_auc"]
     if causal_auc > M3_4_80_20_OFFLINE_ENSEMBLE_AUC:
@@ -142,7 +167,10 @@ def main() -> None:
     results: dict[str, object] = {
         "experiment": "m3_50_50_4_model_ensemble",
         "purpose": "PI-spec 50/50 building split ensemble follow-up",
-        "provenance": {"value_change_regime": VALUE_CHANGE_REGIME},
+        "provenance": {
+            "value_change_regime": VALUE_CHANGE_REGIME,
+            "include_building_id": bool(args.include_building_id),
+        },
         "split": {
             "name": "50_50_mod2",
             "protocol": "validation buildings are building_id % 2 == 1",
@@ -158,11 +186,11 @@ def main() -> None:
         "model_seed": RANDOM_STATE,
         "downsampling_seeds": list(DOWNSAMPLE_SEEDS),
         "feature_counts": {
-            "baseline": int(len(BASELINE_FEATURE_COLS)),
+            "baseline": int(len(baseline_feature_cols)),
             "offline_value_change": int(len(value_cols)),
             "causal_value_change": int(len(PAST_SHIFTS) * 2),
-            "offline_total": int(len(BASELINE_FEATURE_COLS) + len(value_cols)),
-            "causal_total": int(len(BASELINE_FEATURE_COLS) + len(PAST_SHIFTS) * 2),
+            "offline_total": int(len(baseline_feature_cols) + len(value_cols)),
+            "causal_total": int(len(baseline_feature_cols) + len(PAST_SHIFTS) * 2),
         },
         "regimes": regimes,
         "references": {
