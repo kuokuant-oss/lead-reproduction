@@ -44,7 +44,97 @@ or join/reorder it by timestamp.
 The full condition census, including every Steam / Hotwater × label count, is
 in [`m5-steam-hotwater-training-data-overview.md`](../reports/m5-steam-hotwater-training-data-overview.md).
 
-## 3. Mandatory TabPFN admission gates
+## 3. Concrete TabPFN run set and context loader
+
+### 3.1 The directly comparable run set
+
+For a TabPFN replication of the existing dedicated Tree series, use the exact
+contexts below—no new sampling step is involved.
+
+| Priority | TabPFN run label | Exact Tree comparator | Frozen source |
+|---:|---|---|---|
+| 1 | `50k_steam_only` | 50K `steam_only` | 50K manifest `steam_only` |
+| 2 | `50k_steam_hw_normal` | 50K `steam_hw_normal` | 50K manifest `steam_hw_normal` |
+| 3 | `50k_steam_hw_anomaly` | 50K `steam_hw_anomaly` | 50K manifest `steam_hw_anomaly` |
+| 4 | `50k_steam_hw_all` | 50K `steam_hw_all` | 50K manifest `steam_hw_all` |
+| 5 | `100k_steam_only` | 100K `steam_only` | 100K item `steam_100k` |
+| 6 | `100k_steam_hw_all` | 100K `steam_hw_all` | 100K item `steam_hw_100k` |
+| 7 | `200k_steam_hw_all` | 200K `steam_hw_all` | 200K top-level `raw_index` |
+
+The first four are the required factorial set: they isolate the effect of
+Hotwater normal rows, Hotwater anomaly rows, and both together at a fixed 50K
+budget.  The latter three are the completed budget-extension comparators.
+
+There is **no frozen meter-only 20K context**.  Do not use the four-meter E0/E1
+20K context as its replacement.  A request to add 20K must stop at
+`M5_STEAM_HOTWATER_20K_CONTEXT_SPEC_REQUIRED` until a human explicitly freezes
+its allowed meters, seed/nesting relation, raw-index vector, digest, and
+preflight gates.  This handoff neither creates nor authorizes that new
+scientific context.
+
+### 3.2 Minimal no-resampling loader
+
+The following is the required selection pattern.  It is deliberately explicit
+so a TabPFN implementation consumes the same training observations as the Tree
+comparison—not merely the same nominal sample size.
+
+```python
+import hashlib
+import json
+from pathlib import Path
+
+import numpy as np
+
+
+def sha256_le_int64(values: np.ndarray) -> str:
+    raw = np.ascontiguousarray(np.asarray(values, dtype="<i8"))
+    return hashlib.sha256(raw.tobytes()).hexdigest()
+
+
+ROOT = Path(".")
+PRE_50K = ROOT / "data/processed/m5_eh_50k_steam_hotwater_preflight/preflight.json"
+PRE_100K = ROOT / "data/processed/m5_ek_steam_budget_preflight/preflight.json"
+PRE_200K = ROOT / "data/processed/m5_ej_200k_steam_hotwater_preflight/preflight.json"
+
+
+def frozen_tabpfn_context(label: str) -> np.ndarray:
+    if label.startswith("50k_"):
+        tree_name = label.removeprefix("50k_")
+        payload = json.loads(PRE_50K.read_text(encoding="utf-8"))
+        return np.asarray(payload["manifests"][tree_name]["raw_index"], dtype="int64")
+    if label == "100k_steam_only":
+        payload = json.loads(PRE_100K.read_text(encoding="utf-8"))
+        return np.asarray(payload["items"]["steam_100k"]["raw_index"], dtype="int64")
+    if label == "100k_steam_hw_all":
+        payload = json.loads(PRE_100K.read_text(encoding="utf-8"))
+        return np.asarray(payload["items"]["steam_hw_100k"]["raw_index"], dtype="int64")
+    if label == "200k_steam_hw_all":
+        payload = json.loads(PRE_200K.read_text(encoding="utf-8"))
+        return np.asarray(payload["raw_index"], dtype="int64")
+    raise ValueError(f"unfrozen or unknown context: {label}")
+```
+
+For a selected `label`, construct F4/137 using the frozen `timestamp_merge`
+regime on the even-building source data, then perform **only** this selection:
+
+```python
+raw_index = frozen_tabpfn_context(label)
+features_even = build_features_keeping_index(frame.loc[even_building_mask])
+x_context = features_even.loc[raw_index, frozen_137_columns]
+y_context = frame.loc[raw_index, "anomaly"].to_numpy(dtype="int8")
+
+assert np.array_equal(x_context.index.to_numpy(dtype="int64"), raw_index)
+assert len(np.unique(raw_index)) == len(raw_index)
+assert y_context.sum() == len(y_context) // 2
+```
+
+`x_context` and `y_context` are the sole supervised inputs to TabPFN.  Do not
+shuffle them after this point unless the TabPFN contract itself requires it; if
+it does, record the deterministic permutation and apply it to both arrays only.
+No replacement sampling, class balancing, or meter filtering is allowed after
+`frozen_tabpfn_context()` returns.
+
+## 4. Mandatory TabPFN admission gates
 
 Before fitting, a TabPFN runner must hard-fail unless all applicable gates pass.
 
@@ -102,7 +192,7 @@ assert not np.intersect1d(raw_index, validation_raw_index).size
 
 `sha256_le_int64` hashes `np.ascontiguousarray(values.astype("<i8")).tobytes()`.
 
-## 4. Feature, holdout, and evaluation constraints
+## 5. Feature, holdout, and evaluation constraints
 
 - Use only meters 2 and 3 for training.  The future experiment may evaluate
   only the canonical odd Steam rows if it is intended to compare with this
@@ -117,7 +207,17 @@ assert not np.intersect1d(raw_index, validation_raw_index).size
 - Report PR-AUC only with `sklearn.metrics.average_precision_score` and ROC-AUC
   with `sklearn.metrics.roc_auc_score`.
 
-## 5. Explicit non-authorizations
+## 6. Authorization boundary
+
+This document authorizes no computation by itself.  The next owner may safely
+implement the loader and hard gates above, run a bounded dry run, and commit
+that implementation only after an explicit human authorization.  Formal local
+or remote TabPFN fitting requires a second, explicit authorization after the
+required gate implementation, tests, dry run, checkpoint layout, and committed
+provenance are reviewed.  A remote run additionally requires a prompt that
+names the target host and its non-interference constraints.
+
+## 7. Explicit non-authorizations
 
 This handoff does **not** authorize a 20K Steam+Hotwater Tree comparison: no
 such meter-only Tree context has been frozen or run.  The old E0/E1 20K Tree
