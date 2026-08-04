@@ -106,6 +106,20 @@ operator invocation.
 ~1.35 MB/s 的上行且**並行無效**，因此是上傳受限。樹的 matched-N 手臂修好了一個
 會破壞列身分對應的 bug，但**尚未產出任何結果**，所以 `TabPFN(N) − Trees(N)` 還算不出來。
 
+## Additive follow-up: even-building source-count curve（實作完成，正式執行待授權）
+
+新協定與執行步驟見
+[`m5-building-count-early-stopping-plan.md`](./m5-building-count-early-stopping-plan.md)，
+決策見 ADR 0029。這條線以 10/20/50/100 棟建築物為 K，所有 profile、TabPFN
+context、tree fit 與 tree early-stop sources 僅可來自 even `building_id`；odd buildings
+維持 canonical final holdout。
+
+已新增 deterministic representative/site/meter/anomaly-balanced nested ladders、tree
+external-building early stopping、TabPFN no-early-stopping building cell、checkpointed
+predictions，以及 overall/per-meter/per-site ROC-AUC、PR-AUC 與 ROC/PR curve artifacts。
+目前只完成 bounded synthetic validation；依 long-running policy，正式 20.2M-row CPU/GPU
+run 必須等 clean commit 後由 operator 另行明確啟動。
+
 | Commit | 用途 |
 | --- | --- |
 | `bfd6664` | 啟動 M5 TabPFN feasibility spike。 |

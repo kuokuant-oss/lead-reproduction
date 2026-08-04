@@ -30,6 +30,7 @@ Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-r
 - **M5.1 調參敏感度與小樣本標註效率深入比較**：[docs/reports/m5-1-deep-comparison.md](./docs/reports/m5-1-deep-comparison.md)
 - **M5.x per-unit 建模切分粒度比較**：[docs/reports/m5x-partition-granularity.md](./docs/reports/m5x-partition-granularity.md)
 - **M5 TabPFN 100K–500K 單一 context 可行性實驗**：[docs/reports/m5-tabpfn-500k-single-context.md](./docs/reports/m5-tabpfn-500k-single-context.md)
+- **M5 建築物數量曲線與 tree early stopping 計畫**：[docs/plans/m5-building-count-early-stopping-plan.md](./docs/plans/m5-building-count-early-stopping-plan.md)；training/context/early stopping 僅使用 even `building_id`，odd buildings 固定作最終 holdout。
 - **BDG2 data descriptor reference**：[docs/reference/papers/bdg2-miller-2020.md](./docs/reference/papers/bdg2-miller-2020.md)
 
 ## Milestone 摘要
@@ -39,7 +40,7 @@ Issue-level 進度見 GitHub [milestones](https://github.com/kuokuant-oss/lead-r
 M1 不訓練模型，目標是把論文與原始碼中的關鍵決策變成可追蹤文件。
 
 - `docs/reference/unknowns.md`：17 個 paper 或 code 未說清楚的地方。
-- `docs/adr/`：目前共有 28 份 ADR；M1 產出 ADR 0001-0006。
+- `docs/adr/`：目前共有 29 份 ADR；M1 產出 ADR 0001-0006。
 - `docs/reference/paper-notes.md`：paper structured summary。
 - `docs/reference/feature-engineering-rules.md`：feature 與 model 規則整理。
 - `docs/reference/plot-style-rules.md`：研究圖、模型比較圖與 EDA 的統一作圖規範。
