@@ -18,7 +18,9 @@ from lead import PROC, ROOT
 PROTOCOL_ROOT = PROC / "m5_building_curve" / "protocol"
 FULL_PROTOCOL_ROOT = PROC / "m5_building_curve" / "protocol_full"
 MANIFEST = PROTOCOL_ROOT / "representative" / "seed42" / "building_ladder.json"
-FULL_MANIFEST = FULL_PROTOCOL_ROOT / "representative" / "seed42" / "building_ladder.json"
+FULL_MANIFEST = (
+    FULL_PROTOCOL_ROOT / "representative" / "seed42" / "building_ladder.json"
+)
 FORMAL_ROOT = PROC / "m5_building_curve" / "formal"
 SUPERVISOR_ROOT = PROC / "m5_building_curve" / "supervisor"
 REPORT = ROOT / "docs" / "reports" / "m5-building-count-experiment.md"
@@ -51,13 +53,44 @@ def _event(event: str, **values: Any) -> None:
     print(json.dumps(payload, sort_keys=True), flush=True)
 
 
-def _command(command: list[str], *, check: bool = True) -> subprocess.CompletedProcess[str]:
+def _command(
+    command: list[str], *, check: bool = True
+) -> subprocess.CompletedProcess[str]:
     _event("command_start", command=command)
     result = subprocess.run(command, cwd=ROOT, text=True)
     _event("command_end", command=command, returncode=result.returncode)
     if check and result.returncode:
         raise subprocess.CalledProcessError(result.returncode, command)
     return result
+
+
+def _wait_for_idle_gpu(stage: str, state_path: Path, delay: int) -> None:
+    """Do not start a TabPFN cell while another compute process owns the GPU."""
+    while True:
+        result = subprocess.run(
+            [
+                "nvidia-smi",
+                "--query-compute-apps=pid,process_name,used_gpu_memory",
+                "--format=csv,noheader,nounits",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        active = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+        if result.returncode == 0 and not active:
+            return
+        _atomic_json(
+            state_path,
+            {
+                "status": "waiting_for_idle_gpu",
+                "stage": stage,
+                "active_gpu_processes": active,
+                "timestamp": time.time(),
+            },
+        )
+        _event("gpu_wait", stage=stage, active_gpu_processes=active)
+        time.sleep(delay)
 
 
 def _clean_gate() -> None:
@@ -68,11 +101,7 @@ def _clean_gate() -> None:
         capture_output=True,
         text=True,
     ).stdout
-    dirty = {
-        line[3:]
-        for line in status.splitlines()
-        if line.strip()
-    }
+    dirty = {line[3:] for line in status.splitlines() if line.strip()}
     allowed = {str(REPORT.relative_to(ROOT))}
     if dirty - allowed:
         raise RuntimeError(
@@ -144,7 +173,9 @@ def _stages() -> list[dict[str, Any]]:
     tree_script = "scripts/run_m5_building_curve_tree_cell.py"
     tabpfn_script = "scripts/run_m5_building_curve_tabpfn_cell.py"
 
-    def tree(name: str, manifest: Path, budget: int, features: int, publish: bool) -> dict[str, Any]:
+    def tree(
+        name: str, manifest: Path, budget: int, features: int, publish: bool
+    ) -> dict[str, Any]:
         out = FORMAL_ROOT / name
         return {
             "name": name,
@@ -272,6 +303,8 @@ def main() -> int:
         attempts = 0
         while not _valid_complete(stage):
             attempts += 1
+            if stage["name"].startswith("tabpfn_"):
+                _wait_for_idle_gpu(stage["name"], state_path, args.retry_delay)
             _atomic_json(
                 state_path,
                 {

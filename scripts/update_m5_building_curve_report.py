@@ -12,7 +12,12 @@ import numpy as np
 import pandas as pd
 
 from lead import PROC, ROOT
-from report_m5_building_curve import _atomic_csv, _atomic_json, aggregate_cell, load_cell
+from report_m5_building_curve import (
+    _atomic_csv,
+    _atomic_json,
+    aggregate_cell,
+    load_cell,
+)
 
 SHARED_PROC = ROOT.parent / "lead-reproduction" / "data" / "processed"
 MATCHED_TABPFN = SHARED_PROC / "m5_tabpfn_137_full_test_context50000_n8_predictions.npz"
@@ -22,15 +27,25 @@ CANONICAL = SHARED_PROC / "m6_site_transfer_b2_a0_pos677077_seed42_predictions.n
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", type=Path, required=True)
-    parser.add_argument("--formal-root", type=Path, default=PROC / "m5_building_curve" / "formal")
-    parser.add_argument("--aggregate-root", type=Path, default=PROC / "m5_building_curve" / "aggregate")
-    parser.add_argument("--report", type=Path, default=ROOT / "docs" / "reports" / "m5-building-count-experiment.md")
+    parser.add_argument(
+        "--formal-root", type=Path, default=PROC / "m5_building_curve" / "formal"
+    )
+    parser.add_argument(
+        "--aggregate-root", type=Path, default=PROC / "m5_building_curve" / "aggregate"
+    )
+    parser.add_argument(
+        "--report",
+        type=Path,
+        default=ROOT / "docs" / "reports" / "m5-building-count-experiment.md",
+    )
     return parser.parse_args()
 
 
 def _matched_baseline() -> tuple[dict[str, Any], dict[str, np.ndarray]]:
     if not MATCHED_TABPFN.is_file() or not CANONICAL.is_file():
-        raise FileNotFoundError("matched-context TabPFN or canonical holdout is missing")
+        raise FileNotFoundError(
+            "matched-context TabPFN or canonical holdout is missing"
+        )
     with np.load(MATCHED_TABPFN) as source, np.load(CANONICAL) as canonical:
         if not np.array_equal(source["raw_index"], canonical["validation_raw_index"]):
             raise AssertionError("matched-context raw order differs from canonical")
@@ -113,10 +128,26 @@ def main() -> int:
         cells.append({"path": str(path), "metadata": metadata})
 
     metric_frame = pd.DataFrame(metrics).sort_values(
-        ["sampling_profile", "features", "building_budget", "model", "grouping", "group"]
+        [
+            "sampling_profile",
+            "features",
+            "building_budget",
+            "model",
+            "grouping",
+            "group",
+        ]
     )
     curve_frame = pd.DataFrame(curves).sort_values(
-        ["sampling_profile", "features", "building_budget", "model", "grouping", "group", "curve", "point"]
+        [
+            "sampling_profile",
+            "features",
+            "building_budget",
+            "model",
+            "grouping",
+            "group",
+            "curve",
+            "point",
+        ]
     )
     _atomic_csv(metric_frame, args.aggregate_root / "metrics.csv")
     _atomic_csv(curve_frame, args.aggregate_root / "curves.csv")
@@ -170,7 +201,12 @@ def main() -> int:
             and int(cell["metadata"]["features"]) == features
             and (("tabpfn" in cell["metadata"]["experiment"]) == (label == "tabpfn"))
         ]
-        statuses.append({"stage": f"{label} K={budget} f={features}", "status": "complete" if found else "pending"})
+        statuses.append(
+            {
+                "stage": f"{label} K={budget} f={features}",
+                "status": "complete" if found else "pending",
+            }
+        )
     lines.extend(_table(pd.DataFrame(statuses), ["stage", "status"]))
 
     lines.extend(["## Overall PR-AUC / ROC-AUC", ""])
@@ -180,12 +216,41 @@ def main() -> int:
         "matched-context baseline",
         "building experiment",
     )
-    lines.extend(_table(overall, ["source", "building_budget", "features", "model", "rows", "anomalies", "pr_auc", "roc_auc"]))
+    lines.extend(
+        _table(
+            overall,
+            [
+                "source",
+                "building_budget",
+                "features",
+                "model",
+                "rows",
+                "anomalies",
+                "pr_auc",
+                "roc_auc",
+            ],
+        )
+    )
 
     for grouping, title in (("meter", "Meter breakdown"), ("site", "Site breakdown")):
         lines.extend([f"## {title}", ""])
         selected = metric_frame.loc[metric_frame["grouping"].eq(grouping)]
-        lines.extend(_table(selected, ["sampling_profile", "building_budget", "features", "model", "group_label", "rows", "anomalies", "pr_auc", "roc_auc"]))
+        lines.extend(
+            _table(
+                selected,
+                [
+                    "sampling_profile",
+                    "building_budget",
+                    "features",
+                    "model",
+                    "group_label",
+                    "rows",
+                    "anomalies",
+                    "pr_auc",
+                    "roc_auc",
+                ],
+            )
+        )
 
     lines.extend(["## Tree early-stopping audit", ""])
     fit_rows: list[dict[str, Any]] = []
@@ -204,7 +269,21 @@ def main() -> int:
                     "ES_ROC_AUC": fit["early_stop_roc_auc"],
                 }
             )
-    lines.extend(_table(pd.DataFrame(fit_rows), ["K", "features", "model", "best_iteration", "ceiling", "stop_reason", "ES_PR_AUC", "ES_ROC_AUC"]))
+    lines.extend(
+        _table(
+            pd.DataFrame(fit_rows),
+            [
+                "K",
+                "features",
+                "model",
+                "best_iteration",
+                "ceiling",
+                "stop_reason",
+                "ES_PR_AUC",
+                "ES_ROC_AUC",
+            ],
+        )
+    )
 
     lines.extend(["## K composition and selected-building audit", ""])
     for budget in manifest["budgets"]:
@@ -221,11 +300,28 @@ def main() -> int:
             ]
         )
         audit = pd.DataFrame(cell["selected_building_audit"])
-        audit["meters"] = audit["meter_types"].map(lambda values: ",".join(map(str, values)))
+        audit["meters"] = audit["meter_types"].map(
+            lambda values: ",".join(map(str, values))
+        )
         lines.extend(
             _table(
                 audit,
-                ["position", "site_id", "building_id", "primary_use", "role", "selection_reason", "row_allocation_reason", "meters", "allocated_row_quota", "selected_rows", "selected_anomalies", "selected_anomaly_rate", "available_rows", "available_anomaly_rate"],
+                [
+                    "position",
+                    "site_id",
+                    "building_id",
+                    "primary_use",
+                    "role",
+                    "selection_reason",
+                    "row_allocation_reason",
+                    "meters",
+                    "allocated_row_quota",
+                    "selected_rows",
+                    "selected_anomalies",
+                    "selected_anomaly_rate",
+                    "available_rows",
+                    "available_anomaly_rate",
+                ],
             )
         )
 
