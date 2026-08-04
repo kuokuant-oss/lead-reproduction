@@ -59,7 +59,7 @@ class SteamHotwaterTabPFNRunnerTests(unittest.TestCase):
         frame = pd.DataFrame(
             {
                 "building_id": np.zeros(20_000, dtype="int16"),
-                "meter": np.where(raw % 2 == 0, 2, 3).astype("int8"),
+                "meter": np.where(raw % 2 == 0, 3, 2).astype("int8"),
                 "anomaly": (raw % 2 == 0).astype("int8"),
             },
             index=raw,
