@@ -23,7 +23,7 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 
 from lead import PROC, ROOT, load_m3_frame, write_json_with_provenance
-from m5_building_curve_protocol import cell_indices, int_array_sha256
+from m5_building_curve_protocol import int_array_sha256, resolve_cell_indices
 from run_m5_tabpfn_canonical_full_test import (
     DEFAULT_SITE_PREDICTIONS,
     atomic_joblib_dump,
@@ -158,6 +158,10 @@ def main(argv: list[str] | None = None) -> int:
     cell = manifest.get("cells", {}).get(str(args.building_budget))
     if cell is None:
         raise SystemExit(f"manifest has no K={args.building_budget} cell")
+    if args.features != 137:
+        raise SystemExit(
+            "building-count TabPFN cells use the preserved 137-feature pipeline"
+        )
     print(
         f"K={args.building_budget}: TabPFN context buildings="
         f"{len(cell['available_buildings'])}; early stopping=not applicable",
@@ -176,7 +180,9 @@ def main(argv: list[str] | None = None) -> int:
     args.out_root.mkdir(parents=True, exist_ok=True)
     frame = load_m3_frame(verbose=True)
     train_mask = frame["building_id"].mod(2).eq(0).to_numpy()
-    resolved = cell_indices(frame.loc[train_mask], manifest, args.building_budget)
+    resolved = resolve_cell_indices(
+        frame.loc[train_mask], manifest, args.building_budget
+    )
     context_index = _bounded_rows(
         frame,
         resolved["available_rows"],
@@ -186,7 +192,18 @@ def main(argv: list[str] | None = None) -> int:
     if frame.loc[context_index, "building_id"].mod(2).any():
         raise AssertionError("TabPFN context contains an odd holdout building")
 
-    with np.load(DEFAULT_SITE_PREDICTIONS) as canonical:
+    canonical_path = DEFAULT_SITE_PREDICTIONS
+    if not canonical_path.is_file():
+        canonical_path = (
+            ROOT.parent
+            / "lead-reproduction"
+            / "data"
+            / "processed"
+            / DEFAULT_SITE_PREDICTIONS.name
+        )
+    if not canonical_path.is_file():
+        raise SystemExit(f"canonical holdout artifact is missing: {canonical_path}")
+    with np.load(canonical_path) as canonical:
         holdout_index = np.asarray(canonical["validation_raw_index"], dtype="int64")
         holdout_y = np.asarray(canonical["anomaly"], dtype="int8")
         holdout_site = np.asarray(canonical["site_id"], dtype="int8")
@@ -209,6 +226,11 @@ def main(argv: list[str] | None = None) -> int:
         "manifest": str(args.building_manifest.resolve()),
         "manifest_sha256": _sha256_file(args.building_manifest),
         "sampling_profile": manifest["sampling_profile"],
+        "row_policy": manifest.get("row_policy", "all_rows"),
+        "average_rows_per_building_limit": manifest.get(
+            "average_rows_per_building_limit"
+        ),
+        "context_limit": manifest.get("max_context_rows"),
         "building_budget": args.building_budget,
         "features": args.features,
         "seed": args.seed,
@@ -235,7 +257,9 @@ def main(argv: list[str] | None = None) -> int:
         _atomic_json(provenance_path, provenance)
 
     print("Building timestamp-merge features for even context buildings", flush=True)
-    train_features = build_features_keeping_index(frame.loc[train_mask].copy())
+    selected_buildings = resolved["available_buildings"]
+    selected_mask = frame["building_id"].isin(selected_buildings)
+    train_features = build_features_keeping_index(frame.loc[selected_mask].copy())
     columns = feature_columns(args.features, list(train_features.columns))
     x_context = train_features.loc[context_index, columns].to_numpy(dtype="float32")
     y_context = frame.loc[context_index, "anomaly"].to_numpy(dtype="int64")

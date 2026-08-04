@@ -14,7 +14,9 @@ from pathlib import Path
 from lead import PROC, ROOT, load_m3_frame
 from m5_building_curve_protocol import (
     PROFILES,
+    add_building_audit,
     add_cell_composition,
+    add_proportional_row_quotas,
     atomic_write_json,
     build_building_profiles,
     build_nested_building_ladder,
@@ -29,6 +31,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--early-stop-every", type=int, default=5)
+    parser.add_argument(
+        "--row-policy",
+        choices=("all_rows", "average_building_cap"),
+        default="average_building_cap",
+    )
+    parser.add_argument("--average-building-rows", type=int, default=500)
+    parser.add_argument("--max-context-rows", type=int, default=50_000)
     parser.add_argument(
         "--out-root", type=Path, default=PROC / "m5_building_curve" / "protocol"
     )
@@ -52,9 +61,23 @@ def main(argv: list[str] | None = None) -> int:
         sampling_profile=args.sampling_profile,
         early_stop_every=args.early_stop_every,
     )
-    manifest = add_cell_composition(candidate, manifest)
     manifest["experiment"] = "m5_building_count_curve"
-    manifest["row_policy"] = "all_rows"
+    manifest["row_policy"] = args.row_policy
+    manifest["average_rows_per_building_limit"] = (
+        int(args.average_building_rows)
+        if args.row_policy == "average_building_cap"
+        else None
+    )
+    manifest["max_context_rows"] = (
+        int(args.max_context_rows)
+        if args.row_policy == "average_building_cap"
+        else None
+    )
+    manifest["row_selection_seed"] = int(args.seed)
+    if args.row_policy == "average_building_cap":
+        manifest = add_proportional_row_quotas(candidate, manifest)
+    manifest = add_cell_composition(candidate, manifest)
+    manifest = add_building_audit(candidate, ladder, manifest)
     manifest["split"] = {
         "candidate": "building_id % 2 == 0",
         "canonical_test": "building_id % 2 == 1",

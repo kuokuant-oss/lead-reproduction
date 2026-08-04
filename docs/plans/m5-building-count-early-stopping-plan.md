@@ -1,9 +1,42 @@
 # M5 建築物數量曲線與 Tree Early Stopping 計畫
 
-**Status**: Implementation complete; formal run pending operator authorization
+**Status**: Formal run authorized; overnight queue launch in progress
 **Started**: 2026-08-04
 **Scope**: additive M5 comparison line；不改寫既有 M3/M5 已發布結果
-**Formal run**: 尚未授權；完成實作、測試與 bounded non-scientific validation 後另行啟動
+**Formal run**: 使用者已於 2026-08-04 明確授權；由 gpu-host 脫離控制端連線執行
+
+## 0. 已授權執行修正（取代下文衝突的舊草案）
+
+1. 正式順序固定為：全偶數 building tree baseline 17 features、全偶數 building tree
+   baseline 137 features；接著 K=10、20、50、100，每個 K 必須先完成 tree 137，
+   再完成 TabPFN 137，兩者都完成後才進入下一個 K。K 實驗不跑 17 features。
+2. K 的 building 集合為 deterministic strict prefixes；限制是當下 K 的平均每棟
+   allocation 不超過 500 rows，所以 K=10/20/50/100 的總 context 上限依序為
+   5K/10K/25K/50K，而不是限制每一棟都最多 500。每個新增 K block 依各棟實際
+   available rows 做 deterministic proportional allocation，資料多的棟可高於 500，
+   資料少的棟可低於 500。Row selection 只依 seed 42 與 raw row identity 的 stable
+   hash，不看 anomaly label；每棟一旦加入後 quota 與 row prefix 固定，因此 building
+   sets 與 row sets 都是 strict nested。不同實驗 context 分布不必相同。
+3. Tree 以每五棟固定四棟 fit、一棟 external early-stop 的 building-disjoint 角色，
+   先以固定 80/20 building roles 選 best iteration，再以選定迭代數於同 K 的全部
+   selected rows final refit。全量 baseline 同樣先 ES 選迭代，再在所有偶數 building
+   rows final refit。
+4. TabPFN K cells 沿用 matched-context 的 137-feature timestamp-merge、StandardScaler、
+   seed 42、tabpfn 8.0.8 checkpoint 與 n_estimators=8；沒有 task-specific weight-update
+   loop，因此不加入 early stopping。直接 baseline 使用 m5-matched-context-breakdown
+   既有 50K/137 TabPFN prediction artifact，不重跑。
+5. 每個 K manifest 必須逐棟揭露 position、site_id、building_id、primary_use、tree
+   role、選取時主要 balance need、selection score、可用與實際選取 rows/anomalies/rate、
+   meter types 與逐 meter rows/anomalies/rate；並揭露 K 總 site/meter 組成和 anomalous
+   building-meter pair rate。
+6. Tree 每個 component、TabPFN fitted state、每個 holdout prediction chunk 都是原子
+   checkpoint。Supervisor 是可重入狀態機：驗證 COMPLETE marker、cell metadata 與
+   prediction schema 後跳過完成工作；未完成工作永久重試。Windows Session-0 WMI
+   watchdog 若發現 tmux 消失，會重新啟動 supervisor 並以 resume 繼續。
+7. 發布關卡為每個 tree baseline 完成後，以及每個 K 的 tree+TabPFN 都完成後。
+   每個關卡重建同一份 docs/reports/m5-building-count-experiment.md，更新 overall、
+   per-meter、per-site PR-AUC/ROC-AUC 與 plot-ready ROC/PR curve artifacts，然後
+   自動 commit 並 push 到 GitHub main。Push 失敗也會重試，不會靜默前進。
 
 ## 1. 目的
 

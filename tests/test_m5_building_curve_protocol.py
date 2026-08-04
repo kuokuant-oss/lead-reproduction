@@ -7,15 +7,18 @@ import pandas as pd
 
 from scripts.m5_building_curve_protocol import (
     add_cell_composition,
+    add_proportional_row_quotas,
     build_building_profiles,
     build_nested_building_ladder,
     cell_indices,
+    resolve_cell_indices,
     validate_ladder,
 )
 from scripts.m5_tree_early_stopping import (
     MODEL_ORDER,
     ensemble_probabilities,
     fit_early_stopped_models,
+    refit_models_at_selected_iterations,
 )
 
 
@@ -113,6 +116,27 @@ class TestM5BuildingCurveProtocol(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "multiples"):
             build_nested_building_ladder(self.profiles, [12], seed=42)
 
+    def test_average_cap_is_nested_deterministic_and_role_partitioned(self) -> None:
+        _, manifest = build_nested_building_ladder(self.profiles, [10, 20], seed=42)
+        manifest["row_policy"] = "average_building_cap"
+        manifest["average_rows_per_building_limit"] = 20
+        manifest["max_context_rows"] = 400
+        manifest["row_selection_seed"] = 42
+        manifest = add_proportional_row_quotas(self.frame, manifest)
+        first = resolve_cell_indices(self.frame, manifest, 10)
+        second = resolve_cell_indices(self.frame, manifest, 10)
+        larger = resolve_cell_indices(self.frame, manifest, 20)
+        np.testing.assert_array_equal(first["available_rows"], second["available_rows"])
+        self.assertEqual(len(first["available_rows"]), 200)
+        counts = self.frame.loc[first["available_rows"], "building_id"].value_counts()
+        self.assertTrue(counts.eq(20).all())
+        self.assertEqual(len(first["tree_fit_rows"]), 160)
+        self.assertEqual(len(first["tree_early_stop_rows"]), 40)
+        self.assertLess(
+            set(first["available_rows"]),
+            set(larger["available_rows"]),
+        )
+
 
 class TestM5TreeEarlyStopping(unittest.TestCase):
     def test_all_components_use_external_validation_and_record_best_iteration(
@@ -151,6 +175,13 @@ class TestM5TreeEarlyStopping(unittest.TestCase):
         scores = ensemble_probabilities(models, x_es)
         self.assertEqual(set(scores), {*MODEL_ORDER, "ensemble"})
         self.assertTrue(np.isfinite(scores["ensemble"]).all())
+        refit = refit_models_at_selected_iterations(
+            np.vstack([x_fit, x_es]),
+            np.concatenate([y_fit, y_es]),
+            records,
+            contract,
+        )
+        self.assertEqual(tuple(refit), MODEL_ORDER)
 
     def test_single_class_early_stop_is_rejected(self) -> None:
         x = np.zeros((8, 2), dtype="float32")

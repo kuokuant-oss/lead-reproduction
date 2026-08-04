@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import json
+import os
 import time
+from pathlib import Path
 from typing import Any
 
+import joblib
 import lightgbm as lgb
 import numpy as np
 import xgboost as xgb
@@ -160,6 +164,8 @@ def fit_early_stopped_models(
     hist_patience: int = 20,
     min_delta: float = 1e-5,
     ceilings: dict[str, int] | None = None,
+    checkpoint_dir: Path | None = None,
+    resume: bool = False,
 ) -> tuple[dict[str, Any], dict[str, Any], dict[str, dict[str, Any]]]:
     """Fit all components against one explicit, building-disjoint ES set."""
     y_fit = np.asarray(y_fit, dtype="int8")
@@ -174,9 +180,27 @@ def fit_early_stopped_models(
     )
     models: dict[str, Any] = {}
     records: dict[str, Any] = {}
+    if checkpoint_dir is not None:
+        checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
     for name in MODEL_ORDER:
         spec = contract[name]
+        model_checkpoint = (
+            checkpoint_dir / f"{name}.joblib" if checkpoint_dir is not None else None
+        )
+        record_checkpoint = (
+            checkpoint_dir / f"{name}.json" if checkpoint_dir is not None else None
+        )
+        if (
+            resume
+            and model_checkpoint is not None
+            and record_checkpoint is not None
+            and model_checkpoint.exists()
+            and record_checkpoint.exists()
+        ):
+            models[name] = joblib.load(model_checkpoint)
+            records[name] = json.loads(record_checkpoint.read_text(encoding="utf-8"))
+            continue
         if name == "lightgbm":
             model = lgb.LGBMClassifier(**spec["params"])
             callbacks = [
@@ -243,6 +267,18 @@ def fit_early_stopped_models(
             "history": _history_for(name, model),
         }
         models[name] = model
+        if model_checkpoint is not None and record_checkpoint is not None:
+            temporary_model = model_checkpoint.with_suffix(".joblib.tmp")
+            joblib.dump(model, temporary_model)
+            with temporary_model.open("rb+") as stream:
+                os.fsync(stream.fileno())
+            os.replace(temporary_model, model_checkpoint)
+            temporary_record = record_checkpoint.with_suffix(".json.tmp")
+            with temporary_record.open("w", encoding="utf-8") as stream:
+                json.dump(records[name], stream, indent=2)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(temporary_record, record_checkpoint)
     return models, records, contract
 
 
@@ -254,3 +290,55 @@ def ensemble_probabilities(
     }
     scores["ensemble"] = np.mean([scores[name] for name in MODEL_ORDER], axis=0)
     return scores
+
+
+def refit_models_at_selected_iterations(
+    values: np.ndarray,
+    labels: np.ndarray,
+    records: dict[str, Any],
+    contract: dict[str, dict[str, Any]],
+    *,
+    checkpoint_dir: Path | None = None,
+    resume: bool = False,
+) -> dict[str, Any]:
+    """Refit on every available row after ES has selected iteration counts."""
+    if len(np.unique(labels)) != 2:
+        raise ValueError("full refit rows must contain both classes")
+    if checkpoint_dir is not None:
+        checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    models: dict[str, Any] = {}
+    for name in MODEL_ORDER:
+        checkpoint = (
+            checkpoint_dir / f"{name}.joblib" if checkpoint_dir is not None else None
+        )
+        if resume and checkpoint is not None and checkpoint.exists():
+            models[name] = joblib.load(checkpoint)
+            continue
+        iterations = int(records[name]["best_iteration"])
+        params = dict(contract[name]["params"])
+        if name == "lightgbm":
+            params["n_estimators"] = iterations
+            model = lgb.LGBMClassifier(**params)
+        elif name == "xgboost":
+            params["n_estimators"] = iterations
+            params.pop("early_stopping_rounds", None)
+            model = xgb.XGBClassifier(**params)
+        elif name == "catboost":
+            params["iterations"] = iterations
+            model = CatBoostClassifier(**params)
+        else:
+            params["max_iter"] = iterations
+            params["early_stopping"] = False
+            params.pop("validation_fraction", None)
+            model = HistGradientBoostingClassifier(**params)
+        started = time.perf_counter()
+        model.fit(model_matrix(name, values), labels)
+        records[name]["full_refit_seconds"] = time.perf_counter() - started
+        models[name] = model
+        if checkpoint is not None:
+            temporary = checkpoint.with_suffix(".joblib.tmp")
+            joblib.dump(model, temporary)
+            with temporary.open("rb+") as stream:
+                os.fsync(stream.fileno())
+            os.replace(temporary, checkpoint)
+    return models

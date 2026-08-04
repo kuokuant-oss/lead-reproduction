@@ -269,6 +269,14 @@ def build_nested_building_ladder(
         score = overall_error + 0.35 * role_error
         order = np.lexsort((building_ids[candidates], priority[candidates], score))
         chosen = int(candidates[order[0]])
+        if position:
+            error_before = float(((total_sum / position - target) ** 2 * weight).sum())
+            gap = np.abs(total_sum / position - target) * weight
+        else:
+            error_before = float((target**2 * weight).sum())
+            gap = np.abs(target) * weight
+        primary_need = dimensions[int(np.argmax(gap))]
+        error_after = float(overall_error[order[0]])
         available[chosen] = False
         total_sum += matrix[chosen]
         role_sums[role] += matrix[chosen]
@@ -281,6 +289,10 @@ def build_nested_building_ladder(
                 "site_id": int(profiles.iloc[chosen]["site_id"]),
                 "stable_priority": int(priority[chosen]),
                 "selection_score": float(score[order[0]]),
+                "overall_error_before": error_before,
+                "overall_error_after": error_after,
+                "marginal_error_reduction": error_before - error_after,
+                "primary_balance_need_addressed": primary_need,
             }
         )
 
@@ -389,13 +401,146 @@ def cell_indices(
     return output
 
 
+def add_proportional_row_quotas(
+    frame: pd.DataFrame, manifest: dict[str, Any]
+) -> dict[str, Any]:
+    """Allocate fixed per-building quotas with each requested prefix mean <= limit."""
+    result = json.loads(json.dumps(manifest))
+    average_limit = int(result["average_rows_per_building_limit"])
+    total_limit = int(result["max_context_rows"])
+    counts = frame["building_id"].value_counts()
+    quotas: dict[str, int] = {}
+    previous_budget = 0
+    allocated_total = 0
+    for budget in result["budgets"]:
+        ids = np.asarray(
+            result["cells"][str(budget)]["available_buildings"][previous_budget:],
+            dtype="int64",
+        )
+        capacity = min(
+            (int(budget) - previous_budget) * average_limit,
+            total_limit - allocated_total,
+        )
+        available = np.asarray([int(counts.loc[value]) for value in ids], dtype="int64")
+        if capacity < len(ids):
+            raise ValueError("row capacity cannot give every building at least one row")
+        allocation = np.ones(len(ids), dtype="int64")
+        remaining = capacity - len(ids)
+        room = available - 1
+        if remaining and room.sum():
+            ideal = remaining * room / room.sum()
+            addition = np.minimum(np.floor(ideal).astype("int64"), room)
+            allocation += addition
+        while int(allocation.sum()) < capacity:
+            eligible = allocation < available
+            if not eligible.any():
+                break
+            target = capacity * available / available.sum()
+            deficit = np.where(eligible, target - allocation, -np.inf)
+            chosen = int(np.lexsort((ids, -deficit))[0])
+            allocation[chosen] += 1
+        if int(allocation.sum()) > capacity:
+            raise AssertionError("proportional allocation exceeds block capacity")
+        for building_id, quota in zip(ids, allocation, strict=True):
+            quotas[str(int(building_id))] = int(quota)
+        allocated_total += int(allocation.sum())
+        cell = result["cells"][str(budget)]
+        cell["allocated_row_upper_bound"] = int(budget) * average_limit
+        cell["allocated_rows"] = allocated_total
+        cell["average_allocated_rows_per_building"] = allocated_total / int(budget)
+        previous_budget = int(budget)
+    result["building_row_quotas"] = quotas
+    return result
+
+
+def average_building_capped_indices(
+    frame: pd.DataFrame,
+    manifest: dict[str, Any],
+    budget: int,
+    *,
+    average_rows_per_building: int = 500,
+    max_total_rows: int = 50_000,
+    seed: int = 42,
+) -> dict[str, np.ndarray]:
+    """Select each building's fixed proportional quota without using labels."""
+    cell = manifest["cells"].get(str(int(budget)))
+    if cell is None:
+        raise ValueError(f"building ladder has no K={budget} cell")
+    if average_rows_per_building <= 0 or max_total_rows <= 0:
+        raise ValueError("row caps must be positive")
+    if average_rows_per_building * int(budget) > max_total_rows:
+        raise ValueError("average cap would exceed the total context limit")
+    building_values = frame["building_id"].to_numpy(dtype="int64")
+    raw_values = frame.index.to_numpy(dtype="int64")
+    selected: list[np.ndarray] = []
+    for building_id in cell["available_buildings"]:
+        rows = raw_values[building_values == int(building_id)]
+        quota = int(manifest["building_row_quotas"][str(int(building_id))])
+        if quota > len(rows):
+            raise AssertionError("building quota exceeds available rows")
+        priority = stable_priority(rows, seed=seed)
+        order = np.lexsort((rows, priority))
+        selected.append(rows[order[:quota]])
+    available_rows = np.concatenate(selected).astype("int64", copy=False)
+    if len(available_rows) > max_total_rows:
+        raise AssertionError("capped row selection exceeds the total context limit")
+    if len(np.unique(available_rows)) != len(available_rows):
+        raise AssertionError("capped row selection repeats rows")
+    fit_buildings = np.asarray(cell["tree_fit_buildings"], dtype="int64")
+    es_buildings = np.asarray(cell["tree_early_stop_buildings"], dtype="int64")
+    row_buildings = frame.loc[available_rows, "building_id"].to_numpy(dtype="int64")
+    output = {
+        "available_buildings": np.asarray(cell["available_buildings"], dtype="int64"),
+        "tree_fit_buildings": fit_buildings,
+        "tree_early_stop_buildings": es_buildings,
+        "available_rows": available_rows,
+        "tree_fit_rows": available_rows[np.isin(row_buildings, fit_buildings)],
+        "tree_early_stop_rows": available_rows[np.isin(row_buildings, es_buildings)],
+    }
+    if set(output["tree_fit_rows"]) & set(output["tree_early_stop_rows"]):
+        raise AssertionError("tree fit and early-stop rows overlap")
+    if set(output["available_rows"]) != (
+        set(output["tree_fit_rows"]) | set(output["tree_early_stop_rows"])
+    ):
+        raise AssertionError("tree roles do not partition capped rows")
+    for name in ("available", "tree_fit", "tree_early_stop"):
+        labels = frame.loc[output[f"{name}_rows"], "anomaly"].to_numpy()
+        if len(np.unique(labels)) != 2:
+            raise ValueError(f"K={budget} {name} rows do not contain both classes")
+    return output
+
+
+def resolve_cell_indices(
+    frame: pd.DataFrame, manifest: dict[str, Any], budget: int
+) -> dict[str, np.ndarray]:
+    """Resolve either the full-row baseline or fixed-context K protocol."""
+    policy = manifest.get("row_policy", "all_rows")
+    if policy == "all_rows":
+        return cell_indices(frame, manifest, budget)
+    if policy == "average_building_cap":
+        return average_building_capped_indices(
+            frame,
+            manifest,
+            budget,
+            average_rows_per_building=int(manifest["average_rows_per_building_limit"]),
+            max_total_rows=int(manifest["max_context_rows"]),
+            seed=int(manifest["row_selection_seed"]),
+        )
+    raise ValueError(f"unsupported row policy {policy!r}")
+
+
 def add_cell_composition(
     frame: pd.DataFrame, manifest: dict[str, Any]
 ) -> dict[str, Any]:
     """Attach row/meter/site/class census without altering ladder identity."""
     result = json.loads(json.dumps(manifest))
+    previous_rows: set[int] = set()
     for budget in result["budgets"]:
-        resolved = cell_indices(frame, result, int(budget))
+        resolved = resolve_cell_indices(frame, result, int(budget))
+        current_rows = set(map(int, resolved["available_rows"]))
+        if previous_rows and not previous_rows < current_rows:
+            raise AssertionError("row budgets are not strict nested supersets")
+        previous_rows = current_rows
         cell = result["cells"][str(budget)]
         for name in ("available", "tree_fit", "tree_early_stop"):
             rows = resolved[f"{name}_rows"]
@@ -412,6 +557,92 @@ def add_cell_composition(
                 str(key): int(value)
                 for key, value in values["meter"].value_counts().sort_index().items()
             }
+        pair_census = (
+            frame.loc[resolved["available_rows"]]
+            .groupby(["building_id", "meter"], observed=True)["anomaly"]
+            .agg(["size", "sum"])
+        )
+        cell["available_building_meter_pairs"] = int(len(pair_census))
+        cell["available_anomalous_building_meter_pairs"] = int(
+            (pair_census["sum"] > 0).sum()
+        )
+        cell["available_anomalous_building_meter_rate"] = float(
+            (pair_census["sum"] > 0).mean()
+        )
+    return result
+
+
+def add_building_audit(
+    frame: pd.DataFrame,
+    ladder: pd.DataFrame,
+    manifest: dict[str, Any],
+) -> dict[str, Any]:
+    """Attach transparent source, meter, class and selection-reason records."""
+    result = json.loads(json.dumps(manifest))
+    for budget in result["budgets"]:
+        resolved = resolve_cell_indices(frame, result, int(budget))
+        selected_rows = set(map(int, resolved["available_rows"]))
+        prefix = ladder.iloc[: int(budget)]
+        records: list[dict[str, Any]] = []
+        for row in prefix.itertuples(index=False):
+            available = frame.loc[frame["building_id"].eq(int(row.building_id))]
+            chosen = available.loc[available.index.isin(selected_rows)]
+            record = {
+                "position": int(row.position),
+                "building_id": int(row.building_id),
+                "site_id": int(row.site_id),
+                "primary_use": (
+                    str(available["primary_use"].iloc[0])
+                    if "primary_use" in available.columns
+                    else None
+                ),
+                "role": str(row.role),
+                "selection_reason": str(row.primary_balance_need_addressed),
+                "selection_score": float(row.selection_score),
+                "marginal_error_reduction": float(row.marginal_error_reduction),
+                "available_rows": int(len(available)),
+                "available_anomalies": int(available["anomaly"].sum()),
+                "available_anomaly_rate": float(available["anomaly"].mean()),
+                "selected_rows": int(len(chosen)),
+                "allocated_row_quota": int(
+                    result.get("building_row_quotas", {}).get(
+                        str(int(row.building_id)), len(chosen)
+                    )
+                ),
+                "row_allocation_reason": (
+                    "proportional_to_available_rows_within_incremental_K_block"
+                    if result.get("row_policy") == "average_building_cap"
+                    else "all_available_rows"
+                ),
+                "selected_anomalies": int(chosen["anomaly"].sum()),
+                "selected_anomaly_rate": float(chosen["anomaly"].mean()),
+                "selected_row_sha256": int_array_sha256(chosen.index.to_numpy()),
+            }
+            meter_details: list[dict[str, Any]] = []
+            for meter in sorted(map(int, available["meter"].unique())):
+                available_meter = available.loc[available["meter"].eq(meter)]
+                selected_meter = chosen.loc[chosen["meter"].eq(meter)]
+                meter_details.append(
+                    {
+                        "meter": meter,
+                        "available_rows": int(len(available_meter)),
+                        "available_anomalies": int(available_meter["anomaly"].sum()),
+                        "available_anomaly_rate": float(
+                            available_meter["anomaly"].mean()
+                        ),
+                        "selected_rows": int(len(selected_meter)),
+                        "selected_anomalies": int(selected_meter["anomaly"].sum()),
+                        "selected_anomaly_rate": (
+                            float(selected_meter["anomaly"].mean())
+                            if len(selected_meter)
+                            else None
+                        ),
+                    }
+                )
+            record["meter_types"] = [item["meter"] for item in meter_details]
+            record["meter_details"] = meter_details
+            records.append(record)
+        result["cells"][str(budget)]["selected_building_audit"] = records
     return result
 
 

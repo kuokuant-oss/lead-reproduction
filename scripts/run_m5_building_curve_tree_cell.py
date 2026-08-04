@@ -23,11 +23,12 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 
 from lead import PROC, ROOT, load_m3_frame, write_json_with_provenance
-from m5_building_curve_protocol import cell_indices, int_array_sha256
+from m5_building_curve_protocol import int_array_sha256, resolve_cell_indices
 from m5_tree_early_stopping import (
     MODEL_ORDER,
     ensemble_probabilities,
     fit_early_stopped_models,
+    refit_models_at_selected_iterations,
 )
 from run_m3_figure_observations import evaluation_summary
 from run_m5_tree_ensemble_matched_context import (
@@ -176,6 +177,10 @@ def main(argv: list[str] | None = None) -> int:
     cell = manifest.get("cells", {}).get(str(args.building_budget))
     if cell is None:
         raise SystemExit(f"manifest has no K={args.building_budget} cell")
+    if args.features == 17 and args.building_budget != int(
+        manifest["candidate_buildings"]
+    ):
+        raise SystemExit("17 features are reserved for the full-building baseline")
     print(
         f"K={args.building_budget} available buildings="
         f"{len(cell['available_buildings'])}, tree fit/ES="
@@ -194,7 +199,9 @@ def main(argv: list[str] | None = None) -> int:
     train_mask = frame["building_id"].mod(2).eq(0).to_numpy()
     if frame.loc[train_mask, "building_id"].mod(2).any():
         raise AssertionError("training half contains an odd building")
-    resolved = cell_indices(frame.loc[train_mask], manifest, args.building_budget)
+    resolved = resolve_cell_indices(
+        frame.loc[train_mask], manifest, args.building_budget
+    )
     fit_index = _bounded_rows(
         frame, resolved["tree_fit_rows"], args.max_fit_rows, seed=args.seed + 1
     )
@@ -204,8 +211,24 @@ def main(argv: list[str] | None = None) -> int:
         args.max_early_stop_rows,
         seed=args.seed + 2,
     )
+    available_index = (
+        np.concatenate([fit_index, early_stop_index])
+        if args.mode == "validation"
+        else resolved["available_rows"]
+    )
 
-    with np.load(CANONICAL_ORDER) as canonical:
+    canonical_path = CANONICAL_ORDER
+    if not canonical_path.is_file():
+        canonical_path = (
+            ROOT.parent
+            / "lead-reproduction"
+            / "data"
+            / "processed"
+            / CANONICAL_ORDER.name
+        )
+    if not canonical_path.is_file():
+        raise SystemExit(f"canonical holdout artifact is missing: {canonical_path}")
+    with np.load(canonical_path) as canonical:
         holdout_index = np.asarray(canonical["validation_raw_index"], dtype="int64")
         holdout_y = np.asarray(canonical["anomaly"], dtype="int8")
         holdout_site = np.asarray(canonical["site_id"], dtype="int8")
@@ -228,11 +251,17 @@ def main(argv: list[str] | None = None) -> int:
         "manifest": str(args.building_manifest.resolve()),
         "manifest_sha256": _sha256_file(args.building_manifest),
         "sampling_profile": manifest["sampling_profile"],
+        "row_policy": manifest.get("row_policy", "all_rows"),
+        "average_rows_per_building_limit": manifest.get(
+            "average_rows_per_building_limit"
+        ),
+        "max_context_rows": manifest.get("max_context_rows"),
         "building_budget": args.building_budget,
         "features": args.features,
         "seed": args.seed,
         "fit_row_sha256": int_array_sha256(fit_index),
         "early_stop_row_sha256": int_array_sha256(early_stop_index),
+        "available_row_sha256": int_array_sha256(available_index),
         "holdout_row_sha256": int_array_sha256(holdout_index),
         "caps": {
             "fit": args.max_fit_rows,
@@ -248,8 +277,16 @@ def main(argv: list[str] | None = None) -> int:
     else:
         _atomic_json(provenance_path, provenance)
 
-    print("Building timestamp-merge features for even training buildings", flush=True)
-    train_features = build_features_keeping_index(frame.loc[train_mask].copy())
+    if args.features == 137:
+        print(
+            "Building timestamp-merge features for even training buildings", flush=True
+        )
+        selected_buildings = resolved["available_buildings"]
+        selected_mask = frame["building_id"].isin(selected_buildings)
+        train_features = build_features_keeping_index(frame.loc[selected_mask].copy())
+    else:
+        print("Using the 17-feature baseline matrix", flush=True)
+        train_features = frame.loc[train_mask]
     columns = feature_columns(args.features, list(train_features.columns))
     x_fit = train_features.loc[fit_index, columns].to_numpy(dtype="float32")
     x_early_stop = train_features.loc[early_stop_index, columns].to_numpy(
@@ -257,8 +294,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     y_fit = frame.loc[fit_index, "anomaly"].to_numpy(dtype="int8")
     y_early_stop = frame.loc[early_stop_index, "anomaly"].to_numpy(dtype="int8")
-    del train_features
-    gc.collect()
+    y_available = frame.loc[available_index, "anomaly"].to_numpy(dtype="int8")
 
     model_path = args.out_root / "models.joblib"
     fit_path = args.out_root / "fit.json"
@@ -269,10 +305,13 @@ def main(argv: list[str] | None = None) -> int:
         if fit_record["fit_row_sha256"] != provenance["fit_row_sha256"]:
             raise AssertionError("cached model fit-row identity drifted")
         print("Reused fitted models", flush=True)
+        del train_features, x_fit, x_early_stop, y_available
     else:
-        scaler = StandardScaler()
-        x_fit = scaler.fit_transform(x_fit).astype("float32", copy=False)
-        x_early_stop = scaler.transform(x_early_stop).astype("float32", copy=False)
+        selection_scaler = StandardScaler()
+        x_fit = selection_scaler.fit_transform(x_fit).astype("float32", copy=False)
+        x_early_stop = selection_scaler.transform(x_early_stop).astype(
+            "float32", copy=False
+        )
         ceilings = None
         if args.mode == "validation":
             ceilings = {name: args.validation_iteration_ceiling for name in MODEL_ORDER}
@@ -289,22 +328,47 @@ def main(argv: list[str] | None = None) -> int:
             if args.mode == "validation"
             else args.hist_patience,
             ceilings=ceilings,
+            checkpoint_dir=args.out_root / "model_checkpoints",
+            resume=args.resume,
+        )
+        del models, x_fit, x_early_stop
+        gc.collect()
+        x_available = train_features.loc[available_index, columns].to_numpy(
+            dtype="float32"
+        )
+        del train_features
+        gc.collect()
+        scaler = StandardScaler()
+        x_available = scaler.fit_transform(x_available).astype("float32", copy=False)
+        models = refit_models_at_selected_iterations(
+            x_available,
+            y_available,
+            records,
+            contract,
+            checkpoint_dir=args.out_root / "final_model_checkpoints",
+            resume=args.resume,
         )
         fit_record = {
             "fit_row_sha256": provenance["fit_row_sha256"],
             "early_stop_row_sha256": provenance["early_stop_row_sha256"],
             "fit_rows": int(len(fit_index)),
             "early_stop_rows": int(len(early_stop_index)),
+            "final_refit_rows": int(len(available_index)),
+            "final_refit_row_sha256": provenance["available_row_sha256"],
+            "final_refit": "all available rows at ES-selected iteration counts",
             "records": records,
             "model_contract": contract,
         }
         _atomic_joblib(model_path, {"scaler": scaler, "models": models})
         _atomic_json(fit_path, fit_record)
-    del x_fit, x_early_stop
+        del x_available, y_available
     gc.collect()
 
-    print("Building timestamp-merge features for odd canonical holdout", flush=True)
-    holdout_features = build_features_keeping_index(frame.loc[~train_mask].copy())
+    if args.features == 137:
+        print("Building timestamp-merge features for odd canonical holdout", flush=True)
+        holdout_features = build_features_keeping_index(frame.loc[~train_mask].copy())
+    else:
+        holdout_features = frame.loc[~train_mask]
     del frame
     gc.collect()
     spans = [
