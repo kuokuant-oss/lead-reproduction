@@ -57,7 +57,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--n-estimators", type=int, default=8)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--model-path", type=Path, default=default_model_path())
-    parser.add_argument("--query-microbatch-size", type=int, default=512)
+    parser.add_argument("--query-microbatch-size", type=int, default=4096)
     parser.add_argument("--checkpoint-rows", type=int, default=20_000)
     parser.add_argument(
         "--mode", choices=("plan", "validation", "formal"), default="plan"
@@ -235,6 +235,7 @@ def main(argv: list[str] | None = None) -> int:
         "features": args.features,
         "seed": args.seed,
         "n_estimators": args.n_estimators,
+        "query_microbatch_size": args.query_microbatch_size,
         "context_row_sha256": int_array_sha256(context_index),
         "holdout_row_sha256": int_array_sha256(holdout_index),
         "context_rows": int(len(context_index)),
