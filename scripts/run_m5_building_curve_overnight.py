@@ -24,12 +24,21 @@ FULL_MANIFEST = (
 FORMAL_ROOT = PROC / "m5_building_curve" / "formal"
 SUPERVISOR_ROOT = PROC / "m5_building_curve" / "supervisor"
 REPORT = ROOT / "docs" / "reports" / "m5-building-count-experiment.md"
+FAILED_MARKER = SUPERVISOR_ROOT / "FAILED.json"
+PUBLISHED_ROOT = SUPERVISOR_ROOT / "published"
+STAGE_FAILED_ROOT = SUPERVISOR_ROOT / "failed_stages"
+
+
+class GitPushFailed(RuntimeError):
+    """A retryable git-push failure after one bounded attempt group."""
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--retry-delay", type=int, default=120)
+    parser.add_argument("--stage-retries", type=int, default=2)
     parser.add_argument("--push-retries", type=int, default=5)
+    parser.add_argument("--git-push-timeout", type=int, default=120)
     return parser.parse_args()
 
 
@@ -53,11 +62,65 @@ def _event(event: str, **values: Any) -> None:
     print(json.dumps(payload, sort_keys=True), flush=True)
 
 
+def _mark_failed(state_path: Path, **values: Any) -> None:
+    payload = {"status": "failed", "timestamp": time.time(), **values}
+    _atomic_json(state_path, payload)
+    _atomic_json(FAILED_MARKER, payload)
+
+
+def _stage_failed_marker(stage_name: str) -> Path:
+    return STAGE_FAILED_ROOT / f"{stage_name}.json"
+
+
+def _mark_stage_failed(state_path: Path, **values: Any) -> None:
+    payload = {
+        "status": "stage_failed",
+        "requires_review": True,
+        "timestamp": time.time(),
+        **values,
+    }
+    _atomic_json(state_path, payload)
+    _atomic_json(_stage_failed_marker(str(values["stage"])), payload)
+
+
+def _prior_stage_attempts(state_path: Path, stage_name: str) -> int:
+    """Recover an in-flight attempt count after supervisor/watchdog restart."""
+    if not state_path.is_file():
+        return 0
+    try:
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return 0
+    if state.get("status") != "running" or state.get("stage") != stage_name:
+        return 0
+    return max(0, int(state.get("attempt", 0)))
+
+
+def _published_marker(stage_name: str) -> Path:
+    return PUBLISHED_ROOT / f"{stage_name}.json"
+
+
 def _command(
-    command: list[str], *, check: bool = True
+    command: list[str],
+    *,
+    check: bool = True,
+    timeout_seconds: int | None = None,
 ) -> subprocess.CompletedProcess[str]:
     _event("command_start", command=command)
-    result = subprocess.run(command, cwd=ROOT, text=True)
+    try:
+        result = subprocess.run(
+            command,
+            cwd=ROOT,
+            text=True,
+            timeout=timeout_seconds,
+        )
+    except subprocess.TimeoutExpired:
+        _event(
+            "command_timeout",
+            command=command,
+            timeout_seconds=timeout_seconds,
+        )
+        result = subprocess.CompletedProcess(command, 124)
     _event("command_end", command=command, returncode=result.returncode)
     if check and result.returncode:
         raise subprocess.CalledProcessError(result.returncode, command)
@@ -145,8 +208,11 @@ def _ensure_protocols() -> None:
             ],
         ),
     )
-    for _path, command in requests:
-        _command(command)
+    for path, command in requests:
+        if path.is_file():
+            _event("protocol_reused", path=str(path))
+        else:
+            _command(command)
     primary = json.loads(MANIFEST.read_text(encoding="utf-8"))
     full = json.loads(FULL_MANIFEST.read_text(encoding="utf-8"))
     if primary["budgets"] != [10, 20, 50, 100]:
@@ -265,7 +331,7 @@ def _valid_complete(stage: dict[str, Any]) -> bool:
         return False
 
 
-def _publish(stage_name: str, push_retries: int) -> None:
+def _prepare_publication(stage_name: str) -> None:
     _command(
         [
             sys.executable,
@@ -281,27 +347,72 @@ def _publish(stage_name: str, push_retries: int) -> None:
     ).returncode
     if changed:
         _command(["git", "commit", "-m", f"Record M5 building stage {stage_name}"])
+
+
+def _push_publication(stage_name: str, push_retries: int, push_timeout: int) -> None:
     for attempt in range(1, push_retries + 1):
-        result = _command(["git", "push", "github", "HEAD:main"], check=False)
+        result = _command(
+            ["git", "push", "github", "HEAD:main"],
+            check=False,
+            timeout_seconds=push_timeout,
+        )
         if result.returncode == 0:
             _event("publish_complete", stage=stage_name, attempt=attempt)
             return
-        _event("push_retry", stage=stage_name, attempt=attempt)
+        _event(
+            "push_retry",
+            stage=stage_name,
+            attempt=attempt,
+            returncode=result.returncode,
+        )
         time.sleep(min(60 * attempt, 300))
-    raise RuntimeError(f"failed to push publication gate {stage_name}")
+    raise GitPushFailed(f"failed to push publication gate {stage_name}")
 
 
 def main() -> int:
     args = parse_args()
-    if args.retry_delay < 1 or args.push_retries < 1:
-        raise ValueError("retry settings must be positive")
+    if (
+        args.retry_delay < 1
+        or args.stage_retries < 0
+        or args.push_retries < 1
+        or args.git_push_timeout < 1
+    ):
+        raise ValueError("retry delay/count and git push timeout are invalid")
+    if FAILED_MARKER.is_file():
+        _event("queue_blocked_by_failed_marker", path=str(FAILED_MARKER))
+        return 2
     _clean_gate()
     _ensure_protocols()
     stages = _stages()
     state_path = SUPERVISOR_ROOT / "status.json"
+    max_attempts = 1 + args.stage_retries
+    failed_stages: list[str] = []
     for index, stage in enumerate(stages):
-        attempts = 0
+        stage_failed = _stage_failed_marker(stage["name"])
+        if stage_failed.is_file():
+            failed_stages.append(stage["name"])
+            _event(
+                "stage_skipped_failed_marker",
+                stage=stage["name"],
+                marker=str(stage_failed),
+                requires_review=True,
+            )
+            continue
+        attempts = _prior_stage_attempts(state_path, stage["name"])
         while not _valid_complete(stage):
+            if attempts >= max_attempts:
+                failure = {
+                    "stage_index": index,
+                    "stage_count": len(stages),
+                    "stage": stage["name"],
+                    "attempts": attempts,
+                    "max_attempts": max_attempts,
+                    "reason": "stage_retry_limit_exhausted",
+                }
+                _mark_stage_failed(state_path, **failure)
+                _event("stage_failed", **failure)
+                failed_stages.append(stage["name"])
+                break
             attempts += 1
             if stage["name"].startswith("tabpfn_"):
                 _wait_for_idle_gpu(stage["name"], state_path, args.retry_delay)
@@ -324,23 +435,41 @@ def main() -> int:
                 stage=stage["name"],
                 attempt=attempts,
                 returncode=result.returncode,
-                delay_seconds=args.retry_delay,
+                delay_seconds=(args.retry_delay if attempts < max_attempts else 0),
             )
-            time.sleep(args.retry_delay)
+            if attempts < max_attempts:
+                time.sleep(args.retry_delay)
+        if stage["name"] in failed_stages:
+            continue
         _event("stage_complete", stage=stage["name"], attempt=attempts)
         if stage["publish"]:
-            while True:
-                try:
-                    _publish(stage["name"], args.push_retries)
-                    break
-                except Exception as error:
-                    _event(
-                        "publication_retry",
-                        stage=stage["name"],
-                        error=repr(error),
-                        delay_seconds=args.retry_delay,
-                    )
-                    time.sleep(args.retry_delay)
+            published = _published_marker(stage["name"])
+            if published.is_file():
+                _event("publication_reused", stage=stage["name"])
+            else:
+                # Report generation/add/commit are deterministic local gates:
+                # failures there are fatal. Only git push is retried forever.
+                _prepare_publication(stage["name"])
+                while True:
+                    try:
+                        _push_publication(
+                            stage["name"],
+                            args.push_retries,
+                            args.git_push_timeout,
+                        )
+                        break
+                    except GitPushFailed as error:
+                        _event(
+                            "publication_retry",
+                            stage=stage["name"],
+                            error=repr(error),
+                            delay_seconds=args.retry_delay,
+                        )
+                        time.sleep(args.retry_delay)
+                _atomic_json(
+                    published,
+                    {"stage": stage["name"], "timestamp": time.time()},
+                )
         _atomic_json(
             state_path,
             {
@@ -352,19 +481,45 @@ def main() -> int:
             },
         )
 
+    queue_status = "completed_with_failures" if failed_stages else "completed"
     _atomic_json(
         state_path,
         {
-            "status": "completed",
+            "status": queue_status,
             "completed_count": len(stages),
             "stage_count": len(stages),
+            "failed_stages": failed_stages,
             "timestamp": time.time(),
         },
     )
-    _atomic_json(SUPERVISOR_ROOT / "COMPLETE.json", {"report": str(REPORT)})
-    _event("queue_complete", stages=len(stages))
+    _atomic_json(
+        SUPERVISOR_ROOT / "COMPLETE.json",
+        {
+            "status": queue_status,
+            "report": str(REPORT),
+            "failed_stages": failed_stages,
+        },
+    )
+    _event("queue_complete", stages=len(stages), failed_stages=failed_stages)
     return 0
 
 
+def _entrypoint() -> int:
+    """Persist a fatal marker for non-retryable supervisor failures."""
+    try:
+        return main()
+    except Exception as error:
+        state_path = SUPERVISOR_ROOT / "status.json"
+        if not FAILED_MARKER.is_file():
+            _mark_failed(
+                state_path,
+                phase="supervisor",
+                reason="non_retryable_supervisor_failure",
+                error=repr(error),
+            )
+        _event("queue_failed", error=repr(error))
+        raise
+
+
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(_entrypoint())

@@ -9,6 +9,7 @@ the operator must invoke it explicitly after implementation review.
 from __future__ import annotations
 
 import argparse
+import ctypes
 import gc
 import hashlib
 import json
@@ -22,7 +23,7 @@ import joblib
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 
-from lead import PROC, ROOT, load_m3_frame, write_json_with_provenance
+from lead import PROC, ROOT, SHIFTS, load_m3_frame, write_json_with_provenance
 from m5_building_curve_protocol import int_array_sha256, resolve_cell_indices
 from m5_tree_early_stopping import (
     MODEL_ORDER,
@@ -171,6 +172,29 @@ def _write_heartbeat(
     )
 
 
+def _matrix_columns(features: int, frame_columns: list[str]) -> list[str]:
+    """Resolve matrix columns without first materializing all 137 features."""
+    available = list(frame_columns)
+    if features == 137:
+        for shift in SHIFTS:
+            available.append(f"lag_value_diff_{shift}")
+            available.append(f"lag_value_ratio_{shift}")
+    return feature_columns(features, available)
+
+
+def _collect_and_trim() -> None:
+    # Keep Python semantics unchanged while returning free glibc arenas to WSL.
+    gc.collect()
+    try:
+        allocator = ctypes.CDLL(None)
+        malloc_trim = allocator.malloc_trim
+    except (OSError, AttributeError):
+        return
+    malloc_trim.argtypes = [ctypes.c_size_t]
+    malloc_trim.restype = ctypes.c_int
+    malloc_trim(0)
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     manifest = json.loads(args.building_manifest.read_text(encoding="utf-8"))
@@ -277,25 +301,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         _atomic_json(provenance_path, provenance)
 
-    if args.features == 137:
-        print(
-            "Building timestamp-merge features for even training buildings", flush=True
-        )
-        selected_buildings = resolved["available_buildings"]
-        selected_mask = frame["building_id"].isin(selected_buildings)
-        train_features = build_features_keeping_index(frame.loc[selected_mask].copy())
-    else:
-        print("Using the 17-feature baseline matrix", flush=True)
-        train_features = frame.loc[train_mask]
-    columns = feature_columns(args.features, list(train_features.columns))
-    x_fit = train_features.loc[fit_index, columns].to_numpy(dtype="float32")
-    x_early_stop = train_features.loc[early_stop_index, columns].to_numpy(
-        dtype="float32"
-    )
-    y_fit = frame.loc[fit_index, "anomaly"].to_numpy(dtype="int8")
-    y_early_stop = frame.loc[early_stop_index, "anomaly"].to_numpy(dtype="int8")
-    y_available = frame.loc[available_index, "anomaly"].to_numpy(dtype="int8")
-
+    columns = _matrix_columns(args.features, list(frame.columns))
     model_path = args.out_root / "models.joblib"
     fit_path = args.out_root / "fit.json"
     if args.resume and model_path.exists() and fit_path.exists():
@@ -304,14 +310,38 @@ def main(argv: list[str] | None = None) -> int:
         fit_record = json.loads(fit_path.read_text(encoding="utf-8"))
         if fit_record["fit_row_sha256"] != provenance["fit_row_sha256"]:
             raise AssertionError("cached model fit-row identity drifted")
-        print("Reused fitted models", flush=True)
-        del train_features, x_fit, x_early_stop, y_available
+        if fit_record["final_refit_row_sha256"] != provenance["available_row_sha256"]:
+            raise AssertionError("cached model final-refit row identity drifted")
+        print("Reused fitted models without rebuilding training features", flush=True)
     else:
-        selection_scaler = StandardScaler()
-        x_fit = selection_scaler.fit_transform(x_fit).astype("float32", copy=False)
-        x_early_stop = selection_scaler.transform(x_early_stop).astype(
-            "float32", copy=False
+        if args.features == 137:
+            print(
+                "Building timestamp-merge features for even training buildings",
+                flush=True,
+            )
+            selected_buildings = resolved["available_buildings"]
+            selected_mask = frame["building_id"].isin(selected_buildings)
+            train_features = build_features_keeping_index(frame.loc[selected_mask])
+        else:
+            print("Using the 17-feature baseline matrix", flush=True)
+            train_features = frame.loc[train_mask]
+        x_fit = train_features.loc[fit_index, columns].to_numpy(dtype="float32")
+        x_early_stop = train_features.loc[early_stop_index, columns].to_numpy(
+            dtype="float32"
         )
+        y_fit = frame.loc[fit_index, "anomaly"].to_numpy(dtype="int8")
+        y_early_stop = frame.loc[early_stop_index, "anomaly"].to_numpy(dtype="int8")
+        y_available = frame.loc[available_index, "anomaly"].to_numpy(dtype="int8")
+        # Neither source representation is needed during early stopping.
+        # Rebuilding features once for final refit costs time but avoids keeping
+        # a 5.6 GiB DataFrame beside the 5.1 GiB fit/ES matrices and model
+        # working memory.
+        del train_features, frame
+        _collect_and_trim()
+        selection_scaler = StandardScaler()
+        selection_scaler.fit(x_fit)
+        selection_scaler.transform(x_fit, copy=False)
+        selection_scaler.transform(x_early_stop, copy=False)
         ceilings = None
         if args.mode == "validation":
             ceilings = {name: args.validation_iteration_ceiling for name in MODEL_ORDER}
@@ -333,13 +363,26 @@ def main(argv: list[str] | None = None) -> int:
         )
         del models, x_fit, x_early_stop
         gc.collect()
+        frame = load_m3_frame(verbose=True)
+        train_mask = frame["building_id"].mod(2).eq(0).to_numpy()
+        if args.features == 137:
+            print(
+                "Rebuilding timestamp-merge features for final refit",
+                flush=True,
+            )
+            selected_buildings = resolved["available_buildings"]
+            selected_mask = frame["building_id"].isin(selected_buildings)
+            train_features = build_features_keeping_index(frame.loc[selected_mask])
+        else:
+            train_features = frame.loc[train_mask]
         x_available = train_features.loc[available_index, columns].to_numpy(
             dtype="float32"
         )
-        del train_features
-        gc.collect()
+        del train_features, frame
+        _collect_and_trim()
         scaler = StandardScaler()
-        x_available = scaler.fit_transform(x_available).astype("float32", copy=False)
+        scaler.fit(x_available)
+        scaler.transform(x_available, copy=False)
         models = refit_models_at_selected_iterations(
             x_available,
             y_available,
@@ -362,20 +405,39 @@ def main(argv: list[str] | None = None) -> int:
         _atomic_joblib(model_path, {"scaler": scaler, "models": models})
         _atomic_json(fit_path, fit_record)
         del x_available, y_available
+        # Reload only after the fit peak has passed; this preserves the exact
+        # source rows while preventing the source frame from coexisting with
+        # the largest training matrices and model-library working memory.
+        frame = load_m3_frame(verbose=True)
+        train_mask = frame["building_id"].mod(2).eq(0).to_numpy()
     gc.collect()
 
-    if args.features == 137:
-        print("Building timestamp-merge features for odd canonical holdout", flush=True)
-        holdout_features = build_features_keeping_index(frame.loc[~train_mask].copy())
-    else:
-        holdout_features = frame.loc[~train_mask]
-    del frame
-    gc.collect()
     spans = [
         (start, min(len(holdout_index), start + args.predict_batch_rows))
         for start in range(0, len(holdout_index), args.predict_batch_rows)
     ]
     chunks = args.out_root / "prediction_chunks"
+    missing_chunks = any(
+        not (chunks / f"rows_{start:09d}_{end:09d}.npz").exists()
+        for start, end in spans
+    )
+    holdout_features = None
+    if missing_chunks:
+        if args.features == 137:
+            print(
+                "Building timestamp-merge features for odd canonical holdout",
+                flush=True,
+            )
+            holdout_features = build_features_keeping_index(frame.loc[~train_mask])
+        else:
+            holdout_features = frame.loc[~train_mask]
+    else:
+        print(
+            "Reused all prediction chunks without rebuilding holdout features",
+            flush=True,
+        )
+    del frame
+    gc.collect()
     heartbeat = args.out_root / "heartbeat.json"
     _write_heartbeat(
         heartbeat,
@@ -396,11 +458,14 @@ def main(argv: list[str] | None = None) -> int:
                         f"prediction checkpoint identity drifted: {path}"
                     )
         else:
-            block = scaler.transform(
-                holdout_features.loc[holdout_index[start:end], columns].to_numpy(
-                    dtype="float32"
+            if holdout_features is None:
+                raise AssertionError(
+                    "missing prediction chunk without holdout features"
                 )
+            block = holdout_features.loc[holdout_index[start:end], columns].to_numpy(
+                dtype="float32"
             )
+            scaler.transform(block, copy=False)
             score = ensemble_probabilities(models, block)
             atomic_write_npz(
                 path,
@@ -417,7 +482,8 @@ def main(argv: list[str] | None = None) -> int:
             current=path.name,
             started=started,
         )
-    del holdout_features
+    if holdout_features is not None:
+        del holdout_features
     scores = {
         name: np.empty(len(holdout_index), dtype="float32")
         for name in (*MODEL_ORDER, "ensemble")

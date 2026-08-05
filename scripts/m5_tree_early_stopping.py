@@ -33,7 +33,10 @@ DEFAULT_CEILINGS = {
 
 def model_matrix(model_name: str, values: np.ndarray) -> np.ndarray:
     if model_name == "hist_gradient_boosting":
-        return np.nan_to_num(values, nan=0.0)
+        # HistGradientBoosting is the last model in MODEL_ORDER. Converting its
+        # private input matrix in place preserves its exact NaN->0 semantics
+        # without a second 4-5 GiB full-training allocation.
+        return np.nan_to_num(values, nan=0.0, copy=False)
     return values
 
 

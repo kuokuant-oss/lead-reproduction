@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from typing import Literal
 
 import pandas as pd
@@ -41,6 +42,14 @@ def _timestamp_merge_shifted(out: pd.DataFrame, shift_hours: int) -> pd.Series:
     return merged["_shifted_meter_reading"]
 
 
+def _assign_feature_column(
+    frame: pd.DataFrame, name: str, values: pd.Series
+) -> None:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", pd.errors.PerformanceWarning)
+        frame[name] = values
+
+
 def add_value_change_features(
     df: pd.DataFrame,
     shifts: list[int],
@@ -72,7 +81,6 @@ def add_value_change_features(
         sort_keys = ["building_id", "meter", "timestamp"]
     out = df.sort_values(sort_keys).reset_index(drop=True).copy()
     mr = out["meter_reading"]
-    new_cols = {}
     for n in shifts:
         if value_change_regime == "timestamp_merge":
             shifted = _timestamp_merge_shifted(out, n)
@@ -82,6 +90,19 @@ def add_value_change_features(
                 n,
                 meter_aware=value_change_regime == "row_offset_meter_aware",
             )
-        new_cols[f"lag_value_diff_{n}"] = (mr - shifted).astype("float32")
-        new_cols[f"lag_value_ratio_{n}"] = ((mr + 1) / (shifted + 1)).astype("float32")
-    return pd.concat([out, pd.DataFrame(new_cols)], axis=1)
+        # Assign each completed column directly. Keeping all 120 arrays in a
+        # dictionary and concatenating at the end makes pandas allocate a
+        # second ~4.5 GiB block for a full M5 half while the originals are
+        # still live. Direct assignment preserves values and insertion order
+        # without that full-matrix transient copy.
+        _assign_feature_column(
+            out,
+            f"lag_value_diff_{n}",
+            (mr - shifted).astype("float32"),
+        )
+        _assign_feature_column(
+            out,
+            f"lag_value_ratio_{n}",
+            ((mr + 1) / (shifted + 1)).astype("float32"),
+        )
+    return out
