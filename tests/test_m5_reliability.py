@@ -16,7 +16,7 @@ import lead.features as feature_module
 from lead import add_value_change_features
 from scripts import run_m5_building_curve_overnight as supervisor
 from scripts.m5_tree_early_stopping import model_matrix
-from scripts.run_m5_building_curve_tree_cell import _matrix_columns
+from scripts.run_m5_building_curve_tree_cell import _matrix_columns, _scale_matrix
 
 
 def _feature_frame() -> pd.DataFrame:
@@ -98,6 +98,34 @@ class TestMemorySemantics(unittest.TestCase):
         np.testing.assert_array_equal(actual, expected)
         np.testing.assert_array_equal(actual_scaler.mean_, expected_scaler.mean_)
         np.testing.assert_array_equal(actual_scaler.scale_, expected_scaler.scale_)
+
+    def test_read_only_scaler_input_returns_writable_exact_matrix(self) -> None:
+        raw = np.asarray([[1.0, np.nan], [2.0, 5.0], [4.0, 8.0]], dtype="float32")
+        scaler = StandardScaler().fit(raw)
+        expected = scaler.transform(raw.copy())
+        read_only = raw.copy()
+        read_only.flags.writeable = False
+
+        returned = _scale_matrix(scaler, read_only)
+
+        self.assertTrue(returned.flags.writeable)
+        self.assertFalse(read_only.flags.writeable)
+        np.testing.assert_array_equal(returned, expected)
+        self.assertIs(model_matrix("hist_gradient_boosting", returned), returned)
+
+    def test_hist_matrix_copies_read_only_input_with_same_values(self) -> None:
+        values = np.asarray([[1.0, np.nan], [np.nan, -2.0]], dtype="float32")
+        values.flags.writeable = False
+
+        returned = model_matrix("hist_gradient_boosting", values)
+
+        self.assertIsNot(returned, values)
+        self.assertTrue(returned.flags.writeable)
+        self.assertFalse(values.flags.writeable)
+        np.testing.assert_array_equal(
+            returned,
+            np.asarray([[1.0, 0.0], [0.0, -2.0]], dtype="float32"),
+        )
 
     def test_hist_matrix_reuses_storage_with_same_values(self) -> None:
         values = np.asarray([[1.0, np.nan], [np.nan, -2.0]], dtype="float32")

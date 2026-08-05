@@ -195,6 +195,12 @@ def _collect_and_trim() -> None:
     malloc_trim(0)
 
 
+def _scale_matrix(scaler: StandardScaler, values: np.ndarray) -> np.ndarray:
+    """Scale in place when writable; copy only a read-only input view."""
+    writable = values if values.flags.writeable else values.copy()
+    return scaler.transform(writable, copy=False)
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     manifest = json.loads(args.building_manifest.read_text(encoding="utf-8"))
@@ -340,8 +346,8 @@ def main(argv: list[str] | None = None) -> int:
         _collect_and_trim()
         selection_scaler = StandardScaler()
         selection_scaler.fit(x_fit)
-        selection_scaler.transform(x_fit, copy=False)
-        selection_scaler.transform(x_early_stop, copy=False)
+        x_fit = _scale_matrix(selection_scaler, x_fit)
+        x_early_stop = _scale_matrix(selection_scaler, x_early_stop)
         ceilings = None
         if args.mode == "validation":
             ceilings = {name: args.validation_iteration_ceiling for name in MODEL_ORDER}
@@ -382,7 +388,7 @@ def main(argv: list[str] | None = None) -> int:
         _collect_and_trim()
         scaler = StandardScaler()
         scaler.fit(x_available)
-        scaler.transform(x_available, copy=False)
+        x_available = _scale_matrix(scaler, x_available)
         models = refit_models_at_selected_iterations(
             x_available,
             y_available,
@@ -465,7 +471,7 @@ def main(argv: list[str] | None = None) -> int:
             block = holdout_features.loc[holdout_index[start:end], columns].to_numpy(
                 dtype="float32"
             )
-            scaler.transform(block, copy=False)
+            block = _scale_matrix(scaler, block)
             score = ensemble_probabilities(models, block)
             atomic_write_npz(
                 path,

@@ -33,10 +33,11 @@ DEFAULT_CEILINGS = {
 
 def model_matrix(model_name: str, values: np.ndarray) -> np.ndarray:
     if model_name == "hist_gradient_boosting":
-        # HistGradientBoosting is the last model in MODEL_ORDER. Converting its
-        # private input matrix in place preserves its exact NaN->0 semantics
-        # without a second 4-5 GiB full-training allocation.
-        return np.nan_to_num(values, nan=0.0, copy=False)
+        # Earlier third-party models can mark a shared array read-only. Reuse
+        # writable storage, but make the required private copy at this final
+        # consumer when an in-place NaN conversion would otherwise fail.
+        writable = values if values.flags.writeable else values.copy()
+        return np.nan_to_num(writable, nan=0.0, copy=False)
     return values
 
 
