@@ -29,6 +29,20 @@ DEFAULT_CEILINGS = {
     "catboost": 5_000,
     "hist_gradient_boosting": 1_000,
 }
+SELECTION_METRICS = {
+    "pr_auc": {
+        "lightgbm": "average_precision",
+        "xgboost": "aucpr",
+        "catboost": "PRAUC:type=Classic",
+        "hist_gradient_boosting": "average_precision",
+    },
+    "roc_auc": {
+        "lightgbm": "auc",
+        "xgboost": "auc",
+        "catboost": "AUC",
+        "hist_gradient_boosting": "roc_auc",
+    },
+}
 
 
 def model_matrix(model_name: str, values: np.ndarray) -> np.ndarray:
@@ -44,17 +58,22 @@ def model_matrix(model_name: str, values: np.ndarray) -> np.ndarray:
 def early_stopping_contract(
     *,
     seed: int = 42,
-    patience: int = 100,
-    hist_patience: int = 20,
+    patience: int = 200,
+    hist_patience: int = 50,
     min_delta: float = 1e-5,
     ceilings: dict[str, int] | None = None,
+    selection_metric: str = "roc_auc",
 ) -> dict[str, dict[str, Any]]:
+    if selection_metric not in SELECTION_METRICS:
+        raise ValueError(f"unsupported selection metric {selection_metric!r}")
     limits = {**DEFAULT_CEILINGS, **(ceilings or {})}
+    metrics = SELECTION_METRICS[selection_metric]
     return {
         "lightgbm": {
             "class": "LGBMClassifier",
             "ceiling": int(limits["lightgbm"]),
-            "selection_metric": "pr_auc",
+            "selection_metric": selection_metric,
+            "selection_eval_metric": metrics["lightgbm"],
             "patience": int(patience),
             "min_delta": float(min_delta),
             "params": {
@@ -66,12 +85,12 @@ def early_stopping_contract(
         "xgboost": {
             "class": "XGBClassifier",
             "ceiling": int(limits["xgboost"]),
-            "selection_metric": "pr_auc",
+            "selection_metric": selection_metric,
             "patience": int(patience),
             "min_delta": 0.0,
             "params": {
                 "n_estimators": int(limits["xgboost"]),
-                "eval_metric": "aucpr",
+                "eval_metric": metrics["xgboost"],
                 "early_stopping_rounds": int(patience),
                 "verbosity": 0,
                 "random_state": seed,
@@ -80,12 +99,12 @@ def early_stopping_contract(
         "catboost": {
             "class": "CatBoostClassifier",
             "ceiling": int(limits["catboost"]),
-            "selection_metric": "pr_auc",
+            "selection_metric": selection_metric,
             "patience": int(patience),
             "min_delta": 0.0,
             "params": {
                 "iterations": int(limits["catboost"]),
-                "eval_metric": "PRAUC:type=Classic",
+                "eval_metric": metrics["catboost"],
                 "verbose": False,
                 "random_seed": seed,
                 "allow_writing_files": False,
@@ -94,13 +113,13 @@ def early_stopping_contract(
         "hist_gradient_boosting": {
             "class": "HistGradientBoostingClassifier",
             "ceiling": int(limits["hist_gradient_boosting"]),
-            "selection_metric": "pr_auc",
+            "selection_metric": selection_metric,
             "patience": int(hist_patience),
             "min_delta": float(min_delta),
             "params": {
                 "max_iter": int(limits["hist_gradient_boosting"]),
                 "early_stopping": True,
-                "scoring": "average_precision",
+                "scoring": metrics["hist_gradient_boosting"],
                 "n_iter_no_change": int(hist_patience),
                 "tol": float(min_delta),
                 "validation_fraction": None,
@@ -154,7 +173,36 @@ def _best_iteration(model_name: str, model: Any) -> int:
         return int(model.best_iteration) + 1
     if model_name == "catboost":
         return int(model.get_best_iteration()) + 1
+    validation_scores = np.asarray(model.validation_score_, dtype="float64")
+    if validation_scores.ndim != 1 or not np.isfinite(validation_scores).any():
+        raise ValueError("HistGradientBoosting has no finite validation history")
+    return max(1, int(np.nanargmax(validation_scores)))
+
+
+def _stopped_iteration(model_name: str, model: Any) -> int:
+    """Return the number of iterations evaluated before training stopped."""
+    if model_name == "lightgbm":
+        history = model.evals_result_["early_stop"]
+        return len(next(iter(history.values())))
+    if model_name == "xgboost":
+        history = model.evals_result()["validation_0"]
+        return len(next(iter(history.values())))
+    if model_name == "catboost":
+        history = model.get_evals_result()["validation"]
+        return len(next(iter(history.values())))
     return int(model.n_iter_)
+
+
+def _scores_at_selected_iteration(
+    model_name: str, model: Any, values: np.ndarray, best_iteration: int
+) -> np.ndarray:
+    if model_name != "hist_gradient_boosting":
+        return predict_probability(model_name, model, values)
+    staged = model.staged_predict_proba(model_matrix(model_name, values))
+    for iteration, probabilities in enumerate(staged, start=1):
+        if iteration == best_iteration:
+            return np.asarray(probabilities[:, 1], dtype="float64")
+    raise ValueError("selected HistGradientBoosting iteration is unavailable")
 
 
 def fit_early_stopped_models(
@@ -164,12 +212,13 @@ def fit_early_stopped_models(
     y_early_stop: np.ndarray,
     *,
     seed: int = 42,
-    patience: int = 100,
-    hist_patience: int = 20,
+    patience: int = 200,
+    hist_patience: int = 50,
     min_delta: float = 1e-5,
     ceilings: dict[str, int] | None = None,
     checkpoint_dir: Path | None = None,
     resume: bool = False,
+    selection_metric: str = "roc_auc",
 ) -> tuple[dict[str, Any], dict[str, Any], dict[str, dict[str, Any]]]:
     """Fit all components against one explicit, building-disjoint ES set."""
     y_fit = np.asarray(y_fit, dtype="int8")
@@ -181,6 +230,7 @@ def fit_early_stopped_models(
         hist_patience=hist_patience,
         min_delta=min_delta,
         ceilings=ceilings,
+        selection_metric=selection_metric,
     )
     models: dict[str, Any] = {}
     records: dict[str, Any] = {}
@@ -221,7 +271,7 @@ def fit_early_stopped_models(
                 y_fit,
                 eval_set=[(x_early_stop, y_early_stop)],
                 eval_names=["early_stop"],
-                eval_metric="average_precision",
+                eval_metric=spec["selection_eval_metric"],
                 callbacks=callbacks,
             )
         elif name == "xgboost":
@@ -254,16 +304,20 @@ def fit_early_stopped_models(
                 y_val=y_early_stop,
             )
         fit_seconds = time.perf_counter() - started
-        scores = predict_probability(name, model, x_early_stop)
         best_iteration = _best_iteration(name, model)
+        stopped_iteration = _stopped_iteration(name, model)
+        scores = _scores_at_selected_iteration(
+            name, model, x_early_stop, best_iteration
+        )
         records[name] = {
             "fit_seconds": fit_seconds,
             "best_iteration": best_iteration,
+            "stopped_iteration": stopped_iteration,
             "iteration_ceiling": int(spec["ceiling"]),
-            "ceiling_hit": bool(best_iteration >= int(spec["ceiling"])),
+            "ceiling_hit": bool(stopped_iteration >= int(spec["ceiling"])),
             "stop_reason": (
                 "iteration_ceiling"
-                if best_iteration >= int(spec["ceiling"])
+                if stopped_iteration >= int(spec["ceiling"])
                 else "early_stopping"
             ),
             "early_stop_roc_auc": float(roc_auc_score(y_early_stop, scores)),

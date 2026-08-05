@@ -327,11 +327,15 @@ class TestSupervisorReliability(unittest.TestCase):
             "training_sampling_order": ["building_id", "timestamp"],
             "matrix_dtype": "float64",
             "prediction_dtype": "float64",
-            "early_stopping_metric": "pr_auc",
+            "early_stopping_metric": "roc_auc",
             "score_names": names,
             "fit": {
                 "model_contract": {
-                    name: {"selection_metric": "pr_auc"} for name in names[:-1]
+                    name: {
+                        "selection_metric": "roc_auc",
+                        "patience": 50 if name == "hist_gradient_boosting" else 200,
+                    }
+                    for name in names[:-1]
                 }
             },
         }
@@ -339,7 +343,7 @@ class TestSupervisorReliability(unittest.TestCase):
         self.assertTrue(supervisor._valid_tree_contract(metadata, stored))
 
         obsolete_metric = json.loads(json.dumps(metadata))
-        obsolete_metric["early_stopping_metric"] = "roc_auc"
+        obsolete_metric["early_stopping_metric"] = "pr_auc"
         self.assertFalse(supervisor._valid_tree_contract(obsolete_metric, stored))
 
         obsolete_sampling = json.loads(json.dumps(metadata))

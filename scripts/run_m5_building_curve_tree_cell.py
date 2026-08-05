@@ -34,6 +34,7 @@ from lead import (
 )
 from m5_building_curve_protocol import int_array_sha256, resolve_cell_indices
 from m5_tree_early_stopping import (
+    DEFAULT_CEILINGS,
     MODEL_ORDER,
     ensemble_probabilities,
     fit_early_stopped_models,
@@ -60,8 +61,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--features", type=int, choices=(17, 137), default=137)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--predict-batch-rows", type=int, default=200_000)
-    parser.add_argument("--patience", type=int, default=100)
-    parser.add_argument("--hist-patience", type=int, default=20)
+    parser.add_argument("--patience", type=int, default=200)
+    parser.add_argument("--hist-patience", type=int, default=50)
+    parser.add_argument(
+        "--early-stopping-metric",
+        choices=("pr_auc", "roc_auc"),
+        default="roc_auc",
+    )
     parser.add_argument(
         "--mode", choices=("plan", "validation", "formal"), default="plan"
     )
@@ -335,7 +341,7 @@ def main(argv: list[str] | None = None) -> int:
         "training_sampling_order": list(M3_SORT_KEYS),
         "matrix_dtype": MATRIX_DTYPE.name,
         "prediction_dtype": PREDICTION_DTYPE.name,
-        "early_stopping_metric": "pr_auc",
+        "early_stopping_metric": args.early_stopping_metric,
         "fit_source_row_sha256": int_array_sha256(fit_source_index),
         "fit_row_sha256": int_array_sha256(fit_index),
         "early_stop_row_sha256": int_array_sha256(early_stop_index),
@@ -399,7 +405,10 @@ def main(argv: list[str] | None = None) -> int:
         x_early_stop = _scale_matrix(selection_scaler, x_early_stop)
         ceilings = None
         if args.mode == "validation":
-            ceilings = {name: args.validation_iteration_ceiling for name in MODEL_ORDER}
+            ceilings = {
+                name: min(DEFAULT_CEILINGS[name], args.validation_iteration_ceiling)
+                for name in MODEL_ORDER
+            }
         models, records, contract = fit_early_stopped_models(
             x_fit,
             y_fit,
@@ -415,6 +424,7 @@ def main(argv: list[str] | None = None) -> int:
             ceilings=ceilings,
             checkpoint_dir=args.out_root / "model_checkpoints",
             resume=args.resume,
+            selection_metric=args.early_stopping_metric,
         )
         del models, x_fit, x_early_stop
         gc.collect()

@@ -166,17 +166,14 @@ def main() -> int:
     for model in m3_contract:
         if es_contract[model]["class"] != m3_contract[model]["class"]:
             raise AssertionError(f"{model} class differs from M3")
-        if es_contract[model]["selection_metric"] != "pr_auc":
-            raise AssertionError(f"{model} does not select iterations by PR-AUC")
-    if es_contract["xgboost"]["params"]["eval_metric"] != "aucpr":
-        raise AssertionError("XGBoost PR-AUC adapter drifted")
-    if es_contract["catboost"]["params"]["eval_metric"] != "PRAUC:type=Classic":
-        raise AssertionError("CatBoost PR-AUC adapter drifted")
-    if (
-        es_contract["hist_gradient_boosting"]["params"]["scoring"]
-        != "average_precision"
-    ):
-        raise AssertionError("HistGradientBoosting PR-AUC adapter drifted")
+        if es_contract[model]["selection_metric"] != "roc_auc":
+            raise AssertionError(f"{model} does not select iterations by ROC-AUC")
+    if es_contract["xgboost"]["params"]["eval_metric"] != "auc":
+        raise AssertionError("XGBoost ROC-AUC adapter drifted")
+    if es_contract["catboost"]["params"]["eval_metric"] != "AUC":
+        raise AssertionError("CatBoost ROC-AUC adapter drifted")
+    if es_contract["hist_gradient_boosting"]["params"]["scoring"] != "roc_auc":
+        raise AssertionError("HistGradientBoosting ROC-AUC adapter drifted")
     if tuple(DOWNSAMPLE_SEEDS) != (10, 20):
         raise AssertionError("M3 downsampling seeds drifted")
     if MATRIX_DTYPE != np.dtype("float64") or PREDICTION_DTYPE != np.dtype("float64"):
@@ -194,7 +191,7 @@ def main() -> int:
                 "holdout_row_sha256": sha256_int64(canonical_rows),
                 "matrix_dtype": MATRIX_DTYPE.name,
                 "prediction_dtype": PREDICTION_DTYPE.name,
-                "early_stopping_metric": "pr_auc",
+                "early_stopping_metric": "roc_auc",
                 "ensemble": "equal_weight_mean_of_four",
             },
             indent=2,

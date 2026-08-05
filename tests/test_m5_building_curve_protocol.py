@@ -165,28 +165,34 @@ class TestM5TreeEarlyStopping(unittest.TestCase):
         )
         self.assertEqual(tuple(models), MODEL_ORDER)
         for name in MODEL_ORDER:
-            self.assertEqual(contract[name]["selection_metric"], "pr_auc")
+            self.assertEqual(contract[name]["selection_metric"], "roc_auc")
             self.assertGreaterEqual(records[name]["best_iteration"], 1)
             self.assertLessEqual(records[name]["best_iteration"], ceilings[name])
+            self.assertGreaterEqual(records[name]["stopped_iteration"], 1)
+            self.assertLessEqual(records[name]["stopped_iteration"], ceilings[name])
             self.assertIn("history", records[name])
             self.assertIn(
                 records[name]["stop_reason"], {"early_stopping", "iteration_ceiling"}
             )
-        self.assertEqual(contract["xgboost"]["params"]["eval_metric"], "aucpr")
+        self.assertEqual(contract["xgboost"]["params"]["eval_metric"], "auc")
+        self.assertEqual(contract["catboost"]["params"]["eval_metric"], "AUC")
         self.assertEqual(
-            contract["catboost"]["params"]["eval_metric"], "PRAUC:type=Classic"
-        )
-        self.assertEqual(
-            contract["hist_gradient_boosting"]["params"]["scoring"], "average_precision"
+            contract["hist_gradient_boosting"]["params"]["scoring"], "roc_auc"
         )
         self.assertEqual(
             next(iter(records["lightgbm"]["history"]["early_stop"])),
-            "average_precision",
+            "auc",
         )
-        self.assertEqual(list(records["xgboost"]["history"]["validation_0"]), ["aucpr"])
-        self.assertIn(
-            "PRAUC:type=Classic",
-            records["catboost"]["history"]["validation"],
+        self.assertEqual(list(records["xgboost"]["history"]["validation_0"]), ["auc"])
+        self.assertIn("AUC", records["catboost"]["history"]["validation"])
+        hist_record = records["hist_gradient_boosting"]
+        hist_validation = np.asarray(hist_record["history"]["validation_score"])
+        self.assertEqual(
+            hist_record["best_iteration"],
+            max(1, int(np.nanargmax(hist_validation))),
+        )
+        self.assertEqual(
+            hist_record["stopped_iteration"], models["hist_gradient_boosting"].n_iter_
         )
         scores = ensemble_probabilities(models, x_es)
         self.assertEqual(set(scores), {*MODEL_ORDER, "ensemble"})
@@ -224,6 +230,20 @@ class TestM5TreeEarlyStopping(unittest.TestCase):
         )
         self.assertFalse(hist_params["early_stopping"])
         self.assertEqual(hist_params["scoring"], "loss")
+
+    def test_roc_auc_selection_uses_each_librarys_roc_adapter(self) -> None:
+        from scripts.m5_tree_early_stopping import early_stopping_contract
+
+        contract = early_stopping_contract(selection_metric="roc_auc")
+        self.assertTrue(
+            all(spec["selection_metric"] == "roc_auc" for spec in contract.values())
+        )
+        self.assertEqual(contract["lightgbm"]["selection_eval_metric"], "auc")
+        self.assertEqual(contract["xgboost"]["params"]["eval_metric"], "auc")
+        self.assertEqual(contract["catboost"]["params"]["eval_metric"], "AUC")
+        self.assertEqual(
+            contract["hist_gradient_boosting"]["params"]["scoring"], "roc_auc"
+        )
 
     def test_single_class_early_stop_is_rejected(self) -> None:
         x = np.zeros((8, 2), dtype="float64")

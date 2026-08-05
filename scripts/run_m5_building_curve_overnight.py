@@ -22,6 +22,12 @@ FULL_MANIFEST = (
     FULL_PROTOCOL_ROOT / "representative" / "seed42" / "building_ladder.json"
 )
 FORMAL_ROOT = PROC / "m5_building_curve" / "formal"
+TREE_MODEL_ORDER = (
+    "lightgbm",
+    "xgboost",
+    "catboost",
+    "hist_gradient_boosting",
+)
 SUPERVISOR_ROOT = PROC / "m5_building_curve" / "supervisor"
 REPORT = ROOT / "docs" / "reports" / "m5-building-count-experiment.md"
 FAILED_MARKER = SUPERVISOR_ROOT / "FAILED.json"
@@ -314,13 +320,17 @@ def _valid_tree_contract(metadata: dict[str, Any], stored: Any) -> bool:
         return False
     if metadata.get("prediction_dtype") != "float64":
         return False
-    if metadata.get("early_stopping_metric") != "pr_auc":
+    if metadata.get("early_stopping_metric") != "roc_auc":
         return False
     contract = metadata.get("fit", {}).get("model_contract", {})
     score_names = metadata.get("score_names", [])
     if not contract or any(
-        spec.get("selection_metric") != "pr_auc" for spec in contract.values()
+        spec.get("selection_metric") != "roc_auc" for spec in contract.values()
     ):
+        return False
+    if any(contract[name].get("patience") != 200 for name in TREE_MODEL_ORDER[:-1]):
+        return False
+    if contract["hist_gradient_boosting"].get("patience") != 50:
         return False
     return all(stored[name].dtype == np.dtype("float64") for name in score_names)
 
