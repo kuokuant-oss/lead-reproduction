@@ -42,9 +42,7 @@ def _timestamp_merge_shifted(out: pd.DataFrame, shift_hours: int) -> pd.Series:
     return merged["_shifted_meter_reading"]
 
 
-def _assign_feature_column(
-    frame: pd.DataFrame, name: str, values: pd.Series
-) -> None:
+def _assign_feature_column(frame: pd.DataFrame, name: str, values: pd.Series) -> None:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", pd.errors.PerformanceWarning)
         frame[name] = values
