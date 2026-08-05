@@ -11,7 +11,7 @@ The direct TabPFN reference is the m5-matched-context-breakdown 50K / 137-featur
 | stage | status |
 |---|---|
 | tree full K=725 f=17 | complete |
-| tree full K=725 f=137 | pending |
+| tree full K=725 f=137 | complete |
 | tree K=10 f=137 | pending |
 | tabpfn K=10 f=137 | pending |
 | tree K=20 f=137 | pending |
@@ -31,6 +31,11 @@ The direct TabPFN reference is the m5-matched-context-breakdown 50K / 137-featur
 | building experiment | 725 | 17 | hist_gradient_boosting | 10137155 | 637397 | 0.816588 | 0.960353 |
 | building experiment | 725 | 17 | lightgbm | 10137155 | 637397 | 0.823255 | 0.963470 |
 | building experiment | 725 | 17 | xgboost | 10137155 | 637397 | 0.799322 | 0.957699 |
+| building experiment | 725 | 137 | catboost | 10137155 | 637397 | 0.921773 | 0.984871 |
+| building experiment | 725 | 137 | ensemble | 10137155 | 637397 | 0.929914 | 0.992271 |
+| building experiment | 725 | 137 | hist_gradient_boosting | 10137155 | 637397 | 0.925322 | 0.992198 |
+| building experiment | 725 | 137 | lightgbm | 10137155 | 637397 | 0.923557 | 0.991714 |
+| building experiment | 725 | 137 | xgboost | 10137155 | 637397 | 0.917151 | 0.989028 |
 
 ## Meter breakdown
 
@@ -60,6 +65,26 @@ The direct TabPFN reference is the m5-matched-context-breakdown 50K / 137-featur
 | representative | 725 | 17 | xgboost | chilledwater | 2115354 | 141139 | 0.490769 | 0.928741 |
 | representative | 725 | 17 | xgboost | steam | 1350609 | 48888 | 0.410249 | 0.912414 |
 | representative | 725 | 17 | xgboost | hotwater | 636121 | 90691 | 0.532154 | 0.893594 |
+| representative | 725 | 137 | catboost | electricity | 6035071 | 356679 | 0.992254 | 0.998972 |
+| representative | 725 | 137 | catboost | chilledwater | 2115354 | 141139 | 0.764041 | 0.977616 |
+| representative | 725 | 137 | catboost | steam | 1350609 | 48888 | 0.762702 | 0.954448 |
+| representative | 725 | 137 | catboost | hotwater | 636121 | 90691 | 0.762358 | 0.922216 |
+| representative | 725 | 137 | ensemble | electricity | 6035071 | 356679 | 0.993768 | 0.999327 |
+| representative | 725 | 137 | ensemble | chilledwater | 2115354 | 141139 | 0.763622 | 0.980342 |
+| representative | 725 | 137 | ensemble | steam | 1350609 | 48888 | 0.744169 | 0.966764 |
+| representative | 725 | 137 | ensemble | hotwater | 636121 | 90691 | 0.815085 | 0.950563 |
+| representative | 725 | 137 | hist_gradient_boosting | electricity | 6035071 | 356679 | 0.991800 | 0.999024 |
+| representative | 725 | 137 | hist_gradient_boosting | chilledwater | 2115354 | 141139 | 0.727419 | 0.977756 |
+| representative | 725 | 137 | hist_gradient_boosting | steam | 1350609 | 48888 | 0.717473 | 0.966932 |
+| representative | 725 | 137 | hist_gradient_boosting | hotwater | 636121 | 90691 | 0.841508 | 0.958421 |
+| representative | 725 | 137 | lightgbm | electricity | 6035071 | 356679 | 0.992103 | 0.999047 |
+| representative | 725 | 137 | lightgbm | chilledwater | 2115354 | 141139 | 0.757214 | 0.979779 |
+| representative | 725 | 137 | lightgbm | steam | 1350609 | 48888 | 0.705465 | 0.965881 |
+| representative | 725 | 137 | lightgbm | hotwater | 636121 | 90691 | 0.804264 | 0.947007 |
+| representative | 725 | 137 | xgboost | electricity | 6035071 | 356679 | 0.987858 | 0.998248 |
+| representative | 725 | 137 | xgboost | chilledwater | 2115354 | 141139 | 0.756959 | 0.978769 |
+| representative | 725 | 137 | xgboost | steam | 1350609 | 48888 | 0.700059 | 0.955090 |
+| representative | 725 | 137 | xgboost | hotwater | 636121 | 90691 | 0.760747 | 0.938985 |
 
 ## Site breakdown
 
@@ -161,11 +186,95 @@ The direct TabPFN reference is the m5-matched-context-breakdown 50K / 137-featur
 | representative | 725 | 17 | xgboost | site 13 | 1334223 | 59283 | 0.555598 | 0.898157 |
 | representative | 725 | 17 | xgboost | site 14 | 1256775 | 101532 | 0.667614 | 0.910673 |
 | representative | 725 | 17 | xgboost | site 15 | 909902 | 17989 | 0.822609 | 0.985395 |
+| representative | 725 | 137 | catboost | site 0 | 538432 | 176269 | 0.999878 | 0.999915 |
+| representative | 725 | 137 | catboost | site 1 | 289853 | 39135 | 0.960112 | 0.978400 |
+| representative | 725 | 137 | catboost | site 2 | 1263915 | 80897 | 0.817553 | 0.969019 |
+| representative | 725 | 137 | catboost | site 3 | 1181463 | 2684 | 0.883877 | 0.996516 |
+| representative | 725 | 137 | catboost | site 4 | 370460 | 197 | 0.772825 | 0.984388 |
+| representative | 725 | 137 | catboost | site 5 | 386496 | 14435 | 0.985271 | 0.999430 |
+| representative | 725 | 137 | catboost | site 6 | 345117 | 28654 | 0.840363 | 0.985777 |
+| representative | 725 | 137 | catboost | site 7 | 200594 | 15886 | 0.887170 | 0.981438 |
+| representative | 725 | 137 | catboost | site 8 | 284376 | 31083 | 0.960443 | 0.986520 |
+| representative | 725 | 137 | catboost | site 9 | 1367482 | 52587 | 0.984132 | 0.998122 |
+| representative | 725 | 137 | catboost | site 10 | 206430 | 15814 | 0.781606 | 0.968411 |
+| representative | 725 | 137 | catboost | site 11 | 43626 | 197 | 0.268207 | 0.979261 |
+| representative | 725 | 137 | catboost | site 12 | 158011 | 755 | 0.998569 | 0.999992 |
+| representative | 725 | 137 | catboost | site 13 | 1334223 | 59283 | 0.675736 | 0.946706 |
+| representative | 725 | 137 | catboost | site 14 | 1256775 | 101532 | 0.890748 | 0.970803 |
+| representative | 725 | 137 | catboost | site 15 | 909902 | 17989 | 0.884438 | 0.992077 |
+| representative | 725 | 137 | ensemble | site 0 | 538432 | 176269 | 0.999913 | 0.999946 |
+| representative | 725 | 137 | ensemble | site 1 | 289853 | 39135 | 0.984153 | 0.996451 |
+| representative | 725 | 137 | ensemble | site 2 | 1263915 | 80897 | 0.889365 | 0.991320 |
+| representative | 725 | 137 | ensemble | site 3 | 1181463 | 2684 | 0.878247 | 0.998548 |
+| representative | 725 | 137 | ensemble | site 4 | 370460 | 197 | 0.769100 | 0.981534 |
+| representative | 725 | 137 | ensemble | site 5 | 386496 | 14435 | 0.993663 | 0.999729 |
+| representative | 725 | 137 | ensemble | site 6 | 345117 | 28654 | 0.880333 | 0.987911 |
+| representative | 725 | 137 | ensemble | site 7 | 200594 | 15886 | 0.892081 | 0.983330 |
+| representative | 725 | 137 | ensemble | site 8 | 284376 | 31083 | 0.971710 | 0.991187 |
+| representative | 725 | 137 | ensemble | site 9 | 1367482 | 52587 | 0.983272 | 0.998240 |
+| representative | 725 | 137 | ensemble | site 10 | 206430 | 15814 | 0.830613 | 0.975939 |
+| representative | 725 | 137 | ensemble | site 11 | 43626 | 197 | 0.502510 | 0.978115 |
+| representative | 725 | 137 | ensemble | site 12 | 158011 | 755 | 0.998744 | 0.999985 |
+| representative | 725 | 137 | ensemble | site 13 | 1334223 | 59283 | 0.648673 | 0.962595 |
+| representative | 725 | 137 | ensemble | site 14 | 1256775 | 101532 | 0.875671 | 0.983071 |
+| representative | 725 | 137 | ensemble | site 15 | 909902 | 17989 | 0.889700 | 0.996264 |
+| representative | 725 | 137 | hist_gradient_boosting | site 0 | 538432 | 176269 | 0.999876 | 0.999929 |
+| representative | 725 | 137 | hist_gradient_boosting | site 1 | 289853 | 39135 | 0.985010 | 0.996298 |
+| representative | 725 | 137 | hist_gradient_boosting | site 2 | 1263915 | 80897 | 0.914577 | 0.992904 |
+| representative | 725 | 137 | hist_gradient_boosting | site 3 | 1181463 | 2684 | 0.864421 | 0.998472 |
+| representative | 725 | 137 | hist_gradient_boosting | site 4 | 370460 | 197 | 0.768903 | 0.977764 |
+| representative | 725 | 137 | hist_gradient_boosting | site 5 | 386496 | 14435 | 0.995345 | 0.999753 |
+| representative | 725 | 137 | hist_gradient_boosting | site 6 | 345117 | 28654 | 0.850884 | 0.986081 |
+| representative | 725 | 137 | hist_gradient_boosting | site 7 | 200594 | 15886 | 0.886441 | 0.981537 |
+| representative | 725 | 137 | hist_gradient_boosting | site 8 | 284376 | 31083 | 0.971346 | 0.991877 |
+| representative | 725 | 137 | hist_gradient_boosting | site 9 | 1367482 | 52587 | 0.978103 | 0.997316 |
+| representative | 725 | 137 | hist_gradient_boosting | site 10 | 206430 | 15814 | 0.803366 | 0.970875 |
+| representative | 725 | 137 | hist_gradient_boosting | site 11 | 43626 | 197 | 0.567152 | 0.976148 |
+| representative | 725 | 137 | hist_gradient_boosting | site 12 | 158011 | 755 | 0.998199 | 0.999964 |
+| representative | 725 | 137 | hist_gradient_boosting | site 13 | 1334223 | 59283 | 0.634604 | 0.961834 |
+| representative | 725 | 137 | hist_gradient_boosting | site 14 | 1256775 | 101532 | 0.851057 | 0.982896 |
+| representative | 725 | 137 | hist_gradient_boosting | site 15 | 909902 | 17989 | 0.849514 | 0.995511 |
+| representative | 725 | 137 | lightgbm | site 0 | 538432 | 176269 | 0.999842 | 0.999901 |
+| representative | 725 | 137 | lightgbm | site 1 | 289853 | 39135 | 0.977235 | 0.993993 |
+| representative | 725 | 137 | lightgbm | site 2 | 1263915 | 80897 | 0.884969 | 0.990504 |
+| representative | 725 | 137 | lightgbm | site 3 | 1181463 | 2684 | 0.872192 | 0.998523 |
+| representative | 725 | 137 | lightgbm | site 4 | 370460 | 197 | 0.759473 | 0.956753 |
+| representative | 725 | 137 | lightgbm | site 5 | 386496 | 14435 | 0.994284 | 0.999676 |
+| representative | 725 | 137 | lightgbm | site 6 | 345117 | 28654 | 0.862678 | 0.986578 |
+| representative | 725 | 137 | lightgbm | site 7 | 200594 | 15886 | 0.866776 | 0.977925 |
+| representative | 725 | 137 | lightgbm | site 8 | 284376 | 31083 | 0.973765 | 0.993234 |
+| representative | 725 | 137 | lightgbm | site 9 | 1367482 | 52587 | 0.973096 | 0.996718 |
+| representative | 725 | 137 | lightgbm | site 10 | 206430 | 15814 | 0.815484 | 0.973308 |
+| representative | 725 | 137 | lightgbm | site 11 | 43626 | 197 | 0.293726 | 0.971833 |
+| representative | 725 | 137 | lightgbm | site 12 | 158011 | 755 | 0.997875 | 0.999953 |
+| representative | 725 | 137 | lightgbm | site 13 | 1334223 | 59283 | 0.665542 | 0.964390 |
+| representative | 725 | 137 | lightgbm | site 14 | 1256775 | 101532 | 0.851342 | 0.981912 |
+| representative | 725 | 137 | lightgbm | site 15 | 909902 | 17989 | 0.892309 | 0.996237 |
+| representative | 725 | 137 | xgboost | site 0 | 538432 | 176269 | 0.999756 | 0.999882 |
+| representative | 725 | 137 | xgboost | site 1 | 289853 | 39135 | 0.982315 | 0.995452 |
+| representative | 725 | 137 | xgboost | site 2 | 1263915 | 80897 | 0.856392 | 0.989883 |
+| representative | 725 | 137 | xgboost | site 3 | 1181463 | 2684 | 0.793752 | 0.997794 |
+| representative | 725 | 137 | xgboost | site 4 | 370460 | 197 | 0.750211 | 0.962892 |
+| representative | 725 | 137 | xgboost | site 5 | 386496 | 14435 | 0.990581 | 0.999495 |
+| representative | 725 | 137 | xgboost | site 6 | 345117 | 28654 | 0.883162 | 0.989051 |
+| representative | 725 | 137 | xgboost | site 7 | 200594 | 15886 | 0.874940 | 0.980577 |
+| representative | 725 | 137 | xgboost | site 8 | 284376 | 31083 | 0.950721 | 0.985527 |
+| representative | 725 | 137 | xgboost | site 9 | 1367482 | 52587 | 0.966406 | 0.994357 |
+| representative | 725 | 137 | xgboost | site 10 | 206430 | 15814 | 0.783675 | 0.966241 |
+| representative | 725 | 137 | xgboost | site 11 | 43626 | 197 | 0.480922 | 0.978993 |
+| representative | 725 | 137 | xgboost | site 12 | 158011 | 755 | 0.997897 | 0.999957 |
+| representative | 725 | 137 | xgboost | site 13 | 1334223 | 59283 | 0.658127 | 0.955245 |
+| representative | 725 | 137 | xgboost | site 14 | 1256775 | 101532 | 0.815811 | 0.969191 |
+| representative | 725 | 137 | xgboost | site 15 | 909902 | 17989 | 0.851786 | 0.994723 |
 
 ## Tree early-stopping audit
 
 | K | features | model | best_iteration | ceiling | stop_reason | ES_PR_AUC | ES_ROC_AUC |
 |---|---|---|---|---|---|---|---|
+| 725 | 137 | lightgbm | 68 | 5000 | early_stopping | 0.895113 | 0.990047 |
+| 725 | 137 | xgboost | 16 | 5000 | early_stopping | 0.903069 | 0.989273 |
+| 725 | 137 | catboost | 301 | 5000 | early_stopping | 0.896370 | 0.988127 |
+| 725 | 137 | hist_gradient_boosting | 83 | 1000 | early_stopping | 0.885952 | 0.989318 |
 | 725 | 17 | lightgbm | 56 | 5000 | early_stopping | 0.766721 | 0.963477 |
 | 725 | 17 | xgboost | 11 | 5000 | early_stopping | 0.753435 | 0.953549 |
 | 725 | 17 | catboost | 85 | 5000 | early_stopping | 0.795568 | 0.958509 |
