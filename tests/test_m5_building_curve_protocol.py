@@ -143,9 +143,9 @@ class TestM5TreeEarlyStopping(unittest.TestCase):
         self,
     ) -> None:
         rng = np.random.default_rng(7)
-        x_fit = rng.normal(size=(160, 4)).astype("float32")
+        x_fit = rng.normal(size=(160, 4)).astype("float64")
         y_fit = (x_fit[:, 0] + x_fit[:, 1] * 0.3 > 0).astype("int8")
-        x_es = rng.normal(size=(80, 4)).astype("float32")
+        x_es = rng.normal(size=(80, 4)).astype("float64")
         y_es = (x_es[:, 0] + x_es[:, 1] * 0.3 > 0).astype("int8")
         ceilings = {
             "lightgbm": 8,
@@ -165,16 +165,36 @@ class TestM5TreeEarlyStopping(unittest.TestCase):
         )
         self.assertEqual(tuple(models), MODEL_ORDER)
         for name in MODEL_ORDER:
-            self.assertEqual(contract[name]["selection_metric"], "roc_auc")
+            self.assertEqual(contract[name]["selection_metric"], "pr_auc")
             self.assertGreaterEqual(records[name]["best_iteration"], 1)
             self.assertLessEqual(records[name]["best_iteration"], ceilings[name])
             self.assertIn("history", records[name])
             self.assertIn(
                 records[name]["stop_reason"], {"early_stopping", "iteration_ceiling"}
             )
+        self.assertEqual(contract["xgboost"]["params"]["eval_metric"], "aucpr")
+        self.assertEqual(
+            contract["catboost"]["params"]["eval_metric"], "PRAUC:type=Classic"
+        )
+        self.assertEqual(
+            contract["hist_gradient_boosting"]["params"]["scoring"], "average_precision"
+        )
+        self.assertEqual(
+            next(iter(records["lightgbm"]["history"]["early_stop"])),
+            "average_precision",
+        )
+        self.assertEqual(list(records["xgboost"]["history"]["validation_0"]), ["aucpr"])
+        self.assertIn(
+            "PRAUC:type=Classic",
+            records["catboost"]["history"]["validation"],
+        )
         scores = ensemble_probabilities(models, x_es)
         self.assertEqual(set(scores), {*MODEL_ORDER, "ensemble"})
         self.assertTrue(np.isfinite(scores["ensemble"]).all())
+        np.testing.assert_array_equal(
+            scores["ensemble"],
+            np.mean([scores[name] for name in MODEL_ORDER], axis=0),
+        )
         refit = refit_models_at_selected_iterations(
             np.vstack([x_fit, x_es]),
             np.concatenate([y_fit, y_es]),
@@ -182,9 +202,31 @@ class TestM5TreeEarlyStopping(unittest.TestCase):
             contract,
         )
         self.assertEqual(tuple(refit), MODEL_ORDER)
+        self.assertEqual(
+            refit["lightgbm"].get_params()["n_estimators"],
+            records["lightgbm"]["best_iteration"],
+        )
+        xgb_params = refit["xgboost"].get_params()
+        self.assertEqual(
+            xgb_params["n_estimators"], records["xgboost"]["best_iteration"]
+        )
+        self.assertEqual(xgb_params["eval_metric"], "logloss")
+        self.assertIsNone(xgb_params["early_stopping_rounds"])
+        cat_params = refit["catboost"].get_params()
+        self.assertEqual(
+            cat_params["iterations"], records["catboost"]["best_iteration"]
+        )
+        self.assertNotIn("eval_metric", cat_params)
+        hist_params = refit["hist_gradient_boosting"].get_params()
+        self.assertEqual(
+            hist_params["max_iter"],
+            records["hist_gradient_boosting"]["best_iteration"],
+        )
+        self.assertFalse(hist_params["early_stopping"])
+        self.assertEqual(hist_params["scoring"], "loss")
 
     def test_single_class_early_stop_is_rejected(self) -> None:
-        x = np.zeros((8, 2), dtype="float32")
+        x = np.zeros((8, 2), dtype="float64")
         with self.assertRaisesRegex(ValueError, "early-stop rows"):
             fit_early_stopped_models(
                 x,

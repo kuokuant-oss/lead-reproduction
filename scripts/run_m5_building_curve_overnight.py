@@ -299,6 +299,32 @@ def _stages() -> list[dict[str, Any]]:
     return stages
 
 
+def _valid_tree_contract(metadata: dict[str, Any], stored: Any) -> bool:
+    """Reject completed artifacts created by an obsolete tree protocol."""
+    if (
+        metadata.get("training_sampling")
+        != "M3 post-feature-sort:[negs1,pos,negs2,pos]"
+    ):
+        return False
+    if metadata.get("training_sampling_seeds") != [10, 20]:
+        return False
+    if metadata.get("training_sampling_order") != ["building_id", "timestamp"]:
+        return False
+    if metadata.get("matrix_dtype") != "float64":
+        return False
+    if metadata.get("prediction_dtype") != "float64":
+        return False
+    if metadata.get("early_stopping_metric") != "pr_auc":
+        return False
+    contract = metadata.get("fit", {}).get("model_contract", {})
+    score_names = metadata.get("score_names", [])
+    if not contract or any(
+        spec.get("selection_metric") != "pr_auc" for spec in contract.values()
+    ):
+        return False
+    return all(stored[name].dtype == np.dtype("float64") for name in score_names)
+
+
 def _valid_complete(stage: dict[str, Any]) -> bool:
     output = Path(stage["out"])
     complete = output / "COMPLETE.json"
@@ -324,6 +350,10 @@ def _valid_complete(stage: dict[str, Any]) -> bool:
                 return False
             size = len(stored["validation_raw_index"])
             if size != 10_137_155:
+                return False
+            if stage["name"].startswith("tree_") and not _valid_tree_contract(
+                metadata, stored
+            ):
                 return False
         return bool(marker.get("cell"))
     except Exception as error:

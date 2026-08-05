@@ -111,10 +111,11 @@ disjoint fit/early-stop subsets。Early-stop buildings 的 labels 是 tree model
 + Seeds：building order、role allocation、model 與任何 row cap 各自顯式記錄。
 + 既有 5K--100K row-context artifacts、M3 frozen model contract 與 golden metrics
   不重算、不覆寫。
- Tree training sampling：fit 與 final refit 固定使用 M3
-  `[negs1, pos, negs2, pos]`（seeds 10/20）；scaler 只 fit 在 downsampled training
-  matrix。external early-stop 與 odd-building test 不 downsample，以保留驗證與測試的
-  原始 class distribution。
++ Tree training sampling：fit 與 final refit 完整重現 M3 的作業順序：feature builder
+  先依 `building_id,timestamp` 排序並 reset index，再以 seeds 10/20 產生
+  `[negs1, pos, negs2, pos]`。scaler 只 fit 在 downsampled float64 training matrix；
+  external early-stop 與 odd-building test 不 downsample，以保留驗證與測試的原始
+  class distribution。
 
 ## 4. 建築物巢狀集合設計
 
@@ -187,21 +188,20 @@ artifact 名稱、圖例與報告標明 cap，並保持相同 K 下 TabPFN/trees
 
 ## 5. Tree early stopping contract
 
-所有模型都只以 K cell 內的 ES buildings 監控 validation ranking，預設共同選擇指標為
-ROC-AUC（與 M3 headline 一致且四套 library 定義一致）；PR-AUC 同步紀錄但不作停止
-依據。可設定 `--early-stopping-metric pr_auc` 作預先聲明的 sensitivity，不可在看過
-test 後切換。
+所有模型都只以 K cell 內的 ES buildings 監控 validation ranking，固定共同選擇指標為
+PR-AUC；ROC-AUC 僅同步記錄作稽核，不作停止依據。這個選擇在重跑 test 之前宣告並固定，
+不可在看過 test 結果後切換。
 
 | Model | 最大迭代 | Early stopping | Best-iteration scoring |
 | --- | ---: | --- | --- |
-| LightGBM | 5,000 trees | external ES set、patience 100、`min_delta=1e-5` | `best_iteration_` |
-| XGBoost | 5,000 trees | external ES set、patience 100、`eval_metric=auc` | `best_iteration`/best model |
-| CatBoost | 5,000 trees | external ES set、`eval_metric=AUC`、`od_wait=100`、`use_best_model=True` | `best_iteration_` |
-| HistGBT | 1,000 iterations | explicit `X_val/y_val`、`early_stopping=True`、`n_iter_no_change=20`、`tol=1e-5` | `n_iter_` |
+| LightGBM | 5,000 trees | external ES set、`average_precision`、patience 100、`min_delta=1e-5` | `best_iteration_` |
+| XGBoost | 5,000 trees | external ES set、patience 100、`eval_metric=aucpr` | `best_iteration`/best model |
+| CatBoost | 5,000 trees | external ES set、`eval_metric=PRAUC:type=Classic`、`od_wait=100`、`use_best_model=True` | `best_iteration_` |
+| HistGBT | 1,000 iterations | explicit `X_val/y_val`、`scoring=average_precision`、`early_stopping=True`、`n_iter_no_change=20`、`tol=1e-5` | `n_iter_` |
 
 保留既有 structural hyperparameters 與 seed；提高的上限是 early stopping search ceiling，
 不是宣稱每個模型都應跑滿。每個 component 必須保存 validation history、best iteration、
-best validation ROC/PR、fit time、停止原因與 library version。Ensemble 仍是四模型等權平均，
+best validation PR/ROC、fit time、停止原因與 library version。Ensemble 仍是四模型等權平均，
 不利用 test labels 調權。
 
 若某 library 無法在目前鎖定版本使用 explicit external ES buildings，pipeline 應 fail

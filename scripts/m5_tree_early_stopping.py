@@ -54,7 +54,7 @@ def early_stopping_contract(
         "lightgbm": {
             "class": "LGBMClassifier",
             "ceiling": int(limits["lightgbm"]),
-            "selection_metric": "roc_auc",
+            "selection_metric": "pr_auc",
             "patience": int(patience),
             "min_delta": float(min_delta),
             "params": {
@@ -66,12 +66,12 @@ def early_stopping_contract(
         "xgboost": {
             "class": "XGBClassifier",
             "ceiling": int(limits["xgboost"]),
-            "selection_metric": "roc_auc",
+            "selection_metric": "pr_auc",
             "patience": int(patience),
             "min_delta": 0.0,
             "params": {
                 "n_estimators": int(limits["xgboost"]),
-                "eval_metric": "auc",
+                "eval_metric": "aucpr",
                 "early_stopping_rounds": int(patience),
                 "verbosity": 0,
                 "random_state": seed,
@@ -80,12 +80,12 @@ def early_stopping_contract(
         "catboost": {
             "class": "CatBoostClassifier",
             "ceiling": int(limits["catboost"]),
-            "selection_metric": "roc_auc",
+            "selection_metric": "pr_auc",
             "patience": int(patience),
             "min_delta": 0.0,
             "params": {
                 "iterations": int(limits["catboost"]),
-                "eval_metric": "AUC",
+                "eval_metric": "PRAUC:type=Classic",
                 "verbose": False,
                 "random_seed": seed,
                 "allow_writing_files": False,
@@ -94,13 +94,13 @@ def early_stopping_contract(
         "hist_gradient_boosting": {
             "class": "HistGradientBoostingClassifier",
             "ceiling": int(limits["hist_gradient_boosting"]),
-            "selection_metric": "roc_auc",
+            "selection_metric": "pr_auc",
             "patience": int(hist_patience),
             "min_delta": float(min_delta),
             "params": {
                 "max_iter": int(limits["hist_gradient_boosting"]),
                 "early_stopping": True,
-                "scoring": "roc_auc",
+                "scoring": "average_precision",
                 "n_iter_no_change": int(hist_patience),
                 "tol": float(min_delta),
                 "validation_fraction": None,
@@ -221,7 +221,7 @@ def fit_early_stopped_models(
                 y_fit,
                 eval_set=[(x_early_stop, y_early_stop)],
                 eval_names=["early_stop"],
-                eval_metric="auc",
+                eval_metric="average_precision",
                 callbacks=callbacks,
             )
         elif name == "xgboost":
@@ -305,7 +305,7 @@ def refit_models_at_selected_iterations(
     checkpoint_dir: Path | None = None,
     resume: bool = False,
 ) -> dict[str, Any]:
-    """Refit on every available row after ES has selected iteration counts."""
+    """Refit the M3-downsampled matrix at ES-selected iteration counts."""
     if len(np.unique(labels)) != 2:
         raise ValueError("full refit rows must contain both classes")
     if checkpoint_dir is not None:
@@ -326,14 +326,26 @@ def refit_models_at_selected_iterations(
         elif name == "xgboost":
             params["n_estimators"] = iterations
             params.pop("early_stopping_rounds", None)
+            # Restore the frozen M3 non-selection contract for final training.
+            params["eval_metric"] = "logloss"
             model = xgb.XGBClassifier(**params)
         elif name == "catboost":
             params["iterations"] = iterations
+            # PRAUC is selection-only; M3 final training has no eval metric.
+            params.pop("eval_metric", None)
             model = CatBoostClassifier(**params)
         else:
             params["max_iter"] = iterations
             params["early_stopping"] = False
-            params.pop("validation_fraction", None)
+            # Remove all selection-only knobs. Explicit False is necessary so
+            # sklearn's ``auto`` mode cannot start a second internal split.
+            for key in (
+                "scoring",
+                "n_iter_no_change",
+                "tol",
+                "validation_fraction",
+            ):
+                params.pop(key, None)
             model = HistGradientBoostingClassifier(**params)
         started = time.perf_counter()
         model.fit(model_matrix(name, values), labels)

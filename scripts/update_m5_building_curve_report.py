@@ -175,7 +175,8 @@ def main() -> int:
         "selected by a seed-42 stable hash of raw "
         "identity without consulting labels. Building and row sets are strict nested "
         "prefixes. Trees use building-disjoint 80/20 fit and early-stop roles to choose "
-        "iteration counts, then final-refit on every selected row. TabPFN uses the same "
+        "iteration counts by PR-AUC, then final-refit using the exact M3 post-sort "
+        "[negs1,pos,negs2,pos] sampling and float64 scaler path. TabPFN uses the same "
         "selected rows and has no "
         "task-specific epoch or weight-update loop, so early stopping is not applicable.",
         "",
@@ -256,12 +257,16 @@ def main() -> int:
     fit_rows: list[dict[str, Any]] = []
     for cell in cells:
         metadata = cell["metadata"]
+        model_contract = metadata.get("fit", {}).get("model_contract", {})
         for model, fit in metadata.get("fit", {}).get("records", {}).items():
             fit_rows.append(
                 {
                     "K": metadata["building_budget"],
                     "features": metadata["features"],
                     "model": model,
+                    "selection_metric": model_contract.get(model, {}).get(
+                        "selection_metric"
+                    ),
                     "best_iteration": fit["best_iteration"],
                     "ceiling": fit["iteration_ceiling"],
                     "stop_reason": fit["stop_reason"],
@@ -276,6 +281,7 @@ def main() -> int:
                 "K",
                 "features",
                 "model",
+                "selection_metric",
                 "best_iteration",
                 "ceiling",
                 "stop_reason",

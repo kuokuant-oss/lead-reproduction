@@ -13,10 +13,13 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
 import lead.features as feature_module
-from lead import add_value_change_features
+from lead import add_value_change_features, downsample_indices
 from scripts import run_m5_building_curve_overnight as supervisor
 from scripts.m5_tree_early_stopping import model_matrix
 from scripts.run_m5_building_curve_tree_cell import (
+    MATRIX_DTYPE,
+    M3_SORT_KEYS,
+    PREDICTION_DTYPE,
     _m3_downsampled_rows,
     _matrix_columns,
     _scale_matrix,
@@ -146,20 +149,60 @@ class TestMemorySemantics(unittest.TestCase):
         self.assertEqual(len(set(columns)), 137)
 
     def test_tree_training_restores_frozen_m3_downsampling(self) -> None:
+        # Intentionally unsorted: M3 samples positions only after its feature
+        # builder sorts by building_id/timestamp and resets the index.
         frame = pd.DataFrame(
-            {"anomaly": np.asarray([0] * 12 + [1] * 4, dtype="int8")},
-            index=np.arange(100, 116),
+            {
+                "building_id": [4, 2, 4, 2, 2, 4, 2, 4] * 2,
+                "timestamp": pd.to_datetime(
+                    [f"2016-01-01 {hour:02d}:00:00" for hour in range(16)]
+                ),
+                "anomaly": np.asarray(
+                    [0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+                    dtype="int8",
+                ),
+            },
+            index=np.arange(100, 116, dtype="int64"),
         )
 
         sampled = _m3_downsampled_rows(frame, frame.index.to_numpy())
+        ordered = frame.loc[:, [*M3_SORT_KEYS, "anomaly"]].copy()
+        ordered["raw_index"] = ordered.index.to_numpy(dtype="int64")
+        ordered = ordered.sort_values(list(M3_SORT_KEYS)).reset_index(drop=True)
+        expected_positions = downsample_indices(ordered["anomaly"])
+        expected = ordered.loc[expected_positions, "raw_index"].to_numpy(dtype="int64")
         labels = frame.loc[sampled, "anomaly"].to_numpy()
 
+        np.testing.assert_array_equal(sampled, expected)
         self.assertEqual(len(sampled), 16)
         self.assertEqual(int(np.count_nonzero(labels == 0)), 8)
         self.assertEqual(int(np.count_nonzero(labels == 1)), 8)
         positive_rows = frame.index[frame["anomaly"].eq(1)].to_numpy()
         for row in positive_rows:
             self.assertEqual(int(np.count_nonzero(sampled == row)), 2)
+
+    def test_current_scaler_path_is_bitwise_equal_to_m3_dataframe_path(self) -> None:
+        frame = pd.DataFrame(
+            {
+                "float32": np.asarray([1.25, 2.5, np.nan, -3.0], dtype="float32"),
+                "float64": np.asarray([2.0, -5.5, 8.25, 3.0], dtype="float64"),
+                "int8": np.asarray([1, 0, 1, 0], dtype="int8"),
+            }
+        )
+        m3_scaler = StandardScaler()
+        expected = m3_scaler.fit_transform(frame)
+
+        values = frame.to_numpy(dtype=MATRIX_DTYPE)
+        current_scaler = StandardScaler()
+        current_scaler.fit(values)
+        actual = _scale_matrix(current_scaler, values)
+
+        self.assertEqual(actual.dtype, np.dtype("float64"))
+        self.assertEqual(MATRIX_DTYPE, np.dtype("float64"))
+        self.assertEqual(PREDICTION_DTYPE, np.dtype("float64"))
+        np.testing.assert_array_equal(actual, expected)
+        np.testing.assert_array_equal(current_scaler.mean_, m3_scaler.mean_)
+        np.testing.assert_array_equal(current_scaler.scale_, m3_scaler.scale_)
 
 
 class TestSupervisorReliability(unittest.TestCase):
@@ -269,6 +312,43 @@ class TestSupervisorReliability(unittest.TestCase):
                 ["git", "push"], check=False, timeout_seconds=30
             )
         self.assertEqual(result.returncode, 124)
+
+    def test_supervisor_rejects_obsolete_tree_artifacts(self) -> None:
+        names = [
+            "lightgbm",
+            "xgboost",
+            "catboost",
+            "hist_gradient_boosting",
+            "ensemble",
+        ]
+        metadata = {
+            "training_sampling": "M3 post-feature-sort:[negs1,pos,negs2,pos]",
+            "training_sampling_seeds": [10, 20],
+            "training_sampling_order": ["building_id", "timestamp"],
+            "matrix_dtype": "float64",
+            "prediction_dtype": "float64",
+            "early_stopping_metric": "pr_auc",
+            "score_names": names,
+            "fit": {
+                "model_contract": {
+                    name: {"selection_metric": "pr_auc"} for name in names[:-1]
+                }
+            },
+        }
+        stored = {name: np.zeros(2, dtype="float64") for name in names}
+        self.assertTrue(supervisor._valid_tree_contract(metadata, stored))
+
+        obsolete_metric = json.loads(json.dumps(metadata))
+        obsolete_metric["early_stopping_metric"] = "roc_auc"
+        self.assertFalse(supervisor._valid_tree_contract(obsolete_metric, stored))
+
+        obsolete_sampling = json.loads(json.dumps(metadata))
+        obsolete_sampling["training_sampling"] = "raw-frame-order"
+        self.assertFalse(supervisor._valid_tree_contract(obsolete_sampling, stored))
+
+        quantized = dict(stored)
+        quantized["ensemble"] = np.zeros(2, dtype="float32")
+        self.assertFalse(supervisor._valid_tree_contract(metadata, quantized))
 
 
 if __name__ == "__main__":

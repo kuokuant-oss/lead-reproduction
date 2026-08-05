@@ -47,6 +47,11 @@ from run_m5_tree_ensemble_matched_context import (
     feature_columns,
 )
 
+M3_SORT_KEYS = ("building_id", "timestamp")
+MATRIX_DTYPE = np.dtype("float64")
+PREDICTION_DTYPE = np.dtype("float64")
+_RAW_INDEX_COLUMN = "__m3_raw_index"
+
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -210,16 +215,26 @@ def _scale_matrix(scaler: StandardScaler, values: np.ndarray) -> np.ndarray:
 
 
 def _m3_downsampled_rows(frame: Any, source_rows: np.ndarray) -> np.ndarray:
-    """Apply the frozen M3 ``[negs1, pos, negs2, pos]`` training sampler."""
+    """Reproduce M3's post-feature-sort sampling as raw row identities."""
     source = np.asarray(source_rows, dtype="int64")
-    labels = frame.loc[source, "anomaly"]
-    sampled = np.asarray(downsample_indices(labels), dtype="int64")
-    sampled_labels = frame.loc[sampled, "anomaly"].to_numpy(dtype="int8")
+    ordered = frame.loc[source, [*M3_SORT_KEYS, "anomaly"]].copy()
+    ordered[_RAW_INDEX_COLUMN] = ordered.index.to_numpy(dtype="int64")
+    # add_value_change_features() performs this exact sort/reset before M3
+    # calls downsample_indices(). Sampling raw frame order changes which normal
+    # rows seeds 10 and 20 select, even though the class counts still look right.
+    ordered = ordered.sort_values(list(M3_SORT_KEYS)).reset_index(drop=True)
+    sampled_positions = np.asarray(
+        downsample_indices(ordered["anomaly"]), dtype="int64"
+    )
+    sampled = ordered.loc[sampled_positions, _RAW_INDEX_COLUMN].to_numpy(dtype="int64")
+    sampled_labels = ordered.loc[sampled_positions, "anomaly"].to_numpy(dtype="int8")
     normal = int(np.count_nonzero(sampled_labels == 0))
     anomaly = int(np.count_nonzero(sampled_labels == 1))
     if normal != anomaly or len(sampled) != normal + anomaly:
         raise AssertionError("M3 downsampling did not produce a 50:50 fit set")
-    source_anomalies = int(np.count_nonzero(labels.to_numpy(dtype="int8") == 1))
+    source_anomalies = int(
+        np.count_nonzero(ordered["anomaly"].to_numpy(dtype="int8") == 1)
+    )
     if anomaly != 2 * source_anomalies:
         raise AssertionError("M3 downsampling did not duplicate anomalies twice")
     return sampled
@@ -315,8 +330,12 @@ def main(argv: list[str] | None = None) -> int:
         "building_budget": args.building_budget,
         "features": args.features,
         "seed": args.seed,
-        "training_sampling": "lead.downsample_indices:[negs1,pos,negs2,pos]",
+        "training_sampling": "M3 post-feature-sort:[negs1,pos,negs2,pos]",
         "training_sampling_seeds": list(DOWNSAMPLE_SEEDS),
+        "training_sampling_order": list(M3_SORT_KEYS),
+        "matrix_dtype": MATRIX_DTYPE.name,
+        "prediction_dtype": PREDICTION_DTYPE.name,
+        "early_stopping_metric": "pr_auc",
         "fit_source_row_sha256": int_array_sha256(fit_source_index),
         "fit_row_sha256": int_array_sha256(fit_index),
         "early_stop_row_sha256": int_array_sha256(early_stop_index),
@@ -361,9 +380,9 @@ def main(argv: list[str] | None = None) -> int:
         else:
             print("Using the 17-feature baseline matrix", flush=True)
             train_features = frame.loc[train_mask]
-        x_fit = train_features.loc[fit_index, columns].to_numpy(dtype="float32")
+        x_fit = train_features.loc[fit_index, columns].to_numpy(dtype=MATRIX_DTYPE)
         x_early_stop = train_features.loc[early_stop_index, columns].to_numpy(
-            dtype="float32"
+            dtype=MATRIX_DTYPE
         )
         y_fit = frame.loc[fit_index, "anomaly"].to_numpy(dtype="int8")
         y_early_stop = frame.loc[early_stop_index, "anomaly"].to_numpy(dtype="int8")
@@ -412,7 +431,7 @@ def main(argv: list[str] | None = None) -> int:
         else:
             train_features = frame.loc[train_mask]
         x_available = train_features.loc[final_refit_index, columns].to_numpy(
-            dtype="float32"
+            dtype=MATRIX_DTYPE
         )
         del train_features, frame
         _collect_and_trim()
@@ -500,20 +519,28 @@ def main(argv: list[str] | None = None) -> int:
                     raise AssertionError(
                         f"prediction checkpoint identity drifted: {path}"
                     )
+                for name in (*MODEL_ORDER, "ensemble"):
+                    if stored[name].dtype != PREDICTION_DTYPE:
+                        raise AssertionError(
+                            f"prediction checkpoint dtype drifted for {name}: {path}"
+                        )
         else:
             if holdout_features is None:
                 raise AssertionError(
                     "missing prediction chunk without holdout features"
                 )
             block = holdout_features.loc[holdout_index[start:end], columns].to_numpy(
-                dtype="float32"
+                dtype=MATRIX_DTYPE
             )
             block = _scale_matrix(scaler, block)
             score = ensemble_probabilities(models, block)
             atomic_write_npz(
                 path,
                 validation_raw_index=holdout_index[start:end],
-                **{name: values.astype("float32") for name, values in score.items()},
+                **{
+                    name: values.astype(PREDICTION_DTYPE, copy=False)
+                    for name, values in score.items()
+                },
             )
             del block, score
             gc.collect()
@@ -528,7 +555,7 @@ def main(argv: list[str] | None = None) -> int:
     if holdout_features is not None:
         del holdout_features
     scores = {
-        name: np.empty(len(holdout_index), dtype="float32")
+        name: np.empty(len(holdout_index), dtype=PREDICTION_DTYPE)
         for name in (*MODEL_ORDER, "ensemble")
     }
     for start, end in spans:
