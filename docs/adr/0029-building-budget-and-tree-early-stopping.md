@@ -36,6 +36,11 @@ Add an independent building-count comparison line with these rules:
 + LightGBM, XGBoost, CatBoost and HistGradientBoosting monitor an explicit
   building-disjoint validation set using ROC-AUC.  Best iteration, history,
   ceiling hits and validation PR-AUC are persisted.
+ Tree fit rows retain the frozen M3 `[negs1, pos, negs2, pos]` downsampling
+  with seeds 10 and 20, while external early-stop rows retain their natural
+  distribution.  After iteration selection, final refit applies the same M3
+  downsampling to all available training-source rows.  The scaler is fitted
+  only on each downsampled training matrix.
 + Existing frozen M3 models and row-context results are historical artifacts and
   are not redefined.
 
@@ -43,6 +48,8 @@ Add an independent building-count comparison line with these rules:
 
 + Building-source diversity, row count and anomaly prevalence still co-vary
   under the primary all-rows policy, so every cell records all three.
+ Available source-row counts and effective downsampled tree fit-row counts are
+  both reported; `all_rows` never means bypassing M3 class balancing.
 + Site-, meter- and anomaly-balanced ladders are sensitivity profiles, not
   interchangeable headline samples.
 + TabPFN receives no artificial early stopping.  Any future fine-tuning or

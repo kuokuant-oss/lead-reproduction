@@ -16,7 +16,11 @@ import lead.features as feature_module
 from lead import add_value_change_features
 from scripts import run_m5_building_curve_overnight as supervisor
 from scripts.m5_tree_early_stopping import model_matrix
-from scripts.run_m5_building_curve_tree_cell import _matrix_columns, _scale_matrix
+from scripts.run_m5_building_curve_tree_cell import (
+    _m3_downsampled_rows,
+    _matrix_columns,
+    _scale_matrix,
+)
 
 
 def _feature_frame() -> pd.DataFrame:
@@ -140,6 +144,22 @@ class TestMemorySemantics(unittest.TestCase):
         columns = _matrix_columns(137, ["building_id", "meter_reading"])
         self.assertEqual(len(columns), 137)
         self.assertEqual(len(set(columns)), 137)
+
+    def test_tree_training_restores_frozen_m3_downsampling(self) -> None:
+        frame = pd.DataFrame(
+            {"anomaly": np.asarray([0] * 12 + [1] * 4, dtype="int8")},
+            index=np.arange(100, 116),
+        )
+
+        sampled = _m3_downsampled_rows(frame, frame.index.to_numpy())
+        labels = frame.loc[sampled, "anomaly"].to_numpy()
+
+        self.assertEqual(len(sampled), 16)
+        self.assertEqual(int(np.count_nonzero(labels == 0)), 8)
+        self.assertEqual(int(np.count_nonzero(labels == 1)), 8)
+        positive_rows = frame.index[frame["anomaly"].eq(1)].to_numpy()
+        for row in positive_rows:
+            self.assertEqual(int(np.count_nonzero(sampled == row)), 2)
 
 
 class TestSupervisorReliability(unittest.TestCase):

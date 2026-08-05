@@ -1,6 +1,6 @@
 # M5 建築物數量曲線與 Tree Early Stopping 計畫
 
-**Status**: Formal run authorized; overnight queue launch in progress
+**Status**: Pipeline correction validated; formal rerun pending
 **Started**: 2026-08-04
 **Scope**: additive M5 comparison line；不改寫既有 M3/M5 已發布結果
 **Formal run**: 使用者已於 2026-08-04 明確授權；由 gpu-host 脫離控制端連線執行
@@ -18,9 +18,12 @@
    hash，不看 anomaly label；每棟一旦加入後 quota 與 row prefix 固定，因此 building
    sets 與 row sets 都是 strict nested。不同實驗 context 分布不必相同。
 3. Tree 以每五棟固定四棟 fit、一棟 external early-stop 的 building-disjoint 角色，
-   先以固定 80/20 building roles 選 best iteration，再以選定迭代數於同 K 的全部
-   selected rows final refit。全量 baseline 同樣先 ES 選迭代，再在所有偶數 building
-   rows final refit。
+   fit rows 必須沿用凍結的 M3 `[negs1, pos, negs2, pos]` downsampling；external
+   early-stop rows 保持未重抽樣的自然分布。先以固定 80/20 building roles 選 best
+   iteration，再對同 K 的全部 available training source rows 套相同 M3 downsampling，
+   以選定迭代數 final refit。全量 baseline 同樣先 ES 選迭代，再對所有偶數 building
+   source rows 套 M3 downsampling 後 final refit。除 external early stopping 外不改動
+   M3 tree training pipeline。
 4. TabPFN K cells 沿用 matched-context 的 137-feature timestamp-merge、StandardScaler、
    seed 42、tabpfn 8.0.8 checkpoint 與 n_estimators=8；沒有 task-specific weight-update
    loop，因此不加入 early stopping。直接 baseline 使用 m5-matched-context-breakdown
@@ -108,6 +111,10 @@ disjoint fit/early-stop subsets。Early-stop buildings 的 labels 是 tree model
 + Seeds：building order、role allocation、model 與任何 row cap 各自顯式記錄。
 + 既有 5K--100K row-context artifacts、M3 frozen model contract 與 golden metrics
   不重算、不覆寫。
+ Tree training sampling：fit 與 final refit 固定使用 M3
+  `[negs1, pos, negs2, pos]`（seeds 10/20）；scaler 只 fit 在 downsampled training
+  matrix。external early-stop 與 odd-building test 不 downsample，以保留驗證與測試的
+  原始 class distribution。
 
 ## 4. 建築物巢狀集合設計
 
@@ -164,9 +171,13 @@ blocked，不得退回 row-random split。
 
 ### 4.5 Row policy
 
-主實驗使用所選 K 棟的全部可用 labeled rows (`row_policy=all_rows`)；因此 K 是資料來源
-數與自然資料量共同成長的軸。manifest 必須揭露實際 rows、class prevalence、每棟
-row contribution 與最大建物占比。
+`row_policy` 定義所選 K 棟可提供給兩個 model families 的 labeled source rows；
+`row_policy=all_rows` 表示 available pool 保留全部可用 rows，因此 K 是資料來源數與
+自然資料量共同成長的軸。這不會覆蓋凍結的 M3 tree training sampling：tree fit 與
+final refit 必須在各自 available source pool 上套 `[negs1, pos, negs2, pos]`，只有
+TabPFN context 使用其允許的 available rows。manifest 與結果必須同時揭露 source
+rows、downsampled effective fit rows、class prevalence、每棟 row contribution 與
+最大建物占比。
 
 為資源可行性保留顯式 `balanced_cap` sensitivity：先在每棟、每 label、每 meter 內以
 stable row priority 抽樣，再套 per-building cap。它不得成為隱藏預設；使用時必須在

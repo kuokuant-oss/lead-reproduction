@@ -23,7 +23,15 @@ import joblib
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 
-from lead import PROC, ROOT, SHIFTS, load_m3_frame, write_json_with_provenance
+from lead import (
+    DOWNSAMPLE_SEEDS,
+    PROC,
+    ROOT,
+    SHIFTS,
+    downsample_indices,
+    load_m3_frame,
+    write_json_with_provenance,
+)
 from m5_building_curve_protocol import int_array_sha256, resolve_cell_indices
 from m5_tree_early_stopping import (
     MODEL_ORDER,
@@ -201,6 +209,22 @@ def _scale_matrix(scaler: StandardScaler, values: np.ndarray) -> np.ndarray:
     return scaler.transform(writable, copy=False)
 
 
+def _m3_downsampled_rows(frame: Any, source_rows: np.ndarray) -> np.ndarray:
+    """Apply the frozen M3 ``[negs1, pos, negs2, pos]`` training sampler."""
+    source = np.asarray(source_rows, dtype="int64")
+    labels = frame.loc[source, "anomaly"]
+    sampled = np.asarray(downsample_indices(labels), dtype="int64")
+    sampled_labels = frame.loc[sampled, "anomaly"].to_numpy(dtype="int8")
+    normal = int(np.count_nonzero(sampled_labels == 0))
+    anomaly = int(np.count_nonzero(sampled_labels == 1))
+    if normal != anomaly or len(sampled) != normal + anomaly:
+        raise AssertionError("M3 downsampling did not produce a 50:50 fit set")
+    source_anomalies = int(np.count_nonzero(labels.to_numpy(dtype="int8") == 1))
+    if anomaly != 2 * source_anomalies:
+        raise AssertionError("M3 downsampling did not duplicate anomalies twice")
+    return sampled
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     manifest = json.loads(args.building_manifest.read_text(encoding="utf-8"))
@@ -232,7 +256,7 @@ def main(argv: list[str] | None = None) -> int:
     resolved = resolve_cell_indices(
         frame.loc[train_mask], manifest, args.building_budget
     )
-    fit_index = _bounded_rows(
+    fit_source_index = _bounded_rows(
         frame, resolved["tree_fit_rows"], args.max_fit_rows, seed=args.seed + 1
     )
     early_stop_index = _bounded_rows(
@@ -241,11 +265,13 @@ def main(argv: list[str] | None = None) -> int:
         args.max_early_stop_rows,
         seed=args.seed + 2,
     )
-    available_index = (
-        np.concatenate([fit_index, early_stop_index])
+    available_source_index = (
+        np.concatenate([fit_source_index, early_stop_index])
         if args.mode == "validation"
         else resolved["available_rows"]
     )
+    fit_index = _m3_downsampled_rows(frame, fit_source_index)
+    final_refit_index = _m3_downsampled_rows(frame, available_source_index)
 
     canonical_path = CANONICAL_ORDER
     if not canonical_path.is_file():
@@ -289,9 +315,13 @@ def main(argv: list[str] | None = None) -> int:
         "building_budget": args.building_budget,
         "features": args.features,
         "seed": args.seed,
+        "training_sampling": "lead.downsample_indices:[negs1,pos,negs2,pos]",
+        "training_sampling_seeds": list(DOWNSAMPLE_SEEDS),
+        "fit_source_row_sha256": int_array_sha256(fit_source_index),
         "fit_row_sha256": int_array_sha256(fit_index),
         "early_stop_row_sha256": int_array_sha256(early_stop_index),
-        "available_row_sha256": int_array_sha256(available_index),
+        "available_source_row_sha256": int_array_sha256(available_source_index),
+        "final_refit_row_sha256": int_array_sha256(final_refit_index),
         "holdout_row_sha256": int_array_sha256(holdout_index),
         "caps": {
             "fit": args.max_fit_rows,
@@ -316,7 +346,7 @@ def main(argv: list[str] | None = None) -> int:
         fit_record = json.loads(fit_path.read_text(encoding="utf-8"))
         if fit_record["fit_row_sha256"] != provenance["fit_row_sha256"]:
             raise AssertionError("cached model fit-row identity drifted")
-        if fit_record["final_refit_row_sha256"] != provenance["available_row_sha256"]:
+        if fit_record["final_refit_row_sha256"] != provenance["final_refit_row_sha256"]:
             raise AssertionError("cached model final-refit row identity drifted")
         print("Reused fitted models without rebuilding training features", flush=True)
     else:
@@ -337,10 +367,10 @@ def main(argv: list[str] | None = None) -> int:
         )
         y_fit = frame.loc[fit_index, "anomaly"].to_numpy(dtype="int8")
         y_early_stop = frame.loc[early_stop_index, "anomaly"].to_numpy(dtype="int8")
-        y_available = frame.loc[available_index, "anomaly"].to_numpy(dtype="int8")
+        y_available = frame.loc[final_refit_index, "anomaly"].to_numpy(dtype="int8")
         # Neither source representation is needed during early stopping.
-        # Rebuilding features once for final refit costs time but avoids keeping
-        # a 5.6 GiB DataFrame beside the 5.1 GiB fit/ES matrices and model
+        # Rebuilding features once for final refit costs time but prevents the
+        # large source DataFrame from coexisting with fit/ES matrices and model
         # working memory.
         del train_features, frame
         _collect_and_trim()
@@ -381,7 +411,7 @@ def main(argv: list[str] | None = None) -> int:
             train_features = build_features_keeping_index(frame.loc[selected_mask])
         else:
             train_features = frame.loc[train_mask]
-        x_available = train_features.loc[available_index, columns].to_numpy(
+        x_available = train_features.loc[final_refit_index, columns].to_numpy(
             dtype="float32"
         )
         del train_features, frame
@@ -398,13 +428,20 @@ def main(argv: list[str] | None = None) -> int:
             resume=args.resume,
         )
         fit_record = {
+            "training_sampling": provenance["training_sampling"],
+            "fit_source_row_sha256": provenance["fit_source_row_sha256"],
+            "training_sampling_seeds": provenance["training_sampling_seeds"],
             "fit_row_sha256": provenance["fit_row_sha256"],
             "early_stop_row_sha256": provenance["early_stop_row_sha256"],
+            "fit_source_rows": int(len(fit_source_index)),
             "fit_rows": int(len(fit_index)),
             "early_stop_rows": int(len(early_stop_index)),
-            "final_refit_rows": int(len(available_index)),
-            "final_refit_row_sha256": provenance["available_row_sha256"],
-            "final_refit": "all available rows at ES-selected iteration counts",
+            "final_refit_source_rows": int(len(available_source_index)),
+            "final_refit_rows": int(len(final_refit_index)),
+            "final_refit_row_sha256": provenance["final_refit_row_sha256"],
+            "final_refit": (
+                "M3-downsampled available rows at ES-selected iteration counts"
+            ),
             "records": records,
             "model_contract": contract,
         }
