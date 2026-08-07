@@ -11,6 +11,7 @@ class TestM5BuildingCurveReporting(unittest.TestCase):
     def setUp(self) -> None:
         self.metadata = {
             "sampling_profile": "representative",
+            "building_seed": 42,
             "building_budget": 10,
             "features": 17,
             "score_names": ["tabpfn", "ensemble"],
@@ -33,6 +34,8 @@ class TestM5BuildingCurveReporting(unittest.TestCase):
         overall = [row for row in metrics if row["grouping"] == "overall"]
         self.assertEqual(len(overall), 2)
         self.assertTrue(all(row["roc_auc"] == 1.0 for row in overall))
+        self.assertTrue(all(row["building_seed"] == 42 for row in metrics))
+        self.assertTrue(all(row["building_seed"] == 42 for row in curves))
         self.assertEqual({row["curve"] for row in curves}, {"roc", "precision_recall"})
 
     def test_duplicate_identity_and_nonfinite_scores_fail_closed(self) -> None:

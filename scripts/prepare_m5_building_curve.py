@@ -29,7 +29,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--sampling-profile", choices=PROFILES, default="representative"
     )
-    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--building-seed", "--seed", dest="building_seed", type=int, default=42
+    )
+    parser.add_argument("--row-seed", type=int, default=42)
+    parser.add_argument("--model-seed", type=int, default=42)
     parser.add_argument("--early-stop-every", type=int, default=5)
     parser.add_argument(
         "--row-policy",
@@ -57,7 +61,7 @@ def main(argv: list[str] | None = None) -> int:
     ladder, manifest = build_nested_building_ladder(
         profiles,
         args.budgets,
-        seed=args.seed,
+        seed=args.building_seed,
         sampling_profile=args.sampling_profile,
         early_stop_every=args.early_stop_every,
     )
@@ -73,7 +77,11 @@ def main(argv: list[str] | None = None) -> int:
         if args.row_policy == "average_building_cap"
         else None
     )
-    manifest["row_selection_seed"] = int(args.seed)
+    manifest["building_seed"] = int(args.building_seed)
+    manifest["row_seed"] = int(args.row_seed)
+    manifest["row_selection_seed"] = int(args.row_seed)
+    manifest["role_seed"] = None
+    manifest["model_seed"] = int(args.model_seed)
     if args.row_policy == "average_building_cap":
         manifest = add_proportional_row_quotas(candidate, manifest)
     manifest = add_cell_composition(candidate, manifest)
@@ -107,7 +115,9 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(manifest["cells"], indent=2)[:4_000])
         return 0
 
-    output = args.out_root / args.sampling_profile / f"seed{args.seed}"
+    output = (
+        args.out_root / args.sampling_profile / f"seed{args.building_seed}"
+    )
     output.mkdir(parents=True, exist_ok=True)
     profiles.to_csv(output / "building_profiles.csv", index=False)
     ladder.to_csv(output / "building_ladder.csv", index=False)

@@ -27,6 +27,11 @@ PROFILES = ("representative", "site_balanced", "meter_balanced", "anomaly_balanc
 METER_IDS = (0, 1, 2, 3)
 ROLE_FIT = "fit"
 ROLE_EARLY_STOP = "early_stop"
+DEFAULT_DIVERSIFICATION_TOP_N = 4
+DEFAULT_DIVERSIFICATION_RELATIVE_TOLERANCE = 0.02
+DEFAULT_DIVERSIFICATION_ABSOLUTE_TOLERANCE = 1e-12
+DEFAULT_PREFIX_QUALITY_MAX_RATIO = 1.50
+DEFAULT_PREFIX_QUALITY_MAX_ABSOLUTE_DEGRADATION = 0.003
 
 
 def int_array_sha256(values: np.ndarray | list[int]) -> str:
@@ -173,6 +178,12 @@ def _design_matrix(
         4.0 if sampling_profile == "anomaly_balanced" else 2.0,
         sampling_profile == "anomaly_balanced",
     )
+    add_categorical(
+        "anomaly_meter_count",
+        "anomaly_meter_count",
+        2.0 if sampling_profile == "anomaly_balanced" else 1.0,
+        False,
+    )
     add_categorical("size_bin", "size_bin", 1.0, False)
 
     meter_presence = profiles[
@@ -219,6 +230,44 @@ def _design_matrix(
     return matrix, target, weight, names, dict(zip(names, target, strict=True))
 
 
+def prefix_composition_discrepancy(
+    profiles: pd.DataFrame,
+    building_ids: np.ndarray | list[int],
+    *,
+    sampling_profile: str = "representative",
+) -> float:
+    """Measure one building prefix against the candidate-pool target."""
+    matrix, target, weight, _, _ = _design_matrix(
+        profiles, sampling_profile=sampling_profile
+    )
+    lookup = {
+        int(building_id): index
+        for index, building_id in enumerate(
+            profiles["building_id"].to_numpy(dtype="int64")
+        )
+    }
+    try:
+        indices = np.asarray(
+            [lookup[int(building_id)] for building_id in building_ids], dtype="int64"
+        )
+    except KeyError as error:
+        raise ValueError(
+            f"unknown building in discrepancy prefix: {error.args[0]}"
+        ) from error
+    if not len(indices):
+        raise ValueError("discrepancy prefix must contain at least one building")
+    prefix_mean = matrix[indices].mean(axis=0)
+    return float(((prefix_mean - target) ** 2 * weight).sum())
+
+
+def manifest_building_seed(manifest: dict[str, Any]) -> int | None:
+    """Resolve explicit pilot provenance while accepting historical manifests."""
+    for key in ("building_seed", "building_selection_seed", "seed"):
+        if manifest.get(key) is not None:
+            return int(manifest[key])
+    return None
+
+
 def build_nested_building_ladder(
     profiles: pd.DataFrame,
     budgets: list[int] | tuple[int, ...],
@@ -226,6 +275,14 @@ def build_nested_building_ladder(
     seed: int = 42,
     sampling_profile: str = "representative",
     early_stop_every: int = 5,
+    diversify_candidates: bool = False,
+    acceptable_candidate_top_n: int = DEFAULT_DIVERSIFICATION_TOP_N,
+    acceptable_candidate_relative_tolerance: float = (
+        DEFAULT_DIVERSIFICATION_RELATIVE_TOLERANCE
+    ),
+    acceptable_candidate_absolute_tolerance: float = (
+        DEFAULT_DIVERSIFICATION_ABSOLUTE_TOLERANCE
+    ),
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     """Greedily order buildings while balancing every requested prefix.
 
@@ -238,6 +295,12 @@ def build_nested_building_ladder(
         raise ValueError("building budgets must be positive")
     if early_stop_every < 2:
         raise ValueError("early_stop_every must be at least 2")
+    if acceptable_candidate_top_n < 1:
+        raise ValueError("acceptable candidate top-N must be positive")
+    if acceptable_candidate_relative_tolerance < 0:
+        raise ValueError("acceptable candidate relative tolerance cannot be negative")
+    if acceptable_candidate_absolute_tolerance < 0:
+        raise ValueError("acceptable candidate absolute tolerance cannot be negative")
     if any(value % early_stop_every for value in ordered_budgets):
         raise ValueError("building budgets must be multiples of early_stop_every")
     if ordered_budgets[-1] > len(profiles):
@@ -267,8 +330,30 @@ def build_nested_building_ladder(
         role_mean = (role_sums[role] + matrix[candidates]) / (role_counts[role] + 1)
         role_error = ((role_mean - target) ** 2 * weight).sum(axis=1)
         score = overall_error + 0.35 * role_error
-        order = np.lexsort((building_ids[candidates], priority[candidates], score))
-        chosen = int(candidates[order[0]])
+        canonical_order = np.lexsort(
+            (building_ids[candidates], priority[candidates], score)
+        )
+        score_order = np.lexsort((building_ids[candidates], score))
+        best_score = float(score[canonical_order[0]])
+        acceptable_limit = (
+            best_score * (1.0 + acceptable_candidate_relative_tolerance)
+            + acceptable_candidate_absolute_tolerance
+        )
+        acceptable = score_order[score[score_order] <= acceptable_limit]
+        acceptable = acceptable[:acceptable_candidate_top_n]
+        if diversify_candidates:
+            diversified_order = np.lexsort(
+                (
+                    building_ids[candidates][acceptable],
+                    priority[candidates][acceptable],
+                )
+            )
+            chosen_local = int(acceptable[diversified_order[0]])
+        else:
+            chosen_local = int(canonical_order[0])
+            acceptable = np.asarray([chosen_local], dtype="int64")
+            acceptable_limit = best_score
+        chosen = int(candidates[chosen_local])
         if position:
             error_before = float(((total_sum / position - target) ** 2 * weight).sum())
             gap = np.abs(total_sum / position - target) * weight
@@ -276,7 +361,7 @@ def build_nested_building_ladder(
             error_before = float((target**2 * weight).sum())
             gap = np.abs(target) * weight
         primary_need = dimensions[int(np.argmax(gap))]
-        error_after = float(overall_error[order[0]])
+        error_after = float(overall_error[chosen_local])
         available[chosen] = False
         total_sum += matrix[chosen]
         role_sums[role] += matrix[chosen]
@@ -288,7 +373,22 @@ def build_nested_building_ladder(
                 "role": role,
                 "site_id": int(profiles.iloc[chosen]["site_id"]),
                 "stable_priority": int(priority[chosen]),
-                "selection_score": float(score[order[0]]),
+                "seed_priority": int(priority[chosen]),
+                "selection_score": float(score[chosen_local]),
+                "best_selection_score": best_score,
+                "selection_score_ratio_to_best": (
+                    float(score[chosen_local] / best_score)
+                    if best_score > 0
+                    else 1.0
+                ),
+                "selection_rank": int(
+                    np.flatnonzero(score_order == chosen_local)[0] + 1
+                ),
+                "acceptable_candidate_rank": int(
+                    np.flatnonzero(acceptable == chosen_local)[0] + 1
+                ),
+                "acceptable_candidate_count": int(len(acceptable)),
+                "acceptable_score_limit": float(acceptable_limit),
                 "overall_error_before": error_before,
                 "overall_error_after": error_after,
                 "marginal_error_reduction": error_before - error_after,
@@ -321,13 +421,32 @@ def build_nested_building_ladder(
         "artifact_type": "m5_building_ladder",
         "sampling_profile": sampling_profile,
         "seed": int(seed),
+        "building_seed": int(seed),
         "early_stop_every": int(early_stop_every),
+        "role_policy": f"every_{early_stop_every}th_position_is_early_stop",
+        "role_seed": None,
         "budgets": ordered_budgets,
         "candidate_buildings": int(len(profiles)),
         "candidate_building_sha256": int_array_sha256(building_ids),
         "selection_dimensions": dimensions,
         "selection_targets": target_map,
         "role_objective_weight": 0.35,
+        "candidate_diversification": {
+            "enabled": bool(diversify_candidates),
+            "acceptable_candidate_top_n": int(acceptable_candidate_top_n),
+            "relative_score_tolerance": float(
+                acceptable_candidate_relative_tolerance
+            ),
+            "absolute_score_tolerance": float(
+                acceptable_candidate_absolute_tolerance
+            ),
+            "acceptable_set": (
+                "top-N candidates whose score is within "
+                "best*(1+relative_tolerance)+absolute_tolerance"
+            ),
+            "selector": "minimum seed-controlled stable hash, then building_id",
+            "uncontrolled_rng": False,
+        },
         "cells": cells,
     }
     validate_ladder(ladder, manifest)

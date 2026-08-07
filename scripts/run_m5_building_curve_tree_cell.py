@@ -32,7 +32,11 @@ from lead import (
     load_m3_frame,
     write_json_with_provenance,
 )
-from m5_building_curve_protocol import int_array_sha256, resolve_cell_indices
+from m5_building_curve_protocol import (
+    int_array_sha256,
+    manifest_building_seed,
+    resolve_cell_indices,
+)
 from m5_tree_early_stopping import (
     DEFAULT_CEILINGS,
     MODEL_ORDER,
@@ -54,12 +58,27 @@ PREDICTION_DTYPE = np.dtype("float64")
 _RAW_INDEX_COLUMN = "__m3_raw_index"
 
 
+def _building_seed_tag(path: Path) -> str:
+    if path.is_file():
+        try:
+            seed = manifest_building_seed(
+                json.loads(path.read_text(encoding="utf-8"))
+            )
+        except (OSError, ValueError):
+            seed = None
+        if seed is not None:
+            return f"building_seed{seed}"
+    return "building_seed_unknown"
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--building-manifest", type=Path, required=True)
     parser.add_argument("--building-budget", type=int, required=True)
     parser.add_argument("--features", type=int, choices=(17, 137), default=137)
-    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--model-seed", "--seed", dest="model_seed", type=int, default=42
+    )
     parser.add_argument("--predict-batch-rows", type=int, default=200_000)
     parser.add_argument("--patience", type=int, default=200)
     parser.add_argument("--hist-patience", type=int, default=50)
@@ -91,7 +110,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     if args.mode == "formal" and args.validation_iteration_ceiling != 8:
         raise ValueError("formal mode cannot use the validation iteration ceiling")
     tag = (
-        f"{args.building_manifest.parent.name}_k{args.building_budget}_f{args.features}"
+        f"{_building_seed_tag(args.building_manifest)}_k{args.building_budget}_f{args.features}"
     )
     if args.out_root is None:
         base = PROC / "m5_building_curve"
@@ -249,6 +268,12 @@ def _m3_downsampled_rows(frame: Any, source_rows: np.ndarray) -> np.ndarray:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     manifest = json.loads(args.building_manifest.read_text(encoding="utf-8"))
+    building_seed = manifest_building_seed(manifest)
+    if manifest.get("experiment") == "m5_building_candidate_sensitivity_pilot":
+        if building_seed is None:
+            raise SystemExit("pilot manifest lacks building_seed identity")
+        if f"building_seed{building_seed}" not in str(args.out_root):
+            raise SystemExit("pilot out-root must contain its building_seed identity")
     cell = manifest.get("cells", {}).get(str(args.building_budget))
     if cell is None:
         raise SystemExit(f"manifest has no K={args.building_budget} cell")
@@ -278,13 +303,13 @@ def main(argv: list[str] | None = None) -> int:
         frame.loc[train_mask], manifest, args.building_budget
     )
     fit_source_index = _bounded_rows(
-        frame, resolved["tree_fit_rows"], args.max_fit_rows, seed=args.seed + 1
+        frame, resolved["tree_fit_rows"], args.max_fit_rows, seed=args.model_seed + 1
     )
     early_stop_index = _bounded_rows(
         frame,
         resolved["tree_early_stop_rows"],
         args.max_early_stop_rows,
-        seed=args.seed + 2,
+        seed=args.model_seed + 2,
     )
     available_source_index = (
         np.concatenate([fit_source_index, early_stop_index])
@@ -312,7 +337,7 @@ def main(argv: list[str] | None = None) -> int:
         holdout_building = np.asarray(canonical["building_id"], dtype="int16")
     if args.max_holdout_rows is not None:
         holdout_index = _bounded_rows(
-            frame, holdout_index, args.max_holdout_rows, seed=args.seed + 3
+            frame, holdout_index, args.max_holdout_rows, seed=args.model_seed + 3
         )
         holdout_y = frame.loc[holdout_index, "anomaly"].to_numpy(dtype="int8")
         holdout_site = frame.loc[holdout_index, "site_id"].to_numpy(dtype="int8")
@@ -335,7 +360,13 @@ def main(argv: list[str] | None = None) -> int:
         "max_context_rows": manifest.get("max_context_rows"),
         "building_budget": args.building_budget,
         "features": args.features,
-        "seed": args.seed,
+        "building_seed": building_seed,
+        "row_seed": manifest.get(
+            "row_seed", manifest.get("row_selection_seed")
+        ),
+        "role_seed": manifest.get("role_seed"),
+        "model_seed": args.model_seed,
+        "seed": args.model_seed,
         "training_sampling": "M3 post-feature-sort:[negs1,pos,negs2,pos]",
         "training_sampling_seeds": list(DOWNSAMPLE_SEEDS),
         "training_sampling_order": list(M3_SORT_KEYS),
@@ -414,7 +445,7 @@ def main(argv: list[str] | None = None) -> int:
             y_fit,
             x_early_stop,
             y_early_stop,
-            seed=args.seed,
+            seed=args.model_seed,
             patience=min(args.patience, args.validation_iteration_ceiling)
             if args.mode == "validation"
             else args.patience,

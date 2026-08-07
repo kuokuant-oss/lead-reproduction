@@ -23,7 +23,11 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 
 from lead import PROC, ROOT, load_m3_frame, write_json_with_provenance
-from m5_building_curve_protocol import int_array_sha256, resolve_cell_indices
+from m5_building_curve_protocol import (
+    int_array_sha256,
+    manifest_building_seed,
+    resolve_cell_indices,
+)
 from run_m5_tabpfn_canonical_full_test import (
     DEFAULT_SITE_PREDICTIONS,
     atomic_joblib_dump,
@@ -49,13 +53,28 @@ def default_model_path() -> Path:
     )
 
 
+def _building_seed_tag(path: Path) -> str:
+    if path.is_file():
+        try:
+            seed = manifest_building_seed(
+                json.loads(path.read_text(encoding="utf-8"))
+            )
+        except (OSError, ValueError):
+            seed = None
+        if seed is not None:
+            return f"building_seed{seed}"
+    return "building_seed_unknown"
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--building-manifest", type=Path, required=True)
     parser.add_argument("--building-budget", type=int, required=True)
     parser.add_argument("--features", type=int, choices=(17, 137), default=137)
     parser.add_argument("--n-estimators", type=int, default=8)
-    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--model-seed", "--seed", dest="model_seed", type=int, default=42
+    )
     parser.add_argument("--model-path", type=Path, default=default_model_path())
     parser.add_argument("--query-microbatch-size", type=int, default=4096)
     parser.add_argument("--checkpoint-rows", type=int, default=20_000)
@@ -80,7 +99,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     elif args.max_context_rows is not None or args.max_holdout_rows is not None:
         raise ValueError("row caps are only allowed in validation mode")
     tag = (
-        f"{args.building_manifest.parent.name}_k{args.building_budget}_f{args.features}"
+        f"{_building_seed_tag(args.building_manifest)}_k{args.building_budget}_f{args.features}"
     )
     if args.out_root is None:
         base = PROC / "m5_building_curve"
@@ -155,6 +174,12 @@ def _predict(model: Any, matrix: np.ndarray, batch_size: int) -> np.ndarray:
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     manifest = json.loads(args.building_manifest.read_text(encoding="utf-8"))
+    building_seed = manifest_building_seed(manifest)
+    if manifest.get("experiment") == "m5_building_candidate_sensitivity_pilot":
+        if building_seed is None:
+            raise SystemExit("pilot manifest lacks building_seed identity")
+        if f"building_seed{building_seed}" not in str(args.out_root):
+            raise SystemExit("pilot out-root must contain its building_seed identity")
     cell = manifest.get("cells", {}).get(str(args.building_budget))
     if cell is None:
         raise SystemExit(f"manifest has no K={args.building_budget} cell")
@@ -187,7 +212,7 @@ def main(argv: list[str] | None = None) -> int:
         frame,
         resolved["available_rows"],
         args.max_context_rows,
-        seed=args.seed + 1,
+        seed=args.model_seed + 1,
     )
     if frame.loc[context_index, "building_id"].mod(2).any():
         raise AssertionError("TabPFN context contains an odd holdout building")
@@ -210,7 +235,7 @@ def main(argv: list[str] | None = None) -> int:
         holdout_building = np.asarray(canonical["building_id"], dtype="int16")
     if args.max_holdout_rows is not None:
         holdout_index = _bounded_rows(
-            frame, holdout_index, args.max_holdout_rows, seed=args.seed + 2
+            frame, holdout_index, args.max_holdout_rows, seed=args.model_seed + 2
         )
         holdout_y = frame.loc[holdout_index, "anomaly"].to_numpy(dtype="int8")
         holdout_site = frame.loc[holdout_index, "site_id"].to_numpy(dtype="int8")
@@ -233,7 +258,13 @@ def main(argv: list[str] | None = None) -> int:
         "context_limit": manifest.get("max_context_rows"),
         "building_budget": args.building_budget,
         "features": args.features,
-        "seed": args.seed,
+        "building_seed": building_seed,
+        "row_seed": manifest.get(
+            "row_seed", manifest.get("row_selection_seed")
+        ),
+        "role_seed": manifest.get("role_seed"),
+        "model_seed": args.model_seed,
+        "seed": args.model_seed,
         "n_estimators": args.n_estimators,
         "query_microbatch_size": args.query_microbatch_size,
         "context_row_sha256": int_array_sha256(context_index),
@@ -284,7 +315,7 @@ def main(argv: list[str] | None = None) -> int:
         scaler = StandardScaler()
         x_context = scaler.fit_transform(x_context).astype("float32", copy=False)
         model = (
-            create_real_model(args.model_path, args.seed, args.n_estimators)
+            create_real_model(args.model_path, args.model_seed, args.n_estimators)
             if args.mode == "formal"
             else FakeTabPFNClassifier()
         )

@@ -183,6 +183,7 @@ def aggregate_cell(
                 mask = keys == group
                 base = {
                     "sampling_profile": metadata["sampling_profile"],
+                    "building_seed": metadata.get("building_seed"),
                     "building_budget": int(metadata["building_budget"]),
                     "features": int(metadata["features"]),
                     "model": score_name,
@@ -244,6 +245,7 @@ def main() -> int:
             {
                 "metadata": str(path),
                 "sampling_profile": metadata["sampling_profile"],
+                "building_seed": metadata.get("building_seed"),
                 "building_budget": int(metadata["building_budget"]),
                 "features": int(metadata["features"]),
                 "score_names": list(metadata["score_names"]),
@@ -253,6 +255,7 @@ def main() -> int:
     metrics_frame = pd.DataFrame(metrics).sort_values(
         [
             "sampling_profile",
+            "building_seed",
             "features",
             "building_budget",
             "model",
@@ -263,6 +266,7 @@ def main() -> int:
     curve_frame = pd.DataFrame(curves).sort_values(
         [
             "sampling_profile",
+            "building_seed",
             "features",
             "building_budget",
             "model",
@@ -274,17 +278,66 @@ def main() -> int:
     )
     metrics_path = args.out_root / "metrics.csv"
     curves_path = args.out_root / "curves.csv"
+    seed_summary_path = args.out_root / "building_seed_summary.csv"
     _atomic_csv(metrics_frame, metrics_path)
     _atomic_csv(curve_frame, curves_path)
+    seeded_overall = metrics_frame.loc[
+        metrics_frame["building_seed"].notna()
+        & metrics_frame["grouping"].eq("overall")
+    ].copy()
+    summary_columns = [
+        "sampling_profile",
+        "features",
+        "building_budget",
+        "model",
+        "n_building_seeds",
+        "pr_auc_mean",
+        "pr_auc_std",
+        "pr_auc_min",
+        "pr_auc_max",
+        "roc_auc_mean",
+        "roc_auc_std",
+    ]
+    if seeded_overall.empty:
+        seed_summary = pd.DataFrame(columns=summary_columns)
+    else:
+        seed_summary = (
+            seeded_overall.groupby(
+                ["sampling_profile", "features", "building_budget", "model"],
+                as_index=False,
+            )
+            .agg(
+                n_building_seeds=("building_seed", "nunique"),
+                pr_auc_mean=("pr_auc", "mean"),
+                pr_auc_std=("pr_auc", "std"),
+                pr_auc_min=("pr_auc", "min"),
+                pr_auc_max=("pr_auc", "max"),
+                roc_auc_mean=("roc_auc", "mean"),
+                roc_auc_std=("roc_auc", "std"),
+            )
+            .loc[:, summary_columns]
+        )
+    _atomic_csv(seed_summary, seed_summary_path)
     summary = {
         "schema_version": 1,
         "experiment": "m5_building_count_curve_breakdown",
         "cells": cells,
         "identity_gate": "validation_raw_index and anomaly are byte-identical across cells",
-        "outputs": {"metrics": str(metrics_path), "curves": str(curves_path)},
+        "building_seed_aggregation": {
+            "raw_results_preserved": True,
+            "standard_deviation_ddof": 1,
+        },
+        "outputs": {
+            "metrics": str(metrics_path),
+            "curves": str(curves_path),
+            "building_seed_summary": str(seed_summary_path),
+        },
     }
     _atomic_json(summary, args.out_root / "summary.json")
-    print(f"Wrote {metrics_path}, {curves_path}, and summary.json", flush=True)
+    print(
+        f"Wrote {metrics_path}, {curves_path}, {seed_summary_path}, and summary.json",
+        flush=True,
+    )
     return 0
 
 
