@@ -59,6 +59,19 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def ordered_seed_budget_pairs(summary: dict[str, Any]) -> list[tuple[int, int]]:
+    """Finish the first seed, then sweep remaining seeds one K at a time."""
+    seeds = [int(seed) for seed in summary["building_seeds"]]
+    budgets = [int(budget) for budget in summary["budgets"]]
+    if not seeds or not budgets:
+        raise ValueError("V2 building seeds and budgets must be non-empty")
+    first_seed, remaining = seeds[0], seeds[1:]
+    return [
+        *((first_seed, budget) for budget in budgets),
+        *((seed, budget) for budget in budgets for seed in remaining),
+    ]
+
+
 def build_units(
     audit_root: Path,
     out_root: Path,
@@ -74,75 +87,74 @@ def build_units(
     sweep = "building_seed_sweep_" + "-".join(
         str(seed) for seed in summary["building_seeds"]
     )
-    for building_seed in summary["building_seeds"]:
+    for building_seed, budget in ordered_seed_budget_pairs(summary):
         manifest = audit_root / f"building_ladder_seed{building_seed}.json"
-        for budget in summary["budgets"]:
-            for family in families:
-                family_tag = "tree_no_es" if family == "tree" else "tabpfn"
-                output = (
-                    out_root
-                    / sweep
-                    / "model_runs"
-                    / f"building_seed{building_seed}"
-                    / f"{family_tag}_k{budget}_f137"
+        for family in families:
+            family_tag = "tree_no_es" if family == "tree" else "tabpfn"
+            output = (
+                out_root
+                / sweep
+                / "model_runs"
+                / f"building_seed{building_seed}"
+                / f"{family_tag}_k{budget}_f137"
+            )
+            script = (
+                "scripts/run_m5_building_count_v2_tree_cell.py"
+                if family == "tree"
+                else "scripts/run_m5_building_curve_tabpfn_cell.py"
+            )
+            command = [
+                sys.executable,
+                script,
+                "--building-manifest",
+                str(manifest),
+                "--building-budget",
+                str(budget),
+                "--features",
+                "137",
+                "--model-seed",
+                str(model_seed),
+                "--mode",
+                mode,
+                "--resume",
+                "--out-root",
+                str(output),
+            ]
+            if family == "tabpfn":
+                command.extend(
+                    [
+                        "--experiment-version",
+                        EXPERIMENT_VERSION,
+                        "--n-estimators",
+                        "8",
+                    ]
                 )
-                script = (
-                    "scripts/run_m5_building_count_v2_tree_cell.py"
-                    if family == "tree"
-                    else "scripts/run_m5_building_curve_tabpfn_cell.py"
+            if mode == "validation":
+                command.extend(
+                    [
+                        "--max-context-rows",
+                        str(validation_context_rows),
+                        "--max-holdout-rows",
+                        str(validation_holdout_rows),
+                    ]
                 )
-                command = [
-                    sys.executable,
-                    script,
-                    "--building-manifest",
-                    str(manifest),
-                    "--building-budget",
-                    str(budget),
-                    "--features",
-                    "137",
-                    "--model-seed",
-                    str(model_seed),
-                    "--mode",
-                    mode,
-                    "--resume",
-                    "--out-root",
-                    str(output),
-                ]
-                if family == "tabpfn":
-                    command.extend(
-                        [
-                            "--experiment-version",
-                            EXPERIMENT_VERSION,
-                            "--n-estimators",
-                            "8",
-                        ]
-                    )
-                if mode == "validation":
-                    command.extend(
-                        [
-                            "--max-context-rows",
-                            str(validation_context_rows),
-                            "--max-holdout-rows",
-                            str(validation_holdout_rows),
-                        ]
-                    )
-                units.append(
-                    {
-                        "identity": {
-                            "experiment_version": EXPERIMENT_VERSION,
-                            "sampling_profile": summary["sampling_profile"],
-                            "building_seed": int(building_seed),
-                            "K": int(budget),
-                            "features": 137,
-                            "model": family,
-                            "row_seed": int(summary["row_seed"]),
-                            "model_seed": int(model_seed),
-                        },
-                        "manifest": str(manifest),
-                        "output": str(output),
-                        "command": command,
-                    }
-                )
+            units.append(
+                {
+                    "identity": {
+                        "experiment_version": EXPERIMENT_VERSION,
+                        "sampling_profile": summary["sampling_profile"],
+                        "building_seed": int(building_seed),
+                        "K": int(budget),
+                        "features": 137,
+                        "model": family,
+                        "row_seed": int(summary["row_seed"]),
+                        "model_seed": int(model_seed),
+                    },
+                    "manifest": str(manifest),
+                    "output": str(output),
+                    "command": command,
+                }
+            )
     return units
 
 

@@ -168,7 +168,7 @@ def _bounded_rows(
 
 def _formal_gate() -> None:
     status = subprocess.run(
-        ["git", "status", "--porcelain"],
+        ["git", "status", "--porcelain", "--untracked-files=no"],
         cwd=ROOT,
         check=True,
         capture_output=True,

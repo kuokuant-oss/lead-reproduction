@@ -134,3 +134,28 @@ data/processed/m5_building_curve/v2/
 ```
 
 完成後 orchestrator 會先執行 matched-context gate，再 aggregate，最後以 [update_m5_building_count_v2_report.py](../../scripts/update_m5_building_count_v2_report.py) 重建 V2 report。正式執行前仍應以 clean commit 固定 code identity；本次準備工作本身不會啟動模型。
+
+## Authorized overnight order
+
+The multi-day supervisor order supersedes the one-shot formal command above:
+
+```text
+42/K10, 42/K20, 42/K50, 42/K100,
+43/K10, 44/K10, 45/K10, 46/K10,
+43/K20, 44/K20, 45/K20, 46/K20,
+43/K50, 44/K50, 45/K50, 46/K50,
+43/K100, 44/K100, 45/K100, 46/K100
+```
+
+Each pair runs frozen no-ES trees and TabPFN before its progress commit/push.
+[run_m5_building_count_v2_overnight.py](../../scripts/run_m5_building_count_v2_overnight.py)
+owns bounded retry, skip, resume, pair gates and publication.
+[ensure_m5_building_count_v2_overnight.sh](../../scripts/ensure_m5_building_count_v2_overnight.sh)
+restarts the supervisor after interruption.
+
+Each model unit has three total attempts. GPU waiting and Git push also have
+fixed limits, so one exhausted unit is marked and later pairs continue. Progress
+state lives under the V2 sweep overnight directory. Model artifacts remain
+Git-ignored; [update_m5_building_count_v2_progress.py](../../scripts/update_m5_building_count_v2_progress.py)
+writes tracked headline metrics to the V2 report after each pair. Full aggregation
+still requires all 40 cells.

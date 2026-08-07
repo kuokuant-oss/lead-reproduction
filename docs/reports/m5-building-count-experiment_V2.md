@@ -139,3 +139,26 @@ Formal 40-cell sweep:
 ```
 
 The orchestrator resumes compatible partial cells, runs the matched-context gate, generates raw and cross-seed aggregates, and then replaces this prepared template with an artifact-derived completed report through [update_m5_building_count_v2_report.py](../../scripts/update_m5_building_count_v2_report.py).
+
+## Authorized overnight execution
+
+The detached multi-day queue uses this pair order:
+
+```text
+42/K10, 42/K20, 42/K50, 42/K100,
+43/K10, 44/K10, 45/K10, 46/K10,
+43/K20, 44/K20, 45/K20, 46/K20,
+43/K50, 44/K50, 45/K50, 46/K50,
+43/K100, 44/K100, 45/K100, 46/K100
+```
+
+The operational entry point is
+[run_m5_building_count_v2_overnight.py](../../scripts/run_m5_building_count_v2_overnight.py),
+guarded by
+[ensure_m5_building_count_v2_overnight.sh](../../scripts/ensure_m5_building_count_v2_overnight.sh).
+It uses resume-compatible cell checkpoints, three attempts per model unit,
+bounded GPU waits, bounded Git-push retries and failed-stage markers. Exhausted
+units are skipped so later pairs can continue. After each pair,
+[update_m5_building_count_v2_progress.py](../../scripts/update_m5_building_count_v2_progress.py)
+updates this tracked report and the supervisor commits/pushes it. The full
+artifact-derived report is generated only after all 40 cells pass.
