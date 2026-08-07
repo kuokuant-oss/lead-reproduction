@@ -162,3 +162,39 @@ units are skipped so later pairs can continue. After each pair,
 [update_m5_building_count_v2_progress.py](../../scripts/update_m5_building_count_v2_progress.py)
 updates this tracked report and the supervisor commits/pushes it. The full
 artifact-derived report is generated only after all 40 cells pass.
+
+<!-- BEGIN M5 BUILDING COUNT V2 RUN PROGRESS -->
+
+## Overnight formal-run progress
+
+- Last update: 2026-08-07T21:02:41+08:00.
+- Last checkpointed pair: building_seed42_k10.
+- Completed seed/K pairs: 1/20.
+- Failed/skipped seed/K pairs: 0.
+- A pair is complete only after both frozen no-ES trees and TabPFN finish.
+- Raw model artifacts remain under the ignored V2 data root; this tracked table is committed and pushed after each completed pair.
+
+| order | building_seed | K | status | tree | TabPFN | ensemble PR-AUC | ensemble ROC-AUC | TabPFN PR-AUC | TabPFN ROC-AUC |
+|---:|---:|---:|---|---|---|---:|---:|---:|---:|
+| 1 | 42 | 10 | complete | yes | yes | 0.828712 | 0.974761 | 0.731425 | 0.963171 |
+| 2 | 42 | 20 | pending | no | no |  |  |  |  |
+| 3 | 42 | 50 | pending | no | no |  |  |  |  |
+| 4 | 42 | 100 | pending | no | no |  |  |  |  |
+| 5 | 43 | 10 | pending | no | no |  |  |  |  |
+| 6 | 44 | 10 | pending | no | no |  |  |  |  |
+| 7 | 45 | 10 | pending | no | no |  |  |  |  |
+| 8 | 46 | 10 | pending | no | no |  |  |  |  |
+| 9 | 43 | 20 | pending | no | no |  |  |  |  |
+| 10 | 44 | 20 | pending | no | no |  |  |  |  |
+| 11 | 45 | 20 | pending | no | no |  |  |  |  |
+| 12 | 46 | 20 | pending | no | no |  |  |  |  |
+| 13 | 43 | 50 | pending | no | no |  |  |  |  |
+| 14 | 44 | 50 | pending | no | no |  |  |  |  |
+| 15 | 45 | 50 | pending | no | no |  |  |  |  |
+| 16 | 46 | 50 | pending | no | no |  |  |  |  |
+| 17 | 43 | 100 | pending | no | no |  |  |  |  |
+| 18 | 44 | 100 | pending | no | no |  |  |  |  |
+| 19 | 45 | 100 | pending | no | no |  |  |  |  |
+| 20 | 46 | 100 | pending | no | no |  |  |  |  |
+
+<!-- END M5 BUILDING COUNT V2 RUN PROGRESS -->
