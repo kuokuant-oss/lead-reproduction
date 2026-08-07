@@ -1,0 +1,39 @@
+\documentclass[10pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{newtxtext,newtxmath}
+\usepackage[paperwidth=8.5in,paperheight=11in,margin=0.55in]{geometry}
+\usepackage{booktabs,tabularx,siunitx}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage[active,tightpage]{preview}
+\setlength\PreviewBorder{10pt}
+\sisetup{detect-all}
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.12}
+\pagestyle{empty}
+\begin{document}
+\begin{preview}\begin{minipage}{\linewidth}
+\centering
+\captionof{table}{Experiment B protocol: representative source-building scarcity.}
+\label{tab:m5-exp-b-setup}
+\begin{tabularx}{\linewidth}{p{0.17\linewidth}p{0.23\linewidth}X}
+\toprule
+Section & Setting & Value \\
+\midrule
+Design & Scarcity variable & Distinct source buildings, K \\
+ & Budget levels & K=10, 20, 50, 100 \\
+ & Row allocation & Approximately 500 rows/building; maximum 50k rows \\
+ & Building sampling & Representative nested building ladder \\
+ & Anomaly rate & Natural anomaly rate retained from selected buildings \\
+ & Meter composition & All meter types in selected buildings \\
+\addlinespace[2pt]
+Data and models & Features & 137 engineered features \\
+ & Models & Tree Ensemble; TabPFN (8 estimators) \\
+\addlinespace[2pt]
+Evaluation & Holdout & Odd-ID buildings; 724 buildings; 10,137,155 rows \\
+ & Metric & PR-AUC by meter; equal-weight four-meter macro \\
+\addlinespace[2pt]
+Reproducibility & Seed and draws & 42; one draw \\
+\bottomrule
+\end{tabularx}
+\end{minipage}\end{preview}
+\end{document}

@@ -1,0 +1,30 @@
+\documentclass[10pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{newtxtext,newtxmath}
+\usepackage[paperwidth=8.5in,paperheight=11in,margin=0.55in]{geometry}
+\usepackage{booktabs,tabularx,siunitx}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage[active,tightpage]{preview}
+\setlength\PreviewBorder{10pt}
+\sisetup{detect-all}
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.12}
+\pagestyle{empty}
+\begin{document}
+\begin{preview}\begin{minipage}{\linewidth}
+\centering
+\captionof{table}{Experiment A macro PR-AUC across matched-context row budgets.}
+\label{tab:m5-exp-a-results}
+\begin{tabular}{lS[table-format=6.0]S[table-format=3.0]S[table-format=1.3]S[table-format=1.3]S[table-format=+1.3]}
+\toprule
+Budget & {Labeled rows} & {Source buildings} & {Tree Ensemble} & {TabPFN} & {$\Delta$} \\
+\midrule
+N=5k & 5000 & 703 & 0.773 & 0.762 & -0.010 \\
+N=10k & 10000 & 724 & 0.808 & 0.832 & +0.024 \\
+N=20k & 20000 & 725 & 0.820 & 0.844 & +0.024 \\
+N=50k & 50000 & 725 & 0.837 & 0.865 & +0.027 \\
+N=100k & 100000 & 725 & 0.836 & 0.865 & +0.028 \\
+\bottomrule
+\end{tabular}
+\end{minipage}\end{preview}
+\end{document}
