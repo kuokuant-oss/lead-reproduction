@@ -26,7 +26,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--out-dir", type=Path, default=ROOT / "docs" / "reports" / "assets" / "m5"
     )
-    parser.add_argument("--profile", default="representative")
+    parser.add_argument("--profile", default="site_stratified_random")
     parser.add_argument("--features", type=int, default=137)
     parser.add_argument(
         "--grouping", choices=("overall", "meter", "site"), default="overall"

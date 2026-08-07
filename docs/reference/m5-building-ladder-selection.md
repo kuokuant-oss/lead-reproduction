@@ -1,242 +1,24 @@
-# M5 building ladder selection reference
+# M5 source-building ladder selection
 
-## 結論先講
+## 現行協定
 
-M5 的 K 棟建築不是 uniform random sampling，也不是先 shuffle 全部 building
-再取前 K。實作採用 representative-balanced greedy selection：每一步都評估
-所有尚未選取的 even training buildings，選出加入後最接近 training candidate
-pool composition target 的 building。
+M5 的 source-building identity 現在使用：
 
-目前有兩種明確不同的操作模式：
+> Seeded site-stratified random sampling without replacement, subject only to
+> prespecified meter-coverage feasibility constraints.
 
-| 模式 | `diversify_candidates` | seed 的實際作用 | 是否提供 meaningful ladder diversity |
-| --- | --- | --- | --- |
-| Primary M5 protocol | `False` | 只在 selection score 完全相同時作 deterministic tie-break | 通常不會；不同 seed 很可能得到相同 ladder |
-| Building-candidate sensitivity pilot | `True` | 只在 score 幾乎同樣好的 acceptable set 內，用 seed-controlled stable hash 選一棟 | 會，但仍受 representative-quality 約束 |
+這個協定要研究的是 source-building 數量 (K) 增加時的模型表現，而不是尋找
+composition 最佳的 source subset。舊的 representative-balanced greedy score、
+candidate discrepancy、role-prefix discrepancy、anomaly/size weights 與
+near-best candidate diversification 均不再參與 building selection。
 
-因此，這裡保留的不是執行期 stochastic RNG，而是可重現、受品質邊界控制的
-seed diversity。同一 seed、同一 candidate profile 必須產生 byte/digest-identical
-ladder；程式沒有呼叫未受控的 random shuffle 或 RNG draw。
-
-## 主要程式碼入口
-
-- Building profile 建立：
-  [`build_building_profiles`](../../scripts/m5_building_curve_protocol.py#L78-L137)
-- Representative target 與 feature weights：
-  [`_design_matrix`](../../scripts/m5_building_curve_protocol.py#L140-L230)
-- Seed-controlled stable hash：
-  [`stable_priority`](../../scripts/m5_building_curve_protocol.py#L42-L51)
-- Greedy ladder 核心：
-  [`build_nested_building_ladder`](../../scripts/m5_building_curve_protocol.py#L271-L447)
-- 每一步的 score、acceptable set 與最終選擇：
-  [selection loop](../../scripts/m5_building_curve_protocol.py#L311-L395)
-- K prefix、fit/early-stop roles 與 digest：
-  [manifest cell construction](../../scripts/m5_building_curve_protocol.py#L397-L445)
-- Even-only、無重複、strict-nested validation：
-  [`validate_ladder`](../../scripts/m5_building_curve_protocol.py#L450-L482)
-- Primary protocol 呼叫方式：
-  [`prepare_m5_building_curve.py`](../../scripts/prepare_m5_building_curve.py#L56-L92)
-- Sensitivity canonical/seeded ladders 與 quality gate：
-  [`build_sensitivity_audit`](../../scripts/audit_m5_building_candidate_sensitivity.py#L193-L308)
-- Sensitivity composition、overlap 與 machine-readable outputs：
-  [audit output construction](../../scripts/audit_m5_building_candidate_sensitivity.py#L309-L489)
-
-## 1. Candidate pool 如何形成
-
-Primary preparation 在建立 profile 前先套用：
+目前 budgets 固定為：
 
 ```text
-building_id % 2 == 0
+K = 10, 20, 50, 100
 ```
 
-程式入口見
-[`prepare_m5_building_curve.py` 的 even filter](../../scripts/prepare_m5_building_curve.py#L56-L67)。
-Sensitivity audit 也在把 frame 傳給 profile builder 前先過濾 even buildings，見
-[`profiles_from_training_frame`](../../scripts/audit_m5_building_candidate_sensitivity.py#L140-L143)。
-
-除此之外還有兩層防線：
-
-1. `build_building_profiles` 收到任何 odd building 會直接 `ValueError`。
-2. `validate_ladder` 發現 ladder 內有 odd building 會直接 `AssertionError`。
-
-所以 odd-building canonical holdout 不只是「理論上不該選」，而是在 profile
-輸入與 ladder 輸出兩端都有 hard gate。Odd-building labels 不會進入 selection
-target。Even training labels 會用來計算 anomaly-related profile；這是 supervised
-training-side representativeness，不是查看 holdout labels。
-
-## 2. 每棟 building 的 profile
-
-`build_building_profiles` 對每個 even building 建立一列，內容包括：
-
-- `site_id`
-- available row count：`rows`
-- anomaly count 與 `anomaly_rate`
-- meter 0/1/2/3 的 row count
-- meter presence indicator
-- meter row-share
-- 每個 meter 的 anomaly count/rate
-- building 具有幾種 meter：`meter_count`
-- 有 anomaly 的 meter 種數：`anomaly_meter_count`
-- 是否完全沒有 anomaly：`zero_anomaly`
-- anomaly-rate bin
-- building-size bin
-
-Anomaly-rate bins 是：
-
-```text
-zero
-positive_low
-positive_mid
-positive_high
-```
-
-正 anomaly-rate buildings 依 rank percentile 切成三組。Size 先用
-`log1p(rows)`，再依 rank percentile 切成四個 quantile bins。實作分別在
-[`_positive_rate_bins`](../../scripts/m5_building_curve_protocol.py#L54-L64) 與
-[`_quantile_bins`](../../scripts/m5_building_curve_protocol.py#L67-L75)。
-
-`primary_use` 會附加到 profile/audit artifact，但目前 `_design_matrix` 沒有把
-`primary_use` 放進 selection score。換句話說，目前 ladder 會報告 primary-use
-composition，卻不直接最佳化它。不能把 primary-use audit 誤解成 primary-use
-balancing constraint。
-
-## 3. Representative target 是什麼
-
-每棟 building profile 會轉成一個 numeric design vector。Primary 使用的
-`sampling_profile="representative"` 以 entire even-building candidate pool 的
-empirical mean 作為 target。
-
-| Dimension block | Representative target | Block total weight |
-| --- | --- | ---: |
-| Site one-hot | Candidate-pool site shares | 2.0 |
-| Anomaly-rate-bin one-hot | Candidate-pool bin shares | 2.0 |
-| Anomaly-bearing meter count | Candidate-pool distribution | 1.0 |
-| Building-size-bin one-hot | Candidate-pool distribution | 1.0 |
-| Meter presence | Candidate-pool mean presence | 2.0 |
-| Meter row-share | Candidate-pool mean row-share | 2.0 |
-| Mean anomaly rate | Candidate-pool mean | 1.0 |
-| Zero-anomaly share | Candidate-pool mean | 1.0 |
-
-Categorical block 的 total weight 會平均分配到該 block 的 levels；meter blocks
-則平均分配到四個 meters。這些 target/weight 的程式碼在
-[`_design_matrix`](../../scripts/m5_building_curve_protocol.py#L140-L230)。
-
-這個 target 是「以 building 為單位的 candidate-pool composition」，不是直接
-用所有 raw rows 的 distribution。Meter row-share 本身帶有 building 內的 row
-composition，但每棟 building 在 prefix mean 中仍是一個 observation。
-
-## 4. 每一步 greedy score 如何計算
-
-假設已經選了 `p` 棟，profile vector 總和是 `S`，candidate building `c` 的
-vector 是 `x_c`，candidate-pool target 是 `t`，各 dimension weight 是 `w`。
-
-加入 `c` 後的 overall prefix mean：
-
-```text
-overall_mean(c) = (S + x_c) / (p + 1)
-```
-
-Overall discrepancy：
-
-```text
-overall_error(c) = sum_j w_j * (overall_mean_j(c) - t_j)^2
-```
-
-Role 在選 building 之前已由 position 固定：每五個 positions 中前四個是
-`fit`，第五個是 `early_stop`。針對該 position 的 role，另外計算「如果把 c
-加入這個 role，該 role prefix 距離 target 多遠」：
-
-```text
-role_error(c) = sum_j w_j * (role_mean_j(c) - t_j)^2
-```
-
-最終 selection score：
-
-```text
-score(c) = overall_error(c) + 0.35 * role_error(c)
-```
-
-所以它不只要求整條 ladder representative，也避免 early-stop subset 或 fit
-subset 因固定 position pattern 而嚴重偏離。實作見
-[`overall_error`、`role_error` 與 `score`](../../scripts/m5_building_curve_protocol.py#L325-L335)。
-
-這是逐步 greedy optimization：每一步找當下加入後最好的 building，但不是
-對所有 K-combinations 做 global combinatorial optimization。因此它是可解釋且
-計算可行的 local greedy solution，不宣稱是 global optimum。
-
-## 5. Primary M5 到底怎麼選
-
-Primary preparation 沒有傳入 `diversify_candidates=True`，所以使用預設
-`False`。候選排序 key 依序為：
-
-```text
-selection score
-seed-controlled stable priority
-building_id
-```
-
-由於 score 是第一順位，stable priority 只有在 floating score 完全同分時才會
-改變結果。這代表 primary protocol 雖記錄 `building_seed`，但不同 seed 不保證
-產生不同 ladder；通常 score 沒有大量 exact ties 時，seed 幾乎不影響選擇。
-
-這是刻意保留的 canonical exact-best greedy 行為。Primary M5 沒有被改成 random
-sampling，也沒有被 sensitivity pilot 取代。
-
-## 6. Sensitivity pilot 如何保留 diversity 又不亂抽
-
-Sensitivity pilot 每一步仍先對所有 remaining buildings 計算相同的
-representative score。接著才建立 acceptable candidate set：
-
-```text
-best = 最低 selection score
-acceptable_limit = best * 1.02 + 1e-12
-acceptable = score <= acceptable_limit 的 candidates
-acceptable = acceptable 中 score 最好的前 4 棟
-```
-
-只在這個集合內，才依 `stable_priority(building_id, building_seed)` 由小到大選
-下一棟；若 priority 還同分，再用 `building_id`。核心實作見
-[`acceptable_limit` 與 stable-hash selection](../../scripts/m5_building_curve_protocol.py#L337-L355)。
-
-因此任何在該步驟：
-
-- score 比 best 差超過 2%，或
-- 不在符合 tolerance 的 top 4
-
-的 building 都不可能因 seed 被選中。Seed 不能凌駕 representative score，僅能
-在「近乎同樣好」的 candidates 之間提供 deterministic diversity。
-
-`stable_priority` 是一個由 `building_id XOR seed` 開始的 64-bit mixing function。
-它沒有 mutable RNG state，也不依賴 input row order。同一 building ID/seed 永遠
-得到同一 priority；相同輸入重跑不會抽到另一棟。
-
-用簡化 pseudocode 表示：
-
-```python
-for position in range(max_K):
-    role = "early_stop" if (position + 1) % 5 == 0 else "fit"
-
-    for candidate in remaining_buildings:
-        overall_error = discrepancy(selected + candidate, pool_target)
-        role_error = discrepancy(selected_for_role + candidate, pool_target)
-        score[candidate] = overall_error + 0.35 * role_error
-
-    if primary_protocol:
-        chosen = argmin(score, stable_hash_tie_break, building_id)
-    else:
-        acceptable = top_4(score <= best_score * 1.02 + 1e-12)
-        chosen = argmin(acceptable, stable_hash(building_seed), building_id)
-
-    append chosen once
-```
-
-真正執行的 source of truth 仍是
-[`build_nested_building_ladder`](../../scripts/m5_building_curve_protocol.py#L271-L447)，
-上面 pseudocode 只用於解釋。
-
-## 7. K=10/20/50/100 為何 strict nested
-
-程式只建立一次長度 `max(K)` 的 ordered ladder，然後：
+每個 `building_seed` 只生成一條長度 100 的 ladder：
 
 ```text
 K10  = ladder[:10]
@@ -245,96 +27,278 @@ K50  = ladder[:50]
 K100 = ladder[:100]
 ```
 
-不是每個 K 各跑一次 selection。Prefix construction 見
-[`ladder.iloc[:budget]`](../../scripts/m5_building_curve_protocol.py#L397-L415)，
-strict-superset、digest、無重複與 even-only gates 見
-[`validate_ladder`](../../scripts/m5_building_curve_protocol.py#L450-L482)。
+因此 building sets 與固定 position roles 都是 strict nested。
 
-Role 也綁定 position，而不是 K：positions 5、10、15、20、… 永遠是
-`early_stop`，其他是 `fit`。因此增大 K 不會改變較小 prefix 中 building 的 role。
-`role_seed` 明確是 `None`。
+## 一句話解釋
 
-## 8. Sensitivity quality gate
+Source buildings were selected using seeded site-stratified random sampling
+without replacement. Budgets were strict nested prefixes of a single random
+ladder. Sampling was subject only to prespecified meter-coverage feasibility
+constraints, requiring every evaluated meter to be represented at the smallest
+budget and to gain at least one additional source building at each subsequent
+budget. Other building characteristics were audited after sampling but were not
+optimized during selection.
 
-Pilot 另外建立 seed 42、`diversify_candidates=False` 的 canonical exact-best
-greedy ladder作為 reference。對每個 seeded ladder、每個 K 都重新計算完整
-prefix discrepancy，且必須同時滿足：
+## Selection 可讀取與不可讀取的資料
+
+### Identity selection inputs
+
+抽樣 identity 只使用：
+
+- `building_id`：唯一 identity、even/odd split 與 within-site permutation。
+- `site_id`：建立 strata 及 candidate-pool proportional site schedule。
+
+Meter presence columns：
 
 ```text
-seeded_discrepancy <= canonical_discrepancy * 1.50 + 1e-12
-seeded_discrepancy - canonical_discrepancy <= 0.003
+meter_0_present
+meter_1_present
+meter_2_present
+meter_3_present
 ```
 
-實作見
-[`canonical ladder` 與 seeded ladders](../../scripts/audit_m5_building_candidate_sensitivity.py#L219-L242)
-以及
-[`quality comparison`](../../scripts/audit_m5_building_candidate_sensitivity.py#L272-L308)。
+只在完整 random ladder 生成後檢查 feasibility，不做 ranking、weighting、交換或
+greedy correction。
 
-第一條限制 relative degradation，第二條限制 absolute degradation。兩條都通過
-才可進模型 evaluation。Audit 還要求 seed 42/43/44 在每個 K 的 prefix 都確實
-不同，否則 sensitivity pilot 不算 ready。
+Sampler 只抽取上述欄位的程式碼：
+[`_sampling_profiles()`](../../scripts/m5_building_curve_protocol.py#L145-L169)。
 
-## 9. Building seed 與 row seed 是分開的
+### 明確排除
 
-Building selection 完成後才進行 row allocation。正式 row policy 先按每個新增
-K block 中 building 的 available rows 比例建立固定 quota，見
-[`add_proportional_row_quotas`](../../scripts/m5_building_curve_protocol.py#L517-L566)。
+下列欄位不會影響 building identity：
 
-每棟 building 內再用 raw-row identity 與固定 `row_seed` 的 stable priority 取前
-`quota` rows，見
-[`average_building_capped_indices`](../../scripts/m5_building_curve_protocol.py#L569-L623)。
+- anomaly label、anomaly count/rate/bin、zero-anomaly status；
+- anomaly-bearing meter count；
+- total rows、building size/bin；
+- meter row count/share；
+- primary use；
+- candidate-pool discrepancy 或任何手調權重；
+- fit/early-stop role composition。
 
-Sensitivity pilot 固定：
+完整 profiles 仍可在抽樣完成後輸出 composition diagnostics，但 diagnostics 不會回饋
+sampler。測試會直接改寫所有 anomaly diagnostics，確認同 seed 的 building order
+完全不變：
+[`test_anomaly_diagnostics_cannot_change_building_identity`](../../tests/test_m5_building_candidate_sensitivity.py#L139-L170)。
+
+## Candidate pool
+
+Candidate pool 僅包含：
+
+```python
+building_id % 2 == 0
+```
+
+Odd-ID canonical holdout 不會傳入 sampler。由 training frame 建 profile 前即先做
+even filter：
+[`profiles_from_training_frame()`](../../scripts/audit_m5_building_candidate_sensitivity.py#L135-L138)。
+
+核心 sampler 也會再次拒絕任何 odd building、duplicate building 或缺少 site/meter
+presence 的輸入：
+[`_sampling_profiles()`](../../scripts/m5_building_curve_protocol.py#L145-L169)。
+
+Odd holdout labels 改變而 even profiles 不變的 leakage test：
+[`test_only_even_unique_buildings_and_holdout_data_are_ignored`](../../tests/test_m5_building_candidate_sensitivity.py#L117-L137)。
+
+## Seeded random draw
+
+### RNG
+
+每次 draw 使用 NumPy `PCG64`，而不是 stable hash 排序：
+
+```python
+SeedSequence([building_seed_low32, building_seed_high32, attempt])
+Generator(PCG64(seed_sequence))
+```
+
+實作：
+[`_rng_for_attempt()`](../../scripts/m5_building_curve_protocol.py#L172-L178)。
+
+這裡的「真正 seeded random」是指由正式 pseudorandom generator 產生 permutation，
+不是先計算 deterministic optimization score 再只用 seed 解同分。它仍是可重現的
+pseudo-random stream，不使用 OS entropy 或不可重現的 uncontrolled RNG。
+
+### Within-site permutation
+
+每個 site 先按 `building_id` 排序，消除輸入 DataFrame row order 的影響，再由該
+attempt 的 PCG64 stream 執行：
+
+```python
+rng.permutation(building_ids_in_site)
+```
+
+Sampling without replacement，因此同一 site 與整條 ladder 都不會重複 building。
+
+### Proportional site interleaving
+
+令：
+
+- (N_s)：candidate pool 中 site (s) 的 building 數量；
+- (N)：candidate pool building 總數；
+- (n_s(t-1))：前 (t-1) 個 positions 已從 site (s) 取出的數量。
+
+position (t) 的 proportional deficit 為：
 
 ```text
-building_seed = 42 / 43 / 44
+d_s(t) = t * N_s / N - n_s(t-1)
+```
+
+每一步從仍有 building 的 sites 中選擇最大 (d_s(t)) 的 site，然後取該 site random
+permutation 的下一棟。只有 site deficit 完全同分時，才用同一 RNG stream 產生的
+site priority，再以 `site_id` 決勝。
+
+這讓每個 prefix 的 site counts 緊貼 candidate-pool 比例，同時 building identity
+確實由 random permutation 決定。它不是把所有 buildings 做 uniform shuffle，也不把
+sites 人為平衡成相同比例。
+
+完整 draw：
+[`_site_stratified_random_draw()`](../../scripts/m5_building_curve_protocol.py#L181-L246)。
+
+## Meter feasibility constraints
+
+預設 evaluation meters 為 0、1、2、3，且：
+
+```text
+count_m(10) >= 2
+count_m(20) >= count_m(10) + 1
+count_m(50) >= count_m(20) + 1
+count_m(100) >= count_m(50) + 1
+```
+
+`count_m(K)` 是 K-prefix 中包含 meter (m) 的不同 source-building 數量，不是
+rows。Multi-meter building 可同時增加多個 meter counts。
+
+Constraint audit：
+[`_meter_constraint_audit()`](../../scripts/m5_building_curve_protocol.py#L249-L306)。
+
+Sampler 先做一個必要但不放寬條件的 global capacity preflight。四個 budgets、起始
+minimum 2、每次至少增加 1，代表每個 meter 在整個 candidate pool 至少必須存在於
+5 棟 buildings；不足時立即回報 meter、K、available 與 required：
+[`_preflight_meter_capacity()`](../../scripts/m5_building_curve_protocol.py#L309-L330)。
+
+## Whole-ladder rejection sampling
+
+每個 attempt 的流程是：
+
+1. 對每個 site 產生新的 seeded random permutation。
+2. 按 proportional site schedule 交錯成完整 100-building ladder。
+3. 一次檢查 K=10/20/50/100 的所有 meter constraints。
+4. 全部通過才接受。
+5. 任一 constraint 失敗，就丟棄整條 ladder，以同一 `building_seed` 的下一個
+   deterministic `attempt` stream 重抽。
+
+禁止：
+
+- 交換單一 building；
+- greedy 補 meter；
+- 按 meter rarity 排名；
+- 放寬 q 或 growth constraint；
+- 超過 attempts 後靜默接受。
+
+預設最多 10,000 attempts。找不到 feasible ladder 時拋出
+`LadderInfeasibilityError`，訊息包含 meter、K、best observed 與 required。
+核心 orchestration：
+[`build_nested_building_ladder()`](../../scripts/m5_building_curve_protocol.py#L341-L535)。
+
+這是一個條件式 random sample：accepted ladders 是 site-stratified random draws
+中滿足事先宣告 meter feasibility 的子集合。Meter 因此影響 accept/reject，但不影響
+單一 building 的 score，因為系統根本沒有 selection score。
+
+## Fit / early-stop roles
+
+Roles 在 ladder 通過 meter gate 後才依 position 指派：
+
+```text
+position % 5 == 0 -> early_stop
+其他 positions       -> fit
+```
+
+因此每 5 棟固定 4 fit / 1 early-stop，role 不會影響 sampling。較大 K 是相同 ladder
+prefix，所以較小 K 的 role 永遠不變。
+
+Validator 同時檢查 position rule、strict nesting、fit/ES partition、even-only、
+uniqueness、digests、site census 與 meter growth：
+[`validate_ladder()`](../../scripts/m5_building_curve_protocol.py#L537-L634)。
+
+## Row 與 model randomness 分離
+
+```text
+building_seed = swept
 row_seed      = 42
 role_seed     = None
 model_seed    = 42
 ```
 
-所以跨 seed 變化只來自 source buildings，不是 row sampling 或 model randomness
-一起改變。
+Building RNG 不參與 row priority。Row selection 仍以固定 `row_seed` 對 raw row
+identity 計算 stable priority：
+[`average_building_capped_indices()`](../../scripts/m5_building_curve_protocol.py#L706-L758)。
 
-## 10. 這算不算「保持隨機性」
+因此跨 building seeds 的主要實驗差異是 source-building identity；row policy、role
+policy 與 model seed 不跟著 sweep。
 
-精確說法如下：
+## Audit artifacts
 
-- 有 seed-controlled diversity。
-- 沒有執行期 stochastic randomness。
-- 不是 uniform random sampling。
-- 不是 weighted random sampling。
-- Seed 不能選 acceptable set 外的 building。
-- 同一 seed 可完全重現。
-- Primary 模式 seed 只處理 exact ties；sensitivity 模式 seed 才能在近最佳集合內
-  改變選擇。
+CPU-only audit entry point：
+[`build_sensitivity_audit()`](../../scripts/audit_m5_building_candidate_sensitivity.py#L188-L471)。
 
-如果「隨機性」指每次執行都可能不同，答案是沒有；這是研究 protocol 所需的
-determinism。如果「隨機性」指不同預先指定 seeds 能產生不同但合理的 candidates，
-答案是有，而且 diversity 被 score tolerance、top-4 與 prefix quality gate 三層
-限制。
+預設產生 seeds 42、43、44、45、46，輸出：
 
-## 11. 已知邊界與不可過度解讀處
+- `building_ladder_seed<seed>.csv`：逐 position building、site、role、accepted
+  attempt、within-site draw rank 與 diagnostics。
+- `building_ladder_seed<seed>.json`：sampling/RNG/constraints/cells/digests。
+- `sampling_prefix_audit.csv`：每個 seed、每個 K 的 building IDs、site counts、
+  每 meter source-building count、required minimum、pass/fail 與 digest。
+- `building_overlap.csv`：每個 K 的 cross-seed intersection/Jaccard。
+- `composition_audit.csv`：抽樣後才計算的 rows、anomalies、primary use、meter
+  row-share、size/anomaly bins 等 diagnostics。
+- `summary.json`：all-constraint gate、distinct-draw gate、accepted attempt 與所有
+  reproducibility digests。
 
-- `primary_use` 目前只 audit、不進 score。
-- Selection 使用 even training labels 建 anomaly profiles；它不是 unsupervised
-  building selection，但沒有使用 odd holdout labels。
-- Greedy ladder 是逐步 local optimum，不是全域最佳 K-subset 的證明。
-- 三個 seeds 是 sensitivity pilot，不足以估計一個隨機抽樣母體分布。
-- Quality gate 確保 composition discrepancy 沒有明顯惡化，不保證所有未納入
-  score 的 covariates 都相等。
-- Row allocation、tree training downsampling 與 model fitting 是 selection 之後的
-  獨立階段，不應混稱為 building selection randomness。
+2026-08-07 的 5-seed preflight 結果全部通過。accepted zero-based attempts 為：
 
-## 12. 對應 tests
+```text
+seed 42 -> 8
+seed 43 -> 7
+seed 44 -> 7
+seed 45 -> 7
+seed 46 -> 22
+```
 
-- 同 seed byte/digest-identical：
-  [`test_same_seed_artifacts_are_byte_and_digest_identical`](../../tests/test_m5_building_candidate_sensitivity.py#L50-L62)
-- 三 seeds 不同且 K strict nested：
-  [`test_three_seeds_are_distinct_and_every_budget_is_a_strict_prefix`](../../tests/test_m5_building_candidate_sensitivity.py#L63-L109)
-- Unique、even-only、odd labels ignored：
-  [`test_selected_buildings_are_unique_even_and_holdout_labels_are_ignored`](../../tests/test_m5_building_candidate_sensitivity.py#L110-L128)
-- Candidate limit 與 prefix quality gate：
-  [`test_quality_composition_and_candidate_limits_pass`](../../tests/test_m5_building_candidate_sensitivity.py#L129-L162)
-- Fixed row-seed independence：
-  [`test_fixed_row_seed_keeps_priority_policy_independent_of_building_seed`](../../tests/test_m5_building_candidate_sensitivity.py#L163-L176)
+K=10/20/50/100 各自都有 5 個不同 prefixes；所有 meter constraints 均通過。
+
+## Validation tests
+
+主要 tests：
+
+- byte-identical rerun：
+  [same-seed artifacts](../../tests/test_m5_building_candidate_sensitivity.py#L57-L68)
+- different seeds 與 strict nesting：
+  [distinct nested ladders](../../tests/test_m5_building_candidate_sensitivity.py#L70-L115)
+- even-only 與 odd holdout isolation：
+  [holdout isolation](../../tests/test_m5_building_candidate_sensitivity.py#L117-L137)
+- anomaly diagnostics 不影響 identity：
+  [label independence](../../tests/test_m5_building_candidate_sensitivity.py#L139-L170)
+- site stratification 與 RNG provenance：
+  [stratification audit](../../tests/test_m5_building_candidate_sensitivity.py#L172-L209)
+- meter minimum/growth：
+  [meter constraints](../../tests/test_m5_building_candidate_sensitivity.py#L211-L232)
+- deterministic whole-ladder rejection/redraw：
+  [deterministic redraw](../../tests/test_m5_building_candidate_sensitivity.py#L234-L262)
+- explicit infeasibility、no silent relaxation：
+  [no silent relaxation](../../tests/test_m5_building_candidate_sensitivity.py#L264-L277)
+- fixed row seed：
+  [row-seed isolation](../../tests/test_m5_building_candidate_sensitivity.py#L279-L291)
+
+## 直接執行 audit
+
+```bash
+.venv/bin/python scripts/audit_m5_building_candidate_sensitivity.py \
+  --building-seeds 42 43 44 45 46 \
+  --budgets 10 20 50 100 \
+  --row-seed 42 \
+  --model-seed 42 \
+  --meter-min-source-buildings 2 \
+  --meter-growth-per-transition 1 \
+  --max-sampling-attempts 10000
+```
+
+這個 command 只建立 sampling/audit artifacts，不會 fit models。

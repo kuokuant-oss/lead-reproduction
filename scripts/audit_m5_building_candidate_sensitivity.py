@@ -1,4 +1,4 @@
-"""Audit representative building-ladder sensitivity without fitting models."""
+"""Audit constrained site-stratified random building ladders without fitting."""
 
 from __future__ import annotations
 
@@ -14,20 +14,19 @@ import pandas as pd
 
 from lead import PROC, ROOT, load_m3_frame
 from m5_building_curve_protocol import (
-    DEFAULT_DIVERSIFICATION_ABSOLUTE_TOLERANCE,
-    DEFAULT_DIVERSIFICATION_RELATIVE_TOLERANCE,
-    DEFAULT_DIVERSIFICATION_TOP_N,
-    DEFAULT_PREFIX_QUALITY_MAX_ABSOLUTE_DEGRADATION,
-    DEFAULT_PREFIX_QUALITY_MAX_RATIO,
+    DEFAULT_MAX_LADDER_ATTEMPTS,
+    DEFAULT_METER_GROWTH_PER_TRANSITION,
+    DEFAULT_METER_MIN_SOURCE_BUILDINGS,
+    METER_IDS,
+    SAMPLING_PROFILE,
     atomic_write_json,
     build_building_profiles,
     build_nested_building_ladder,
     int_array_sha256,
-    prefix_composition_discrepancy,
     validate_ladder,
 )
 
-DEFAULT_BUILDING_SEEDS = (42, 43, 44)
+DEFAULT_BUILDING_SEEDS = (42, 43, 44, 45, 46)
 DEFAULT_BUDGETS = (10, 20, 50, 100)
 
 
@@ -61,15 +60,14 @@ def _counts_and_shares(values: pd.Series, denominator: int) -> dict[str, Any]:
 def _composition(
     profiles: pd.DataFrame,
     building_ids: list[int],
-    *,
-    sampling_profile: str,
 ) -> dict[str, Any]:
+    """Compute post-selection diagnostics; none of these values choose identity."""
     selected = profiles.set_index("building_id").loc[building_ids].reset_index()
     total_rows = int(selected["rows"].sum())
     total_anomalies = int(selected["anomalies"].sum())
     meter_presence: dict[str, Any] = {"counts": {}, "shares": {}}
     meter_row_share: dict[str, float] = {}
-    for meter in range(4):
+    for meter in METER_IDS:
         present = int(selected[f"meter_{meter}_present"].sum())
         meter_presence["counts"][str(meter)] = present
         meter_presence["shares"][str(meter)] = float(present / len(selected))
@@ -95,9 +93,6 @@ def _composition(
         "total_available_rows": total_rows,
         "total_anomaly_rows": total_anomalies,
         "natural_anomaly_prevalence": float(total_anomalies / total_rows),
-        "candidate_target_discrepancy": prefix_composition_discrepancy(
-            profiles, building_ids, sampling_profile=sampling_profile
-        ),
     }
 
 
@@ -198,52 +193,39 @@ def build_sensitivity_audit(
     budgets: tuple[int, ...] = DEFAULT_BUDGETS,
     row_seed: int = 42,
     model_seed: int = 42,
-    sampling_profile: str = "representative",
-    quality_max_ratio: float = DEFAULT_PREFIX_QUALITY_MAX_RATIO,
-    quality_max_absolute_degradation: float = (
-        DEFAULT_PREFIX_QUALITY_MAX_ABSOLUTE_DEGRADATION
-    ),
+    meter_min_source_buildings: int = DEFAULT_METER_MIN_SOURCE_BUILDINGS,
+    meter_growth_per_transition: int = DEFAULT_METER_GROWTH_PER_TRANSITION,
+    max_sampling_attempts: int = DEFAULT_MAX_LADDER_ATTEMPTS,
 ) -> dict[str, Any]:
-    """Build all pilot artifacts from an already even-only candidate profile."""
+    """Build constrained-random sensitivity artifacts from even-only profiles."""
     profiles = profiles.copy().sort_values("building_id").reset_index(drop=True)
     _validate_profiles(profiles)
     seeds = tuple(int(seed) for seed in building_seeds)
     ordered_budgets = tuple(sorted(set(int(budget) for budget in budgets)))
     if len(seeds) < 2 or len(set(seeds)) != len(seeds):
         raise ValueError("building seeds must contain at least two unique values")
-    if quality_max_ratio < 1:
-        raise ValueError("quality max ratio must be at least one")
-    if quality_max_absolute_degradation < 0:
-        raise ValueError("quality absolute degradation cannot be negative")
 
-    canonical, canonical_manifest = build_nested_building_ladder(
-        profiles,
-        ordered_budgets,
-        seed=42,
-        sampling_profile=sampling_profile,
-        diversify_candidates=False,
-    )
     _atomic_csv(profiles, out_root / "candidate_building_profiles.csv")
-
-    ladders: dict[int, pd.DataFrame] = {}
     manifests: dict[int, dict[str, Any]] = {}
     compositions: list[dict[str, Any]] = []
+    prefix_audits: list[dict[str, Any]] = []
     ladder_files: dict[str, dict[str, str]] = {}
-    all_quality_pass = True
+    all_constraints_pass = True
 
     for seed in seeds:
         ladder, manifest = build_nested_building_ladder(
             profiles,
             ordered_budgets,
             seed=seed,
-            sampling_profile=sampling_profile,
-            diversify_candidates=True,
+            meter_min_source_buildings=meter_min_source_buildings,
+            meter_growth_per_transition=meter_growth_per_transition,
+            max_sampling_attempts=max_sampling_attempts,
         )
         validate_ladder(ladder, manifest)
         manifest.update(
             {
-                "experiment": "m5_building_candidate_sensitivity_pilot",
-                "pilot_status": "selection_audit_only_no_models_fitted",
+                "experiment": "m5_building_source_sampling_sensitivity",
+                "pilot_status": "sampling_audit_only_no_models_fitted",
                 "building_seed": seed,
                 "row_seed": int(row_seed),
                 "row_selection_seed": int(row_seed),
@@ -255,70 +237,46 @@ def build_sensitivity_audit(
                 "split": {
                     "candidate": "building_id % 2 == 0",
                     "canonical_test": "building_id % 2 == 1",
+                    "odd_data_used_for_selection": False,
                     "odd_labels_used_for_selection": False,
-                },
-                "quality_gate": {
-                    "metric": "representative prefix composition discrepancy",
-                    "reference": "canonical exact-best greedy prefix",
-                    "maximum_ratio": float(quality_max_ratio),
-                    "maximum_absolute_degradation": float(
-                        quality_max_absolute_degradation
-                    ),
-                    "absolute_epsilon": 1e-12,
+                    "anomaly_labels_used_for_selection": False,
                 },
             }
         )
         manifest = _add_profile_row_quotas(profiles, manifest)
         for budget in ordered_budgets:
-            selected_ids = list(
-                map(int, manifest["cells"][str(budget)]["available_buildings"])
-            )
-            canonical_ids = list(
-                map(
-                    int,
-                    canonical_manifest["cells"][str(budget)]["available_buildings"],
-                )
-            )
-            composition = _composition(
-                profiles, selected_ids, sampling_profile=sampling_profile
-            )
-            canonical_discrepancy = prefix_composition_discrepancy(
-                profiles, canonical_ids, sampling_profile=sampling_profile
-            )
-            discrepancy = float(composition["candidate_target_discrepancy"])
-            ratio = (
-                discrepancy / canonical_discrepancy
-                if canonical_discrepancy > 0
-                else (1.0 if discrepancy <= 1e-12 else float("inf"))
-            )
-            absolute_degradation = max(0.0, discrepancy - canonical_discrepancy)
-            passed = bool(
-                discrepancy <= canonical_discrepancy * quality_max_ratio + 1e-12
-                and absolute_degradation <= quality_max_absolute_degradation + 1e-12
-            )
-            all_quality_pass = all_quality_pass and passed
-            manifest["cells"][str(budget)]["selection_quality"] = {
-                "seeded_prefix_discrepancy": discrepancy,
-                "canonical_best_greedy_prefix_discrepancy": canonical_discrepancy,
-                "degradation_ratio": ratio,
-                "maximum_ratio": float(quality_max_ratio),
-                "absolute_degradation": absolute_degradation,
-                "maximum_absolute_degradation": float(quality_max_absolute_degradation),
-                "passed": passed,
+            cell = manifest["cells"][str(budget)]
+            selected_ids = list(map(int, cell["available_buildings"]))
+            composition = _composition(profiles, selected_ids)
+            constraint_pass = bool(cell["constraint_pass"])
+            all_constraints_pass = all_constraints_pass and constraint_pass
+            prefix_row: dict[str, Any] = {
+                "building_seed": seed,
+                "K": budget,
+                "sampling_attempt": int(manifest["sampling_attempt"]),
+                "attempts_used": int(manifest["attempts_used"]),
+                "building_ids_json": json.dumps(selected_ids),
+                "site_counts_json": json.dumps(cell["site_counts"], sort_keys=True),
+                "constraint_pass": constraint_pass,
+                "reproducibility_digest": cell["reproducibility_digest"],
             }
+            for meter in METER_IDS:
+                detail = cell["meter_constraints"][str(meter)]
+                prefix_row[f"meter_{meter}_source_buildings"] = int(
+                    detail["source_building_count"]
+                )
+                prefix_row[f"meter_{meter}_required_minimum"] = int(
+                    detail["required_minimum"]
+                )
+                prefix_row[f"meter_{meter}_constraint_pass"] = bool(detail["passed"])
+            prefix_audits.append(prefix_row)
             compositions.append(
                 {
                     "building_seed": seed,
                     "K": budget,
-                    "prefix_discrepancy": discrepancy,
-                    "canonical_best_greedy_discrepancy": canonical_discrepancy,
-                    "degradation_ratio": ratio,
-                    "quality_gate_max_ratio": float(quality_max_ratio),
-                    "absolute_degradation": absolute_degradation,
-                    "quality_gate_max_absolute_degradation": float(
-                        quality_max_absolute_degradation
-                    ),
-                    "quality_gate_pass": passed,
+                    "sampling_attempt": int(manifest["sampling_attempt"]),
+                    "constraint_pass": constraint_pass,
+                    "reproducibility_digest": cell["reproducibility_digest"],
                     "total_available_rows": composition["total_available_rows"],
                     "total_anomaly_rows": composition["total_anomaly_rows"],
                     "natural_anomaly_prevalence": composition[
@@ -361,7 +319,7 @@ def build_sensitivity_audit(
         enriched.insert(3, "model_seed", int(model_seed))
         enriched["meter_presence"] = enriched.apply(
             lambda row: ",".join(
-                str(meter) for meter in range(4) if int(row[f"meter_{meter}_present"])
+                str(meter) for meter in METER_IDS if int(row[f"meter_{meter}_present"])
             ),
             axis=1,
         )
@@ -383,7 +341,6 @@ def build_sensitivity_audit(
             "csv_sha256": manifest["ladder_csv_sha256"],
             "json": json_path.name,
         }
-        ladders[seed] = ladder
         manifests[seed] = manifest
 
     overlaps: list[dict[str, Any]] = []
@@ -421,8 +378,10 @@ def build_sensitivity_audit(
 
     overlap_frame = pd.DataFrame(overlaps)
     composition_frame = pd.DataFrame(compositions)
+    prefix_audit_frame = pd.DataFrame(prefix_audits)
     _atomic_csv(overlap_frame, out_root / "building_overlap.csv")
     _atomic_csv(composition_frame, out_root / "composition_audit.csv")
+    _atomic_csv(prefix_audit_frame, out_root / "sampling_prefix_audit.csv")
     distinct_by_budget = {
         str(budget): len(
             {
@@ -432,22 +391,25 @@ def build_sensitivity_audit(
         )
         for budget in ordered_budgets
     }
-    meaningful_difference_pass = all(
+    distinct_draws_pass = all(
         value == len(seeds) for value in distinct_by_budget.values()
     )
     summary = {
-        "schema_version": 1,
-        "experiment": "m5_building_candidate_sensitivity_pilot",
+        "schema_version": 2,
+        "experiment": "m5_building_source_sampling_sensitivity",
         "status": (
             "audit_passed_ready_for_model_evaluation"
-            if all_quality_pass and meaningful_difference_pass
+            if all_constraints_pass and distinct_draws_pass
             else "audit_failed_not_ready_for_model_evaluation"
         ),
-        "sampling_profile": sampling_profile,
+        "sampling_profile": SAMPLING_PROFILE,
         "building_seeds": list(seeds),
         "row_seed": int(row_seed),
         "role_seed": None,
-        "role_policy": "positions divisible by 5 are early_stop; all others fit",
+        "role_policy": (
+            "roles assigned after ladder acceptance; positions divisible by 5 "
+            "are early_stop; all others fit"
+        ),
         "model_seed": int(model_seed),
         "budgets": list(ordered_budgets),
         "candidate_buildings": int(len(profiles)),
@@ -455,34 +417,41 @@ def build_sensitivity_audit(
             profiles["building_id"].to_numpy(dtype="int64")
         ),
         "selection": {
-            "method": "representative greedy with seed-controlled acceptable set",
-            "acceptable_candidate_top_n": DEFAULT_DIVERSIFICATION_TOP_N,
-            "relative_score_tolerance": DEFAULT_DIVERSIFICATION_RELATIVE_TOLERANCE,
-            "absolute_score_tolerance": DEFAULT_DIVERSIFICATION_ABSOLUTE_TOLERANCE,
-            "uncontrolled_rng": False,
+            "method": "seeded site-stratified random sampling without replacement",
+            "rng_algorithm": "numpy.random.PCG64",
+            "whole_ladder_rejection_sampling": True,
+            "greedy_correction": False,
+            "anomaly_labels_used": False,
+            "meter_presence_used_for_ranking": False,
+            "max_sampling_attempts": int(max_sampling_attempts),
+            "accepted_attempt_by_seed": {
+                str(seed): int(manifests[seed]["sampling_attempt"]) for seed in seeds
+            },
         },
-        "quality_gate": {
-            "maximum_seeded_vs_canonical_discrepancy_ratio": float(quality_max_ratio),
-            "maximum_absolute_discrepancy_degradation": float(
-                quality_max_absolute_degradation
-            ),
-            "all_passed": all_quality_pass,
+        "meter_feasibility_gate": {
+            "minimum_at_smallest_budget": int(meter_min_source_buildings),
+            "minimum_growth_per_budget_transition": int(meter_growth_per_transition),
+            "all_passed": all_constraints_pass,
         },
-        "meaningful_difference_gate": {
+        "distinct_draw_gate": {
             "required_distinct_prefixes_per_K": len(seeds),
             "distinct_prefixes_per_K": distinct_by_budget,
-            "passed": meaningful_difference_pass,
+            "passed": distinct_draws_pass,
         },
-        "canonical_best_greedy_building_sha256": {
-            str(budget): canonical_manifest["cells"][str(budget)][
-                "available_building_sha256"
-            ]
-            for budget in ordered_budgets
+        "reproducibility_digests": {
+            str(seed): {
+                str(budget): manifests[seed]["cells"][str(budget)][
+                    "reproducibility_digest"
+                ]
+                for budget in ordered_budgets
+            }
+            for seed in seeds
         },
         "ladders": ladder_files,
         "outputs": {
             "overlap": "building_overlap.csv",
             "composition": "composition_audit.csv",
+            "prefix_audit": "sampling_prefix_audit.csv",
             "profiles": "candidate_building_profiles.csv",
         },
     }
@@ -492,7 +461,9 @@ def build_sensitivity_audit(
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--building-seeds", nargs="+", type=int, default=[42, 43, 44])
+    parser.add_argument(
+        "--building-seeds", nargs="+", type=int, default=list(DEFAULT_BUILDING_SEEDS)
+    )
     parser.add_argument("--budgets", nargs="+", type=int, default=[10, 20, 50, 100])
     parser.add_argument("--row-seed", type=int, default=42)
     parser.add_argument("--model-seed", type=int, default=42)
@@ -510,14 +481,19 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ),
     )
     parser.add_argument(
-        "--quality-max-ratio",
-        type=float,
-        default=DEFAULT_PREFIX_QUALITY_MAX_RATIO,
+        "--meter-min-source-buildings",
+        type=int,
+        default=DEFAULT_METER_MIN_SOURCE_BUILDINGS,
     )
     parser.add_argument(
-        "--quality-max-absolute-degradation",
-        type=float,
-        default=DEFAULT_PREFIX_QUALITY_MAX_ABSOLUTE_DEGRADATION,
+        "--meter-growth-per-transition",
+        type=int,
+        default=DEFAULT_METER_GROWTH_PER_TRANSITION,
+    )
+    parser.add_argument(
+        "--max-sampling-attempts",
+        type=int,
+        default=DEFAULT_MAX_LADDER_ATTEMPTS,
     )
     return parser.parse_args(argv)
 
@@ -539,8 +515,9 @@ def main(argv: list[str] | None = None) -> int:
         budgets=tuple(args.budgets),
         row_seed=args.row_seed,
         model_seed=args.model_seed,
-        quality_max_ratio=args.quality_max_ratio,
-        quality_max_absolute_degradation=(args.quality_max_absolute_degradation),
+        meter_min_source_buildings=args.meter_min_source_buildings,
+        meter_growth_per_transition=args.meter_growth_per_transition,
+        max_sampling_attempts=args.max_sampling_attempts,
     )
     summary["profile_source"] = source
     summary["building_metadata"] = str(args.building_metadata.resolve())

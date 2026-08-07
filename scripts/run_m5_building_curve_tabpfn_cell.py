@@ -24,6 +24,7 @@ from sklearn.preprocessing import StandardScaler
 
 from lead import PROC, ROOT, load_m3_frame, write_json_with_provenance
 from m5_building_curve_protocol import (
+    SAMPLING_PROFILE,
     int_array_sha256,
     manifest_building_seed,
     resolve_cell_indices,
@@ -73,6 +74,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--model-seed", "--seed", dest="model_seed", type=int, default=42
     )
+    parser.add_argument("--experiment-version", choices=("m5_building_count_v2",))
     parser.add_argument("--model-path", type=Path, default=default_model_path())
     parser.add_argument("--query-microbatch-size", type=int, default=4096)
     parser.add_argument("--checkpoint-rows", type=int, default=20_000)
@@ -99,6 +101,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     tag = f"{_building_seed_tag(args.building_manifest)}_k{args.building_budget}_f{args.features}"
     if args.out_root is None:
         base = PROC / "m5_building_curve"
+        if args.experiment_version == "m5_building_count_v2":
+            base = base / "v2"
         args.out_root = (
             base / "NON_SCIENTIFIC_VALIDATION" / f"tabpfn_{tag}"
             if args.mode == "validation"
@@ -171,11 +175,18 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     manifest = json.loads(args.building_manifest.read_text(encoding="utf-8"))
     building_seed = manifest_building_seed(manifest)
-    if manifest.get("experiment") == "m5_building_candidate_sensitivity_pilot":
+    seeded_sensitivity = manifest.get("experiment") in {
+        "m5_building_candidate_sensitivity_pilot",
+        "m5_building_source_sampling_sensitivity",
+    }
+    if args.experiment_version == "m5_building_count_v2":
+        if manifest.get("sampling_profile") != SAMPLING_PROFILE:
+            raise SystemExit(f"V2 requires sampling_profile={SAMPLING_PROFILE!r}")
+    if seeded_sensitivity or args.experiment_version == "m5_building_count_v2":
         if building_seed is None:
-            raise SystemExit("pilot manifest lacks building_seed identity")
+            raise SystemExit("seeded manifest lacks building_seed identity")
         if f"building_seed{building_seed}" not in str(args.out_root):
-            raise SystemExit("pilot out-root must contain its building_seed identity")
+            raise SystemExit("seeded out-root must contain its building_seed identity")
     cell = manifest.get("cells", {}).get(str(args.building_budget))
     if cell is None:
         raise SystemExit(f"manifest has no K={args.building_budget} cell")
@@ -275,6 +286,14 @@ def main(argv: list[str] | None = None) -> int:
             "holdout": args.max_holdout_rows,
         },
     }
+    if args.experiment_version is not None:
+        provenance.update(
+            {
+                "experiment_version": args.experiment_version,
+                "training_sampling": "exact_manifest_available_rows_no_resampling",
+                "class_ratio_policy": "natural_prevalence_of_manifest_available_rows",
+            }
+        )
     provenance_path = args.out_root / "provenance.json"
     if provenance_path.exists():
         if json.loads(provenance_path.read_text(encoding="utf-8")) != provenance:
@@ -398,8 +417,12 @@ def main(argv: list[str] | None = None) -> int:
     write_json_with_provenance(
         result_path,
         {
-            "schema_version": 1,
-            "experiment": "m5_building_count_curve_tabpfn_cell",
+            "schema_version": 2 if args.experiment_version else 1,
+            "experiment": (
+                "m5_building_count_v2_tabpfn_cell"
+                if args.experiment_version == "m5_building_count_v2"
+                else "m5_building_count_curve_tabpfn_cell"
+            ),
             **provenance,
             "score_names": ["tabpfn"],
             "available_buildings": len(cell["available_buildings"]),

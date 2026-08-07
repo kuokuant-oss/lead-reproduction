@@ -5,6 +5,12 @@
 **Scope**: additive M5 comparison line；不改寫既有 M3/M5 已發布結果
 **Formal run**: 使用者已於 2026-08-04 明確授權；由 gpu-host 脫離控制端連線執行
 
+> **2026-08-07 sampling amendment:** 本計畫第 4.2–4.4 節的
+> representative-balanced greedy building selection 已被
+> [constrained site-stratified random protocol](../reference/m5-building-ladder-selection.md)
+> 取代。舊段落只保留為歷史設計紀錄；現行 source identity 不使用 anomaly、size、
+> meter row-share、discrepancy score 或 tree role 作選擇依據。
+
 ## 0. 已授權執行修正（取代下文衝突的舊草案）
 
 1. 正式順序固定為：全偶數 building tree baseline 17 features、全偶數 building tree

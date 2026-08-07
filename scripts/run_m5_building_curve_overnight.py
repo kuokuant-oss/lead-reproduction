@@ -17,9 +17,9 @@ from lead import PROC, ROOT
 
 PROTOCOL_ROOT = PROC / "m5_building_curve" / "protocol"
 FULL_PROTOCOL_ROOT = PROC / "m5_building_curve" / "protocol_full"
-MANIFEST = PROTOCOL_ROOT / "representative" / "seed42" / "building_ladder.json"
+MANIFEST = PROTOCOL_ROOT / "site_stratified_random" / "seed42" / "building_ladder.json"
 FULL_MANIFEST = (
-    FULL_PROTOCOL_ROOT / "representative" / "seed42" / "building_ladder.json"
+    FULL_PROTOCOL_ROOT / "site_stratified_random" / "seed42" / "building_ladder.json"
 )
 FORMAL_ROOT = PROC / "m5_building_curve" / "formal"
 TREE_MODEL_ORDER = (

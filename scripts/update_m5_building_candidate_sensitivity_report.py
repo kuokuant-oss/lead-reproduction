@@ -102,16 +102,17 @@ def render_section(audit_root: Path) -> str:
         "",
         "## Building-candidate sensitivity pilot",
         "",
-        "This secondary pilot varies only the representative-balanced building "
-        "selection seed (42/43/44). The row seed and model seed remain 42; each "
+        "This secondary pilot varies only the site-stratified random building "
+        f"draw across seeds {seeds}. The row seed and model seed remain 42; each "
         "seed uses one strict-nested K=10/20/50/100 ladder, and every model is "
         "evaluated on the identical odd-building canonical natural-prevalence holdout.",
         "",
-        f"- Selection audit: passed for all {len(seeds) * len(budgets)} seed/K prefixes.",
-        "- Diversification: stable-hash choice within the top four candidates whose "
-        "score is within 2% of the best candidate.",
-        "- Quality gate: prefix discrepancy is at most 1.5x canonical greedy and "
-        "absolute degradation is at most 0.003.",
+        f"- Sampling audit: passed for all {len(seeds) * len(budgets)} seed/K prefixes.",
+        "- Random draw: PCG64 within-site permutations without replacement, "
+        "interleaved by candidate-pool site proportions.",
+        "- Feasibility gate: every meter has at least two source buildings at K=10 "
+        "and gains at least one source building at each K transition; failed whole "
+        "ladders are deterministically redrawn without greedy correction.",
         f"- Raw per-seed metrics: `{aggregate_root / 'metrics.csv'}`.",
         f"- Cross-seed summary: `{aggregate_root / 'building_seed_summary.csv'}`.",
         "",

@@ -13,7 +13,11 @@ from pathlib import Path
 
 from lead import PROC, ROOT, load_m3_frame
 from m5_building_curve_protocol import (
+    DEFAULT_MAX_LADDER_ATTEMPTS,
+    DEFAULT_METER_GROWTH_PER_TRANSITION,
+    DEFAULT_METER_MIN_SOURCE_BUILDINGS,
     PROFILES,
+    SAMPLING_PROFILE,
     add_building_audit,
     add_cell_composition,
     add_proportional_row_quotas,
@@ -27,7 +31,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--budgets", nargs="+", type=int, default=[10, 20, 50, 100])
     parser.add_argument(
-        "--sampling-profile", choices=PROFILES, default="representative"
+        "--sampling-profile", choices=PROFILES, default=SAMPLING_PROFILE
     )
     parser.add_argument(
         "--building-seed", "--seed", dest="building_seed", type=int, default=42
@@ -42,6 +46,21 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--average-building-rows", type=int, default=500)
     parser.add_argument("--max-context-rows", type=int, default=50_000)
+    parser.add_argument(
+        "--meter-min-source-buildings",
+        type=int,
+        default=DEFAULT_METER_MIN_SOURCE_BUILDINGS,
+    )
+    parser.add_argument(
+        "--meter-growth-per-transition",
+        type=int,
+        default=DEFAULT_METER_GROWTH_PER_TRANSITION,
+    )
+    parser.add_argument(
+        "--max-sampling-attempts",
+        type=int,
+        default=DEFAULT_MAX_LADDER_ATTEMPTS,
+    )
     parser.add_argument(
         "--out-root", type=Path, default=PROC / "m5_building_curve" / "protocol"
     )
@@ -62,8 +81,10 @@ def main(argv: list[str] | None = None) -> int:
         profiles,
         args.budgets,
         seed=args.building_seed,
-        sampling_profile=args.sampling_profile,
         early_stop_every=args.early_stop_every,
+        meter_min_source_buildings=args.meter_min_source_buildings,
+        meter_growth_per_transition=args.meter_growth_per_transition,
+        max_sampling_attempts=args.max_sampling_attempts,
     )
     manifest["experiment"] = "m5_building_count_curve"
     manifest["row_policy"] = args.row_policy
@@ -89,6 +110,8 @@ def main(argv: list[str] | None = None) -> int:
     manifest["split"] = {
         "candidate": "building_id % 2 == 0",
         "canonical_test": "building_id % 2 == 1",
+        "odd_data_used_for_selection": False,
+        "anomaly_labels_used_for_selection": False,
     }
     manifest["creation_command"] = " ".join(sys.argv)
     manifest["source"] = {

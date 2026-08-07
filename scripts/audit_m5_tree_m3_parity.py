@@ -42,7 +42,7 @@ DEFAULT_MANIFEST = (
     PROC
     / "m5_building_curve"
     / "protocol_full"
-    / "representative"
+    / "site_stratified_random"
     / "seed42"
     / "building_ladder.json"
 )
