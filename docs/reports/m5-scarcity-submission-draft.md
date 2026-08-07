@@ -4,21 +4,21 @@ This package contains two distinct experiments. They share the odd-building hold
 
 ## Experiment A — matched-context row scarcity
 
-### Objective
+### Experiment A objective
 
 Measure sensitivity to the number of labeled context rows, N, while source-building coverage remains nearly complete. Training contexts are nested with a 1:1 class ratio; evaluation uses the natural holdout distribution.
 
-### Protocol
+### Experiment A protocol
 
 ![Experiment A protocol](tables/m5-scarcity/m5_exp_a_matched_context_setup.png)
 
-### Aggregate performance
+### Experiment A aggregate performance
 
 ![Experiment A macro PR-AUC](assets/m5-scarcity/m5_exp_a_matched_context_macro_pr_auc.png)
 
 ![Experiment A numeric results](tables/m5-scarcity/m5_exp_a_matched_context_macro_pr_auc.png)
 
-### Meter-level performance
+### Experiment A meter-level performance
 
 ![Experiment A meter trend panels](assets/m5-scarcity/m5_exp_a_matched_context_all_meters_pr_auc.png)
 
@@ -30,21 +30,21 @@ Measure sensitivity to the number of labeled context rows, N, while source-build
 
 ## Experiment B — representative source-building scarcity
 
-### Objective
+### Experiment B objective
 
 Measure sensitivity to the number of distinct labeled source buildings, K. The ladder is nested and representative; total context size is approximately 500 rows per building and the selected rows retain their natural class mix.
 
-### Protocol
+### Experiment B protocol
 
 ![Experiment B protocol](tables/m5-scarcity/m5_exp_b_building_count_setup.png)
 
-### Aggregate performance
+### Experiment B aggregate performance
 
 ![Experiment B macro PR-AUC](assets/m5-scarcity/m5_exp_b_building_count_macro_pr_auc.png)
 
 ![Experiment B numeric results](tables/m5-scarcity/m5_exp_b_building_count_macro_pr_auc.png)
 
-### Meter-level performance
+### Experiment B meter-level performance
 
 ![Experiment B meter trend panels](assets/m5-scarcity/m5_exp_b_building_count_all_meters_pr_auc.png)
 
@@ -54,7 +54,7 @@ Measure sensitivity to the number of distinct labeled source buildings, K. The l
 
 ![Experiment B meter detail table](tables/m5-scarcity/m5_exp_b_building_count_meter_pr_auc.png)
 
-Paired result figures currently contain K=10, K=20, K=50. K=100 joins after both model results complete.
+Paired result figures contain K=10, K=20, K=50, and K=100.
 
 ## Cross-experiment synthesis
 

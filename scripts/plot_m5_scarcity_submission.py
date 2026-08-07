@@ -788,7 +788,9 @@ def render_meter_grouped_bars(
         fig.subplots_adjust(left=0.055, right=0.995, top=0.75, bottom=0.20, wspace=0.10)
     else:
         title = "Experiment B — meter comparison by building budget"
-        subtitle = "All four meter types for paired K=10, K=20, K=50, and K=100 results."
+        subtitle = (
+            "All four meter types for paired K=10, K=20, K=50, and K=100 results."
+        )
         stem = "m5_exp_b_building_count_meter_grouped_pr_auc"
         _figure_heading(fig, title, subtitle)
         legend_y = 0.005
