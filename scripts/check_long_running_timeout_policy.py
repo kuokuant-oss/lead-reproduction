@@ -49,11 +49,24 @@ def classify(path: Path, text: str, *, blocked: bool) -> tuple[str, str, str]:
             "explicit_no_timeout_execution",
             "Reviewed no-timeout path; the match is explanatory text, not a kill control.",
         )
-    if "no wall-time timeout" in lowered or "no timeout" in lowered:
+    if (
+        "no wall-time timeout" in lowered
+        or "no wall-clock timeout" in lowered
+        or "no timeout" in lowered
+    ):
         return (
             "C",
             "explicit_no_timeout_declaration",
             "Documentation/observability only; it does not terminate research work.",
+        )
+    if name in {
+        "scripts/run_m5_building_curve_overnight.py",
+        "scripts/run_m5_building_candidate_sensitivity_overnight.py",
+    }:
+        return (
+            "B",
+            "git_push_request_timeout",
+            "Network publication bound; scientific child processes have no wall-clock termination.",
         )
     if "deploy_m5_tabpfn" in name or "supervise_m5_tabpfn_recovery" in name:
         return (

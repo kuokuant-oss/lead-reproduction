@@ -115,9 +115,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(manifest["cells"], indent=2)[:4_000])
         return 0
 
-    output = (
-        args.out_root / args.sampling_profile / f"seed{args.building_seed}"
-    )
+    output = args.out_root / args.sampling_profile / f"seed{args.building_seed}"
     output.mkdir(parents=True, exist_ok=True)
     profiles.to_csv(output / "building_profiles.csv", index=False)
     ladder.to_csv(output / "building_ladder.csv", index=False)

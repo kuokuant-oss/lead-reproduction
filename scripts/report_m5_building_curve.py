@@ -282,8 +282,7 @@ def main() -> int:
     _atomic_csv(metrics_frame, metrics_path)
     _atomic_csv(curve_frame, curves_path)
     seeded_overall = metrics_frame.loc[
-        metrics_frame["building_seed"].notna()
-        & metrics_frame["grouping"].eq("overall")
+        metrics_frame["building_seed"].notna() & metrics_frame["grouping"].eq("overall")
     ].copy()
     summary_columns = [
         "sampling_profile",

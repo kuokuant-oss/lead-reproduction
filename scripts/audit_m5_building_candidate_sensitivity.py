@@ -107,7 +107,9 @@ def _attach_primary_use(profiles: pd.DataFrame, metadata_path: Path) -> pd.DataF
         metadata = pd.read_csv(
             metadata_path, usecols=["building_id", "primary_use"]
         ).drop_duplicates("building_id")
-        result = result.merge(metadata, on="building_id", how="left", validate="one_to_one")
+        result = result.merge(
+            metadata, on="building_id", how="left", validate="one_to_one"
+        )
     result["primary_use"] = result["primary_use"].fillna("Unknown").astype("string")
     return result.sort_values("building_id").reset_index(drop=True)
 
@@ -292,8 +294,7 @@ def build_sensitivity_audit(
             absolute_degradation = max(0.0, discrepancy - canonical_discrepancy)
             passed = bool(
                 discrepancy <= canonical_discrepancy * quality_max_ratio + 1e-12
-                and absolute_degradation
-                <= quality_max_absolute_degradation + 1e-12
+                and absolute_degradation <= quality_max_absolute_degradation + 1e-12
             )
             all_quality_pass = all_quality_pass and passed
             manifest["cells"][str(budget)]["selection_quality"] = {
@@ -302,9 +303,7 @@ def build_sensitivity_audit(
                 "degradation_ratio": ratio,
                 "maximum_ratio": float(quality_max_ratio),
                 "absolute_degradation": absolute_degradation,
-                "maximum_absolute_degradation": float(
-                    quality_max_absolute_degradation
-                ),
+                "maximum_absolute_degradation": float(quality_max_absolute_degradation),
                 "passed": passed,
             }
             compositions.append(
@@ -362,19 +361,13 @@ def build_sensitivity_audit(
         enriched.insert(3, "model_seed", int(model_seed))
         enriched["meter_presence"] = enriched.apply(
             lambda row: ",".join(
-                str(meter)
-                for meter in range(4)
-                if int(row[f"meter_{meter}_present"])
+                str(meter) for meter in range(4) if int(row[f"meter_{meter}_present"])
             ),
             axis=1,
         )
         enriched["first_included_K"] = enriched["position"].map(
             lambda position: next(
-                (
-                    budget
-                    for budget in ordered_budgets
-                    if int(position) <= int(budget)
-                ),
+                (budget for budget in ordered_budgets if int(position) <= int(budget)),
                 None,
             )
         )
@@ -433,15 +426,15 @@ def build_sensitivity_audit(
     distinct_by_budget = {
         str(budget): len(
             {
-                tuple(
-                    manifests[seed]["cells"][str(budget)]["available_buildings"]
-                )
+                tuple(manifests[seed]["cells"][str(budget)]["available_buildings"])
                 for seed in seeds
             }
         )
         for budget in ordered_budgets
     }
-    meaningful_difference_pass = all(value == len(seeds) for value in distinct_by_budget.values())
+    meaningful_difference_pass = all(
+        value == len(seeds) for value in distinct_by_budget.values()
+    )
     summary = {
         "schema_version": 1,
         "experiment": "m5_building_candidate_sensitivity_pilot",
@@ -469,9 +462,7 @@ def build_sensitivity_audit(
             "uncontrolled_rng": False,
         },
         "quality_gate": {
-            "maximum_seeded_vs_canonical_discrepancy_ratio": float(
-                quality_max_ratio
-            ),
+            "maximum_seeded_vs_canonical_discrepancy_ratio": float(quality_max_ratio),
             "maximum_absolute_discrepancy_degradation": float(
                 quality_max_absolute_degradation
             ),
@@ -515,10 +506,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--out-root",
         type=Path,
         default=(
-            PROC
-            / "m5_building_curve"
-            / "sensitivity"
-            / "building_candidate_pilot"
+            PROC / "m5_building_curve" / "sensitivity" / "building_candidate_pilot"
         ),
     )
     parser.add_argument(
@@ -552,9 +540,7 @@ def main(argv: list[str] | None = None) -> int:
         row_seed=args.row_seed,
         model_seed=args.model_seed,
         quality_max_ratio=args.quality_max_ratio,
-        quality_max_absolute_degradation=(
-            args.quality_max_absolute_degradation
-        ),
+        quality_max_absolute_degradation=(args.quality_max_absolute_degradation),
     )
     summary["profile_source"] = source
     summary["building_metadata"] = str(args.building_metadata.resolve())

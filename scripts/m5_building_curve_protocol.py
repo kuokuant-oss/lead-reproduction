@@ -377,9 +377,7 @@ def build_nested_building_ladder(
                 "selection_score": float(score[chosen_local]),
                 "best_selection_score": best_score,
                 "selection_score_ratio_to_best": (
-                    float(score[chosen_local] / best_score)
-                    if best_score > 0
-                    else 1.0
+                    float(score[chosen_local] / best_score) if best_score > 0 else 1.0
                 ),
                 "selection_rank": int(
                     np.flatnonzero(score_order == chosen_local)[0] + 1
@@ -434,12 +432,8 @@ def build_nested_building_ladder(
         "candidate_diversification": {
             "enabled": bool(diversify_candidates),
             "acceptable_candidate_top_n": int(acceptable_candidate_top_n),
-            "relative_score_tolerance": float(
-                acceptable_candidate_relative_tolerance
-            ),
-            "absolute_score_tolerance": float(
-                acceptable_candidate_absolute_tolerance
-            ),
+            "relative_score_tolerance": float(acceptable_candidate_relative_tolerance),
+            "absolute_score_tolerance": float(acceptable_candidate_absolute_tolerance),
             "acceptable_set": (
                 "top-N candidates whose score is within "
                 "best*(1+relative_tolerance)+absolute_tolerance"

@@ -37,7 +37,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--mode", choices=("plan", "validation", "formal"), default="plan"
     )
-    parser.add_argument("--families", nargs="+", choices=("tree", "tabpfn"), default=["tree", "tabpfn"])
+    parser.add_argument(
+        "--families", nargs="+", choices=("tree", "tabpfn"), default=["tree", "tabpfn"]
+    )
     parser.add_argument("--model-seed", type=int, default=42)
     parser.add_argument("--validation-fit-rows", type=int, default=200)
     parser.add_argument("--validation-early-stop-rows", type=int, default=100)

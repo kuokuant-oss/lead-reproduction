@@ -42,6 +42,14 @@ class TestLongRunningTimeoutPolicy(unittest.TestCase):
     def test_network_cleanup_and_test_timeouts_are_not_violations(self) -> None:
         self.assertEqual(
             classify(
+                Path("scripts/run_m5_building_candidate_sensitivity_overnight.py"),
+                "timeout=args.git_push_timeout",
+                blocked=False,
+            )[0],
+            "B",
+        )
+        self.assertEqual(
+            classify(
                 Path("scripts/supervise_m5_tabpfn_recovery.py"),
                 "--timeout",
                 blocked=False,

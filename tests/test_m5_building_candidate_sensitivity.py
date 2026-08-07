@@ -72,8 +72,7 @@ class TestM5BuildingCandidateSensitivity(unittest.TestCase):
             previous_fit: set[int] = set()
             previous_es: set[int] = set()
             ladder = pd.read_csv(
-                self.first_root
-                / f"building_ladder_seed{manifest['building_seed']}.csv"
+                self.first_root / f"building_ladder_seed{manifest['building_seed']}.csv"
             )
             validate_ladder(
                 ladder.rename(columns={"tree_role": "role"})[
@@ -102,7 +101,11 @@ class TestM5BuildingCandidateSensitivity(unittest.TestCase):
                 )
                 self.assertTrue(previous_fit < fit if previous_fit else True)
                 self.assertTrue(previous_es < early_stop if previous_es else True)
-                previous_available, previous_fit, previous_es = available, fit, early_stop
+                previous_available, previous_fit, previous_es = (
+                    available,
+                    fit,
+                    early_stop,
+                )
 
     def test_selected_buildings_are_unique_even_and_holdout_labels_are_ignored(
         self,
@@ -132,17 +135,12 @@ class TestM5BuildingCandidateSensitivity(unittest.TestCase):
         self.assertTrue(
             (
                 composition["prefix_discrepancy"]
-                <= composition["canonical_best_greedy_discrepancy"] * 1.50
-                + 1e-12
+                <= composition["canonical_best_greedy_discrepancy"] * 1.50 + 1e-12
             ).all()
         )
-        self.assertTrue(
-            (composition["absolute_degradation"] <= 0.003 + 1e-12).all()
-        )
+        self.assertTrue((composition["absolute_degradation"] <= 0.003 + 1e-12).all())
         for seed in (42, 43, 44):
-            ladder = pd.read_csv(
-                self.first_root / f"building_ladder_seed{seed}.csv"
-            )
+            ladder = pd.read_csv(self.first_root / f"building_ladder_seed{seed}.csv")
             self.assertTrue(
                 (ladder["selection_score_ratio_to_best"] <= 1.02 + 1e-12).all()
             )

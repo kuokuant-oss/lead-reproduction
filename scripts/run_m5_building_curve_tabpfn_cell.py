@@ -56,9 +56,7 @@ def default_model_path() -> Path:
 def _building_seed_tag(path: Path) -> str:
     if path.is_file():
         try:
-            seed = manifest_building_seed(
-                json.loads(path.read_text(encoding="utf-8"))
-            )
+            seed = manifest_building_seed(json.loads(path.read_text(encoding="utf-8")))
         except (OSError, ValueError):
             seed = None
         if seed is not None:
@@ -98,9 +96,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             raise ValueError("validation mode requires context and holdout row caps")
     elif args.max_context_rows is not None or args.max_holdout_rows is not None:
         raise ValueError("row caps are only allowed in validation mode")
-    tag = (
-        f"{_building_seed_tag(args.building_manifest)}_k{args.building_budget}_f{args.features}"
-    )
+    tag = f"{_building_seed_tag(args.building_manifest)}_k{args.building_budget}_f{args.features}"
     if args.out_root is None:
         base = PROC / "m5_building_curve"
         args.out_root = (
@@ -259,9 +255,7 @@ def main(argv: list[str] | None = None) -> int:
         "building_budget": args.building_budget,
         "features": args.features,
         "building_seed": building_seed,
-        "row_seed": manifest.get(
-            "row_seed", manifest.get("row_selection_seed")
-        ),
+        "row_seed": manifest.get("row_seed", manifest.get("row_selection_seed")),
         "role_seed": manifest.get("role_seed"),
         "model_seed": args.model_seed,
         "seed": args.model_seed,
