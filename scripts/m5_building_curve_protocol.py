@@ -620,9 +620,13 @@ def validate_ladder(ladder: pd.DataFrame, manifest: dict[str, Any]) -> None:
 
 
 def cell_indices(
-    frame: pd.DataFrame, manifest: dict[str, Any], budget: int
+    frame: pd.DataFrame,
+    manifest: dict[str, Any],
+    budget: int,
+    *,
+    require_role_class_coverage: bool = True,
 ) -> dict[str, np.ndarray]:
-    """Resolve a ladder cell to row identities and enforce split/class gates."""
+    """Resolve a ladder cell and enforce applicable split/class gates."""
     cell = manifest["cells"].get(str(int(budget)))
     if cell is None:
         raise ValueError(f"building ladder has no K={budget} cell")
@@ -644,7 +648,10 @@ def cell_indices(
         set(output["tree_fit_rows"]) | set(output["tree_early_stop_rows"])
     ):
         raise AssertionError("tree role rows do not partition available rows")
-    for name in ("available", "tree_fit", "tree_early_stop"):
+    class_gates = ["available"]
+    if require_role_class_coverage:
+        class_gates.extend(("tree_fit", "tree_early_stop"))
+    for name in class_gates:
         labels = frame.loc[output[f"{name}_rows"], "anomaly"].to_numpy()
         if len(np.unique(labels)) != 2:
             raise ValueError(f"K={budget} {name} rows do not contain both classes")
@@ -711,6 +718,7 @@ def average_building_capped_indices(
     average_rows_per_building: int = 500,
     max_total_rows: int = 50_000,
     seed: int = 42,
+    require_role_class_coverage: bool = True,
 ) -> dict[str, np.ndarray]:
     """Select each building's fixed proportional quota without using labels."""
     cell = manifest["cells"].get(str(int(budget)))
@@ -753,7 +761,10 @@ def average_building_capped_indices(
         set(output["tree_fit_rows"]) | set(output["tree_early_stop_rows"])
     ):
         raise AssertionError("tree roles do not partition capped rows")
-    for name in ("available", "tree_fit", "tree_early_stop"):
+    class_gates = ["available"]
+    if require_role_class_coverage:
+        class_gates.extend(("tree_fit", "tree_early_stop"))
+    for name in class_gates:
         labels = frame.loc[output[f"{name}_rows"], "anomaly"].to_numpy()
         if len(np.unique(labels)) != 2:
             raise ValueError(f"K={budget} {name} rows do not contain both classes")
@@ -761,12 +772,21 @@ def average_building_capped_indices(
 
 
 def resolve_cell_indices(
-    frame: pd.DataFrame, manifest: dict[str, Any], budget: int
+    frame: pd.DataFrame,
+    manifest: dict[str, Any],
+    budget: int,
+    *,
+    require_role_class_coverage: bool = True,
 ) -> dict[str, np.ndarray]:
     """Resolve either the full-row baseline or fixed-context K protocol."""
     policy = manifest.get("row_policy", "all_rows")
     if policy == "all_rows":
-        return cell_indices(frame, manifest, budget)
+        return cell_indices(
+            frame,
+            manifest,
+            budget,
+            require_role_class_coverage=require_role_class_coverage,
+        )
     if policy == "average_building_cap":
         return average_building_capped_indices(
             frame,
@@ -775,6 +795,7 @@ def resolve_cell_indices(
             average_rows_per_building=int(manifest["average_rows_per_building_limit"]),
             max_total_rows=int(manifest["max_context_rows"]),
             seed=int(manifest["row_selection_seed"]),
+            require_role_class_coverage=require_role_class_coverage,
         )
     raise ValueError(f"unsupported row policy {policy!r}")
 

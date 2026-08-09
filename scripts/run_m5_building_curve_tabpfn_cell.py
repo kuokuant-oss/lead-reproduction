@@ -213,7 +213,12 @@ def main(argv: list[str] | None = None) -> int:
     frame = load_m3_frame(verbose=True)
     train_mask = frame["building_id"].mod(2).eq(0).to_numpy()
     resolved = resolve_cell_indices(
-        frame.loc[train_mask], manifest, args.building_budget
+        frame.loc[train_mask],
+        manifest,
+        args.building_budget,
+        require_role_class_coverage=(
+            args.experiment_version != "m5_building_count_v2"
+        ),
     )
     context_index = _bounded_rows(
         frame,

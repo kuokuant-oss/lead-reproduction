@@ -137,6 +137,39 @@ class TestM5BuildingCurveProtocol(unittest.TestCase):
             set(larger["available_rows"]),
         )
 
+    def test_unused_role_class_gate_can_be_disabled_without_resampling(self) -> None:
+        _, manifest = build_nested_building_ladder(self.profiles, [10], seed=45)
+        manifest["row_policy"] = "average_building_cap"
+        manifest["average_rows_per_building_limit"] = 20
+        manifest["max_context_rows"] = 200
+        manifest["row_selection_seed"] = 45
+        manifest = add_proportional_row_quotas(self.frame, manifest)
+        frame = self.frame.copy()
+        early_stop_buildings = manifest["cells"]["10"][
+            "tree_early_stop_buildings"
+        ]
+        frame.loc[
+            frame["building_id"].isin(early_stop_buildings), "anomaly"
+        ] = 0
+
+        with self.assertRaisesRegex(ValueError, "tree_early_stop"):
+            resolve_cell_indices(frame, manifest, 10)
+        resolved = resolve_cell_indices(
+            frame,
+            manifest,
+            10,
+            require_role_class_coverage=False,
+        )
+
+        self.assertEqual(
+            set(np.unique(frame.loc[resolved["available_rows"], "anomaly"])),
+            {0, 1},
+        )
+        self.assertEqual(
+            set(np.unique(frame.loc[resolved["tree_early_stop_rows"], "anomaly"])),
+            {0},
+        )
+
 
 class TestM5TreeEarlyStopping(unittest.TestCase):
     def test_all_components_use_external_validation_and_record_best_iteration(
