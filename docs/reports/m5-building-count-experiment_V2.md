@@ -167,8 +167,8 @@ artifact-derived report is generated only after all 40 cells pass.
 
 ## Overnight formal-run progress
 
-- Last update: 2026-08-09T19:20:11+08:00.
-- Last checkpointed pair: building_seed45_k10.
+- Last update: 2026-08-09T19:20:16+08:00.
+- Last checkpointed pair: building_seed46_k10.
 - Completed seed/K pairs: 8/20.
 - Failed/skipped seed/K pairs: 0.
 - A pair is complete only after both frozen no-ES trees and TabPFN finish.
