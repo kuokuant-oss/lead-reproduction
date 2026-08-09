@@ -167,9 +167,9 @@ artifact-derived report is generated only after all 40 cells pass.
 
 ## Overnight formal-run progress
 
-- Last update: 2026-08-10T03:24:43+08:00.
-- Last checkpointed pair: building_seed45_k20.
-- Completed seed/K pairs: 11/20.
+- Last update: 2026-08-10T07:14:23+08:00.
+- Last checkpointed pair: building_seed46_k20.
+- Completed seed/K pairs: 12/20.
 - Failed/skipped seed/K pairs: 0.
 - A pair is complete only after both frozen no-ES trees and TabPFN finish.
 - Raw model artifacts remain under the ignored V2 data root; this tracked table is committed and pushed after each completed pair.
@@ -187,7 +187,7 @@ artifact-derived report is generated only after all 40 cells pass.
 | 9 | 43 | 20 | complete | yes | yes | 0.651699 | 0.968799 | 0.654403 | 0.956288 |
 | 10 | 44 | 20 | complete | yes | yes | 0.754335 | 0.975951 | 0.696626 | 0.972342 |
 | 11 | 45 | 20 | complete | yes | yes | 0.800865 | 0.979955 | 0.777562 | 0.972589 |
-| 12 | 46 | 20 | pending | no | no |  |  |  |  |
+| 12 | 46 | 20 | complete | yes | yes | 0.564427 | 0.945874 | 0.656653 | 0.968812 |
 | 13 | 43 | 50 | pending | no | no |  |  |  |  |
 | 14 | 44 | 50 | pending | no | no |  |  |  |  |
 | 15 | 45 | 50 | pending | no | no |  |  |  |  |
