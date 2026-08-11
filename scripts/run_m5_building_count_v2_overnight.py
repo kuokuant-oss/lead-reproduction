@@ -24,7 +24,7 @@ from run_m5_building_count_v2 import (
     _complete,
     build_units,
     matched_context_gate,
-    ordered_seed_budget_pairs,
+    seed_budget_pairs,
 )
 
 DEFAULT_REPORT = ROOT / "docs" / "reports" / "m5-building-count-experiment_V2.md"
@@ -36,6 +36,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--out-root", type=Path, default=DEFAULT_OUT_ROOT)
     parser.add_argument("--report", type=Path, default=DEFAULT_REPORT)
     parser.add_argument("--mode", choices=("plan", "formal"), default="plan")
+    parser.add_argument(
+        "--pair-order",
+        choices=("scientific", "budget-major"),
+        default="scientific",
+    )
     parser.add_argument("--model-seed", type=int, default=42)
     parser.add_argument("--retry-delay", type=int, default=120)
     parser.add_argument("--unit-retries", type=int, default=2)
@@ -616,8 +621,9 @@ def main(argv: list[str] | None = None) -> int:
         model_seed=args.model_seed,
         validation_context_rows=200,
         validation_holdout_rows=200,
+        pair_order=args.pair_order,
     )
-    pairs = ordered_seed_budget_pairs(summary)
+    pairs = seed_budget_pairs(summary, args.pair_order)
     pair_units: dict[tuple[int, int], list[dict[str, Any]]] = {
         pair: [
             unit
@@ -635,6 +641,7 @@ def main(argv: list[str] | None = None) -> int:
             json.dumps(
                 {
                     "mode": "plan",
+                    "pair_order_policy": args.pair_order,
                     "pair_order": [
                         {
                             "order": index,

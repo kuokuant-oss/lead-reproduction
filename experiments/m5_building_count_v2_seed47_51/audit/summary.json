@@ -1,0 +1,124 @@
+{
+  "schema_version": 2,
+  "experiment": "m5_building_source_sampling_sensitivity",
+  "status": "audit_passed_ready_for_model_evaluation",
+  "sampling_profile": "site_stratified_random",
+  "building_seeds": [
+    47,
+    48,
+    49,
+    50,
+    51
+  ],
+  "row_seed": 42,
+  "role_seed": null,
+  "role_policy": "roles assigned after ladder acceptance; positions divisible by 5 are early_stop; all others fit",
+  "model_seed": 42,
+  "budgets": [
+    10,
+    20,
+    50,
+    100
+  ],
+  "candidate_buildings": 725,
+  "candidate_building_sha256": "4d86c3d328602c0e0d093783011c5d1d7479541fa46e81e51a1f4d3c1716d75c",
+  "selection": {
+    "method": "seeded site-stratified random sampling without replacement",
+    "rng_algorithm": "numpy.random.PCG64",
+    "whole_ladder_rejection_sampling": true,
+    "greedy_correction": false,
+    "anomaly_labels_used": false,
+    "meter_presence_used_for_ranking": false,
+    "max_sampling_attempts": 10000,
+    "accepted_attempt_by_seed": {
+      "47": 3,
+      "48": 2,
+      "49": 8,
+      "50": 21,
+      "51": 3
+    }
+  },
+  "meter_feasibility_gate": {
+    "minimum_at_smallest_budget": 2,
+    "minimum_growth_per_budget_transition": 1,
+    "all_passed": true
+  },
+  "distinct_draw_gate": {
+    "required_distinct_prefixes_per_K": 5,
+    "distinct_prefixes_per_K": {
+      "10": 5,
+      "20": 5,
+      "50": 5,
+      "100": 5
+    },
+    "passed": true
+  },
+  "reproducibility_digests": {
+    "47": {
+      "10": "47209e4e196703d119017168df31b010ee47b5185709435fdc22c1c9ed7f8333",
+      "20": "b7c0e4ee7fd8ad6c0dbc3c6090945f49b5585c9feaf31207378c56a06646cdee",
+      "50": "25d82605face7a351d5b26aed924de1a1019975d1e9accb7647955905b2a13e0",
+      "100": "8ef855794489ecd0a9ae8049084222eef19a222dd2e117281cbffabb230302c7"
+    },
+    "48": {
+      "10": "45b4147fc26501c19ae57ba8ce0556ddca404e04d42ad29903249b5d14973c1e",
+      "20": "9bae6dfd38036697fa4ad266c36cb0d43442e182c6b4b71556a878e4b5b69dec",
+      "50": "7cc9439fcee94144fab468a5e5c6250e8ad4ae6ef5d9141d32feaab6319f43e1",
+      "100": "24b41b27a8f25d55392ff9d90aab9c62dc5d93101da77e64007fddbba75057a0"
+    },
+    "49": {
+      "10": "b001db0800e3e3817aae9cbf739302e10ff84a9eb4420f654fc05c31ebbb4c41",
+      "20": "e9adc177bf5f32cf35839b704745ab6541984b564eb9f2b1ae2e55b610981b6f",
+      "50": "bccdbf180ed11396429c6c90d8be3ce978dc7efc92e6cc9a08137505a953591c",
+      "100": "d61f8e91acd1ae575a6308717a083820207722eb5a5477a16b05e00a7f6344b5"
+    },
+    "50": {
+      "10": "ba73f983b60ce68a3b1fea44b2e410d6ab2bc48c52d9e42181cf0f7b98c15f6d",
+      "20": "0de8db4b899174eeeb9bbec3cc0c900c2af8ef894ce2d217c5c56f0af2ff9a9f",
+      "50": "968938f3ca78207f63542ca5472485d108bef9dd83c89c0bd0a2c6ce53850f7d",
+      "100": "70ab2c83d5fb66c3143a2221a3753caff8f61fbd8d6d9cf7e2c9f710e1fce258"
+    },
+    "51": {
+      "10": "797f377f4167bad7a236327db1eb9581c5a9d9bc72a97c8066a0360cadf303ca",
+      "20": "d2256dbdbd6441351f41a892a4eae04ba9af8f2a7af7b0dcf0a3d583a508471d",
+      "50": "d867c4fa4dfd6a276ec68211952ecddb7fe6cbf5a41ef1605ec9bae60d2ec80c",
+      "100": "f1b28facfbdab05b9bb511ade60101a248cafe0bc86fad9791028676c6cb5ba4"
+    }
+  },
+  "ladders": {
+    "47": {
+      "csv": "building_ladder_seed47.csv",
+      "csv_sha256": "a1f936c690af342d88c5456e591ffb910ead10b1a058e812b3c13f1849065dd5",
+      "json": "building_ladder_seed47.json"
+    },
+    "48": {
+      "csv": "building_ladder_seed48.csv",
+      "csv_sha256": "333471dd20e98de556781fe2c05e70beca1ad84500aca94fa4933d9166deb853",
+      "json": "building_ladder_seed48.json"
+    },
+    "49": {
+      "csv": "building_ladder_seed49.csv",
+      "csv_sha256": "f7209a58f170d9bc13489a2d6f4a6b3dd08b4d3eec5ac3b3e2179ad7739d4f23",
+      "json": "building_ladder_seed49.json"
+    },
+    "50": {
+      "csv": "building_ladder_seed50.csv",
+      "csv_sha256": "67234b216dad664e79c2d7d5c3f6d93272a5a983e7480456393d8e18a7c40826",
+      "json": "building_ladder_seed50.json"
+    },
+    "51": {
+      "csv": "building_ladder_seed51.csv",
+      "csv_sha256": "fb6c202f05a3084cd887de0ba73024c53f1fda7b52d94fa608e91d4cb91de3aa",
+      "json": "building_ladder_seed51.json"
+    }
+  },
+  "outputs": {
+    "overlap": "building_overlap.csv",
+    "composition": "composition_audit.csv",
+    "prefix_audit": "sampling_prefix_audit.csv",
+    "profiles": "candidate_building_profiles.csv"
+  },
+  "profile_source": "candidate_building_profiles.csv",
+  "building_metadata": "data/raw/m3/building_metadata.csv",
+  "bundle_root": "experiments/m5_building_count_v2_seed47_51"
+}

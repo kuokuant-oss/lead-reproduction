@@ -72,6 +72,26 @@ def ordered_seed_budget_pairs(summary: dict[str, Any]) -> list[tuple[int, int]]:
     ]
 
 
+def budget_major_seed_pairs(summary: dict[str, Any]) -> list[tuple[int, int]]:
+    """Sweep every building seed at K10, then K20, K50, and K100."""
+    seeds = [int(seed) for seed in summary["building_seeds"]]
+    budgets = [int(budget) for budget in summary["budgets"]]
+    if not seeds or not budgets:
+        raise ValueError("V2 building seeds and budgets must be non-empty")
+    return [(seed, budget) for budget in budgets for seed in seeds]
+
+
+def seed_budget_pairs(
+    summary: dict[str, Any], pair_order: str = "scientific"
+) -> list[tuple[int, int]]:
+    """Resolve a named, provenance-visible seed/K scheduling policy."""
+    if pair_order == "scientific":
+        return ordered_seed_budget_pairs(summary)
+    if pair_order == "budget-major":
+        return budget_major_seed_pairs(summary)
+    raise ValueError(f"unsupported V2 pair order {pair_order!r}")
+
+
 def build_units(
     audit_root: Path,
     out_root: Path,
@@ -82,12 +102,13 @@ def build_units(
     model_seed: int,
     validation_context_rows: int,
     validation_holdout_rows: int,
+    pair_order: str = "scientific",
 ) -> list[dict[str, Any]]:
     units: list[dict[str, Any]] = []
     sweep = "building_seed_sweep_" + "-".join(
         str(seed) for seed in summary["building_seeds"]
     )
-    for building_seed, budget in ordered_seed_budget_pairs(summary):
+    for building_seed, budget in seed_budget_pairs(summary, pair_order):
         manifest = audit_root / f"building_ladder_seed{building_seed}.json"
         for family in families:
             family_tag = "tree_no_es" if family == "tree" else "tabpfn"

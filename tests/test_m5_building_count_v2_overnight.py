@@ -11,6 +11,7 @@ from unittest import mock
 from scripts import run_m5_building_count_v2_overnight as supervisor
 from scripts.run_m5_building_count_v2 import (
     EXPERIMENT_VERSION,
+    budget_major_seed_pairs,
     build_units,
     ordered_seed_budget_pairs,
 )
@@ -111,9 +112,24 @@ class TestM5BuildingCountV2Overnight(unittest.TestCase):
                 ["tree", "tabpfn"],
             )
 
+    def test_budget_major_order_sweeps_k10_k20_k50_k100(self) -> None:
+        extension = {
+            **summary(),
+            "building_seeds": [47, 48, 49, 50, 51],
+        }
+        expected = [
+            (seed, budget)
+            for budget in (10, 20, 50, 100)
+            for seed in (47, 48, 49, 50, 51)
+        ]
+        self.assertEqual(budget_major_seed_pairs(extension), expected)
+        parsed = supervisor.parse_args(["--pair-order", "budget-major"])
+        self.assertEqual(parsed.pair_order, "budget-major")
+
     def test_defaults_are_non_launching_and_bounded(self) -> None:
         parsed = supervisor.parse_args([])
         self.assertEqual(parsed.mode, "plan")
+        self.assertEqual(parsed.pair_order, "scientific")
         self.assertEqual(parsed.unit_retries, 2)
         self.assertEqual(parsed.finalize_retries, 2)
         self.assertEqual(parsed.push_retries, 5)
