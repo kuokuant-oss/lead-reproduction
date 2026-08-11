@@ -1,0 +1,33 @@
+{
+  "_comment": "Environment provenance for the seed 47-51 extension. Package versions match the seed 42-46 checkout exactly; only install location and the Windows CUDA wheel tag differ.",
+  "git": {
+    "base_commit": "4424f7e614b71cd770d4634254f29a4e6b10016c",
+    "branch": "m5-v2-seed47-51-results",
+    "bundle_commit": "e0b2f44a126a4cdcf74d866a78b498f777a872a6"
+  },
+  "gpu": {
+    "cuda_capability": [
+      8,
+      9
+    ],
+    "driver_version": "566.07",
+    "name": "NVIDIA GeForce RTX 4070 Laptop GPU",
+    "vram_total": "8188 MiB"
+  },
+  "host": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "python": "3.11.9"
+  },
+  "packages": {
+    "catboost": "1.2.10",
+    "lightgbm": "4.6.0",
+    "numpy": "2.4.6",
+    "pandas": "3.0.3",
+    "scikit_learn": "1.8.0",
+    "tabpfn": "8.0.8",
+    "torch": "2.12.1+cu126",
+    "torch_cuda_build": "12.6",
+    "xgboost": "3.2.0"
+  }
+}

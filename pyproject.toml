@@ -31,6 +31,22 @@ dev = [
 ]
 m5 = [
     "psutil>=5.9",
-    "torch>=2.3",
+    # Pinned, not floating: the seed 42-46 sweep ran on 2.12.1 and TabPFN
+    # inference must not drift to another torch across the ten-seed analysis.
+    "torch==2.12.1",
     "tabpfn==8.0.8",
 ]
+
+# The M5 TabPFN cells hard-require CUDA. On Linux the PyPI torch wheel already
+# bundles CUDA, but the Windows PyPI wheel is CPU-only, so an unpinned resolve
+# silently installs a torch that fails torch.cuda.is_available() and takes the
+# formal cells down mid-run. Pin the Windows build to the same upstream CUDA
+# 12.6 wheel recorded for the seed 42-46 runs so `uv run --group m5` is
+# reproducible on both platforms. Linux resolution is unchanged.
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu126", marker = "sys_platform == 'win32'" }]

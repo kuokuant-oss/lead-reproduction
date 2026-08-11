@@ -52,6 +52,27 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--validation-context-rows", type=int, default=200)
     parser.add_argument("--validation-holdout-rows", type=int, default=200)
     parser.add_argument(
+        "--only-budgets",
+        type=int,
+        nargs="+",
+        default=None,
+        help=(
+            "Aggregate and gate only these K budgets from the frozen contract. "
+            "Scheduling scope only; omitted budgets stay resumable later."
+        ),
+    )
+    parser.add_argument(
+        "--query-microbatch-size",
+        type=int,
+        default=None,
+        help=(
+            "Frozen TabPFN query microbatch applied to every unit in the sweep. "
+            "The cell default (4096) was sized for a 22 GB L4; a smaller GPU "
+            "calibrates one value and pins it here. Governs VRAM and speed "
+            "only, never context, identity, or scoring."
+        ),
+    )
+    parser.add_argument(
         "--report",
         type=Path,
         default=ROOT / "docs" / "reports" / "m5-building-count-experiment_V2.md",
@@ -103,6 +124,7 @@ def build_units(
     validation_context_rows: int,
     validation_holdout_rows: int,
     pair_order: str = "scientific",
+    query_microbatch_size: int | None = None,
 ) -> list[dict[str, Any]]:
     units: list[dict[str, Any]] = []
     sweep = "building_seed_sweep_" + "-".join(
@@ -150,6 +172,10 @@ def build_units(
                         "8",
                     ]
                 )
+                if query_microbatch_size is not None:
+                    command.extend(
+                        ["--query-microbatch-size", str(query_microbatch_size)]
+                    )
             if mode == "validation":
                 command.extend(
                     [
@@ -303,13 +329,26 @@ def main(argv: list[str] | None = None) -> int:
         model_seed=args.model_seed,
         validation_context_rows=args.validation_context_rows,
         validation_holdout_rows=args.validation_holdout_rows,
+        query_microbatch_size=args.query_microbatch_size,
     )
+    budgets = [int(budget) for budget in summary["budgets"]]
+    if args.only_budgets:
+        wanted = set(args.only_budgets)
+        unknown = wanted - set(budgets)
+        if unknown:
+            raise SystemExit(
+                f"--only-budgets values not in the contract: {sorted(unknown)}"
+            )
+        budgets = [budget for budget in budgets if budget in wanted]
+        units = [unit for unit in units if unit["identity"]["K"] in wanted]
+    expected_cells = len(summary["building_seeds"]) * len(budgets)
     census = {
         "experiment_version": EXPERIMENT_VERSION,
         "mode": args.mode,
         "sampling_profile": summary["sampling_profile"],
         "building_seeds": summary["building_seeds"],
-        "budgets": summary["budgets"],
+        "budgets": budgets,
+        "contract_budgets": [int(budget) for budget in summary["budgets"]],
         "features": [137],
         "row_seed": summary["row_seed"],
         "model_seed": args.model_seed,
@@ -361,16 +400,14 @@ def main(argv: list[str] | None = None) -> int:
         sweep_root / "matched_context_gate.json",
         {
             "experiment_version": EXPERIMENT_VERSION,
-            "expected_cells": len(summary["building_seeds"]) * len(summary["budgets"]),
+            "expected_cells": expected_cells,
             "checked_cells": len(context_records),
-            "passed": (
-                len(context_records)
-                == len(summary["building_seeds"]) * len(summary["budgets"])
-            ),
+            "budgets": budgets,
+            "passed": len(context_records) == expected_cells,
             "cells": context_records,
         },
     )
-    if len(context_records) != len(summary["building_seeds"]) * len(summary["budgets"]):
+    if len(context_records) != expected_cells:
         raise AssertionError("V2 matched-context gate did not check every seed/K cell")
 
     aggregate_root = sweep_root / "aggregate"

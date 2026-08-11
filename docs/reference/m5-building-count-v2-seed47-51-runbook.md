@@ -28,6 +28,65 @@ run. The tracked ladder manifests are the authoritative inputs.
 
 The formal queue contains 20 seed/K pairs and 40 model units.
 
+## Platform adaptations (Windows, single laptop GPU)
+
+The bundle was authored for a headless Linux box with a 22 GB L4. The items
+below are the only deviations needed to run it on Windows with an 8 GB laptop
+GPU. None of them touch building identity, seeds, context rows, holdout
+identity, model version, estimators, fit mode, features, checkpointing, or
+scoring. Environment provenance is recorded in
+`experiments/m5_building_count_v2_seed47_51/environment_provenance.json`.
+
+- **Line endings.** The audit manifests pin SHA256 digests over LF-authored
+  bytes, so a CRLF checkout fails `prepare` before any model runs. A scoped
+  `.gitattributes` pins `experiments/**/audit/*.{csv,json}` to `eol=lf` on
+  every platform. The digest logic itself is unchanged.
+- **Interpreter path.** Commands use `uv run --frozen --group m5 python`
+  instead of `.venv/bin/python`, which does not exist on Windows.
+- **CUDA wheel.** The Windows PyPI `torch` wheel is CPU-only, so an unpinned
+  resolve silently installs a torch that fails `torch.cuda.is_available()` and
+  takes every formal TabPFN cell down. `pyproject.toml` pins `torch==2.12.1`
+  and routes Windows to the upstream `cu126` index. Linux resolution is
+  unchanged.
+- **`malloc_trim`.** `_collect_and_trim` is a glibc-only helper; Windows raises
+  `TypeError` from `ctypes.CDLL(None)`, which is now caught and skipped. Only
+  memory reclamation is affected.
+- **GPU idle gate.** Under Windows WDDM, `nvidia-smi --query-compute-apps` also
+  lists ordinary desktop graphics clients, so the gate's "empty list" condition
+  never holds and every TabPFN unit would exhaust its waits and fail. The gate
+  now blocks only on Python processes, the only possible competing model cell.
+  The unfiltered list is still written to the event log.
+- **Query microbatch.** The cell default of 4096 was sized for a 22 GB L4.
+  `--query-microbatch-size` pins one calibrated value across every TabPFN unit
+  in a campaign. The cell records it in result-affecting provenance, so
+  changing it mid-campaign hard-fails resume instead of silently mixing
+  settings.
+- **Budget scoping.** `--only-budgets` runs a subset of the contract's budgets
+  in the contract's own order. Scheduling scope only: deferred budgets stay
+  resumable later with no provenance conflict.
+
+### Calibrating the query microbatch
+
+Run this on the target GPU before the formal launch. The bounded validation in
+step 4 cannot substitute for it, because validation swaps in
+`FakeTabPFNClassifier` and never touches the GPU at all.
+
+```bash
+uv run --frozen --group m5 python \
+  scripts/calibrate_m5_building_count_v2_seed47_51_microbatch.py \
+  --building-seed 47 --building-budget <largest K in the campaign> \
+  --candidates 8192 4096 2048 1024 512 --probe-holdout-rows 8192
+```
+
+The probe fits a real TabPFN on the full context for that K with the frozen 8
+estimators, predicts a real holdout slice at each candidate, and reports OOM
+status, rows/second, peak reserved VRAM, and the per-row score difference
+against the 4096 baseline. Pin the largest candidate that neither OOMs nor
+loses throughput, then reuse it for every unit in the campaign.
+
+Context size is `K x 500` capped at 50,000 rows, so a value calibrated at a
+campaign's largest K is also safe for its smaller ones.
+
 ## Tracked files supplied by this bundle
 
 - `experiments/m5_building_count_v2_seed47_51/audit/`
@@ -68,14 +127,14 @@ From the repository root:
 
 ```bash
 git pull --ff-only
-uv sync --frozen
+uv sync --frozen --group m5
 ```
 
 Confirm CUDA and the Python environment before doing any model work:
 
 ```bash
 nvidia-smi
-.venv/bin/python -c "import numpy, pandas, sklearn, tabpfn; print('imports ok')"
+uv run --frozen --group m5 python -c "import numpy, pandas, sklearn, tabpfn; print('imports ok')"
 ```
 
 ## 2. Prepare and verify prerequisites
@@ -85,7 +144,7 @@ missing, it copies the tracked compact identity artifact using an atomic write.
 If an artifact already exists, it validates it and does not overwrite it.
 
 ```bash
-.venv/bin/python scripts/prepare_m5_building_count_v2_seed47_51.py \
+uv run --frozen --group m5 python scripts/prepare_m5_building_count_v2_seed47_51.py \
   --mode prepare-canonical
 ```
 
@@ -101,7 +160,7 @@ Expected final JSON fields include:
 Run the focused tests:
 
 ```bash
-.venv/bin/python -m unittest \
+uv run --frozen --group m5 python -m unittest \
   tests.test_m5_building_count_v2_seed47_51 \
   tests.test_m5_building_count_v2_overnight \
   tests.test_m5_building_count_v2
@@ -110,7 +169,7 @@ Run the focused tests:
 ## 3. Inspect the non-launching plan
 
 ```bash
-.venv/bin/python scripts/run_m5_building_count_v2_seed47_51.py --mode plan
+uv run --frozen --group m5 python scripts/run_m5_building_count_v2_seed47_51.py --mode plan
 ```
 
 The plan must report `pair_order_policy: budget-major`, 20 pairs, and 40 units.
@@ -131,7 +190,7 @@ Validation uses isolated outputs and deterministic 200-row caps for context and
 holdout. It does not publish results.
 
 ```bash
-.venv/bin/python scripts/run_m5_building_count_v2_seed47_51.py \
+uv run --frozen --group m5 python scripts/run_m5_building_count_v2_seed47_51.py \
   --mode validation \
   --validation-context-rows 200 \
   --validation-holdout-rows 200
@@ -172,7 +231,7 @@ is ready.
 After authorization, run in a persistent terminal or `tmux` session:
 
 ```bash
-.venv/bin/python scripts/run_m5_building_count_v2_seed47_51.py \
+uv run --frozen --group m5 python scripts/run_m5_building_count_v2_seed47_51.py \
   --mode formal \
   --publish-results
 ```

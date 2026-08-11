@@ -218,11 +218,13 @@ def _matrix_columns(features: int, frame_columns: list[str]) -> list[str]:
 
 def _collect_and_trim() -> None:
     # Keep Python semantics unchanged while returning free glibc arenas to WSL.
+    # Windows has no glibc and rejects CDLL(None) with TypeError, so the trim is
+    # skipped there; gc.collect() above is the whole effect on that platform.
     gc.collect()
     try:
         allocator = ctypes.CDLL(None)
         malloc_trim = allocator.malloc_trim
-    except (OSError, AttributeError):
+    except (OSError, AttributeError, TypeError):
         return
     malloc_trim.argtypes = [ctypes.c_size_t]
     malloc_trim.restype = ctypes.c_int

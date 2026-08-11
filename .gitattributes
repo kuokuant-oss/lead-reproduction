@@ -1,0 +1,12 @@
+# Frozen experiment bundles carry SHA256 digests over their exact bytes, and
+# those digests are recorded from LF-authored files. A CRLF checkout on Windows
+# changes the bytes and fails digest validation before any model runs, so the
+# audit bundles are pinned to LF on every platform.
+#
+# This is a checkout-encoding rule only. It does not touch building identity,
+# seeds, or the digest logic itself.
+experiments/**/audit/*.csv   text eol=lf
+experiments/**/audit/*.json  text eol=lf
+
+# Compact identity artifacts shipped with the bundles are binary.
+experiments/**/*.npz         binary

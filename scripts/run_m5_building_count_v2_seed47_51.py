@@ -50,6 +50,28 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--report", type=Path, default=DEFAULT_REPORT)
     parser.add_argument("--validation-context-rows", type=int, default=200)
     parser.add_argument("--validation-holdout-rows", type=int, default=200)
+    parser.add_argument(
+        "--only-budgets",
+        type=int,
+        nargs="+",
+        default=None,
+        help=(
+            "Run only these K budgets, in the contract's own budget-major "
+            "order (e.g. --only-budgets 10 20). Scheduling scope only; the "
+            "deferred budgets stay resumable by a later run."
+        ),
+    )
+    parser.add_argument(
+        "--query-microbatch-size",
+        type=int,
+        default=None,
+        help=(
+            "Frozen TabPFN query microbatch for every TabPFN unit run. Calibrate "
+            "once with scripts/calibrate_m5_building_count_v2_seed47_51_"
+            "microbatch.py on the target GPU, pin the single chosen value here, "
+            "and never vary it between units."
+        ),
+    )
     parser.add_argument("--retry-delay", type=int, default=120)
     parser.add_argument("--unit-retries", type=int, default=2)
     parser.add_argument("--finalize-retries", type=int, default=2)
@@ -61,6 +83,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def command_for_args(args: argparse.Namespace) -> list[str]:
+    microbatch: list[str] = (
+        []
+        if args.query_microbatch_size is None
+        else ["--query-microbatch-size", str(args.query_microbatch_size)]
+    )
+    budgets: list[str] = (
+        []
+        if not args.only_budgets
+        else ["--only-budgets", *(str(budget) for budget in args.only_budgets)]
+    )
     if args.mode == "validation":
         return [
             sys.executable,
@@ -80,6 +112,8 @@ def command_for_args(args: argparse.Namespace) -> list[str]:
             str(args.validation_context_rows),
             "--validation-holdout-rows",
             str(args.validation_holdout_rows),
+            *microbatch,
+            *budgets,
         ]
     command = [
         sys.executable,
@@ -108,6 +142,8 @@ def command_for_args(args: argparse.Namespace) -> list[str]:
         str(args.git_push_timeout),
         "--gpu-wait-checks",
         str(args.gpu_wait_checks),
+        *microbatch,
+        *budgets,
     ]
     if args.publish_results:
         command.append("--publish-results")

@@ -42,6 +42,28 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default="scientific",
     )
     parser.add_argument("--model-seed", type=int, default=42)
+    parser.add_argument(
+        "--only-budgets",
+        type=int,
+        nargs="+",
+        default=None,
+        help=(
+            "Execute only these K budgets from the frozen contract, in the "
+            "contract's own order. Scheduling scope only: it never reorders, "
+            "reweights, or alters a pair, and the omitted budgets remain "
+            "resumable later. Omit to run all four."
+        ),
+    )
+    parser.add_argument(
+        "--query-microbatch-size",
+        type=int,
+        default=None,
+        help=(
+            "Frozen TabPFN query microbatch for every unit in the sweep. Pin one "
+            "calibrated value; the cell records it in result-affecting "
+            "provenance, so changing it mid-sweep hard-fails resume by design."
+        ),
+    )
     parser.add_argument("--retry-delay", type=int, default=120)
     parser.add_argument("--unit-retries", type=int, default=2)
     parser.add_argument("--finalize-retries", type=int, default=2)
@@ -169,6 +191,26 @@ def _active_gpu_processes() -> list[str]:
     return [line.strip() for line in result.stdout.splitlines() if line.strip()]
 
 
+def _blocking_gpu_processes(active: list[str]) -> list[str]:
+    """Keep only entries that could actually contend for the model's VRAM.
+
+    On a headless Linux box the compute-app list is empty unless another model
+    cell is running, so the gate could simply require an empty list. Under
+    Windows WDDM the same query also reports ordinary desktop graphics clients
+    (shell, browser, chat apps), which never releases and would starve every
+    TabPFN unit. A competing model cell is always a Python process, so gate on
+    those; the unfiltered list is still recorded in the event log.
+    """
+    blocking = []
+    for line in active:
+        name = line.split(",")[1].strip() if "," in line else line
+        if Path(name.strip()).name.lower() in {"python.exe", "python", "python3"}:
+            blocking.append(line)
+        elif name.strip() == "nvidia-smi unavailable":
+            blocking.append(line)
+    return blocking
+
+
 def _wait_for_idle_gpu(
     supervisor_root: Path,
     stage: str,
@@ -178,7 +220,8 @@ def _wait_for_idle_gpu(
 ) -> bool:
     for check in range(1, checks + 1):
         active = _active_gpu_processes()
-        if not active:
+        blocking = _blocking_gpu_processes(active)
+        if not blocking:
             return True
         _event(
             supervisor_root,
@@ -187,6 +230,7 @@ def _wait_for_idle_gpu(
             check=check,
             max_checks=checks,
             active_gpu_processes=active,
+            blocking_gpu_processes=blocking,
         )
         if check < checks:
             time.sleep(delay)
@@ -556,20 +600,25 @@ def _finalize(
     marker = supervisor_root / "FINALIZED.json"
 
     def action() -> int:
-        result = _run_command(
-            [
-                sys.executable,
-                "scripts/run_m5_building_count_v2.py",
-                "--audit-root",
-                str(args.audit_root),
-                "--out-root",
-                str(args.out_root),
-                "--report",
-                str(args.report),
-                "--mode",
-                "formal",
-            ]
-        )
+        command = [
+            sys.executable,
+            "scripts/run_m5_building_count_v2.py",
+            "--audit-root",
+            str(args.audit_root),
+            "--out-root",
+            str(args.out_root),
+            "--report",
+            str(args.report),
+            "--mode",
+            "formal",
+        ]
+        if args.only_budgets:
+            # Without this the aggregator rebuilds the full contract and would
+            # start executing the budgets this campaign deliberately deferred.
+            command += ["--only-budgets", *(str(b) for b in args.only_budgets)]
+        if args.query_microbatch_size is not None:
+            command += ["--query-microbatch-size", str(args.query_microbatch_size)]
+        result = _run_command(command)
         if result:
             return result
         relative_report = str(args.report.relative_to(ROOT))
@@ -622,8 +671,22 @@ def main(argv: list[str] | None = None) -> int:
         validation_context_rows=200,
         validation_holdout_rows=200,
         pair_order=args.pair_order,
+        query_microbatch_size=args.query_microbatch_size,
     )
     pairs = seed_budget_pairs(summary, args.pair_order)
+    if args.only_budgets:
+        wanted = set(args.only_budgets)
+        unknown = wanted - {int(b) for b in summary["budgets"]}
+        if unknown:
+            raise SystemExit(
+                f"--only-budgets values not in the contract: {sorted(unknown)}"
+            )
+        # Scheduling scope only: restricts which budgets this campaign executes.
+        # Every surviving pair keeps its frozen identity, ordering, and manifest,
+        # and the omitted budgets stay resumable by a later run without any
+        # provenance conflict.
+        pairs = [pair for pair in pairs if pair[1] in wanted]
+        units = [unit for unit in units if unit["identity"]["K"] in wanted]
     pair_units: dict[tuple[int, int], list[dict[str, Any]]] = {
         pair: [
             unit
