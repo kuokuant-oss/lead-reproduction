@@ -145,12 +145,8 @@ class TestM5BuildingCurveProtocol(unittest.TestCase):
         manifest["row_selection_seed"] = 45
         manifest = add_proportional_row_quotas(self.frame, manifest)
         frame = self.frame.copy()
-        early_stop_buildings = manifest["cells"]["10"][
-            "tree_early_stop_buildings"
-        ]
-        frame.loc[
-            frame["building_id"].isin(early_stop_buildings), "anomaly"
-        ] = 0
+        early_stop_buildings = manifest["cells"]["10"]["tree_early_stop_buildings"]
+        frame.loc[frame["building_id"].isin(early_stop_buildings), "anomaly"] = 0
 
         with self.assertRaisesRegex(ValueError, "tree_early_stop"):
             resolve_cell_indices(frame, manifest, 10)

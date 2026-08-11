@@ -216,9 +216,7 @@ def main(argv: list[str] | None = None) -> int:
         frame.loc[train_mask],
         manifest,
         args.building_budget,
-        require_role_class_coverage=(
-            args.experiment_version != "m5_building_count_v2"
-        ),
+        require_role_class_coverage=(args.experiment_version != "m5_building_count_v2"),
     )
     context_index = _bounded_rows(
         frame,
