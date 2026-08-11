@@ -19,6 +19,7 @@ import numpy as np
 import pandas as pd
 
 from lead import PROC, ROOT
+
 try:
     from audit_m5_building_candidate_sensitivity import (
         _attach_primary_use,
@@ -48,9 +49,7 @@ BUNDLE_ROOT = ROOT / "experiments" / "m5_building_count_v2_seed47_51"
 AUDIT_ROOT = BUNDLE_ROOT / "audit"
 DEFAULT_PROFILES = AUDIT_ROOT / "candidate_building_profiles.csv"
 RAW_ROOT = ROOT / "data" / "raw" / "m3"
-CANONICAL_HOLDOUT = (
-    PROC / "m6_site_transfer_b2_a0_pos677077_seed42_predictions.npz"
-)
+CANONICAL_HOLDOUT = PROC / "m6_site_transfer_b2_a0_pos677077_seed42_predictions.npz"
 BUNDLED_CANONICAL_HOLDOUT = BUNDLE_ROOT / "canonical_holdout_identity.npz"
 REQUIRED_RAW_FILES = (
     "train.csv",
@@ -66,6 +65,19 @@ def _sha256_file(path: Path) -> str:
         while chunk := stream.read(1024 * 1024):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _ensure_final_newline(path: Path) -> None:
+    """Keep regenerated tracked JSON compatible with the repository hooks."""
+    content = path.read_bytes()
+    if content.endswith(b"\n"):
+        return
+    temporary = path.with_name(path.name + ".tmp")
+    with temporary.open("wb") as stream:
+        stream.write(content + b"\n")
+        stream.flush()
+        os.fsync(stream.fileno())
+    os.replace(temporary, path)
 
 
 def check_raw_files(raw_root: Path = RAW_ROOT) -> None:
@@ -164,6 +176,11 @@ def regenerate_audit(
     summary["building_metadata"] = "data/raw/m3/building_metadata.csv"
     summary["bundle_root"] = "experiments/m5_building_count_v2_seed47_51"
     atomic_write_json(audit_root / "summary.json", summary)
+    for path in [
+        audit_root / "summary.json",
+        *(audit_root / f"building_ladder_seed{seed}.json" for seed in EXPECTED_SEEDS),
+    ]:
+        _ensure_final_newline(path)
     return validate_audit_bundle(audit_root)
 
 

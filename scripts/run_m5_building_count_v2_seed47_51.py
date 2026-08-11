@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 from lead import PROC, ROOT
+
 try:
     from prepare_m5_building_count_v2_seed47_51 import (
         AUDIT_ROOT,
@@ -118,9 +119,11 @@ def main(argv: list[str] | None = None) -> int:
     validate_audit_bundle(args.audit_root)
     check_raw_files()
     validate_canonical_holdout(CANONICAL_HOLDOUT)
-    if args.mode == "formal" and args.report.resolve() == (
-        ROOT / "docs" / "reports" / "m5-building-count-experiment_V2.md"
-    ).resolve():
+    if (
+        args.mode == "formal"
+        and args.report.resolve()
+        == (ROOT / "docs" / "reports" / "m5-building-count-experiment_V2.md").resolve()
+    ):
         raise SystemExit("seed47-51 must use its separate tracked progress report")
     command = command_for_args(args)
     print(f"Executing seed47-51 entrypoint: {shlex.join(command)}", flush=True)

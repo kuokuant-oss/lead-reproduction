@@ -27,9 +27,7 @@ class TestM5BuildingCountV2Seed47To51(unittest.TestCase):
     def test_formal_order_is_budget_major(self) -> None:
         summary = validate_audit_bundle()
         expected = [
-            (seed, budget)
-            for budget in EXPECTED_BUDGETS
-            for seed in EXPECTED_SEEDS
+            (seed, budget) for budget in EXPECTED_BUDGETS for seed in EXPECTED_SEEDS
         ]
         self.assertEqual(budget_major_seed_pairs(summary), expected)
 
