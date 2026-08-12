@@ -73,8 +73,8 @@
     }
   },
   "provenance": {
-    "commit": "32cb38b7579393941c3d144a14e46b93be741a6f",
-    "generated_at_utc": "2026-08-12T06:59:37.662340+00:00",
+    "commit": "3ff88a0557e0f270fe2ac58436939f7b7b304c00",
+    "generated_at_utc": "2026-08-12T07:28:23.197936+00:00",
     "note": "Curves use the existing M3 discrimination renderer."
   }
 }

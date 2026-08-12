@@ -252,7 +252,7 @@ def render_grid(
     fig.suptitle(
         f"Feature Engineering Impact on {metric} by meters",
         x=0.06,
-        y=0.985,
+        y=0.965,
         ha="left",
         fontsize=18,
         fontweight="bold",
@@ -260,7 +260,7 @@ def render_grid(
     )
     fig.text(
         0.06,
-        0.930,
+        0.915,
         "Each panel: equal-weight Tree Ensemble on the final 50/50 building holdout.",
         ha="left",
         fontsize=10.5,
@@ -280,7 +280,7 @@ def render_grid(
         color=SECONDARY,
     )
     fig.subplots_adjust(
-        left=0.10, right=0.98, top=0.81, bottom=0.16, wspace=0.06, hspace=0.22
+        left=0.10, right=0.98, top=0.78, bottom=0.16, wspace=0.06, hspace=0.38
     )
     fig.legend(
         handles=[
