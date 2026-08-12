@@ -1,0 +1,82 @@
+{
+  "experiment": "m3_tabpfn_feature_engineering_by_meter",
+  "split": "50_50_mod2",
+  "feature_comparison": "TabPFN, context 100k, n=8, 17 versus 137 features",
+  "artifacts": {
+    "tabpfn_17_predictions": "data\\processed\\m5_tabpfn_17_full_test_n8_predictions.npz",
+    "tabpfn_137_predictions": "data\\processed\\m5_tabpfn_137_full_test_n8_predictions.npz",
+    "m3_17_metadata": "data\\processed\\m3_17_feature_ensemble_predictions_50_50.npz",
+    "m3_137_metadata": "data\\processed\\m3_137_feature_ensemble_predictions_50_50.npz",
+    "figures": {
+      "roc": "docs\\reports\\assets\\m3\\m3_tabpfn_feature_contribution_by_meter_roc.png",
+      "precision_recall": "docs\\reports\\assets\\m3\\m3_tabpfn_feature_contribution_by_meter_precision_recall.png"
+    }
+  },
+  "meters": {
+    "electricity": {
+      "rows": 6035071,
+      "anomalies": 356679,
+      "anomaly_rate": 0.05910104454446352,
+      "metrics": {
+        "tabpfn_17_features": {
+          "roc_auc": 0.957784865626466,
+          "pr_auc": 0.8710666705933341
+        },
+        "tabpfn_137_features": {
+          "roc_auc": 0.998106690277799,
+          "pr_auc": 0.9864007796595938
+        }
+      }
+    },
+    "chilledwater": {
+      "rows": 2115354,
+      "anomalies": 141139,
+      "anomaly_rate": 0.06672122018347756,
+      "metrics": {
+        "tabpfn_17_features": {
+          "roc_auc": 0.9007238080178568,
+          "pr_auc": 0.46500007858838005
+        },
+        "tabpfn_137_features": {
+          "roc_auc": 0.984294450970256,
+          "pr_auc": 0.8251494961561154
+        }
+      }
+    },
+    "steam": {
+      "rows": 1350609,
+      "anomalies": 48888,
+      "anomaly_rate": 0.03619700446243139,
+      "metrics": {
+        "tabpfn_17_features": {
+          "roc_auc": 0.8408948331158668,
+          "pr_auc": 0.39794104054502405
+        },
+        "tabpfn_137_features": {
+          "roc_auc": 0.987703700656305,
+          "pr_auc": 0.8319659317579388
+        }
+      }
+    },
+    "hotwater": {
+      "rows": 636121,
+      "anomalies": 90691,
+      "anomaly_rate": 0.14256878801360118,
+      "metrics": {
+        "tabpfn_17_features": {
+          "roc_auc": 0.7615302238170134,
+          "pr_auc": 0.34154582341512396
+        },
+        "tabpfn_137_features": {
+          "roc_auc": 0.9486554163381851,
+          "pr_auc": 0.8171419803660545
+        }
+      }
+    }
+  },
+  "provenance": {
+    "commit": "d2a5550d8a40b3588e7e3ce03f079a550c6caabb",
+    "generated_at_utc": "2026-08-12T09:16:53.612010+00:00",
+    "note": "Each TabPFN artifact is proven row-aligned to its M3 meter metadata."
+  }
+}
