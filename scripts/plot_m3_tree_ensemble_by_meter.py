@@ -212,7 +212,7 @@ def render_grid(
     if len(results) != len(METER_SPECS):
         raise ValueError("expected exactly four meter results")
 
-    fig, axes = plt.subplots(2, 2, figsize=(9.6, 8.5), sharex=True, sharey=True)
+    fig, axes = plt.subplots(2, 2, figsize=(8.6, 10.0), sharex=True, sharey=True)
     fig.patch.set_facecolor(SURFACE)
     for ax, result in zip(axes.ravel(), results, strict=True):
         _style_axis(ax)
@@ -251,9 +251,9 @@ def render_grid(
             color=MUTED,
         )
 
-    metric = "ROC" if curve_type == "roc" else "Precision–Recall"
+    metric = "ROC-AUC" if curve_type == "roc" else "PR-AUC"
     fig.suptitle(
-        f"Feature-Engineering Contribution by meter: {metric}",
+        f"Feature Engineering Impact on {metric}",
         x=0.06,
         y=0.985,
         ha="left",
@@ -282,7 +282,7 @@ def render_grid(
         color=SECONDARY,
     )
     fig.subplots_adjust(
-        left=0.10, right=0.98, top=0.80, bottom=0.18, wspace=0.20, hspace=0.36
+        left=0.10, right=0.98, top=0.81, bottom=0.16, wspace=0.06, hspace=0.22
     )
     fig.legend(
         handles=[
