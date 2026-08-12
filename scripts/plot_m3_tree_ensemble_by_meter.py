@@ -268,12 +268,13 @@ def render_grid(
     )
     fig.supylabel(
         "True-positive rate" if curve_type == "roc" else "Precision",
-        x=0.015,
+        x=0.052,
         fontsize=10.5,
         color=SECONDARY,
     )
     fig.supxlabel(
         "False-positive rate" if curve_type == "roc" else "Recall",
+        x=0.54,
         y=0.10,
         fontsize=10.5,
         color=SECONDARY,
