@@ -774,12 +774,15 @@ def render_discrimination_curve(
     *,
     comparison: str,
     curve_type: str,
+    custom_series: list[tuple[str, str, str]] | None = None,
+    custom_title_prefix: str | None = None,
+    custom_subtitle: str | None = None,
 ) -> None:
     """Render one comparison and one curve type as a standalone figure."""
     is_roc = curve_type == "roc"
     if curve_type not in {"roc", "precision_recall"}:
         raise ValueError(f"Unsupported curve type: {curve_type}")
-    if comparison not in {
+    if custom_series is None and comparison not in {
         "models",
         "feature_engineering",
         "feature_engineering_tabpfn",
@@ -788,7 +791,13 @@ def render_discrimination_curve(
         raise ValueError(f"Unsupported comparison: {comparison}")
 
     fig, ax = plt.subplots(figsize=(7.2, 7.2), facecolor=SURFACE)
-    if comparison == "models":
+    if custom_series is not None:
+        if custom_title_prefix is None or custom_subtitle is None:
+            raise ValueError("custom curves require a title prefix and subtitle")
+        series = custom_series
+        title_prefix = custom_title_prefix
+        subtitle = custom_subtitle
+    elif comparison == "models":
         series = [
             (
                 model_name,

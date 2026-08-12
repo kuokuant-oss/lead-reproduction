@@ -1,0 +1,86 @@
+{
+  "experiment": "m3_tree_ensemble_feature_engineering_by_meter",
+  "split": "50_50_mod2",
+  "feature_comparison": "equal-weight four-model Tree Ensemble, 17 versus 137 features",
+  "artifacts": {
+    "baseline_predictions": "data\\processed\\m3_17_feature_ensemble_predictions_50_50.npz",
+    "engineered_predictions": "data\\processed\\m3_137_feature_ensemble_predictions_50_50.npz",
+    "figures": {
+      "electricity_precision_recall": "docs\\reports\\assets\\m3\\m3_feature_engineering_electricity_precision_recall.png",
+      "electricity_roc": "docs\\reports\\assets\\m3\\m3_feature_engineering_electricity_roc.png",
+      "chilledwater_precision_recall": "docs\\reports\\assets\\m3\\m3_feature_engineering_chilledwater_precision_recall.png",
+      "chilledwater_roc": "docs\\reports\\assets\\m3\\m3_feature_engineering_chilledwater_roc.png",
+      "steam_precision_recall": "docs\\reports\\assets\\m3\\m3_feature_engineering_steam_precision_recall.png",
+      "steam_roc": "docs\\reports\\assets\\m3\\m3_feature_engineering_steam_roc.png",
+      "hotwater_precision_recall": "docs\\reports\\assets\\m3\\m3_feature_engineering_hotwater_precision_recall.png",
+      "hotwater_roc": "docs\\reports\\assets\\m3\\m3_feature_engineering_hotwater_roc.png"
+    }
+  },
+  "meters": {
+    "electricity": {
+      "rows": 6035071,
+      "anomalies": 356679,
+      "anomaly_rate": 0.05910104454446352,
+      "metrics": {
+        "m3_1_ensemble": {
+          "roc_auc": 0.9767823838729509,
+          "pr_auc": 0.9242234380089875
+        },
+        "ensemble": {
+          "roc_auc": 0.9994367900181214,
+          "pr_auc": 0.9942004517913716
+        }
+      }
+    },
+    "chilledwater": {
+      "rows": 2115354,
+      "anomalies": 141139,
+      "anomaly_rate": 0.06672122018347756,
+      "metrics": {
+        "m3_1_ensemble": {
+          "roc_auc": 0.9363656822467442,
+          "pr_auc": 0.5416551632483139
+        },
+        "ensemble": {
+          "roc_auc": 0.9797331934255376,
+          "pr_auc": 0.7581210464002588
+        }
+      }
+    },
+    "steam": {
+      "rows": 1350609,
+      "anomalies": 48888,
+      "anomaly_rate": 0.03619700446243139,
+      "metrics": {
+        "m3_1_ensemble": {
+          "roc_auc": 0.9406706069921799,
+          "pr_auc": 0.5311290120729366
+        },
+        "ensemble": {
+          "roc_auc": 0.967257910161856,
+          "pr_auc": 0.7708216687325591
+        }
+      }
+    },
+    "hotwater": {
+      "rows": 636121,
+      "anomalies": 90691,
+      "anomaly_rate": 0.14256878801360118,
+      "metrics": {
+        "m3_1_ensemble": {
+          "roc_auc": 0.9220600849502052,
+          "pr_auc": 0.5653758955446879
+        },
+        "ensemble": {
+          "roc_auc": 0.949085521621148,
+          "pr_auc": 0.8364225494690222
+        }
+      }
+    }
+  },
+  "provenance": {
+    "commit": "e3a48f00b28d43418afcb58b1fb5bc7f17740041",
+    "generated_at_utc": "2026-08-12T04:00:16.866657+00:00",
+    "note": "Curves use the existing M3 discrimination renderer."
+  }
+}
