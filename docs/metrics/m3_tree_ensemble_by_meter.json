@@ -6,14 +6,8 @@
     "baseline_predictions": "data\\processed\\m3_17_feature_ensemble_predictions_50_50.npz",
     "engineered_predictions": "data\\processed\\m3_137_feature_ensemble_predictions_50_50.npz",
     "figures": {
-      "electricity_precision_recall": "docs\\reports\\assets\\m3\\m3_feature_engineering_electricity_precision_recall.png",
-      "electricity_roc": "docs\\reports\\assets\\m3\\m3_feature_engineering_electricity_roc.png",
-      "chilledwater_precision_recall": "docs\\reports\\assets\\m3\\m3_feature_engineering_chilledwater_precision_recall.png",
-      "chilledwater_roc": "docs\\reports\\assets\\m3\\m3_feature_engineering_chilledwater_roc.png",
-      "steam_precision_recall": "docs\\reports\\assets\\m3\\m3_feature_engineering_steam_precision_recall.png",
-      "steam_roc": "docs\\reports\\assets\\m3\\m3_feature_engineering_steam_roc.png",
-      "hotwater_precision_recall": "docs\\reports\\assets\\m3\\m3_feature_engineering_hotwater_precision_recall.png",
-      "hotwater_roc": "docs\\reports\\assets\\m3\\m3_feature_engineering_hotwater_roc.png"
+      "roc": "docs\\reports\\assets\\m3\\m3_feature_engineering_by_meter_roc.png",
+      "precision_recall": "docs\\reports\\assets\\m3\\m3_feature_engineering_by_meter_precision_recall.png"
     }
   },
   "meters": {
@@ -79,8 +73,8 @@
     }
   },
   "provenance": {
-    "commit": "e3a48f00b28d43418afcb58b1fb5bc7f17740041",
-    "generated_at_utc": "2026-08-12T04:00:16.866657+00:00",
+    "commit": "cc91f3e863d692115fe14ced62998b3341549cd2",
+    "generated_at_utc": "2026-08-12T06:25:16.534002+00:00",
     "note": "Curves use the existing M3 discrimination renderer."
   }
 }

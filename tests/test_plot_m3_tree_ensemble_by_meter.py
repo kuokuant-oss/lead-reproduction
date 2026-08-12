@@ -20,6 +20,7 @@ def load_module():
     if spec is None or spec.loader is None:
         raise RuntimeError(f"Could not load {path}")
     module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
 
@@ -82,3 +83,21 @@ class TestM3TreeEnsembleByMeter(unittest.TestCase):
                     for path in figures.values()
                 )
             )
+
+    def test_render_grid_writes_one_shared_axis_figure_per_metric(self) -> None:
+        meter = np.repeat(np.arange(4, dtype="int8"), 4)
+        arrays = {
+            "anomaly": np.tile(np.array([0, 1, 0, 1], dtype="int8"), 4),
+            "meter": meter,
+            "m3_1_ensemble": np.tile(np.array([0.1, 0.7, 0.2, 0.8]), 4),
+            "ensemble": np.tile(np.array([0.05, 0.95, 0.1, 0.9]), 4),
+        }
+        results = self.m.compute_meter_results(arrays)
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            roc = root / "roc.png"
+            pr = root / "pr.png"
+            self.m.render_grid(results, roc, curve_type="roc")
+            self.m.render_grid(results, pr, curve_type="precision_recall")
+            self.assertTrue(roc.is_file() and roc.stat().st_size > 0)
+            self.assertTrue(pr.is_file() and pr.stat().st_size > 0)
