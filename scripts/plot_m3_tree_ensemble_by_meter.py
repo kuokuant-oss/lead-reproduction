@@ -226,10 +226,7 @@ def render_grid(
             engineered = result.engineered_precision_recall
             prevalence = result.anomalies / result.rows
             ax.axhline(prevalence, color=AXIS, linewidth=0.7, linestyle=(0, (2, 3)))
-            detail = (
-                f"PR-AUC {baseline.score:.3f} → {engineered.score:.3f}\n"
-                f"Prevalence {prevalence:.1%}"
-            )
+            detail = f"PR-AUC {baseline.score:.3f} → {engineered.score:.3f}"
         ax.plot(baseline.x, baseline.y, color=BASELINE, linewidth=1.15)
         ax.plot(engineered.x, engineered.y, color=ENGINEERED, linewidth=1.45)
         ax.set_title(
@@ -242,7 +239,7 @@ def render_grid(
         )
         ax.text(
             0,
-            1.03,
+            1.005,
             detail,
             transform=ax.transAxes,
             ha="left",
@@ -253,7 +250,7 @@ def render_grid(
 
     metric = "ROC-AUC" if curve_type == "roc" else "PR-AUC"
     fig.suptitle(
-        f"Feature Engineering Impact on {metric}",
+        f"Feature Engineering Impact on {metric} by meters",
         x=0.06,
         y=0.985,
         ha="left",
