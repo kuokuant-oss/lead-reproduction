@@ -1,200 +1,113 @@
 # M5 building-count experiment V2
 
-**Status:** pipeline and recording schema prepared; formal models not started.
+**Status:** complete
 
-V2 studies the effect of source-building count under constrained site-stratified random building draws. It uses the no-early-stopping matched-context tree contract and requires trees and TabPFN to consume byte-identical manifest-allocated context rows.
-
-Protocol decisions and run gates are fixed in [m5-building-count-experiment-v2-plan.md](../plans/m5-building-count-experiment-v2-plan.md). This file is separate from the published V1 report and will only be regenerated from a complete V2 sweep.
+V2 uses constrained site-stratified random source-building ladders and compares TabPFN with the frozen four-model tree ensemble on byte-identical manifest-allocated rows. Tree early stopping is disabled.
 
 ## Fixed protocol
 
 - Building seeds: 42, 43, 44, 45, 46.
-- K budgets: 10, 20, 50, 100, as strict prefixes of one accepted ladder per seed.
-- Candidate pool: 725 even-ID training buildings; odd-ID buildings are excluded from selection and retained as the canonical holdout.
-- Building draw: seeded PCG64 site-stratified random sampling without replacement.
-- Feasibility: at K=10 every evaluation meter appears in at least 2 distinct source buildings; every later K transition adds at least 1 source building for every meter.
-- Rejection: whole-ladder deterministic redraw, at most 10,000 attempts; no greedy correction or silent relaxation.
-- Selection does not use anomaly labels, anomaly rate, building size, meter row share or post-sampling diagnostics.
-- Row allocation: `row_seed=42`, average cap 500 rows per building, natural prevalence, no post-manifest redraw.
-- Expected context rows: 5,000 / 10,000 / 25,000 / 50,000 for K=10 / 20 / 50 / 100.
-- Features: 137.
-- Model seed: 42.
-- Tree ensemble: LightGBM 100, XGBoost 100, CatBoost 1,000, HistGradientBoosting 100; no early stopping and no validation split.
-- TabPFN: `n_estimators=8`; early stopping is not applicable.
-- Evaluation: one identical canonical odd-building natural-prevalence holdout for every seed/K/model cell.
+- K budgets: 10, 20, 50, 100; strict nested prefixes.
+- Candidate buildings: even IDs only; odd IDs are the canonical holdout.
+- Source sampling: PCG64 site-stratified random sampling without replacement, with whole-ladder meter-feasibility rejection.
+- Row policy: fixed row_seed=42 manifest allocation; natural prevalence; no additional 50:50 redraw and no M3 anomaly duplication.
+- Features: 137 timestamp-merge features.
+- Tree contract: LightGBM 100, XGBoost 100, CatBoost 1000, HistGBT 100; fixed model_seed=42; no validation split and no early stopping.
+- TabPFN: n_estimators=8; no task-specific weight-update early stopping.
+- Evaluation: identical canonical odd-building natural-prevalence holdout.
+- Matched-context gate: passed for all 20 seed/K pairs.
 
-The manifest role column is diagnostic metadata only. V2 fits trees on all K selected buildings and does not create an early-stop subset.
+## Sampling records
 
-## Sampling audit already completed
+| building_seed | K | sampling_attempt | attempts_used | constraint_pass | reproducibility_digest |
+|---|---|---|---|---|---|
+| 42 | 10 | 8 | 9 | True | b7ef075724ac3377788bb6fc1c48aa80c24a8bd4d052d4a68766a7219115524a |
+| 42 | 20 | 8 | 9 | True | 61b1c3085303f9f6fc7f132bcd24b23a29dab8e6f006441d3c099e1a465755c4 |
+| 42 | 50 | 8 | 9 | True | a32746bf4dc71ca6b7a3df6806052d0a1f70301c41dbd98a44edd5e3da6b4dcd |
+| 42 | 100 | 8 | 9 | True | 0c388f30d1d5c8e198ab68e67d67ea3edc2bf66eca541d06444ada532d226657 |
+| 43 | 10 | 7 | 8 | True | 452bed9f8bbf9d5ed3e73a5538ef81b282f6f55c5bb2c2e37bc2b0c2f0d685f6 |
+| 43 | 20 | 7 | 8 | True | edc3342004951da4b8ea176688d0ef96bc5dc767a73b3dd26b62b836a3280533 |
+| 43 | 50 | 7 | 8 | True | 136bd7d7cb3a649f6ee8c95daf08b08a105b6b859c43191c348a5817d0aed43a |
+| 43 | 100 | 7 | 8 | True | f35c0144fe61b153beaf947dbad1163cf7cdc007a31cf2746705002fefdf3728 |
+| 44 | 10 | 7 | 8 | True | b7addce65d0a717e30edd8e0211766907853d6ee0f4bd51f292ee4e3c85e7e7d |
+| 44 | 20 | 7 | 8 | True | 45e543d9060ada3f6fa4dadaefefb34ff4318c711ad013c651d83205f183a02c |
+| 44 | 50 | 7 | 8 | True | 97f4d28d2165eb4b0e80f4803152f6cfa762f05ef58066546bf84b9129d24186 |
+| 44 | 100 | 7 | 8 | True | ff0158882216b8fd379f6b420690c1f0142c65d3a4ef5bee88c45d01111401fa |
+| 45 | 10 | 7 | 8 | True | 4bb2103ece4a87c0e661711d8c981fd15537bfd0df8ca8428840cd128dcd30cb |
+| 45 | 20 | 7 | 8 | True | c219835b15a4310fa883debfc4714528d92192ae65734f438910655a4fa1881b |
+| 45 | 50 | 7 | 8 | True | af2992d71aa6f0057f2d7bf813689158a56f70467a30592fb4e29ff8002fa427 |
+| 45 | 100 | 7 | 8 | True | 545cc2c5e722e12da72092a7bd0d85f7c84c9ec833c2560a009aaf1f0d1c30ff |
+| 46 | 10 | 22 | 23 | True | ead42107d41ec80563dbbe0782a093e128fdcf89e2f7e677fa49d4bf74608814 |
+| 46 | 20 | 22 | 23 | True | f5573ea471fb621577ece6bd8d4b21de4a8f379547b42b420c0af83a10f7c5ab |
+| 46 | 50 | 22 | 23 | True | 3f16604a96a428723a2a811b0ed1c91c99679fc86cdf80c46810f4884dea11ef |
+| 46 | 100 | 22 | 23 | True | 35c694a38f83e37dce51b48dfab07271b20b971273fa3f0b7bdfaaa60293e0d0 |
 
-All 20 seed/K prefixes passed the meter constraints and all five draws are distinct at every K.
+Full building IDs, site counts, per-meter source-building counts and digests: data/processed/m5_building_curve/sensitivity/building_candidate_pilot/sampling_prefix_audit.csv.
 
-| building_seed | accepted attempt (zero-based) | attempts used | K10 digest | K20 digest | K50 digest | K100 digest |
-|---:|---:|---:|---|---|---|---|
-| 42 | 8 | 9 | b7ef075724ac… | 61b1c3085303… | a32746bf4dc7… | 0c388f30d1d5… |
-| 43 | 7 | 8 | 452bed9f8bbf… | edc334200495… | 136bd7d7cb3a… | f35c0144fe61… |
-| 44 | 7 | 8 | b7addce65d0a… | 45e543d9060a… | 97f4d28d2165… | ff0158882216… |
-| 45 | 7 | 8 | 4bb2103ece4a… | c219835b15a4… | af2992d71aa6… | 545cc2c5e722… |
-| 46 | 22 | 23 | ead42107d41e… | f5573ea471fb… | 3f16604a96a4… | 35c694a38f83… |
+## Cross-seed overall results
 
-Machine-readable records:
+| model | building_budget | n_building_seeds | pr_auc_mean | pr_auc_std | pr_auc_min | pr_auc_max | roc_auc_mean | roc_auc_std |
+|---|---|---|---|---|---|---|---|---|
+| ensemble | 10 | 5 | 0.759397 | 0.065109 | 0.673867 | 0.828712 | 0.971859 | 0.006836 |
+| ensemble | 20 | 5 | 0.710646 | 0.099976 | 0.564427 | 0.800865 | 0.968943 | 0.013505 |
+| ensemble | 50 | 5 | 0.798740 | 0.031949 | 0.760378 | 0.841498 | 0.977537 | 0.005389 |
+| ensemble | 100 | 5 | 0.863657 | 0.024056 | 0.833187 | 0.899520 | 0.984370 | 0.002221 |
+| tabpfn | 10 | 5 | 0.722049 | 0.031490 | 0.687507 | 0.763260 | 0.968159 | 0.005138 |
+| tabpfn | 20 | 5 | 0.705693 | 0.054063 | 0.654403 | 0.777562 | 0.968033 | 0.006751 |
+| tabpfn | 50 | 5 | 0.755926 | 0.068302 | 0.677478 | 0.831862 | 0.976659 | 0.003104 |
+| tabpfn | 100 | 5 | 0.839677 | 0.028518 | 0.796319 | 0.872776 | 0.980453 | 0.003408 |
 
-- Full building IDs, site counts, per-meter source-building counts, pass/fail and full digests: `data/processed/m5_building_curve/sensitivity/building_candidate_pilot/sampling_prefix_audit.csv`.
-- One ladder CSV and JSON manifest per seed: `data/processed/m5_building_curve/sensitivity/building_candidate_pilot/building_ladder_seed{seed}.{csv,json}`.
-- Sampling summary: `data/processed/m5_building_curve/sensitivity/building_candidate_pilot/summary.json`.
-- Post-selection composition diagnostics: `data/processed/m5_building_curve/sensitivity/building_candidate_pilot/composition_audit.csv`.
+## Per-seed overall results
 
-## Run census
+| model | K | building_seed | pr_auc | roc_auc |
+|---|---|---|---|---|
+| ensemble | 10 | 42 | 0.828712 | 0.974761 |
+| ensemble | 10 | 43 | 0.673867 | 0.967551 |
+| ensemble | 10 | 44 | 0.801459 | 0.978415 |
+| ensemble | 10 | 45 | 0.783444 | 0.976483 |
+| ensemble | 10 | 46 | 0.709506 | 0.962084 |
+| ensemble | 20 | 42 | 0.781904 | 0.974136 |
+| ensemble | 20 | 43 | 0.651699 | 0.968799 |
+| ensemble | 20 | 44 | 0.754335 | 0.975951 |
+| ensemble | 20 | 45 | 0.800865 | 0.979955 |
+| ensemble | 20 | 46 | 0.564427 | 0.945874 |
+| ensemble | 50 | 42 | 0.841498 | 0.983131 |
+| ensemble | 50 | 43 | 0.802587 | 0.979386 |
+| ensemble | 50 | 44 | 0.775459 | 0.973420 |
+| ensemble | 50 | 45 | 0.813778 | 0.981305 |
+| ensemble | 50 | 46 | 0.760378 | 0.970443 |
+| ensemble | 100 | 42 | 0.899520 | 0.986899 |
+| ensemble | 100 | 43 | 0.856368 | 0.982424 |
+| ensemble | 100 | 44 | 0.859844 | 0.984624 |
+| ensemble | 100 | 45 | 0.869366 | 0.986091 |
+| ensemble | 100 | 46 | 0.833187 | 0.981814 |
+| tabpfn | 10 | 42 | 0.731425 | 0.963171 |
+| tabpfn | 10 | 43 | 0.693309 | 0.966330 |
+| tabpfn | 10 | 44 | 0.763260 | 0.975056 |
+| tabpfn | 10 | 45 | 0.734746 | 0.971977 |
+| tabpfn | 10 | 46 | 0.687507 | 0.964259 |
+| tabpfn | 20 | 42 | 0.743220 | 0.970135 |
+| tabpfn | 20 | 43 | 0.654403 | 0.956288 |
+| tabpfn | 20 | 44 | 0.696626 | 0.972342 |
+| tabpfn | 20 | 45 | 0.777562 | 0.972589 |
+| tabpfn | 20 | 46 | 0.656653 | 0.968812 |
+| tabpfn | 50 | 42 | 0.831862 | 0.981946 |
+| tabpfn | 50 | 43 | 0.689758 | 0.975893 |
+| tabpfn | 50 | 44 | 0.677478 | 0.974382 |
+| tabpfn | 50 | 45 | 0.791562 | 0.974468 |
+| tabpfn | 50 | 46 | 0.788973 | 0.976605 |
+| tabpfn | 100 | 42 | 0.872776 | 0.984554 |
+| tabpfn | 100 | 43 | 0.830886 | 0.975376 |
+| tabpfn | 100 | 44 | 0.852266 | 0.982142 |
+| tabpfn | 100 | 45 | 0.846139 | 0.980713 |
+| tabpfn | 100 | 46 | 0.796319 | 0.979479 |
 
-| item | expected | current |
-|---|---:|---:|
-| building seeds | 5 | 5 audited |
-| K budgets per seed | 4 | 4 audited |
-| model families | 2 | pipeline prepared |
-| total model cells | 40 | 0 formally run |
-| matched-context seed/K gates | 20 | pending model artifacts |
-| aggregate report | 1 | pending complete sweep |
+## Detailed outputs
 
-No validation or formal metric is claimed in this document yet.
+- Raw metrics: data/processed/m5_building_curve/v2/building_seed_sweep_42-43-44-45-46/aggregate/metrics.csv.
+- Cross-seed summary: data/processed/m5_building_curve/v2/building_seed_sweep_42-43-44-45-46/aggregate/building_seed_summary.csv.
+- ROC/PR curve points: data/processed/m5_building_curve/v2/building_seed_sweep_42-43-44-45-46/aggregate/curves.csv.
+- Matched-context gate: data/processed/m5_building_curve/v2/building_seed_sweep_42-43-44-45-46/matched_context_gate.json.
+- Sampling composition diagnostics: data/processed/m5_building_curve/sensitivity/building_candidate_pilot/composition_audit.csv.
 
-## Overall performance across building draws
-
-This table is populated only after all five raw seed results exist for every model/K.
-
-| model | K | n_building_seeds | PR-AUC mean | PR-AUC SD | PR-AUC min | PR-AUC max | ROC-AUC mean | ROC-AUC SD |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| TabPFN | 10 | pending | pending | pending | pending | pending | pending | pending |
-| TabPFN | 20 | pending | pending | pending | pending | pending | pending | pending |
-| TabPFN | 50 | pending | pending | pending | pending | pending | pending | pending |
-| TabPFN | 100 | pending | pending | pending | pending | pending | pending | pending |
-| ensemble | 10 | pending | pending | pending | pending | pending | pending | pending |
-| ensemble | 20 | pending | pending | pending | pending | pending | pending | pending |
-| ensemble | 50 | pending | pending | pending | pending | pending | pending | pending |
-| ensemble | 100 | pending | pending | pending | pending | pending | pending | pending |
-
-The final report will also retain one raw overall result per building seed and the full per-meter/per-site rows. Means never replace raw results.
-
-## Required matched-context record
-
-Before aggregation, each of the 20 seed/K pairs must record and pass:
-
-| field | tree vs TabPFN requirement |
-|---|---|
-| context row count | equal |
-| context row SHA-256 | equal |
-| row policy / row seed | equal |
-| model seed | equal |
-| holdout row SHA-256 | equal |
-| holdout raw indices | array-identical |
-| holdout labels | array-identical |
-| holdout building/site/meter | array-identical |
-
-The completed gate is written to:
-
-```text
-data/processed/m5_building_curve/v2/
-  building_seed_sweep_42-43-44-45-46/
-  matched_context_gate.json
-```
-
-## Result artifact schema
-
-Raw and aggregate V2 artifacts are isolated under:
-
-```text
-data/processed/m5_building_curve/v2/
-  building_seed_sweep_42-43-44-45-46/
-    model_runs/building_seed{seed}/
-      tree_no_es_k{K}_f137/
-      tabpfn_k{K}_f137/
-    aggregate/
-      metrics.csv
-      curves.csv
-      building_seed_summary.csv
-```
-
-Each cell stores provenance, fit/checkpoint state, prediction chunks, `predictions.npz`, `cell.json`, heartbeat and `COMPLETE.json`. The artifact identity contains `building_seed`, so independent draws cannot overwrite one another.
-
-## Commands
-
-Plan only; this does not load data or start a model:
-
-```bash
-.venv/bin/python scripts/run_m5_building_count_v2.py --mode plan
-```
-
-Small non-scientific pipeline validation:
-
-```bash
-.venv/bin/python scripts/run_m5_building_count_v2.py \
-  --mode validation \
-  --validation-context-rows 200 \
-  --validation-holdout-rows 200
-```
-
-Formal 40-cell sweep:
-
-```bash
-.venv/bin/python scripts/run_m5_building_count_v2.py --mode formal
-```
-
-The orchestrator resumes compatible partial cells, runs the matched-context gate, generates raw and cross-seed aggregates, and then replaces this prepared template with an artifact-derived completed report through [update_m5_building_count_v2_report.py](../../scripts/update_m5_building_count_v2_report.py).
-
-## Authorized overnight execution
-
-The detached multi-day queue uses this pair order:
-
-```text
-42/K10, 42/K20, 42/K50, 42/K100,
-43/K10, 44/K10, 45/K10, 46/K10,
-43/K20, 44/K20, 45/K20, 46/K20,
-43/K50, 44/K50, 45/K50, 46/K50,
-43/K100, 44/K100, 45/K100, 46/K100
-```
-
-The operational entry point is
-[run_m5_building_count_v2_overnight.py](../../scripts/run_m5_building_count_v2_overnight.py),
-guarded by
-[ensure_m5_building_count_v2_overnight.sh](../../scripts/ensure_m5_building_count_v2_overnight.sh).
-It uses resume-compatible cell checkpoints, three attempts per model unit,
-bounded GPU waits, bounded Git-push retries and failed-stage markers. Exhausted
-units are skipped so later pairs can continue. After each pair,
-[update_m5_building_count_v2_progress.py](../../scripts/update_m5_building_count_v2_progress.py)
-updates this tracked report and the supervisor commits/pushes it. The full
-artifact-derived report is generated only after all 40 cells pass.
-
-<!-- BEGIN M5 BUILDING COUNT V2 RUN PROGRESS -->
-
-## Overnight formal-run progress
-
-- Last update: 2026-08-15T12:17:04+08:00.
-- Last checkpointed pair: building_seed46_k100.
-- Completed seed/K pairs: 20/20.
-- Failed/skipped seed/K pairs: 0.
-- A pair is complete only after both frozen no-ES trees and TabPFN finish.
-- Raw model artifacts remain under the ignored V2 data root; this tracked table is committed and pushed after each completed pair.
-
-| order | building_seed | K | status | tree | TabPFN | ensemble PR-AUC | ensemble ROC-AUC | TabPFN PR-AUC | TabPFN ROC-AUC |
-|---:|---:|---:|---|---|---|---:|---:|---:|---:|
-| 1 | 42 | 10 | complete | yes | yes | 0.828712 | 0.974761 | 0.731425 | 0.963171 |
-| 2 | 42 | 20 | complete | yes | yes | 0.781904 | 0.974136 | 0.743220 | 0.970135 |
-| 3 | 42 | 50 | complete | yes | yes | 0.841498 | 0.983131 | 0.831862 | 0.981946 |
-| 4 | 42 | 100 | complete | yes | yes | 0.899520 | 0.986899 | 0.872776 | 0.984554 |
-| 5 | 43 | 10 | complete | yes | yes | 0.673867 | 0.967551 | 0.693309 | 0.966330 |
-| 6 | 44 | 10 | complete | yes | yes | 0.801459 | 0.978415 | 0.763260 | 0.975056 |
-| 7 | 45 | 10 | complete | yes | yes | 0.783444 | 0.976483 | 0.734746 | 0.971977 |
-| 8 | 46 | 10 | complete | yes | yes | 0.709506 | 0.962084 | 0.687507 | 0.964259 |
-| 9 | 43 | 20 | complete | yes | yes | 0.651699 | 0.968799 | 0.654403 | 0.956288 |
-| 10 | 44 | 20 | complete | yes | yes | 0.754335 | 0.975951 | 0.696626 | 0.972342 |
-| 11 | 45 | 20 | complete | yes | yes | 0.800865 | 0.979955 | 0.777562 | 0.972589 |
-| 12 | 46 | 20 | complete | yes | yes | 0.564427 | 0.945874 | 0.656653 | 0.968812 |
-| 13 | 43 | 50 | complete | yes | yes | 0.802587 | 0.979386 | 0.689758 | 0.975893 |
-| 14 | 44 | 50 | complete | yes | yes | 0.775459 | 0.973420 | 0.677478 | 0.974382 |
-| 15 | 45 | 50 | complete | yes | yes | 0.813778 | 0.981305 | 0.791562 | 0.974468 |
-| 16 | 46 | 50 | complete | yes | yes | 0.760378 | 0.970443 | 0.788973 | 0.976605 |
-| 17 | 43 | 100 | complete | yes | yes | 0.856368 | 0.982424 | 0.830886 | 0.975376 |
-| 18 | 44 | 100 | complete | yes | yes | 0.859844 | 0.984624 | 0.852266 | 0.982142 |
-| 19 | 45 | 100 | complete | yes | yes | 0.869366 | 0.986091 | 0.846139 | 0.980713 |
-| 20 | 46 | 100 | complete | yes | yes | 0.833187 | 0.981814 | 0.796319 | 0.979479 |
-
-<!-- END M5 BUILDING COUNT V2 RUN PROGRESS -->
+Per-meter and per-site rows remain in metrics.csv; raw per-seed results are preserved and are not replaced by the mean.
