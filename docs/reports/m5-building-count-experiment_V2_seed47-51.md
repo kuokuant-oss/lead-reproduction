@@ -4,3 +4,39 @@
 
 This report is updated atomically by the dedicated seed 47–51 overnight
 supervisor after each completed seed/K pair.
+
+<!-- BEGIN M5 BUILDING COUNT V2 RUN PROGRESS -->
+
+## Overnight formal-run progress
+
+- Last update: 2026-08-15T19:59:22+08:00.
+- Last checkpointed pair: building_seed47_k10.
+- Completed seed/K pairs: 1/20.
+- Failed/skipped seed/K pairs: 0.
+- A pair is complete only after both frozen no-ES trees and TabPFN finish.
+- Raw model artifacts remain under the ignored V2 data root; this tracked table is committed and pushed after each completed pair.
+
+| order | building_seed | K | status | tree | TabPFN | ensemble PR-AUC | ensemble ROC-AUC | TabPFN PR-AUC | TabPFN ROC-AUC |
+|---:|---:|---:|---|---|---|---:|---:|---:|---:|
+| 1 | 47 | 10 | complete | yes | yes | 0.652136 | 0.966831 | 0.772950 | 0.976854 |
+| 2 | 47 | 20 | pending | no | no |  |  |  |  |
+| 3 | 47 | 50 | pending | no | no |  |  |  |  |
+| 4 | 47 | 100 | pending | no | no |  |  |  |  |
+| 5 | 48 | 10 | pending | no | no |  |  |  |  |
+| 6 | 49 | 10 | pending | no | no |  |  |  |  |
+| 7 | 50 | 10 | pending | no | no |  |  |  |  |
+| 8 | 51 | 10 | pending | no | no |  |  |  |  |
+| 9 | 48 | 20 | pending | no | no |  |  |  |  |
+| 10 | 49 | 20 | pending | no | no |  |  |  |  |
+| 11 | 50 | 20 | pending | no | no |  |  |  |  |
+| 12 | 51 | 20 | pending | no | no |  |  |  |  |
+| 13 | 48 | 50 | pending | no | no |  |  |  |  |
+| 14 | 49 | 50 | pending | no | no |  |  |  |  |
+| 15 | 50 | 50 | pending | no | no |  |  |  |  |
+| 16 | 51 | 50 | pending | no | no |  |  |  |  |
+| 17 | 48 | 100 | pending | no | no |  |  |  |  |
+| 18 | 49 | 100 | pending | no | no |  |  |  |  |
+| 19 | 50 | 100 | pending | no | no |  |  |  |  |
+| 20 | 51 | 100 | pending | no | no |  |  |  |  |
+
+<!-- END M5 BUILDING COUNT V2 RUN PROGRESS -->
