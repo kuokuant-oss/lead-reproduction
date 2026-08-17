@@ -222,6 +222,44 @@ class TestM5BuildingCountV3Scheduler(unittest.TestCase):
         expected = len(BUILDING_SEEDS) * len(BUDGETS)
         self.assertNotEqual(len([]), expected)
 
+    def test_pair_checkpoint_is_atomic_and_blocks_a_failed_pair(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            units = [
+                write_complete(root / family, model=family)
+                for family in ("tree", "tabpfn")
+            ]
+            with patch.object(
+                scheduler,
+                "matched_context_gate",
+                return_value=[{"building_seed": 42, "K": 10, "passed": True}],
+            ):
+                self.assertTrue(
+                    scheduler._checkpoint_pair(
+                        supervisor=root / "supervisor",
+                        status_path=root / "status.json",
+                        units=units,
+                        pair_units=units,
+                        mode="validation",
+                        durations=[],
+                    )
+                )
+            gate = root / "supervisor/pair_gates/building_seed42_k10.json"
+            self.assertTrue(gate.is_file())
+            self.assertTrue(json.loads(gate.read_text(encoding="utf-8"))["passed"])
+            with patch.object(scheduler, "matched_context_gate", return_value=[]):
+                self.assertFalse(
+                    scheduler._checkpoint_pair(
+                        supervisor=root / "supervisor",
+                        status_path=root / "status.json",
+                        units=units,
+                        pair_units=units,
+                        mode="validation",
+                        durations=[],
+                    )
+                )
+            self.assertTrue((root / "supervisor/FAILED.json").is_file())
+
     def test_atomic_status_write_leaves_no_temporary_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "status.json"

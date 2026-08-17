@@ -417,6 +417,49 @@ def _status_payload(
     }
 
 
+def _checkpoint_pair(
+    *,
+    supervisor: Path,
+    status_path: Path,
+    units: list[dict[str, Any]],
+    pair_units: list[dict[str, Any]],
+    mode: str,
+    durations: list[float],
+) -> bool:
+    identity = pair_units[0]["identity"]
+    seed = int(identity["building_seed"])
+    budget = int(identity["K"])
+    stage = f"building_seed{seed}_k{budget}"
+    try:
+        records = matched_context_gate(pair_units, mode=mode)
+        if len(records) != 1 or records[0].get("passed") is not True:
+            raise AssertionError(f"V3 pair gate did not pass: {stage}")
+        payload = {
+            "experiment_version": EXPERIMENT_VERSION,
+            "mode": mode,
+            "stage": stage,
+            "passed": True,
+            "record": records[0],
+            "timestamp": time.time(),
+        }
+        _atomic_json(supervisor / "pair_gates" / f"{stage}.json", payload)
+        _event(supervisor, "pair_gate_passed", **payload)
+        return True
+    except Exception as error:  # Control boundary records gate diagnostics.
+        failure = _status_payload(
+            units,
+            mode=mode,
+            status="failed",
+            durations=durations,
+            failed_pair=stage,
+            reason=f"{type(error).__name__}: {error}",
+        )
+        _atomic_json(status_path, failure)
+        _atomic_json(supervisor / "FAILED.json", failure)
+        _event(supervisor, "pair_gate_failed", **failure)
+        return False
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     training_gate = verify_training_context_gate(args.audit_root)
@@ -457,6 +500,15 @@ def main(argv: list[str] | None = None) -> int:
     for index, unit in enumerate(units, start=1):
         if complete(unit, mode=args.mode):
             _event(supervisor, "unit_reused", index=index, identity=unit["identity"])
+            if index % len(FAMILIES) == 0 and not _checkpoint_pair(
+                supervisor=supervisor,
+                status_path=status_path,
+                units=units,
+                pair_units=units[index - len(FAMILIES) : index],
+                mode=args.mode,
+                durations=durations,
+            ):
+                return 3
             continue
         status = _status_payload(
             units,
@@ -500,6 +552,15 @@ def main(argv: list[str] | None = None) -> int:
             identity=unit["identity"],
             elapsed_seconds=elapsed,
         )
+        if index % len(FAMILIES) == 0 and not _checkpoint_pair(
+            supervisor=supervisor,
+            status_path=status_path,
+            units=units,
+            pair_units=units[index - len(FAMILIES) : index],
+            mode=args.mode,
+            durations=durations,
+        ):
+            return 3
 
     records = matched_context_gate(units, mode=args.mode)
     expected = len(BUILDING_SEEDS) * len(BUDGETS)
