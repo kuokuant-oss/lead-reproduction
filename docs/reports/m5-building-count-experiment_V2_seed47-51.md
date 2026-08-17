@@ -9,9 +9,9 @@ supervisor after each completed seed/K pair.
 
 ## Overnight formal-run progress
 
-- Last update: 2026-08-17T00:01:59+08:00.
-- Last checkpointed pair: building_seed51_k20.
-- Completed seed/K pairs: 10/20.
+- Last update: 2026-08-17T08:40:00+08:00.
+- Last checkpointed pair: building_seed47_k50.
+- Completed seed/K pairs: 11/20.
 - Failed/skipped seed/K pairs: 0.
 - A pair is complete only after both frozen no-ES trees and TabPFN finish.
 - Raw model artifacts remain under the ignored V2 data root; this tracked table is committed and pushed after each completed pair.
@@ -20,7 +20,7 @@ supervisor after each completed seed/K pair.
 |---:|---:|---:|---|---|---|---:|---:|---:|---:|
 | 1 | 47 | 10 | complete | yes | yes | 0.652136 | 0.966831 | 0.772950 | 0.976854 |
 | 2 | 47 | 20 | complete | yes | yes | 0.622572 | 0.966217 | 0.699926 | 0.977801 |
-| 3 | 47 | 50 | pending | no | no |  |  |  |  |
+| 3 | 47 | 50 | complete | yes | yes | 0.813780 | 0.981332 | 0.815629 | 0.981627 |
 | 4 | 47 | 100 | pending | no | no |  |  |  |  |
 | 5 | 48 | 10 | complete | yes | yes | 0.688414 | 0.977426 | 0.655679 | 0.974740 |
 | 6 | 49 | 10 | complete | yes | yes | 0.759531 | 0.972063 | 0.731320 | 0.970013 |
