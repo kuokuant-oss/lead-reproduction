@@ -29,6 +29,13 @@ from m5_building_curve_protocol import (
     manifest_building_seed,
     resolve_cell_indices,
 )
+from m5_building_count_v3_protocol import (
+    CLASS_RATIO_POLICY,
+    EXPERIMENT_VERSION as V3_EXPERIMENT_VERSION,
+    TRAINING_CONTEXT_POLICY,
+    load_balanced_context,
+    verify_context_against_frame,
+)
 from run_m5_tabpfn_canonical_full_test import (
     DEFAULT_SITE_PREDICTIONS,
     atomic_joblib_dump,
@@ -68,13 +75,17 @@ def _building_seed_tag(path: Path) -> str:
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--building-manifest", type=Path, required=True)
+    parser.add_argument("--balanced-context-manifest", type=Path)
     parser.add_argument("--building-budget", type=int, required=True)
     parser.add_argument("--features", type=int, choices=(17, 137), default=137)
     parser.add_argument("--n-estimators", type=int, default=8)
     parser.add_argument(
         "--model-seed", "--seed", dest="model_seed", type=int, default=42
     )
-    parser.add_argument("--experiment-version", choices=("m5_building_count_v2",))
+    parser.add_argument(
+        "--experiment-version",
+        choices=("m5_building_count_v2", V3_EXPERIMENT_VERSION),
+    )
     parser.add_argument("--model-path", type=Path, default=default_model_path())
     parser.add_argument("--query-microbatch-size", type=int, default=4096)
     parser.add_argument("--checkpoint-rows", type=int, default=20_000)
@@ -98,6 +109,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             raise ValueError("validation mode requires context and holdout row caps")
     elif args.max_context_rows is not None or args.max_holdout_rows is not None:
         raise ValueError("row caps are only allowed in validation mode")
+    if (args.experiment_version == V3_EXPERIMENT_VERSION) != (
+        args.balanced_context_manifest is not None
+    ):
+        raise ValueError("V3 requires exactly one balanced-context manifest")
     tag = f"{_building_seed_tag(args.building_manifest)}_k{args.building_budget}_f{args.features}"
     if args.out_root is None:
         base = PROC / "m5_building_curve"
@@ -173,8 +188,25 @@ def _predict(model: Any, matrix: np.ndarray, batch_size: int) -> np.ndarray:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    manifest = json.loads(args.building_manifest.read_text(encoding="utf-8"))
-    building_seed = manifest_building_seed(manifest)
+    v3_context = None
+    if args.balanced_context_manifest is not None:
+        v3_context = load_balanced_context(
+            args.balanced_context_manifest, args.building_budget
+        )
+        manifest = v3_context.source_manifest
+        building_seed = v3_context.building_seed
+        sampling_manifest = v3_context.manifest
+        if (
+            v3_context.source_manifest_path.resolve()
+            != args.building_manifest.resolve()
+        ):
+            raise SystemExit(
+                "V3 source building manifest path differs from pinned input"
+            )
+    else:
+        manifest = json.loads(args.building_manifest.read_text(encoding="utf-8"))
+        building_seed = manifest_building_seed(manifest)
+        sampling_manifest = manifest
     seeded_sensitivity = manifest.get("experiment") in {
         "m5_building_candidate_sensitivity_pilot",
         "m5_building_source_sampling_sensitivity",
@@ -182,7 +214,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.experiment_version == "m5_building_count_v2":
         if manifest.get("sampling_profile") != SAMPLING_PROFILE:
             raise SystemExit(f"V2 requires sampling_profile={SAMPLING_PROFILE!r}")
-    if seeded_sensitivity or args.experiment_version == "m5_building_count_v2":
+    if seeded_sensitivity or args.experiment_version in {
+        "m5_building_count_v2",
+        V3_EXPERIMENT_VERSION,
+    }:
         if building_seed is None:
             raise SystemExit("seeded manifest lacks building_seed identity")
         if f"building_seed{building_seed}" not in str(args.out_root):
@@ -195,7 +230,8 @@ def main(argv: list[str] | None = None) -> int:
             "building-count TabPFN cells use the preserved 137-feature pipeline"
         )
     print(
-        f"K={args.building_budget}: TabPFN context buildings="
+        f"{args.experiment_version or 'building_curve'} K={args.building_budget}: "
+        "TabPFN context buildings="
         f"{len(cell['available_buildings'])}; early stopping=not applicable",
         flush=True,
     )
@@ -212,15 +248,23 @@ def main(argv: list[str] | None = None) -> int:
     args.out_root.mkdir(parents=True, exist_ok=True)
     frame = load_m3_frame(verbose=True)
     train_mask = frame["building_id"].mod(2).eq(0).to_numpy()
-    resolved = resolve_cell_indices(
-        frame.loc[train_mask],
-        manifest,
-        args.building_budget,
-        require_role_class_coverage=(args.experiment_version != "m5_building_count_v2"),
-    )
+    if v3_context is not None:
+        verify_context_against_frame(v3_context, frame)
+        resolved = {"available_buildings": v3_context.selected_buildings}
+        source_rows = v3_context.raw_index
+    else:
+        resolved = resolve_cell_indices(
+            frame.loc[train_mask],
+            manifest,
+            args.building_budget,
+            require_role_class_coverage=(
+                args.experiment_version != "m5_building_count_v2"
+            ),
+        )
+        source_rows = resolved["available_rows"]
     context_index = _bounded_rows(
         frame,
-        resolved["available_rows"],
+        source_rows,
         args.max_context_rows,
         seed=args.model_seed + 1,
     )
@@ -255,13 +299,31 @@ def main(argv: list[str] | None = None) -> int:
     if frame.loc[holdout_index, "building_id"].mod(2).eq(0).any():
         raise AssertionError("TabPFN holdout contains an even training building")
     holdout_meter = frame.loc[holdout_index, "meter"].to_numpy(dtype="int8")
+    context_labels = frame.loc[context_index, "anomaly"].to_numpy(dtype="int8")
+    if v3_context is not None and not (
+        int((context_labels == 1).sum())
+        == int((context_labels == 0).sum())
+        == len(context_labels) // 2
+    ):
+        raise AssertionError("V3 TabPFN context is not exactly 50:50")
+    context_label_sha256 = hashlib.sha256(context_labels.tobytes()).hexdigest()
+    del context_labels
 
+    provenance_manifest = (
+        args.balanced_context_manifest
+        if v3_context is not None
+        else args.building_manifest
+    )
     provenance = {
         "mode": "FORMAL" if args.mode == "formal" else "NON_SCIENTIFIC_VALIDATION",
-        "manifest": str(args.building_manifest.resolve()),
-        "manifest_sha256": _sha256_file(args.building_manifest),
-        "sampling_profile": manifest["sampling_profile"],
-        "row_policy": manifest.get("row_policy", "all_rows"),
+        "manifest": str(provenance_manifest.resolve()),
+        "manifest_sha256": _sha256_file(provenance_manifest),
+        "sampling_profile": sampling_manifest["sampling_profile"],
+        "row_policy": (
+            "frozen_balanced_context_artifact"
+            if v3_context is not None
+            else manifest.get("row_policy", "all_rows")
+        ),
         "average_rows_per_building_limit": manifest.get(
             "average_rows_per_building_limit"
         ),
@@ -269,7 +331,10 @@ def main(argv: list[str] | None = None) -> int:
         "building_budget": args.building_budget,
         "features": args.features,
         "building_seed": building_seed,
-        "row_seed": manifest.get("row_seed", manifest.get("row_selection_seed")),
+        "row_seed": sampling_manifest.get(
+            "balance_seed",
+            manifest.get("row_seed", manifest.get("row_selection_seed")),
+        ),
         "role_seed": manifest.get("role_seed"),
         "model_seed": args.model_seed,
         "seed": args.model_seed,
@@ -293,8 +358,29 @@ def main(argv: list[str] | None = None) -> int:
         provenance.update(
             {
                 "experiment_version": args.experiment_version,
-                "training_sampling": "exact_manifest_available_rows_no_resampling",
-                "class_ratio_policy": "natural_prevalence_of_manifest_available_rows",
+                "training_sampling": (
+                    TRAINING_CONTEXT_POLICY
+                    if v3_context is not None
+                    else "exact_manifest_available_rows_no_resampling"
+                ),
+                "class_ratio_policy": (
+                    CLASS_RATIO_POLICY
+                    if v3_context is not None
+                    else "natural_prevalence_of_manifest_available_rows"
+                ),
+            }
+        )
+    if v3_context is not None:
+        provenance.update(
+            {
+                "source_building_manifest": str(args.building_manifest.resolve()),
+                "source_building_manifest_sha256": _sha256_file(args.building_manifest),
+                "context_label_sha256": context_label_sha256,
+                "validation_feature_scope": (
+                    "bounded_context_and_holdout_rows"
+                    if args.mode == "validation"
+                    else "complete_selected_building_histories"
+                ),
             }
         )
     provenance_path = args.out_root / "provenance.json"
@@ -306,10 +392,17 @@ def main(argv: list[str] | None = None) -> int:
 
     print("Building timestamp-merge features for even context buildings", flush=True)
     selected_buildings = resolved["available_buildings"]
-    selected_mask = frame["building_id"].isin(selected_buildings)
-    train_features = build_features_keeping_index(frame.loc[selected_mask].copy())
+    if v3_context is not None and args.mode == "validation":
+        feature_source = frame.loc[np.unique(context_index)].copy()
+    else:
+        selected_mask = frame["building_id"].isin(selected_buildings)
+        feature_source = frame.loc[selected_mask].copy()
+    train_features = build_features_keeping_index(feature_source)
     columns = feature_columns(args.features, list(train_features.columns))
     x_context = train_features.loc[context_index, columns].to_numpy(dtype="float32")
+    context_feature_matrix_sha256 = hashlib.sha256(
+        np.ascontiguousarray(x_context).tobytes()
+    ).hexdigest()
     y_context = frame.loc[context_index, "anomaly"].to_numpy(dtype="int64")
     del train_features
     gc.collect()
@@ -358,7 +451,11 @@ def main(argv: list[str] | None = None) -> int:
     gc.collect()
 
     print("Building timestamp-merge features for odd canonical holdout", flush=True)
-    holdout_features = build_features_keeping_index(frame.loc[~train_mask].copy())
+    if v3_context is not None and args.mode == "validation":
+        holdout_source = frame.loc[np.unique(holdout_index)].copy()
+    else:
+        holdout_source = frame.loc[~train_mask].copy()
+    holdout_features = build_features_keeping_index(holdout_source)
     del frame
     gc.collect()
     spans = [
@@ -422,11 +519,18 @@ def main(argv: list[str] | None = None) -> int:
         {
             "schema_version": 2 if args.experiment_version else 1,
             "experiment": (
-                "m5_building_count_v2_tabpfn_cell"
+                "m5_building_count_v3_balanced_context_tabpfn_cell"
+                if v3_context is not None
+                else "m5_building_count_v2_tabpfn_cell"
                 if args.experiment_version == "m5_building_count_v2"
                 else "m5_building_count_curve_tabpfn_cell"
             ),
             **provenance,
+            **(
+                {"context_feature_matrix_sha256": context_feature_matrix_sha256}
+                if v3_context is not None
+                else {}
+            ),
             "score_names": ["tabpfn"],
             "available_buildings": len(cell["available_buildings"]),
             "tree_fit_buildings_reference": len(cell["tree_fit_buildings"]),

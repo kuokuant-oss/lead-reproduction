@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import gc
+import hashlib
 import json
 import time
 from pathlib import Path
@@ -23,6 +24,13 @@ from m5_building_curve_protocol import (
     int_array_sha256,
     manifest_building_seed,
     resolve_cell_indices,
+)
+from m5_building_count_v3_protocol import (
+    CLASS_RATIO_POLICY,
+    EXPERIMENT_VERSION as V3_EXPERIMENT_VERSION,
+    TRAINING_CONTEXT_POLICY,
+    load_balanced_context,
+    verify_context_against_frame,
 )
 from run_m3_figure_observations import (
     MODEL_ORDER,
@@ -67,6 +75,7 @@ def _building_seed_tag(path: Path) -> str:
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--building-manifest", type=Path, required=True)
+    parser.add_argument("--balanced-context-manifest", type=Path)
     parser.add_argument("--building-budget", type=int, required=True)
     parser.add_argument("--features", type=int, choices=(137,), default=137)
     parser.add_argument(
@@ -164,14 +173,33 @@ def _ensemble_probabilities(
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    manifest = json.loads(args.building_manifest.read_text(encoding="utf-8"))
-    building_seed = manifest_building_seed(manifest)
-    if manifest.get("sampling_profile") != SAMPLING_PROFILE:
-        raise SystemExit(f"V2 requires sampling_profile={SAMPLING_PROFILE!r}")
+    v3_context = None
+    if args.balanced_context_manifest is not None:
+        v3_context = load_balanced_context(
+            args.balanced_context_manifest, args.building_budget
+        )
+        manifest = v3_context.source_manifest
+        building_seed = v3_context.building_seed
+        experiment_version = V3_EXPERIMENT_VERSION
+        sampling_manifest = v3_context.manifest
+        if (
+            v3_context.source_manifest_path.resolve()
+            != args.building_manifest.resolve()
+        ):
+            raise SystemExit(
+                "V3 source building manifest path differs from pinned input"
+            )
+    else:
+        manifest = json.loads(args.building_manifest.read_text(encoding="utf-8"))
+        building_seed = manifest_building_seed(manifest)
+        experiment_version = EXPERIMENT_VERSION
+        sampling_manifest = manifest
+        if manifest.get("sampling_profile") != SAMPLING_PROFILE:
+            raise SystemExit(f"V2 requires sampling_profile={SAMPLING_PROFILE!r}")
     if building_seed is None:
-        raise SystemExit("V2 manifest lacks building_seed identity")
+        raise SystemExit("building manifest lacks building_seed identity")
     if f"building_seed{building_seed}" not in str(args.out_root):
-        raise SystemExit("V2 out-root must contain its building_seed identity")
+        raise SystemExit("out-root must contain its building_seed identity")
     cell = manifest.get("cells", {}).get(str(args.building_budget))
     if cell is None:
         raise SystemExit(f"manifest has no K={args.building_budget} cell")
@@ -180,10 +208,15 @@ def main(argv: list[str] | None = None) -> int:
             f"manifest K={args.building_budget} failed sampling constraints"
         )
 
+    row_description = (
+        "frozen balanced rows are fit rows"
+        if v3_context is not None
+        else "all available rows are fit rows"
+    )
     print(
-        f"V2 K={args.building_budget}: available buildings="
+        f"{experiment_version} K={args.building_budget}: available buildings="
         f"{len(cell['available_buildings'])}; tree early stopping=disabled; "
-        "all available rows are fit rows",
+        f"{row_description}",
         flush=True,
     )
     if args.mode == "plan":
@@ -196,15 +229,21 @@ def main(argv: list[str] | None = None) -> int:
     started = time.perf_counter()
     frame = load_m3_frame(verbose=True)
     train_mask = frame["building_id"].mod(2).eq(0).to_numpy()
-    resolved = resolve_cell_indices(
-        frame.loc[train_mask],
-        manifest,
-        args.building_budget,
-        require_role_class_coverage=False,
-    )
+    if v3_context is not None:
+        verify_context_against_frame(v3_context, frame)
+        resolved = {"available_buildings": v3_context.selected_buildings}
+        source_rows = v3_context.raw_index
+    else:
+        resolved = resolve_cell_indices(
+            frame.loc[train_mask],
+            manifest,
+            args.building_budget,
+            require_role_class_coverage=False,
+        )
+        source_rows = resolved["available_rows"]
     context_index = _bounded_rows(
         frame,
-        resolved["available_rows"],
+        source_rows,
         args.max_context_rows,
         seed=args.model_seed + 1,
     )
@@ -216,14 +255,32 @@ def main(argv: list[str] | None = None) -> int:
         args.model_seed + 2,
     )
     holdout_index = holdout["validation_raw_index"]
+    context_labels = frame.loc[context_index, "anomaly"].to_numpy(dtype="int8")
+    if v3_context is not None and not (
+        int((context_labels == 1).sum())
+        == int((context_labels == 0).sum())
+        == len(context_labels) // 2
+    ):
+        raise AssertionError("V3 tree context is not exactly 50:50")
+    context_label_sha256 = hashlib.sha256(context_labels.tobytes()).hexdigest()
+    del context_labels
 
+    provenance_manifest = (
+        args.balanced_context_manifest
+        if v3_context is not None
+        else args.building_manifest
+    )
     provenance = {
         "mode": "FORMAL" if args.mode == "formal" else "NON_SCIENTIFIC_VALIDATION",
-        "experiment_version": EXPERIMENT_VERSION,
-        "manifest": str(args.building_manifest.resolve()),
-        "manifest_sha256": _sha256_file(args.building_manifest),
-        "sampling_profile": manifest["sampling_profile"],
-        "row_policy": manifest.get("row_policy", "all_rows"),
+        "experiment_version": experiment_version,
+        "manifest": str(provenance_manifest.resolve()),
+        "manifest_sha256": _sha256_file(provenance_manifest),
+        "sampling_profile": sampling_manifest["sampling_profile"],
+        "row_policy": (
+            "frozen_balanced_context_artifact"
+            if v3_context is not None
+            else manifest.get("row_policy", "all_rows")
+        ),
         "average_rows_per_building_limit": manifest.get(
             "average_rows_per_building_limit"
         ),
@@ -231,12 +288,23 @@ def main(argv: list[str] | None = None) -> int:
         "building_budget": args.building_budget,
         "features": args.features,
         "building_seed": building_seed,
-        "row_seed": manifest.get("row_seed", manifest.get("row_selection_seed")),
+        "row_seed": sampling_manifest.get(
+            "balance_seed",
+            manifest.get("row_seed", manifest.get("row_selection_seed")),
+        ),
         "role_seed": manifest.get("role_seed"),
         "model_seed": args.model_seed,
         "seed": args.model_seed,
-        "training_sampling": "exact_manifest_available_rows_no_resampling",
-        "class_ratio_policy": "natural_prevalence_of_manifest_available_rows",
+        "training_sampling": (
+            TRAINING_CONTEXT_POLICY
+            if v3_context is not None
+            else "exact_manifest_available_rows_no_resampling"
+        ),
+        "class_ratio_policy": (
+            CLASS_RATIO_POLICY
+            if v3_context is not None
+            else "natural_prevalence_of_manifest_available_rows"
+        ),
         "tree_role_policy": "ignored_for_fit_all_K_buildings_used",
         "early_stopping": False,
         "early_stopping_policy": "disabled_frozen_iteration_contract",
@@ -253,6 +321,19 @@ def main(argv: list[str] | None = None) -> int:
         },
     }
     provenance_path = args.out_root / "provenance.json"
+    if v3_context is not None:
+        provenance.update(
+            {
+                "source_building_manifest": str(args.building_manifest.resolve()),
+                "source_building_manifest_sha256": _sha256_file(args.building_manifest),
+                "context_label_sha256": context_label_sha256,
+                "validation_feature_scope": (
+                    "bounded_context_and_holdout_rows"
+                    if args.mode == "validation"
+                    else "complete_selected_building_histories"
+                ),
+            }
+        )
     if provenance_path.exists():
         if json.loads(provenance_path.read_text(encoding="utf-8")) != provenance:
             raise AssertionError(
@@ -268,6 +349,10 @@ def main(argv: list[str] | None = None) -> int:
         cached = joblib.load(model_path)
         scaler, models = cached["scaler"], cached["models"]
         fit_record = json.loads(fit_path.read_text(encoding="utf-8"))
+        if v3_context is not None and "context_feature_matrix_sha256" not in fit_record:
+            raise AssertionError(
+                "cached model lacks V3 context feature-matrix identity"
+            )
         if fit_record["fit_row_sha256"] != provenance["fit_row_sha256"]:
             raise AssertionError("cached V2 model fit-row identity drifted")
         print(
@@ -278,14 +363,21 @@ def main(argv: list[str] | None = None) -> int:
             "Building timestamp-merge features for selected even buildings",
             flush=True,
         )
-        selected_mask = frame["building_id"].isin(resolved["available_buildings"])
-        train_features = build_features_keeping_index(frame.loc[selected_mask].copy())
+        if v3_context is not None and args.mode == "validation":
+            feature_source = frame.loc[np.unique(context_index)].copy()
+        else:
+            selected_mask = frame["building_id"].isin(resolved["available_buildings"])
+            feature_source = frame.loc[selected_mask].copy()
+        train_features = build_features_keeping_index(feature_source)
         selected = train_features.loc[context_index]
         if not np.array_equal(selected.index.to_numpy(dtype="int64"), context_index):
             raise AssertionError(
                 "V2 tree training row order differs from manifest rows"
             )
         x_fit = selected[columns].to_numpy(dtype=MATRIX_DTYPE)
+        context_feature_matrix_sha256 = hashlib.sha256(
+            np.ascontiguousarray(x_fit).tobytes()
+        ).hexdigest()
         y_fit = frame.loc[context_index, "anomaly"].to_numpy(dtype="int8")
         del selected, train_features, frame
         _collect_and_trim()
@@ -297,11 +389,12 @@ def main(argv: list[str] | None = None) -> int:
             seed=args.model_seed,
         )
         fit_record = {
-            "experiment_version": EXPERIMENT_VERSION,
+            "experiment_version": experiment_version,
             "training_sampling": provenance["training_sampling"],
             "class_ratio_policy": provenance["class_ratio_policy"],
             "fit_rows": int(len(context_index)),
             "fit_row_sha256": provenance["fit_row_sha256"],
+            "context_feature_matrix_sha256": context_feature_matrix_sha256,
             "early_stopping": False,
             "model_contract": frozen_model_contract(args.model_seed),
             "fit_seconds": {name: float(fit_seconds[name]) for name in MODEL_ORDER},
@@ -325,7 +418,11 @@ def main(argv: list[str] | None = None) -> int:
     holdout_features = None
     if missing_chunks:
         print("Building timestamp-merge features for odd canonical holdout", flush=True)
-        holdout_features = build_features_keeping_index(frame.loc[~train_mask].copy())
+        if v3_context is not None and args.mode == "validation":
+            holdout_source = frame.loc[np.unique(holdout_index)].copy()
+        else:
+            holdout_source = frame.loc[~train_mask].copy()
+        holdout_features = build_features_keeping_index(holdout_source)
     else:
         print("Reused all V2 prediction chunks", flush=True)
     del frame
@@ -410,8 +507,21 @@ def main(argv: list[str] | None = None) -> int:
         result_path,
         {
             "schema_version": 2,
-            "experiment": "m5_building_count_v2_tree_cell",
+            "experiment": (
+                "m5_building_count_v3_balanced_context_tree_cell"
+                if v3_context is not None
+                else "m5_building_count_v2_tree_cell"
+            ),
             **provenance,
+            **(
+                {
+                    "context_feature_matrix_sha256": fit_record[
+                        "context_feature_matrix_sha256"
+                    ]
+                }
+                if v3_context is not None
+                else {}
+            ),
             "score_names": [*MODEL_ORDER, "ensemble"],
             "available_buildings": len(cell["available_buildings"]),
             "fit_buildings": len(cell["available_buildings"]),

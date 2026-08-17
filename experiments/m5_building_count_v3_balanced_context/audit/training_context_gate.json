@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "artifact_type": "m5_building_count_v3_training_context_gate",
+  "experiment_version": "m5_building_count_v3_balanced_context",
+  "status": "PASSED",
+  "expected_cells": 40,
+  "checked_cells": 40,
+  "passed": true,
+  "building_seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51
+  ],
+  "budgets": [
+    10,
+    20,
+    50,
+    100
+  ],
+  "balance_seed": 42,
+  "sampling_profile": "global_label_50_50_seeded_random_without_replacement"
+}
