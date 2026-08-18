@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "artifact_type": "m5_building_count_v4_training_context_gate",
+  "experiment_version": "m5_building_count_v4_fixed_10k",
+  "status": "PASSED",
+  "passed": true,
+  "building_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "row_seeds": [
+    0,
+    1
+  ],
+  "budgets": [
+    50,
+    100,
+    200,
+    300,
+    400
+  ],
+  "context_rows": 10000,
+  "rows_per_class": 5000,
+  "rng_algorithm": "numpy.random.PCG64",
+  "candidate_buildings": 725,
+  "candidate_building_sha256": "4d86c3d328602c0e0d093783011c5d1d7479541fa46e81e51a1f4d3c1716d75c",
+  "expected_ladder_cells": 25,
+  "checked_ladder_cells": 25,
+  "expected_context_cells": 50,
+  "checked_context_cells": 50,
+  "raw_inputs": {
+    "train_csv": "/home/kuant_kuo/projects/lead-reproduction/data/raw/m3/train.csv",
+    "train_csv_sha256": "2d75e0c4cfa93818647cf5272ef8d48f9cf8e9d3479dde357faae381d1abbcb3",
+    "bad_meter_readings_csv": "/home/kuant_kuo/projects/lead-reproduction/data/raw/m3/bad_meter_readings.csv",
+    "bad_meter_readings_csv_sha256": "e9846b746bc584f3f57f30f54d2077beb294e39407146ff6c9ad024f806bab93"
+  },
+  "raw_root": "/home/kuant_kuo/projects/lead-reproduction/data/raw/m3",
+  "audit_root": "experiments/m5_building_count_v4_fixed_10k/audit",
+  "context_root": "data/processed/m5_building_curve/v4_fixed_10k/training_contexts",
+  "formal_model_launch_authorized": false
+}
