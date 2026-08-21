@@ -5,7 +5,11 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from scripts.m5_building_count_v4_protocol import BUDGETS, k_major_contexts
+from scripts.m5_building_count_v4_protocol import (
+    BUDGETS,
+    SCHEDULED_BUDGETS,
+    k_major_contexts,
+)
 from scripts import launch_m5_building_count_v4 as launcher
 
 scheduler = launcher.scheduler
@@ -18,13 +22,19 @@ class TestM5BuildingCountV4Scheduler(unittest.TestCase):
 
     def test_order_is_strictly_k_major(self) -> None:
         contexts = k_major_contexts()
-        self.assertEqual(len(contexts), 50)
+        self.assertEqual(len(contexts), 40)
+        self.assertEqual(BUDGETS, (50, 100, 200, 300, 400))
+        self.assertEqual(SCHEDULED_BUDGETS, (50, 100, 200, 400))
         self.assertEqual([item[2] for item in contexts[:10]], [50] * 10)
         self.assertEqual([item[2] for item in contexts[10:20]], [100] * 10)
+        self.assertEqual([item[2] for item in contexts[20:30]], [200] * 10)
         self.assertEqual([item[2] for item in contexts[-10:]], [400] * 10)
-        self.assertEqual(sorted(set(item[2] for item in contexts)), list(BUDGETS))
+        self.assertEqual(
+            sorted(set(item[2] for item in contexts)), list(SCHEDULED_BUDGETS)
+        )
+        self.assertNotIn(300, [item[2] for item in contexts])
 
-    def test_formal_plan_has_100_units_and_dedicated_adapters(self) -> None:
+    def test_formal_plan_has_80_units_and_dedicated_adapters(self) -> None:
         def context(path: Path, budget: int) -> SimpleNamespace:
             name = path.stem
             building_seed = int(name.split("building_seed", 1)[1].split("_", 1)[0])
@@ -47,8 +57,10 @@ class TestM5BuildingCountV4Scheduler(unittest.TestCase):
                 validation_context_rows=200,
                 validation_holdout_rows=200,
             )
-        self.assertEqual(len(units), 100)
+        self.assertEqual(len(units), 80)
         self.assertEqual([u["identity"]["K"] for u in units[:20]], [50] * 20)
+        self.assertEqual([u["identity"]["K"] for u in units[-20:]], [400] * 20)
+        self.assertNotIn(300, [u["identity"]["K"] for u in units])
         for tree, tabpfn in zip(units[0::2], units[1::2], strict=True):
             self.assertIn("run_m5_building_count_v4_tree_cell.py", tree["command"][1])
             self.assertIn(

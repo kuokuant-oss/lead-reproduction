@@ -30,6 +30,9 @@ CANONICAL_HOLDOUT_SHA256 = (
     "6cfebd1cb2bb818f69806c0f14d66a84b81c53d37a716badd48c17b86210d893"
 )
 VALIDATION_CONTEXTS = ((0, 0, 50), (4, 1, 400))
+# The immutable artifact bank still contains K=300 and remains fully gated.
+# Formal execution skips it so the effective curve is K=50,100,200,400.
+SCHEDULED_BUDGETS = (50, 100, 200, 400)
 
 
 @dataclass(frozen=True)
@@ -64,7 +67,7 @@ def k_major_contexts() -> list[tuple[int, int, int]]:
     """Return (building_seed, row_seed, K), completing every K before the next."""
     return [
         (building_seed, row_seed, budget)
-        for budget in BUDGETS
+        for budget in SCHEDULED_BUDGETS
         for building_seed in BUILDING_DRAW_SEEDS
         for row_seed in ROW_DRAW_SEEDS
     ]

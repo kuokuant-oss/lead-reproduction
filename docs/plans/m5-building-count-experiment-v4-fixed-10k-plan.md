@@ -20,7 +20,8 @@ row identities, or row-allocation logic.
 
 | Factor | V4 setting |
 | --- | --- |
-| Source-building budgets | K = 50, 100, 200, 300, 400 |
+| Scheduled source-building budgets | K = 50, 100, 200, 400 |
+| Frozen audit artifact bank | K = 50, 100, 200, 300, 400 |
 | Context size | 10,000 unique rows at every K |
 | Class ratio | exactly 5,000 anomalies and 5,000 normals |
 | Building draws | 5; `building_draw_seed` = 0, 1, 2, 3, 4 |
@@ -31,9 +32,10 @@ row identities, or row-allocation logic.
 | Holdout | canonical odd-building holdout at natural prevalence |
 | Primary metrics | per-meter ROC-AUC and PR-AUC |
 
-This produces 5 building ladders x 2 row draws x 5 K values = 50 frozen
-contexts. Both model families consume each context, producing 100 formal model
-cells.
+The immutable artifact bank contains 50 frozen contexts across all five K
+values. The effective schedule uses 5 building ladders x 2 row draws x 4 K
+values = 40 contexts. Both model families consume each context, producing 80
+formal model cells.
 
 ## 3. Building selection
 
@@ -45,6 +47,10 @@ same permutation. Therefore, for each building draw,
 
 `B50` is an ordered prefix of `B100`, which is a prefix of `B200`, `B300`, and
 `B400`.
+
+K=300 remains frozen and gate-validated as part of the immutable artifact bank,
+but is not a formal scheduled endpoint. K=400 still uses the exact first 400
+entries of the same permutation and therefore preserves the K=200 prefix.
 
 No label, meter, site, row count, anomaly rate, diversity score, minimum
 coverage rule, acceptance threshold, retry, repair, or redraw affects building
@@ -113,8 +119,7 @@ The formal queue is strictly K-major:
 1. finish all 10 contexts and both model families at K=50;
 2. only then begin K=100;
 3. then K=200;
-4. then K=300;
-5. finally K=400.
+4. finally K=400.
 
 Within K, order is building seed 0 through 4 and row seed 0 then 1; within a
 context, Tree runs before TabPFN. Every model cell uses atomic prediction
