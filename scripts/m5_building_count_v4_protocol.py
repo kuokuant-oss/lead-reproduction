@@ -1,4 +1,4 @@
-"""Strict frozen-input and K-major scheduling contract for M5 V4."""
+"""Strict frozen-input and explicit-priority scheduling contract for M5 V4."""
 
 from __future__ import annotations
 
@@ -31,10 +31,15 @@ CANONICAL_HOLDOUT_SHA256 = (
 )
 VALIDATION_CONTEXTS = ((0, 0, 50), (4, 1, 400))
 # The immutable artifact bank still contains K=300 and remains fully gated.
-# Formal execution skips it. K=400 is prioritized before unfinished K=200
-# cells; resume reuses completed K=200 checkpoints and returns to the remaining
-# K=200 cells only after K=400 finishes.
+# Formal execution skips it. The first K=400 building seed is completed before
+# unfinished K=200 cells; after K=200 is complete, execution returns to the
+# remaining K=400 building seeds. SCHEDULED_BUDGETS records first-appearance
+# order in that split schedule.
 SCHEDULED_BUDGETS = (50, 100, 400, 200)
+PRIORITY_K400_BUILDING_SEED = 0
+PAIR_ORDER_POLICY = (
+    "k50_k100_then_k400_seed0_then_k200_then_remaining_k400"
+)
 
 
 @dataclass(frozen=True)
@@ -66,13 +71,29 @@ def context_manifest_path(audit_root: Path, building_seed: int, row_seed: int) -
 
 
 def k_major_contexts() -> list[tuple[int, int, int]]:
-    """Return contexts grouped by the explicit scheduled-budget priority."""
-    return [
+    """Return every scheduled context once in the explicit resume priority."""
+    contexts = [
         (building_seed, row_seed, budget)
-        for budget in SCHEDULED_BUDGETS
+        for budget in (50, 100)
         for building_seed in BUILDING_DRAW_SEEDS
         for row_seed in ROW_DRAW_SEEDS
     ]
+    contexts.extend(
+        (PRIORITY_K400_BUILDING_SEED, row_seed, 400)
+        for row_seed in ROW_DRAW_SEEDS
+    )
+    contexts.extend(
+        (building_seed, row_seed, 200)
+        for building_seed in BUILDING_DRAW_SEEDS
+        for row_seed in ROW_DRAW_SEEDS
+    )
+    contexts.extend(
+        (building_seed, row_seed, 400)
+        for building_seed in BUILDING_DRAW_SEEDS
+        if building_seed != PRIORITY_K400_BUILDING_SEED
+        for row_seed in ROW_DRAW_SEEDS
+    )
+    return contexts
 
 
 def verify_training_context_gate(audit_root: Path) -> dict[str, Any]:

@@ -1,8 +1,9 @@
 """Plan, validate, or run the dedicated fixed-10K M5 V4 queue.
 
-Plan mode never launches a model. Formal mode is strictly K-major and is
-blocked by the complete training-context gate, bounded validation gate,
-explicit authorization, model checkpoint, and a clean committed worktree.
+Plan mode never launches a model. Formal mode follows the frozen explicit pair
+priority and is blocked by the complete training-context gate, bounded
+validation gate, explicit authorization, model checkpoint, and a clean
+committed worktree.
 """
 
 from __future__ import annotations
@@ -26,6 +27,7 @@ from m5_building_count_v4_protocol import (
     CLASS_RATIO_POLICY,
     CONTEXT_ROWS,
     EXPERIMENT_VERSION,
+    PAIR_ORDER_POLICY,
     ROW_DRAW_SEEDS,
     SAMPLING_PROFILE,
     SCHEDULED_BUDGETS,
@@ -464,7 +466,7 @@ def main(argv: list[str] | None = None) -> int:
     census = {
         "experiment_version": EXPERIMENT_VERSION,
         "mode": args.mode,
-        "pair_order_policy": "strict_K_major_then_building_seed_then_row_seed",
+        "pair_order_policy": PAIR_ORDER_POLICY,
         "building_seeds": list(BUILDING_DRAW_SEEDS),
         "row_seeds": list(ROW_DRAW_SEEDS),
         "budgets": list(SCHEDULED_BUDGETS),
