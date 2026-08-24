@@ -31,8 +31,10 @@ CANONICAL_HOLDOUT_SHA256 = (
 )
 VALIDATION_CONTEXTS = ((0, 0, 50), (4, 1, 400))
 # The immutable artifact bank still contains K=300 and remains fully gated.
-# Formal execution skips it so the effective curve is K=50,100,200,400.
-SCHEDULED_BUDGETS = (50, 100, 200, 400)
+# Formal execution skips it. K=400 is prioritized before unfinished K=200
+# cells; resume reuses completed K=200 checkpoints and returns to the remaining
+# K=200 cells only after K=400 finishes.
+SCHEDULED_BUDGETS = (50, 100, 400, 200)
 
 
 @dataclass(frozen=True)
@@ -64,7 +66,7 @@ def context_manifest_path(audit_root: Path, building_seed: int, row_seed: int) -
 
 
 def k_major_contexts() -> list[tuple[int, int, int]]:
-    """Return (building_seed, row_seed, K), completing every K before the next."""
+    """Return contexts grouped by the explicit scheduled-budget priority."""
     return [
         (building_seed, row_seed, budget)
         for budget in SCHEDULED_BUDGETS

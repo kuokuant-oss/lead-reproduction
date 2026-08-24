@@ -24,14 +24,12 @@ class TestM5BuildingCountV4Scheduler(unittest.TestCase):
         contexts = k_major_contexts()
         self.assertEqual(len(contexts), 40)
         self.assertEqual(BUDGETS, (50, 100, 200, 300, 400))
-        self.assertEqual(SCHEDULED_BUDGETS, (50, 100, 200, 400))
+        self.assertEqual(SCHEDULED_BUDGETS, (50, 100, 400, 200))
         self.assertEqual([item[2] for item in contexts[:10]], [50] * 10)
         self.assertEqual([item[2] for item in contexts[10:20]], [100] * 10)
-        self.assertEqual([item[2] for item in contexts[20:30]], [200] * 10)
-        self.assertEqual([item[2] for item in contexts[-10:]], [400] * 10)
-        self.assertEqual(
-            sorted(set(item[2] for item in contexts)), list(SCHEDULED_BUDGETS)
-        )
+        self.assertEqual([item[2] for item in contexts[20:30]], [400] * 10)
+        self.assertEqual([item[2] for item in contexts[-10:]], [200] * 10)
+        self.assertEqual(set(item[2] for item in contexts), set(SCHEDULED_BUDGETS))
         self.assertNotIn(300, [item[2] for item in contexts])
 
     def test_formal_plan_has_80_units_and_dedicated_adapters(self) -> None:
@@ -59,7 +57,8 @@ class TestM5BuildingCountV4Scheduler(unittest.TestCase):
             )
         self.assertEqual(len(units), 80)
         self.assertEqual([u["identity"]["K"] for u in units[:20]], [50] * 20)
-        self.assertEqual([u["identity"]["K"] for u in units[-20:]], [400] * 20)
+        self.assertEqual([u["identity"]["K"] for u in units[40:60]], [400] * 20)
+        self.assertEqual([u["identity"]["K"] for u in units[-20:]], [200] * 20)
         self.assertNotIn(300, [u["identity"]["K"] for u in units])
         for tree, tabpfn in zip(units[0::2], units[1::2], strict=True):
             self.assertIn("run_m5_building_count_v4_tree_cell.py", tree["command"][1])
