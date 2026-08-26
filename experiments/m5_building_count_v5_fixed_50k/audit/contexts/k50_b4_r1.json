@@ -1,0 +1,153 @@
+{
+  "anomaly_sha256": "0a130a876da597a8bd577b79ef46f495b804a99183759234ee2ca0817a20438d",
+  "artifact_type": "m5_building_count_v5_fixed_50k_context",
+  "building_id_sha256": "4e030db6e0d3a3c1a19e10cce67086e1903ed68f7627851393efe7f8b0801366",
+  "class_ratio_policy": "exact_global_25000_anomaly_25000_normal",
+  "context_artifact": "data/processed/m5_building_curve/v5_fixed_50k/training_contexts/building_seed4/row_seed1/fixed_50k_k50.npz",
+  "context_artifact_sha256": "49cdce984709cfa594ec65c4762f20d203b14ce0a9ea9aa9316f4f6f7be279cf",
+  "evaluation_meter_ids": [
+    1,
+    2,
+    3
+  ],
+  "excluded_evaluation_meter_ids": [
+    0
+  ],
+  "full_anomalies": 66886,
+  "full_normals": 584407,
+  "identity": {
+    "bad_meter_readings_csv_sha256": "e9846b746bc584f3f57f30f54d2077beb294e39407146ff6c9ad024f806bab93",
+    "budget": 50,
+    "building_seed": 4,
+    "context_rows": 50000,
+    "experiment_version": "m5_building_count_v5_fixed_50k",
+    "preparation_source_commit": "8d604c91ebfc69a3fd1234df74b89c67304ba82c",
+    "rng_algorithm": "numpy.random.PCG64",
+    "row_rng_domain": 5050725,
+    "row_seed": 1,
+    "rows_per_class": 25000,
+    "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+    "schema_version": 1,
+    "selected_building_sha256": "b71a71b58f5848d64c18c57c7146b4cf66237648011cff61f95a0397ebcea28d",
+    "source_manifest_sha256": "b28dad326cf31cea3499591b31b8d55ab5557bb5fc1aca6c2ac589a5e4dd73be",
+    "support_id": "building_seed4",
+    "train_csv_sha256": "2d75e0c4cfa93818647cf5272ef8d48f9cf8e9d3479dde357faae381d1abbcb3"
+  },
+  "ignored_for_sampling": [
+    "meter",
+    "site_id",
+    "building_row_quota"
+  ],
+  "meter_composition": {
+    "0": {
+      "anomalies": 11916,
+      "anomaly_rate": 0.41578561708363865,
+      "normals": 16743,
+      "rows": 28659
+    },
+    "1": {
+      "anomalies": 10064,
+      "anomaly_rate": 0.6913037505151807,
+      "normals": 4494,
+      "rows": 14558
+    },
+    "2": {
+      "anomalies": 2684,
+      "anomaly_rate": 0.5391723583768582,
+      "normals": 2294,
+      "rows": 4978
+    },
+    "3": {
+      "anomalies": 336,
+      "anomaly_rate": 0.18614958448753463,
+      "normals": 1469,
+      "rows": 1805
+    }
+  },
+  "meter_sha256": "df7975c8cb6c4ae6b83819b94f379e7c0edb793be05b479a37c8294971550604",
+  "observed_building_count": 50,
+  "raw_index_sha256": "99c6c99fb610d5f920041b186089cb383a73c817780563b88f7dda33979a9db2",
+  "retry_or_repair": false,
+  "row_rng_seed_material": {
+    "0": [
+      1,
+      5050725,
+      50,
+      4,
+      1,
+      0
+    ],
+    "1": [
+      1,
+      5050725,
+      50,
+      4,
+      1,
+      1
+    ]
+  },
+  "sampling_inputs": [
+    "selected_building_membership",
+    "anomaly"
+  ],
+  "sampling_without_replacement": true,
+  "schema_version": 1,
+  "selected_building_count": 50,
+  "selected_building_sha256": "b71a71b58f5848d64c18c57c7146b4cf66237648011cff61f95a0397ebcea28d",
+  "selected_buildings": [
+    746,
+    914,
+    152,
+    556,
+    1284,
+    148,
+    398,
+    312,
+    828,
+    74,
+    1026,
+    1022,
+    448,
+    304,
+    508,
+    1252,
+    1216,
+    668,
+    1230,
+    880,
+    936,
+    658,
+    756,
+    40,
+    186,
+    954,
+    1432,
+    1068,
+    1438,
+    1262,
+    1222,
+    598,
+    20,
+    604,
+    1056,
+    970,
+    490,
+    1048,
+    160,
+    574,
+    60,
+    1036,
+    6,
+    68,
+    252,
+    1122,
+    460,
+    1158,
+    918,
+    170
+  ],
+  "source_manifest": "experiments/m5_building_count_v4_fixed_10k/audit/building_ladder_seed4.json",
+  "source_manifest_sha256": "b28dad326cf31cea3499591b31b8d55ab5557bb5fc1aca6c2ac589a5e4dd73be",
+  "status": "FROZEN",
+  "training_sampling": "frozen_unique_global_label_50_50_without_replacement"
+}

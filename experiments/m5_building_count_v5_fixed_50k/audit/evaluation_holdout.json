@@ -1,0 +1,27 @@
+{
+  "anomalies": 280718,
+  "artifact": "data/processed/m5_building_curve/v5_fixed_50k/canonical_holdout_non_electric.npz",
+  "artifact_sha256": "0d5d538888402d2781c273c4179753c31389dce570b63231b028454cc2380959",
+  "artifact_type": "m5_building_count_v5_evaluation_holdout",
+  "excluded_meter_ids": [
+    0
+  ],
+  "experiment_version": "m5_building_count_v5_fixed_50k",
+  "meter_ids": [
+    1,
+    2,
+    3
+  ],
+  "meter_row_counts": {
+    "1": 2115354,
+    "2": 1350609,
+    "3": 636121
+  },
+  "preparation_source_commit": "8d604c91ebfc69a3fd1234df74b89c67304ba82c",
+  "rows": 4102084,
+  "schema_version": 1,
+  "source_canonical_holdout": "/home/kuant_kuo/projects/lead-reproduction/data/processed/m6_site_transfer_b2_a0_pos677077_seed42_predictions.npz",
+  "source_canonical_holdout_sha256": "674eb77ed099e0f468ea0b60e5e48fc544f61ad8e193ea605673467719566c74",
+  "status": "FROZEN",
+  "validation_raw_index_sha256": "a9f2dd9e49ac57c3b6fe94a12032951f6c1d4d192bcc0505a20bd943ba672f56"
+}
