@@ -1,0 +1,36 @@
+\documentclass[10pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{newtxtext,newtxmath}
+\usepackage[paperwidth=16in,paperheight=8.5in,margin=0.55in]{geometry}
+\usepackage{booktabs,tabularx,siunitx}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage[active,tightpage]{preview}
+\setlength\PreviewBorder{10pt}
+\sisetup{detect-all}
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.12}
+\pagestyle{empty}
+\newsavebox{\tblbox}
+\begin{document}
+\sbox{\tblbox}{%
+\scriptsize
+\setlength{\tabcolsep}{2.0pt}
+\begin{tabular}{l*{10}{c}}
+\toprule
+Meter & \multicolumn{2}{c}{K=50} & \multicolumn{2}{c}{K=100} & \multicolumn{2}{c}{K=200} & \multicolumn{2}{c}{K=400} & \multicolumn{2}{c}{K=725} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}
+ & {Tree} & {TabPFN} & {Tree} & {TabPFN} & {Tree} & {TabPFN} & {Tree} & {TabPFN} & {Tree} & {TabPFN} \\
+\midrule
+Chilled water & 0.593\,$\pm$\,0.019 & -- & 0.593\,$\pm$\,0.026 & 0.620\,$\pm$\,0.026 & 0.647\,$\pm$\,0.030 & 0.675\,$\pm$\,0.019 & 0.769\,$\pm$\,0.016 & 0.747\,$\pm$\,0.013 & 0.787\,$\pm$\,0.004 & 0.814\,$\pm$\,0.003 \\
+Steam & 0.535\,$\pm$\,0.058 & -- & 0.616\,$\pm$\,0.050 & 0.625\,$\pm$\,0.017 & 0.698\,$\pm$\,0.027 & 0.755\,$\pm$\,0.017 & 0.744\,$\pm$\,0.005 & 0.773\,$\pm$\,0.015 & 0.761\,$\pm$\,0.003 & 0.797\,$\pm$\,0.009 \\
+Hot water & 0.532\,$\pm$\,0.043 & -- & 0.669\,$\pm$\,0.035 & 0.605\,$\pm$\,0.043 & 0.723\,$\pm$\,0.023 & 0.686\,$\pm$\,0.021 & 0.800\,$\pm$\,0.010 & 0.714\,$\pm$\,0.018 & 0.824\,$\pm$\,0.003 & 0.816\,$\pm$\,0.002 \\
+\bottomrule
+\end{tabular}%
+}
+\begin{preview}\begin{minipage}{\wd\tblbox}
+\centering
+\captionof{table}{Experiment B meter-level PR-AUC; mean $\pm$ standard error across building seeds; K=725 across row seeds.}
+\label{tab:m5-exp-b-meter-detail}
+\usebox{\tblbox}
+\end{minipage}\end{preview}
+\end{document}

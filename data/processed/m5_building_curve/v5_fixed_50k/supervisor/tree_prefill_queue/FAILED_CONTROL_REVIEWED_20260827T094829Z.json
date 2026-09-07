@@ -1,0 +1,8 @@
+{
+  "automatic_retry": false,
+  "controller_pid": 28044,
+  "exception_message": "original scheduler is not uniquely present in stopped state",
+  "exception_type": "RuntimeError",
+  "failed_at_utc": "2026-08-27T09:48:29.243885+00:00",
+  "status": "FAILED"
+}

@@ -1,0 +1,78 @@
+{
+  "schema_version": 2,
+  "experiment": "m5_building_count_v5_fixed_50k_tabpfn_cell",
+  "mode": "FORMAL",
+  "manifest": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/experiments/m5_building_count_v5_fixed_50k/audit/contexts/k50_b2_r1.json",
+  "manifest_sha256": "307e8e406ef5c2c99ec177a082e2b91efef8a59d939520dd857aae5e52797360",
+  "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+  "row_policy": "frozen_balanced_context_artifact",
+  "average_rows_per_building_limit": null,
+  "context_limit": null,
+  "building_budget": 50,
+  "features": 137,
+  "building_seed": 2,
+  "row_seed": 1,
+  "role_seed": null,
+  "model_seed": 42,
+  "seed": 42,
+  "n_estimators": 8,
+  "query_microbatch_size": 4096,
+  "context_row_sha256": "10b07fa6bda58f34f5e94d870d202a63943b9afa2dff11807b5532d333b513fa",
+  "holdout_row_sha256": "a9f2dd9e49ac57c3b6fe94a12032951f6c1d4d192bcc0505a20bd943ba672f56",
+  "context_rows": 50000,
+  "holdout_rows": 4102084,
+  "model_path": "/home/kuant_kuo/.cache/tabpfn/tabpfn-v3-classifier-v3_default.ckpt",
+  "model_sha256": "d0d865d54dfbc524f5703104be90620182dca7e5fb2c16de72e9959ea18f3988",
+  "early_stopping": "not_applicable_in_context_learning_no_weight_updates",
+  "caps": {
+    "context": null,
+    "holdout": null
+  },
+  "experiment_version": "m5_building_count_v5_fixed_50k",
+  "training_sampling": "frozen_unique_global_label_50_50_without_replacement",
+  "class_ratio_policy": "exact_global_25000_anomaly_25000_normal",
+  "source_building_manifest": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/experiments/m5_building_count_v4_fixed_10k/audit/building_ladder_seed2.json",
+  "source_building_manifest_sha256": "45e4540f48ff7f3a76a7db4c81fa62fc962800d49b60a032cd86db5f3102cdeb",
+  "context_label_sha256": "0a130a876da597a8bd577b79ef46f495b804a99183759234ee2ca0817a20438d",
+  "validation_feature_scope": "complete_selected_building_histories",
+  "context_feature_matrix_sha256": "f4c03ab1b6e6fd324aa711e06ea9fbaf913dd1914f42b1e2c8ec973244155a98",
+  "score_names": [
+    "tabpfn"
+  ],
+  "available_buildings": 50,
+  "tree_fit_buildings_reference": 50,
+  "tree_early_stop_buildings_reference": 0,
+  "fit_action": "fitted",
+  "context_verification": {
+    "status": "verified",
+    "requested_context_rows": 50000,
+    "requested_estimators": 8,
+    "effective_context_rows": 50000,
+    "external_sharding": false,
+    "sample_subsampling": null,
+    "sample_subsampling_disabled": true,
+    "effective_estimators": 8
+  },
+  "metrics": {
+    "tabpfn": {
+      "roc_auc": 0.9343256526868071,
+      "pr_auc": 0.5370779056079487
+    }
+  },
+  "predictions": "predictions.npz",
+  "elapsed_seconds": 29202.660255476017,
+  "support_id": "building_seed2",
+  "building_draw_seed": 2,
+  "evaluation_meter_ids": [
+    1,
+    2,
+    3
+  ],
+  "excluded_evaluation_meter_ids": [
+    0
+  ],
+  "provenance": {
+    "commit": "4397050376b135ffd1f14d856b6e696767d2588f",
+    "generated_at_utc": "2026-09-03T00:10:17.561703+00:00"
+  }
+}

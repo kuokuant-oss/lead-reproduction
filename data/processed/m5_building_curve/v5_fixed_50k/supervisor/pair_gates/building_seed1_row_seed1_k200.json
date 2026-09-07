@@ -1,0 +1,17 @@
+{
+  "experiment_version": "m5_building_count_v5_fixed_50k",
+  "mode": "formal",
+  "stage": "building_seed1_row_seed1_k200",
+  "passed": true,
+  "record": {
+    "building_seed": 1,
+    "row_seed": 1,
+    "K": 200,
+    "context_rows": 50000,
+    "context_row_sha256": "43291d4021af9fa9b4b8dee8f134ddab7d1bcb0cf1854d1bdb7284ac739b7ee3",
+    "context_feature_matrix_sha256": "c8d2cb3a9bf1555778bad4dc5be1c8e32ed226885da966034483b621bc55f529",
+    "holdout_row_sha256": "a9f2dd9e49ac57c3b6fe94a12032951f6c1d4d192bcc0505a20bd943ba672f56",
+    "passed": true
+  },
+  "timestamp": 1788654616.4586515
+}

@@ -1,0 +1,1276 @@
+{
+  "schema_version": 1,
+  "experiment": "m5_building_count_curve_breakdown",
+  "cells": [
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed725/row_seed0/tree_no_es_k725_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 725,
+      "building_budget": 725,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 0,
+      "support_id": "full_725",
+      "building_draw_seed": null
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed725/row_seed0/tabpfn_k725_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 725,
+      "building_budget": 725,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 0,
+      "support_id": "full_725",
+      "building_draw_seed": null
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed725/row_seed1/tree_no_es_k725_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 725,
+      "building_budget": 725,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 1,
+      "support_id": "full_725",
+      "building_draw_seed": null
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed725/row_seed1/tabpfn_k725_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 725,
+      "building_budget": 725,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 1,
+      "support_id": "full_725",
+      "building_draw_seed": null
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed0/row_seed0/tree_no_es_k400_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 0,
+      "building_budget": 400,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed0",
+      "building_draw_seed": 0
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed0/row_seed0/tabpfn_k400_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 0,
+      "building_budget": 400,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed0",
+      "building_draw_seed": 0
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed0/row_seed1/tree_no_es_k400_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 0,
+      "building_budget": 400,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed0",
+      "building_draw_seed": 0
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed0/row_seed1/tabpfn_k400_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 0,
+      "building_budget": 400,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed0",
+      "building_draw_seed": 0
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed1/row_seed0/tree_no_es_k400_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 1,
+      "building_budget": 400,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed1",
+      "building_draw_seed": 1
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed1/row_seed0/tabpfn_k400_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 1,
+      "building_budget": 400,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed1",
+      "building_draw_seed": 1
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed1/row_seed1/tree_no_es_k400_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 1,
+      "building_budget": 400,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed1",
+      "building_draw_seed": 1
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed1/row_seed1/tabpfn_k400_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 1,
+      "building_budget": 400,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed1",
+      "building_draw_seed": 1
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed2/row_seed0/tree_no_es_k400_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 2,
+      "building_budget": 400,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed2",
+      "building_draw_seed": 2
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed2/row_seed0/tabpfn_k400_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 2,
+      "building_budget": 400,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed2",
+      "building_draw_seed": 2
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed2/row_seed1/tree_no_es_k400_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 2,
+      "building_budget": 400,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed2",
+      "building_draw_seed": 2
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed2/row_seed1/tabpfn_k400_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 2,
+      "building_budget": 400,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed2",
+      "building_draw_seed": 2
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed0/row_seed0/tree_no_es_k200_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 0,
+      "building_budget": 200,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed0",
+      "building_draw_seed": 0
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed0/row_seed0/tabpfn_k200_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 0,
+      "building_budget": 200,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed0",
+      "building_draw_seed": 0
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed0/row_seed1/tree_no_es_k200_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 0,
+      "building_budget": 200,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed0",
+      "building_draw_seed": 0
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed0/row_seed1/tabpfn_k200_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 0,
+      "building_budget": 200,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed0",
+      "building_draw_seed": 0
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed1/row_seed0/tree_no_es_k200_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 1,
+      "building_budget": 200,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed1",
+      "building_draw_seed": 1
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed1/row_seed0/tabpfn_k200_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 1,
+      "building_budget": 200,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed1",
+      "building_draw_seed": 1
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed1/row_seed1/tree_no_es_k200_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 1,
+      "building_budget": 200,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed1",
+      "building_draw_seed": 1
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed1/row_seed1/tabpfn_k200_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 1,
+      "building_budget": 200,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed1",
+      "building_draw_seed": 1
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed2/row_seed0/tree_no_es_k200_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 2,
+      "building_budget": 200,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed2",
+      "building_draw_seed": 2
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed2/row_seed0/tabpfn_k200_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 2,
+      "building_budget": 200,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed2",
+      "building_draw_seed": 2
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed2/row_seed1/tree_no_es_k200_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 2,
+      "building_budget": 200,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed2",
+      "building_draw_seed": 2
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed2/row_seed1/tabpfn_k200_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 2,
+      "building_budget": 200,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed2",
+      "building_draw_seed": 2
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed0/row_seed0/tree_no_es_k100_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 0,
+      "building_budget": 100,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed0",
+      "building_draw_seed": 0
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed0/row_seed0/tabpfn_k100_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 0,
+      "building_budget": 100,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed0",
+      "building_draw_seed": 0
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed0/row_seed1/tree_no_es_k100_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 0,
+      "building_budget": 100,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed0",
+      "building_draw_seed": 0
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed0/row_seed1/tabpfn_k100_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 0,
+      "building_budget": 100,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed0",
+      "building_draw_seed": 0
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed1/row_seed0/tree_no_es_k100_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 1,
+      "building_budget": 100,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed1",
+      "building_draw_seed": 1
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed1/row_seed0/tabpfn_k100_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 1,
+      "building_budget": 100,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed1",
+      "building_draw_seed": 1
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed1/row_seed1/tree_no_es_k100_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 1,
+      "building_budget": 100,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed1",
+      "building_draw_seed": 1
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed1/row_seed1/tabpfn_k100_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 1,
+      "building_budget": 100,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed1",
+      "building_draw_seed": 1
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed2/row_seed0/tree_no_es_k100_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 2,
+      "building_budget": 100,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed2",
+      "building_draw_seed": 2
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed2/row_seed0/tabpfn_k100_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 2,
+      "building_budget": 100,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed2",
+      "building_draw_seed": 2
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed2/row_seed1/tree_no_es_k100_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 2,
+      "building_budget": 100,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed2",
+      "building_draw_seed": 2
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed2/row_seed1/tabpfn_k100_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 2,
+      "building_budget": 100,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed2",
+      "building_draw_seed": 2
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed0/row_seed0/tree_no_es_k50_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 0,
+      "building_budget": 50,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed0",
+      "building_draw_seed": 0
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed0/row_seed0/tabpfn_k50_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 0,
+      "building_budget": 50,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed0",
+      "building_draw_seed": 0
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed0/row_seed1/tree_no_es_k50_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 0,
+      "building_budget": 50,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed0",
+      "building_draw_seed": 0
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed0/row_seed1/tabpfn_k50_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 0,
+      "building_budget": 50,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed0",
+      "building_draw_seed": 0
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed1/row_seed0/tree_no_es_k50_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 1,
+      "building_budget": 50,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed1",
+      "building_draw_seed": 1
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed1/row_seed0/tabpfn_k50_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 1,
+      "building_budget": 50,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed1",
+      "building_draw_seed": 1
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed1/row_seed1/tree_no_es_k50_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 1,
+      "building_budget": 50,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed1",
+      "building_draw_seed": 1
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed1/row_seed1/tabpfn_k50_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 1,
+      "building_budget": 50,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed1",
+      "building_draw_seed": 1
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed2/row_seed0/tree_no_es_k50_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 2,
+      "building_budget": 50,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed2",
+      "building_draw_seed": 2
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed2/row_seed0/tabpfn_k50_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 2,
+      "building_budget": 50,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed2",
+      "building_draw_seed": 2
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed2/row_seed1/tree_no_es_k50_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 2,
+      "building_budget": 50,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed2",
+      "building_draw_seed": 2
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed2/row_seed1/tabpfn_k50_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 2,
+      "building_budget": 50,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed2",
+      "building_draw_seed": 2
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed3/row_seed0/tree_no_es_k400_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 3,
+      "building_budget": 400,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed3",
+      "building_draw_seed": 3
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed3/row_seed0/tabpfn_k400_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 3,
+      "building_budget": 400,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed3",
+      "building_draw_seed": 3
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed3/row_seed1/tree_no_es_k400_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 3,
+      "building_budget": 400,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed3",
+      "building_draw_seed": 3
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed3/row_seed1/tabpfn_k400_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 3,
+      "building_budget": 400,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed3",
+      "building_draw_seed": 3
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed4/row_seed0/tree_no_es_k400_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 4,
+      "building_budget": 400,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed4",
+      "building_draw_seed": 4
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed4/row_seed0/tabpfn_k400_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 4,
+      "building_budget": 400,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed4",
+      "building_draw_seed": 4
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed4/row_seed1/tree_no_es_k400_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 4,
+      "building_budget": 400,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed4",
+      "building_draw_seed": 4
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed4/row_seed1/tabpfn_k400_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 4,
+      "building_budget": 400,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed4",
+      "building_draw_seed": 4
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed3/row_seed0/tree_no_es_k200_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 3,
+      "building_budget": 200,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed3",
+      "building_draw_seed": 3
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed3/row_seed0/tabpfn_k200_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 3,
+      "building_budget": 200,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed3",
+      "building_draw_seed": 3
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed3/row_seed1/tree_no_es_k200_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 3,
+      "building_budget": 200,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed3",
+      "building_draw_seed": 3
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed3/row_seed1/tabpfn_k200_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 3,
+      "building_budget": 200,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed3",
+      "building_draw_seed": 3
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed4/row_seed0/tree_no_es_k200_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 4,
+      "building_budget": 200,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed4",
+      "building_draw_seed": 4
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed4/row_seed0/tabpfn_k200_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 4,
+      "building_budget": 200,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed4",
+      "building_draw_seed": 4
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed4/row_seed1/tree_no_es_k200_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 4,
+      "building_budget": 200,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed4",
+      "building_draw_seed": 4
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed4/row_seed1/tabpfn_k200_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 4,
+      "building_budget": 200,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed4",
+      "building_draw_seed": 4
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed3/row_seed0/tree_no_es_k100_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 3,
+      "building_budget": 100,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed3",
+      "building_draw_seed": 3
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed3/row_seed0/tabpfn_k100_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 3,
+      "building_budget": 100,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed3",
+      "building_draw_seed": 3
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed3/row_seed1/tree_no_es_k100_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 3,
+      "building_budget": 100,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed3",
+      "building_draw_seed": 3
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed3/row_seed1/tabpfn_k100_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 3,
+      "building_budget": 100,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed3",
+      "building_draw_seed": 3
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed4/row_seed0/tree_no_es_k100_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 4,
+      "building_budget": 100,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed4",
+      "building_draw_seed": 4
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed4/row_seed0/tabpfn_k100_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 4,
+      "building_budget": 100,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed4",
+      "building_draw_seed": 4
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed4/row_seed1/tree_no_es_k100_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 4,
+      "building_budget": 100,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed4",
+      "building_draw_seed": 4
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed4/row_seed1/tabpfn_k100_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 4,
+      "building_budget": 100,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed4",
+      "building_draw_seed": 4
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed3/row_seed0/tree_no_es_k50_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 3,
+      "building_budget": 50,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed3",
+      "building_draw_seed": 3
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed3/row_seed0/tabpfn_k50_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 3,
+      "building_budget": 50,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed3",
+      "building_draw_seed": 3
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed3/row_seed1/tree_no_es_k50_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 3,
+      "building_budget": 50,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed3",
+      "building_draw_seed": 3
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed3/row_seed1/tabpfn_k50_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 3,
+      "building_budget": 50,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed3",
+      "building_draw_seed": 3
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed4/row_seed0/tree_no_es_k50_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 4,
+      "building_budget": 50,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed4",
+      "building_draw_seed": 4
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed4/row_seed0/tabpfn_k50_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 4,
+      "building_budget": 50,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 0,
+      "support_id": "building_seed4",
+      "building_draw_seed": 4
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed4/row_seed1/tree_no_es_k50_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 4,
+      "building_budget": 50,
+      "features": 137,
+      "score_names": [
+        "lightgbm",
+        "xgboost",
+        "catboost",
+        "hist_gradient_boosting",
+        "ensemble"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed4",
+      "building_draw_seed": 4
+    },
+    {
+      "metadata": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed4/row_seed1/tabpfn_k50_f137/cell.json",
+      "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+      "building_seed": 4,
+      "building_budget": 50,
+      "features": 137,
+      "score_names": [
+        "tabpfn"
+      ],
+      "row_seed": 1,
+      "support_id": "building_seed4",
+      "building_draw_seed": 4
+    }
+  ],
+  "identity_gate": "validation_raw_index and anomaly are byte-identical across cells",
+  "building_seed_aggregation": {
+    "raw_results_preserved": true,
+    "standard_deviation_ddof": 1
+  },
+  "outputs": {
+    "metrics": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/aggregate/metrics.csv",
+    "curves": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/aggregate/curves.csv",
+    "building_seed_summary": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/aggregate/building_seed_summary.csv"
+  }
+}

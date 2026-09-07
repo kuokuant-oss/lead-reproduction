@@ -1,0 +1,27 @@
+{
+  "budget": 200,
+  "building_seed": 1,
+  "holdout_array_sha256": {
+    "anomaly": "f50571bb23c5070ec86694eb3e033a6d322b7ebcc75dc23161f7a06e0245cc3b",
+    "building_id": "fd6be1569dc60db535f8942f9c1ee91edc7b246998b3a9e48022d429ca2414de",
+    "meter": "9b17650403f3f51df10e1da6457ee69db1ac107bce3fe4f4ba35a35d63debc69",
+    "site_id": "384d4c67cef6cef16b1500aa638faae1e666bad1cff50778fd66283f2c1dd675",
+    "validation_raw_index": "6a6a73d578caba9dfb766e7e8c8a7d078a6f1ce6c4a1d33d0e3c5315d08691da"
+  },
+  "identity": {
+    "cell": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed1/row_seed0/tree_no_es_k200_f137/cell.json",
+    "cell_sha256": "3aa256e6b271328efbd9f7ae53c851d1be5d9ea085ad78ebb148a6d3fdf289a6",
+    "complete_sha256": "f76fe353047ea310900f44b89aa94b27ff3864785f7dc25e7b396f5e9f448472",
+    "prediction": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed1/row_seed0/tree_no_es_k200_f137/predictions.npz",
+    "prediction_mtime_ns": 1787829802825339298,
+    "prediction_size": 135371320
+  },
+  "meter_roc_auc": {
+    "chilled_water": 0.9743437955904614,
+    "hot_water": 0.9253779982598989,
+    "steam": 0.9607264523061914
+  },
+  "model": "ensemble",
+  "row_seed": 0,
+  "schema_version": 1
+}

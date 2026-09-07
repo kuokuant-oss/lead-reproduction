@@ -1,0 +1,11 @@
+{
+  "experiment_version": "m5_building_count_v5_fixed_50k",
+  "status": "PASSED",
+  "phase": 3,
+  "final_context": {
+    "building_seed": 4,
+    "row_seed": 1,
+    "K": 50
+  },
+  "timestamp": 1788742639.075407
+}

@@ -1,0 +1,19 @@
+{
+  "completed_at_utc": "2026-08-27T13:06:35.778499+00:00",
+  "identity": {
+    "K": 100,
+    "building_draw_seed": 3,
+    "building_seed": 3,
+    "expected_context_rows": 50000,
+    "expected_holdout_rows": null,
+    "experiment_version": "m5_building_count_v5_fixed_50k",
+    "features": 137,
+    "model": "tree",
+    "model_seed": 42,
+    "phase": 3,
+    "row_seed": 1,
+    "support_id": "building_seed3"
+  },
+  "output": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed3/row_seed1/tree_no_es_k100_f137",
+  "status": "COMPLETE"
+}

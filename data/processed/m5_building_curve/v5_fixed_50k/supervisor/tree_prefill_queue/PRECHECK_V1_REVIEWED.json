@@ -1,0 +1,51 @@
+{
+  "active_tabpfn_identity": {
+    "K": 400,
+    "building_draw_seed": 0,
+    "building_seed": 0,
+    "expected_context_rows": 50000,
+    "expected_holdout_rows": null,
+    "experiment_version": "m5_building_count_v5_fixed_50k",
+    "features": 137,
+    "model": "tabpfn",
+    "model_seed": 42,
+    "phase": 2,
+    "row_seed": 1,
+    "support_id": "building_seed0"
+  },
+  "active_tabpfn_pid": 9531,
+  "automatic_retry": false,
+  "budget_order": [
+    400,
+    200,
+    100,
+    50
+  ],
+  "building_seed_order": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "checked_at_utc": "2026-08-27T09:48:28.069006+00:00",
+  "controller": "/mnt/c/Users/User/Documents/Codex/2026-08-26/wsl-ubuntu-m5-building-count-v5/work/tree_v5/run_fixed50k_tree_prefill_queue.py",
+  "controller_sha256": "dca33dae246f36081e211d9fb3ee9d07d3eb87a078d551ab7949f49bbe444e2c",
+  "head": "4397050376b135ffd1f14d856b6e696767d2588f",
+  "parallel_model_limit": 2,
+  "parallel_policy": "one_existing_tabpfn_plus_one_tree",
+  "row_seed_order": [
+    0,
+    1
+  ],
+  "scheduler_pid": 463,
+  "scheduler_state": "S",
+  "scientific_runner": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/scripts/run_m5_building_count_v5_tree_cell.py",
+  "scientific_runner_sha256": "ae8fcbca4ea4c8b06deb1836614c3758fcd1a9d126f98ea2527d9e62b154d825",
+  "scientific_settings_changed": false,
+  "status": "PASSED",
+  "timeout_or_deadline": false,
+  "tree_cells_completed": 2,
+  "tree_cells_pending": 38,
+  "tree_cells_total": 40
+}

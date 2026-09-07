@@ -1,0 +1,425 @@
+{
+  "available_buildings": 100,
+  "average_rows_per_building_limit": null,
+  "building_budget": 100,
+  "building_draw_seed": 4,
+  "building_seed": 4,
+  "caps": {
+    "context": null,
+    "holdout": null
+  },
+  "class_ratio_policy": "exact_global_25000_anomaly_25000_normal",
+  "context_feature_matrix_sha256": "4216ed5d9d8b8ebdf99e75cbd1ff1008cf47d3e4a48b18af0ff926aeb52395cb",
+  "context_label_sha256": "0a130a876da597a8bd577b79ef46f495b804a99183759234ee2ca0817a20438d",
+  "context_limit": null,
+  "context_row_sha256": "60bf7779e2408b65d5302414190a48edd16d27b6a31241e26f6a09b55d3a06b8",
+  "context_rows": 50000,
+  "context_verification": {
+    "effective_context_rows": 50000,
+    "effective_estimators": 8,
+    "external_sharding": true,
+    "requested_context_rows": 50000,
+    "requested_estimators": 8,
+    "sample_subsampling": null,
+    "sample_subsampling_disabled": true,
+    "status": "verified"
+  },
+  "early_stopping": "not_applicable_in_context_learning_no_weight_updates",
+  "elapsed_seconds": 2519.1844097989997,
+  "evaluation_meter_ids": [
+    1,
+    2,
+    3
+  ],
+  "excluded_evaluation_meter_ids": [
+    0
+  ],
+  "execution": {
+    "backend": "colab_a100",
+    "fit_result_sha256": "9eee4fa0096d912fca6b40e9f9090c08ba73f031d19226a28b5ac7f9c3848abf",
+    "fit_state_sha256": "b9ee600a20a854b037eedc8fbc487837e7e80477990e044e71d60e0d39b0b2ca",
+    "lane": 1,
+    "tasks": [
+      {
+        "chunks": [
+          {
+            "end": 80000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard00/chunks/rows_00000000_00080000.npz",
+            "sha256": "2a14a9c98f26f58b0ae229f7deb5efeb5e21f82135a7bf7fd8d173bfaa699645",
+            "start": 0
+          },
+          {
+            "end": 160000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard00/chunks/rows_00080000_00160000.npz",
+            "sha256": "68ebb05717da0f61bac100d2697c4964d0ec10dcbf82fc34e1274f709d63928e",
+            "start": 80000
+          },
+          {
+            "end": 240000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard00/chunks/rows_00160000_00240000.npz",
+            "sha256": "99e31fd665464706a8792f9ae0c8c36b20c86206b2cc2338dd3b836a0a82fff4",
+            "start": 160000
+          },
+          {
+            "end": 320000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard00/chunks/rows_00240000_00320000.npz",
+            "sha256": "703d74ff6a2c66bb134f24ceacc54256deaaece2bb0eca0ba032d91c15f1973b",
+            "start": 240000
+          },
+          {
+            "end": 400000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard00/chunks/rows_00320000_00400000.npz",
+            "sha256": "8fd10b2752dde84138ff945dcece04213e81d08f348a73c7660a60642aa68499",
+            "start": 320000
+          },
+          {
+            "end": 480000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard00/chunks/rows_00400000_00480000.npz",
+            "sha256": "94def658d261ec9eeb06b6143d06571e0e9855435ff88c36452faba36f91237d",
+            "start": 400000
+          },
+          {
+            "end": 560000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard00/chunks/rows_00480000_00560000.npz",
+            "sha256": "ede7f60f9ce6ce42a2c0dea2ba2548a5d5bb50b6743698045979544cdcc586dc",
+            "start": 480000
+          },
+          {
+            "end": 640000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard00/chunks/rows_00560000_00640000.npz",
+            "sha256": "d763c4af23c0f6ef88e610cfbda3d8305ebaaf5d6b5ad8a278c5ef63aab6f833",
+            "start": 560000
+          },
+          {
+            "end": 720000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard00/chunks/rows_00640000_00720000.npz",
+            "sha256": "1e4736b8435d22abede5db41463643c822f0c23ca765771645e5246373a8d03c",
+            "start": 640000
+          },
+          {
+            "end": 800000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard00/chunks/rows_00720000_00800000.npz",
+            "sha256": "9f3bab7346e1064d28dce5393667f786e9359d454f412433048288f5d7f14336",
+            "start": 720000
+          },
+          {
+            "end": 880000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard00/chunks/rows_00800000_00880000.npz",
+            "sha256": "1a814b9069deb40798f858eee3224850a98f31414684a5a4ef4a542d993fd3c3",
+            "start": 800000
+          },
+          {
+            "end": 960000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard00/chunks/rows_00880000_00960000.npz",
+            "sha256": "1373c1c844ceeb618a5c221e6d6c2b8cd093b6474d83bfa48498ad448b26c5c4",
+            "start": 880000
+          },
+          {
+            "end": 1040000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard00/chunks/rows_00960000_01040000.npz",
+            "sha256": "debcf62fa3781822683afad1d6f94ddfa32386cda972a6aab9b7c94147f47fce",
+            "start": 960000
+          }
+        ],
+        "result_sha256": "7174c7515c4675eaa275a2cabf512150a8322f25cf0e61254ce46ca325205174",
+        "shard_id": 0
+      },
+      {
+        "chunks": [
+          {
+            "end": 1120000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard01/chunks/rows_01040000_01120000.npz",
+            "sha256": "c630f58467f38dac5ef67f033d60646cc901faea8823192520609ff72703b43b",
+            "start": 1040000
+          },
+          {
+            "end": 1200000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard01/chunks/rows_01120000_01200000.npz",
+            "sha256": "4b8ed8adcf808bfb7ce73d877ac842857da8b8784a42ae96eea3cb321a5fe6d6",
+            "start": 1120000
+          },
+          {
+            "end": 1280000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard01/chunks/rows_01200000_01280000.npz",
+            "sha256": "9f1b4695ce23d8fa9a30725f15b37d20bee1cc5b7df0e768128d1cd3a232f984",
+            "start": 1200000
+          },
+          {
+            "end": 1360000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard01/chunks/rows_01280000_01360000.npz",
+            "sha256": "5d8e97ee56fd42c893cf236c3ff2c74f2682b3eaf275227d48af0114eb7df7aa",
+            "start": 1280000
+          },
+          {
+            "end": 1440000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard01/chunks/rows_01360000_01440000.npz",
+            "sha256": "ccfb93955f47a73b63b56046beb471b9b5e6c5da248f7f6610c30b34f17848a2",
+            "start": 1360000
+          },
+          {
+            "end": 1520000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard01/chunks/rows_01440000_01520000.npz",
+            "sha256": "416c6f57fabf0136ef6892b81c69838f8db07c9cc55974bd691fcc21fb3e6bee",
+            "start": 1440000
+          },
+          {
+            "end": 1600000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard01/chunks/rows_01520000_01600000.npz",
+            "sha256": "d7368ea799507d05ff625f222ae50b9a6b1776faf92e76d2bc85d2a9d5169354",
+            "start": 1520000
+          },
+          {
+            "end": 1680000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard01/chunks/rows_01600000_01680000.npz",
+            "sha256": "80929b451948aa4afb0c879f813d70be9e78b99676ecb3aa95c03def27eea032",
+            "start": 1600000
+          },
+          {
+            "end": 1760000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard01/chunks/rows_01680000_01760000.npz",
+            "sha256": "25a9f66c8f9ad6515b5f725a45205070a7b57431fc153dbc1fe21b2fc090933c",
+            "start": 1680000
+          },
+          {
+            "end": 1840000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard01/chunks/rows_01760000_01840000.npz",
+            "sha256": "27def08fe0f457579e14383934ddb5d6749c2679b0d9c9944bafc6686863001c",
+            "start": 1760000
+          },
+          {
+            "end": 1920000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard01/chunks/rows_01840000_01920000.npz",
+            "sha256": "d4b2d1c4c589fdb6bf4310fec824bab27d3ce2f05fa9fe9b360be61cca7eed83",
+            "start": 1840000
+          },
+          {
+            "end": 2000000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard01/chunks/rows_01920000_02000000.npz",
+            "sha256": "0857f6ba22feede61992e3f11e3441b23760ee0f8d4af7ff5d8e8d2bd809db48",
+            "start": 1920000
+          },
+          {
+            "end": 2080000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard01/chunks/rows_02000000_02080000.npz",
+            "sha256": "0e8766ee540090e7b1f50585289a1177b0b7996dbe8ed9c9c009c8fb9bd0cbd1",
+            "start": 2000000
+          }
+        ],
+        "result_sha256": "e955cb049217d17885566ecf81edf027a5c697985f45ed7b474682d186f41841",
+        "shard_id": 1
+      },
+      {
+        "chunks": [
+          {
+            "end": 2160000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard02/chunks/rows_02080000_02160000.npz",
+            "sha256": "58c17f3fff966a709d4183e7bff689fee6a8f4f826a754cbe6a8bc00819d3477",
+            "start": 2080000
+          },
+          {
+            "end": 2240000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard02/chunks/rows_02160000_02240000.npz",
+            "sha256": "e7953604508558d0bf7ae3d7851efe447f05c861c2e9b41b09ab4d7f868c4cac",
+            "start": 2160000
+          },
+          {
+            "end": 2320000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard02/chunks/rows_02240000_02320000.npz",
+            "sha256": "d79af5e0684835d4bf8f9fa5f150cb0c5ca523d52f388536084fb48807b313d5",
+            "start": 2240000
+          },
+          {
+            "end": 2400000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard02/chunks/rows_02320000_02400000.npz",
+            "sha256": "30da57aaa934968f56a98d4380f0004dc49cedeee7b635b271d78e264cd6e001",
+            "start": 2320000
+          },
+          {
+            "end": 2480000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard02/chunks/rows_02400000_02480000.npz",
+            "sha256": "154693d4d22a8c33a81257f652a9b00562809276d9eb8e35723aee2d627e87d6",
+            "start": 2400000
+          },
+          {
+            "end": 2560000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard02/chunks/rows_02480000_02560000.npz",
+            "sha256": "9a2f88a3763a47dc34214a21a9532d1145593a325813d95d8990ec167befd1fe",
+            "start": 2480000
+          },
+          {
+            "end": 2640000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard02/chunks/rows_02560000_02640000.npz",
+            "sha256": "78b3ba94f26458e6d839e99bb632319cb50024a748f4027c801f2e6efc1354fd",
+            "start": 2560000
+          },
+          {
+            "end": 2720000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard02/chunks/rows_02640000_02720000.npz",
+            "sha256": "3e407059734f8be3a4b9f00ca8ce15eb56f6a69e54f378ca4c1ea08a2dd475ac",
+            "start": 2640000
+          },
+          {
+            "end": 2800000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard02/chunks/rows_02720000_02800000.npz",
+            "sha256": "cdac9b77c9acf94239f527667199dab142eb527693464fb5335b8b8a918b9cb5",
+            "start": 2720000
+          },
+          {
+            "end": 2880000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard02/chunks/rows_02800000_02880000.npz",
+            "sha256": "2749e25988f39053a38e6536a2a12a11d6f9d1eb8afe43f3aa4f4aa168917cc3",
+            "start": 2800000
+          },
+          {
+            "end": 2960000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard02/chunks/rows_02880000_02960000.npz",
+            "sha256": "e2c8dbfd021c3921db68bee07163f1909538d8490c7363c6609af65698888b1a",
+            "start": 2880000
+          },
+          {
+            "end": 3040000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard02/chunks/rows_02960000_03040000.npz",
+            "sha256": "739f6d04ed52a290c629c53d921da9fde59800bf0a4af6d28dc264064ba57ed5",
+            "start": 2960000
+          },
+          {
+            "end": 3120000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard02/chunks/rows_03040000_03120000.npz",
+            "sha256": "46aa293712beb5597bff7163fbca13e6d9ce32baa06f9b5aa670421ae3512247",
+            "start": 3040000
+          }
+        ],
+        "result_sha256": "58deed8297d84834080af2fa96ae5bd1e6e4452babe2c6e53bb6e3e55919bf7c",
+        "shard_id": 2
+      },
+      {
+        "chunks": [
+          {
+            "end": 3200000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard03/chunks/rows_03120000_03200000.npz",
+            "sha256": "92b63c0b34309f7e1e6c88dc6dd5993d8995e16e0f49ad53c594ac2621f581fc",
+            "start": 3120000
+          },
+          {
+            "end": 3280000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard03/chunks/rows_03200000_03280000.npz",
+            "sha256": "0a55482f48b254b232163d097f0ff6c74cffe911a1094f187e3f8c2c613110d8",
+            "start": 3200000
+          },
+          {
+            "end": 3360000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard03/chunks/rows_03280000_03360000.npz",
+            "sha256": "765bd6c92783f40922b8fbf57937e18f8eb2ec76ef5a40e7b7abc05fe8012b0c",
+            "start": 3280000
+          },
+          {
+            "end": 3440000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard03/chunks/rows_03360000_03440000.npz",
+            "sha256": "a351e0baa022670acf216b3bc0376f0947512fce95ead849936411e6a5e342d1",
+            "start": 3360000
+          },
+          {
+            "end": 3520000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard03/chunks/rows_03440000_03520000.npz",
+            "sha256": "64b7a68a685b0a65f04c2b07559426815bc744cf05be9e3ba272a8ce7fe6a284",
+            "start": 3440000
+          },
+          {
+            "end": 3600000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard03/chunks/rows_03520000_03600000.npz",
+            "sha256": "5837314f2bab6e2730ce1680a78655e05d8df3ae1c39d8c58d20ec070eb9579e",
+            "start": 3520000
+          },
+          {
+            "end": 3680000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard03/chunks/rows_03600000_03680000.npz",
+            "sha256": "ed2d43a07f95452e61fdfedc80eddafb8ef3b330f26ce919cb0e0a72b6e1f9e8",
+            "start": 3600000
+          },
+          {
+            "end": 3760000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard03/chunks/rows_03680000_03760000.npz",
+            "sha256": "03fde1305736ffc1f40de0c6638a7ac6842f6acf1807d62ff4611b9ea86750cd",
+            "start": 3680000
+          },
+          {
+            "end": 3840000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard03/chunks/rows_03760000_03840000.npz",
+            "sha256": "390a7a623190d44bdd8e8be590b0e25514b656b14bb6522fdf8a8fc4046e2992",
+            "start": 3760000
+          },
+          {
+            "end": 3920000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard03/chunks/rows_03840000_03920000.npz",
+            "sha256": "d52d9cdd572254f3c9d65e30c161f50826adfe2e94fa9f3b4246d7acf7804ccd",
+            "start": 3840000
+          },
+          {
+            "end": 4000000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard03/chunks/rows_03920000_04000000.npz",
+            "sha256": "fe4485d08614653855f64734916a77ec29dd5232bcd9c4dd3c925108e1e6fd95",
+            "start": 3920000
+          },
+          {
+            "end": 4080000,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard03/chunks/rows_04000000_04080000.npz",
+            "sha256": "8947aae7e6c249f1f12ab5c9958fb897d7ccb98ce0a751ff369861746b85b4ff",
+            "start": 4000000
+          },
+          {
+            "end": 4102084,
+            "path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/lane1/tasks/k100_b4_r1/shard03/chunks/rows_04080000_04102084.npz",
+            "sha256": "b9b2f16fdd5fbaed012d5ec6e047fa176dd5452d4452ac1347b22ae6a1282c1b",
+            "start": 4080000
+          }
+        ],
+        "result_sha256": "1c7a8e2e74c1387efe14e4f3a50e56282c1e4624b89c6629aa61f82b39acc158",
+        "shard_id": 3
+      }
+    ]
+  },
+  "execution_backend": "Google Colab A100 persistent lane",
+  "execution_lane": 1,
+  "experiment": "m5_building_count_v5_fixed_50k_tabpfn_cell",
+  "experiment_version": "m5_building_count_v5_fixed_50k",
+  "features": 137,
+  "fit_action": "fitted_colab_a100_portable_state",
+  "holdout_row_sha256": "a9f2dd9e49ac57c3b6fe94a12032951f6c1d4d192bcc0505a20bd943ba672f56",
+  "holdout_rows": 4102084,
+  "manifest": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/experiments/m5_building_count_v5_fixed_50k/audit/contexts/k100_b4_r1.json",
+  "manifest_sha256": "c6df7bc7a7092fa276f5d3dea73ca1916ff84db76763f7729c92ee1630d56575",
+  "metrics": {
+    "tabpfn": {
+      "pr_auc": 0.6440062272165609,
+      "roc_auc": 0.9590933622441283
+    }
+  },
+  "mode": "FORMAL",
+  "model_path": "/home/kuant_kuo/.cache/tabpfn/tabpfn-v3-classifier-v3_default.ckpt",
+  "model_seed": 42,
+  "model_sha256": "d0d865d54dfbc524f5703104be90620182dca7e5fb2c16de72e9959ea18f3988",
+  "n_estimators": 8,
+  "portable_worker_sha256": "f18904bc7227a24d6cf4e44e45606eef9508b326e462e1235bae15559162d6d7",
+  "predictions": "predictions.npz",
+  "provenance": {
+    "commit": "4397050376b135ffd1f14d856b6e696767d2588f",
+    "generated_at_utc": "2026-08-27T20:32:17.642889+00:00"
+  },
+  "query_microbatch_size": 80000,
+  "role_seed": null,
+  "row_policy": "frozen_balanced_context_artifact",
+  "row_seed": 1,
+  "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+  "schema_version": 2,
+  "score_names": [
+    "tabpfn"
+  ],
+  "seed": 42,
+  "source_building_manifest": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/experiments/m5_building_count_v4_fixed_10k/audit/building_ladder_seed4.json",
+  "source_building_manifest_sha256": "b28dad326cf31cea3499591b31b8d55ab5557bb5fc1aca6c2ac589a5e4dd73be",
+  "support_id": "building_seed4",
+  "training_sampling": "frozen_unique_global_label_50_50_without_replacement",
+  "tree_early_stop_buildings_reference": 0,
+  "tree_fit_buildings_reference": 100,
+  "validation_feature_scope": "complete_selected_building_histories"
+}

@@ -1,0 +1,266 @@
+=== M5 V5 fixed-50K read-only audit ===
+time: 2026-09-01T23:14:07+08:00 (2026-09-01 23:14:07 CST)
+
+--- [1] git HEAD / tracked clean ---
+4397050376b135ffd1f14d856b6e696767d2588f
+
+--- [2] tmux sessions ---
+m5-building-v5-fixed50k: 1 windows (created Wed Aug 26 11:08:48 2026)
+
+--- [3] scheduler process ---
+463 /home/kuant_kuo/projects/lead-reproduction/.venv/bin/python scripts/run_m5_building_count_v5.py --mode formal --authorize-formal
+
+--- [4] model cell processes ---
+116906 /home/kuant_kuo/projects/lead-reproduction/.venv/bin/python scripts/run_m5_building_count_v5_tabpfn_cell.py --building-manifest /home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/experiments/m5_building_count_v4_fixed_10k/audit/building_ladder_seed0.json --balanced-context-manifest /home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/experiments/m5_building_count_v5_fixed_50k/audit/contexts/k50_b0_r1.json --building-budget 50 --features 137 --model-seed 42 --experiment-version m5_building_count_v5_fixed_50k --n-estimators 8 --model-path /home/kuant_kuo/.cache/tabpfn/tabpfn-v3-classifier-v3_default.ckpt --mode formal --resume --out-root /home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed0/row_seed1/tabpfn_k50_f137
+-- process tree --
+    PID    PPID     ELAPSED %CPU   RSS CMD
+    463     462  6-12:05:18  0.0 98684 /home/kuant_kuo/projects/lead-reproduction/.venv/bin/python scripts/run_m5_building_count_v5.py --mode formal --authorize-formal
+ 116906     463    07:58:55  110 10439996  \_ /home/kuant_kuo/projects/lead-reproduction/.venv/bin/python scripts/run_m5_building_count_v5_tabpfn_cell.py --building-manifest /home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/experiments/m5_building_count_v4_fixed_10k/audit/building_ladder_seed0.json --balanced-context-manifest /home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/experiments/m5_building_count_v5_fixed_50k/audit/contexts/k50_b0_r1.json --building-budget 50 --features 137 --model-seed 42 --experiment-version m5_building_count_v5_fixed_50k --n-estimators 8 --model-path /home/kuant_kuo/.cache/tabpfn/tabpfn-v3-classifier-v3_default.ckpt --mode formal --resume --out-root /home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed0/row_seed1/tabpfn_k50_f137
+
+--- [5] supervisor status.json ---
+{
+  "experiment_version": "m5_building_count_v5_fixed_50k",
+  "mode": "formal",
+  "status": "running",
+  "units": 84,
+  "completed": 75,
+  "pending": 9,
+  "mean_completed_unit_seconds": 24234.363438534,
+  "eta_seconds": 218109.270946806,
+  "timestamp": 1788246911.840208,
+  "current_unit": 44,
+  "current_identity": {
+    "experiment_version": "m5_building_count_v5_fixed_50k",
+    "building_seed": 0,
+    "building_draw_seed": 0,
+    "support_id": "building_seed0",
+    "row_seed": 1,
+    "K": 50,
+    "model": "tabpfn",
+    "features": 137,
+    "model_seed": 42,
+    "phase": 2,
+    "expected_context_rows": 50000,
+    "expected_holdout_rows": null
+  }
+}
+--- [6] supervisor heartbeat.json ---
+{
+  "experiment_version": "m5_building_count_v5_fixed_50k",
+  "mode": "formal",
+  "status": "running",
+  "units": 84,
+  "completed": 75,
+  "pending": 9,
+  "mean_completed_unit_seconds": 24234.363438534,
+  "eta_seconds": 218109.270946806,
+  "timestamp": 1788246911.840208,
+  "current_unit": 44,
+  "current_identity": {
+    "experiment_version": "m5_building_count_v5_fixed_50k",
+    "building_seed": 0,
+    "building_draw_seed": 0,
+    "support_id": "building_seed0",
+    "row_seed": 1,
+    "K": 50,
+    "model": "tabpfn",
+    "features": 137,
+    "model_seed": 42,
+    "phase": 2,
+    "expected_context_rows": 50000,
+    "expected_holdout_rows": null
+  }
+}
+--- [7] active cell heartbeat (最新修改的 heartbeat.json) ---
+== /home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed0/row_seed1/tabpfn_k50_f137/heartbeat.json (2026-09-01T23:13:41+08:00) ==
+{
+  "status": "running",
+  "completed_units": 200,
+  "total_units": 206,
+  "current_unit": "rows_003980000_004000000.npz",
+  "timestamp": 1788275621.0840335
+}== /home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed0/row_seed0/tabpfn_k50_f137/heartbeat.json (2026-09-01T15:15:08+08:00) ==
+{
+  "status": "completed",
+  "completed_units": 206,
+  "total_units": 206,
+  "current_unit": null,
+  "timestamp": 1788246908.5227728
+}== /home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed2/row_seed1/tabpfn_k100_f137/heartbeat.json (2026-09-01T07:03:02+08:00) ==
+{
+  "status": "completed",
+  "completed_units": 206,
+  "total_units": 206,
+  "current_unit": null,
+  "timestamp": 1788217382.0301886
+}
+--- [8] 最近 chunk 落盤時間 (推 sec/chunk) ---
+cell dir: /home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed0/row_seed1/tabpfn_k50_f137
+22:16:58.4543260860  
+22:19:20.4774126890  delta=142.0s  
+22:21:42.1364936090  delta=141.7s  
+22:24:03.8115751350  delta=141.7s  
+22:26:25.4466490000  delta=141.6s  
+22:28:47.1857284520  delta=141.7s  
+22:31:08.9088034560  delta=141.7s  
+22:33:30.5398749030  delta=141.6s  
+22:35:52.2389556640  delta=141.7s  
+22:38:13.9339867530  delta=141.7s  
+22:40:35.6009924920  delta=141.7s  
+22:42:57.2760037250  delta=141.7s  
+22:45:18.9230058130  delta=141.6s  
+22:47:40.6180100560  delta=141.7s  
+22:50:02.2490171070  delta=141.6s  
+22:52:23.9080230990  delta=141.7s  
+22:54:45.5510253810  delta=141.6s  
+22:57:07.1740304310  delta=141.6s  
+22:59:28.8610454600  delta=141.7s  
+23:01:50.5760582010  delta=141.7s  
+23:04:12.3510623550  delta=141.8s  
+23:06:34.0860661320  delta=141.7s  
+23:08:55.7930743770  delta=141.7s  
+23:11:17.9009837610  delta=142.1s  
+23:13:40.9370793020  delta=143.0s  
+
+--- [9] FAILED.json census (formal root) ---
+-- 其他 root (K725 / phase3 / k200_3cells_v2) --
+/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_phase3_colab/formal_queue/FAILED.json  (2026-08-28 04:32)
+/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_k725_row_seed_extension/tree_formal_queue/FAILED.json  (2026-08-27 16:32)
+/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_k200_colab_3cells_v2/formal_queue/FAILED.json  (2026-08-28 15:52)
+
+--- [10] COMPLETE/FINALIZED markers of the two pending-finalization queues ---
+== v5_fixed_50k_phase3_colab ==
+total 84
+drwxr-xr-x 4 kuant_kuo kuant_kuo  4096 Aug 28 04:32 .
+drwxr-xr-x 4 kuant_kuo kuant_kuo  4096 Aug 27 23:12 ..
+-rw-r--r-- 1 kuant_kuo kuant_kuo  2352 Aug 27 23:48 CAPACITY_GATE.json
+-rwxr-xr-x 1 kuant_kuo kuant_kuo   900 Aug 27 23:16 CONTROL_AMENDMENT.json
+-rw-r--r-- 1 kuant_kuo kuant_kuo   154 Aug 28 04:32 FAILED.json
+-rw-r--r-- 1 kuant_kuo kuant_kuo   187 Aug 27 23:13 LAUNCH.json
+drwxr-xr-x 4 kuant_kuo kuant_kuo  4096 Aug 28 04:07 lane0
+drwxr-xr-x 4 kuant_kuo kuant_kuo  4096 Aug 28 04:31 lane1
+-rw-r--r-- 1 kuant_kuo kuant_kuo 47656 Aug 27 23:12 plan.json
+-rw-r--r-- 1 kuant_kuo kuant_kuo   949 Aug 28 04:31 status.json
+-rw-r--r-- 1 kuant_kuo kuant_kuo     0 Aug 27 23:13 upload_serialization.lock
+== v5_fixed_50k_k200_colab_3cells_v2 ==
+total 96
+drwxr-xr-x 3 kuant_kuo kuant_kuo  4096 Aug 28 15:52 .
+drwxr-xr-x 3 kuant_kuo kuant_kuo  4096 Aug 28 13:01 ..
+-rw-r--r-- 1 kuant_kuo kuant_kuo  1108 Aug 28 13:40 CAPACITY_BLOCKED_TRANSPORT_REVIEWED.json
+-rw-r--r-- 1 kuant_kuo kuant_kuo  1108 Aug 28 13:40 CAPACITY_GATE.json
+-rw-r--r-- 1 kuant_kuo kuant_kuo  1108 Aug 28 13:43 CAPACITY_GATE_REMOTE_RECHECK.json
+-rw-r--r-- 1 kuant_kuo kuant_kuo   348 Aug 28 13:43 CAPACITY_TRANSPORT_RECOVERY.json
+-rwxr-xr-x 1 kuant_kuo kuant_kuo   985 Aug 28 13:43 CONTROL_AMENDMENT_CAPACITY_GATE_TRANSPORT.json
+-rwxr-xr-x 1 kuant_kuo kuant_kuo  1004 Aug 28 13:35 CONTROL_AMENDMENT_EXEC_TRANSPORT_RECOVERY.json
+-rw-r--r-- 1 kuant_kuo kuant_kuo   194 Aug 28 15:52 FAILED.json
+-rw-r--r-- 1 kuant_kuo kuant_kuo   248 Aug 28 13:34 FAILED_TRANSPORT_EXEC_HANG_REVIEWED.json
+-rw-r--r-- 1 kuant_kuo kuant_kuo   189 Aug 28 13:44 LANE_LAUNCH_ACCEPTANCE.json
+-rw-r--r-- 1 kuant_kuo kuant_kuo   170 Aug 28 13:01 LAUNCH.json
+-rw-r--r-- 1 kuant_kuo kuant_kuo   397 Aug 28 13:36 TRANSPORT_RECOVERY.json
+drwxr-xr-x 4 kuant_kuo kuant_kuo  4096 Aug 28 15:52 lane0
+-rw-r--r-- 1 kuant_kuo kuant_kuo 33231 Aug 28 13:01 plan.json
+-rw-r--r-- 1 kuant_kuo kuant_kuo   207 Aug 28 13:33 status.json
+-rw-r--r-- 1 kuant_kuo kuant_kuo     0 Aug 28 13:01 upload_serialization.lock
+== v5_fixed_50k_k725_colab ==
+total 92
+drwxr-xr-x  3 kuant_kuo kuant_kuo  4096 Aug 27 17:27 .
+drwxr-xr-x 11 kuant_kuo kuant_kuo  4096 Aug 27 17:26 ..
+-rw-r--r--  1 kuant_kuo kuant_kuo   136 Aug 27 17:27 COMPLETE.json
+-rw-r--r--  1 kuant_kuo kuant_kuo  1794 Aug 27 14:12 CONTROL_AMENDMENT.json
+-rw-r--r--  1 kuant_kuo kuant_kuo   284 Aug 27 17:27 FINALIZED.json
+-rw-r--r--  1 kuant_kuo kuant_kuo   446 Aug 27 13:43 LAUNCH.json
+-rw-r--r--  1 kuant_kuo kuant_kuo   492 Aug 27 14:13 RESUME.json
+drwxr-xr-x 14 kuant_kuo kuant_kuo  4096 Aug 27 13:43 jobs
+-rw-r--r--  1 kuant_kuo kuant_kuo 45753 Aug 27 14:12 plan.json
+-rw-r--r--  1 kuant_kuo kuant_kuo  1822 Aug 27 17:27 pool.log
+-rw-r--r--  1 kuant_kuo kuant_kuo   235 Aug 27 17:26 status.json
+-rw-r--r--  1 kuant_kuo kuant_kuo   922 Aug 27 14:12 transport_503_r2_q0_REVIEWED.json
+-rw-r--r--  1 kuant_kuo kuant_kuo     0 Aug 27 13:43 upload_serialization.lock
+
+--- [11] scheduler complete() 即時 84-unit census (read-only import) ---
+module symbols of interest: ['_build_units']
+
+--- [12] COMPLETE.json census by budget ---
+75
+     75 COMPLETE.json
+-- 全部路徑 --
+building_seed0/row_seed0/tabpfn_k100_f137/COMPLETE.json
+building_seed0/row_seed0/tabpfn_k200_f137/COMPLETE.json
+building_seed0/row_seed0/tabpfn_k400_f137/COMPLETE.json
+building_seed0/row_seed0/tabpfn_k50_f137/COMPLETE.json
+building_seed0/row_seed0/tree_no_es_k100_f137/COMPLETE.json
+building_seed0/row_seed0/tree_no_es_k200_f137/COMPLETE.json
+building_seed0/row_seed0/tree_no_es_k400_f137/COMPLETE.json
+building_seed0/row_seed0/tree_no_es_k50_f137/COMPLETE.json
+building_seed0/row_seed1/tabpfn_k100_f137/COMPLETE.json
+building_seed0/row_seed1/tabpfn_k200_f137/COMPLETE.json
+building_seed0/row_seed1/tabpfn_k400_f137/COMPLETE.json
+building_seed0/row_seed1/tree_no_es_k100_f137/COMPLETE.json
+building_seed0/row_seed1/tree_no_es_k200_f137/COMPLETE.json
+building_seed0/row_seed1/tree_no_es_k400_f137/COMPLETE.json
+building_seed0/row_seed1/tree_no_es_k50_f137/COMPLETE.json
+building_seed1/row_seed0/tabpfn_k100_f137/COMPLETE.json
+building_seed1/row_seed0/tabpfn_k200_f137/COMPLETE.json
+building_seed1/row_seed0/tabpfn_k400_f137/COMPLETE.json
+building_seed1/row_seed0/tree_no_es_k100_f137/COMPLETE.json
+building_seed1/row_seed0/tree_no_es_k200_f137/COMPLETE.json
+building_seed1/row_seed0/tree_no_es_k400_f137/COMPLETE.json
+building_seed1/row_seed0/tree_no_es_k50_f137/COMPLETE.json
+building_seed1/row_seed1/tabpfn_k100_f137/COMPLETE.json
+building_seed1/row_seed1/tabpfn_k200_f137/COMPLETE.json
+building_seed1/row_seed1/tabpfn_k400_f137/COMPLETE.json
+building_seed1/row_seed1/tree_no_es_k100_f137/COMPLETE.json
+building_seed1/row_seed1/tree_no_es_k200_f137/COMPLETE.json
+building_seed1/row_seed1/tree_no_es_k400_f137/COMPLETE.json
+building_seed1/row_seed1/tree_no_es_k50_f137/COMPLETE.json
+building_seed2/row_seed0/tabpfn_k100_f137/COMPLETE.json
+building_seed2/row_seed0/tabpfn_k200_f137/COMPLETE.json
+building_seed2/row_seed0/tabpfn_k400_f137/COMPLETE.json
+building_seed2/row_seed0/tree_no_es_k100_f137/COMPLETE.json
+building_seed2/row_seed0/tree_no_es_k200_f137/COMPLETE.json
+building_seed2/row_seed0/tree_no_es_k400_f137/COMPLETE.json
+building_seed2/row_seed0/tree_no_es_k50_f137/COMPLETE.json
+building_seed2/row_seed1/tabpfn_k100_f137/COMPLETE.json
+building_seed2/row_seed1/tabpfn_k200_f137/COMPLETE.json
+building_seed2/row_seed1/tabpfn_k400_f137/COMPLETE.json
+building_seed2/row_seed1/tree_no_es_k100_f137/COMPLETE.json
+building_seed2/row_seed1/tree_no_es_k200_f137/COMPLETE.json
+building_seed2/row_seed1/tree_no_es_k400_f137/COMPLETE.json
+building_seed2/row_seed1/tree_no_es_k50_f137/COMPLETE.json
+building_seed3/row_seed0/tabpfn_k100_f137/COMPLETE.json
+building_seed3/row_seed0/tabpfn_k200_f137/COMPLETE.json
+building_seed3/row_seed0/tabpfn_k400_f137/COMPLETE.json
+building_seed3/row_seed0/tree_no_es_k100_f137/COMPLETE.json
+building_seed3/row_seed0/tree_no_es_k200_f137/COMPLETE.json
+building_seed3/row_seed0/tree_no_es_k400_f137/COMPLETE.json
+building_seed3/row_seed0/tree_no_es_k50_f137/COMPLETE.json
+building_seed3/row_seed1/tabpfn_k100_f137/COMPLETE.json
+building_seed3/row_seed1/tabpfn_k200_f137/COMPLETE.json
+building_seed3/row_seed1/tabpfn_k400_f137/COMPLETE.json
+building_seed3/row_seed1/tree_no_es_k100_f137/COMPLETE.json
+building_seed3/row_seed1/tree_no_es_k200_f137/COMPLETE.json
+building_seed3/row_seed1/tree_no_es_k400_f137/COMPLETE.json
+building_seed3/row_seed1/tree_no_es_k50_f137/COMPLETE.json
+building_seed4/row_seed0/tabpfn_k100_f137/COMPLETE.json
+building_seed4/row_seed0/tabpfn_k200_f137/COMPLETE.json
+building_seed4/row_seed0/tabpfn_k400_f137/COMPLETE.json
+building_seed4/row_seed0/tree_no_es_k100_f137/COMPLETE.json
+building_seed4/row_seed0/tree_no_es_k200_f137/COMPLETE.json
+building_seed4/row_seed0/tree_no_es_k400_f137/COMPLETE.json
+building_seed4/row_seed0/tree_no_es_k50_f137/COMPLETE.json
+building_seed4/row_seed1/tabpfn_k100_f137/COMPLETE.json
+building_seed4/row_seed1/tabpfn_k200_f137/COMPLETE.json
+building_seed4/row_seed1/tabpfn_k400_f137/COMPLETE.json
+building_seed4/row_seed1/tree_no_es_k100_f137/COMPLETE.json
+building_seed4/row_seed1/tree_no_es_k200_f137/COMPLETE.json
+building_seed4/row_seed1/tree_no_es_k400_f137/COMPLETE.json
+building_seed4/row_seed1/tree_no_es_k50_f137/COMPLETE.json
+building_seed725/row_seed0/tabpfn_k725_f137/COMPLETE.json
+building_seed725/row_seed0/tree_no_es_k725_f137/COMPLETE.json
+building_seed725/row_seed1/tabpfn_k725_f137/COMPLETE.json
+building_seed725/row_seed1/tree_no_es_k725_f137/COMPLETE.json
+
+--- [13] colab sessions (只查詢) ---
+[colab] No active sessions found on server.
+
+=== end of audit ===

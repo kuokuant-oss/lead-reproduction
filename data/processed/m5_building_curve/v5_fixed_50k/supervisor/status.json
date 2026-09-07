@@ -1,0 +1,13 @@
+{
+  "experiment_version": "m5_building_count_v5_fixed_50k",
+  "mode": "formal",
+  "status": "completed",
+  "units": 84,
+  "completed": 84,
+  "pending": 0,
+  "mean_completed_unit_seconds": 29338.354780851998,
+  "eta_seconds": 0.0,
+  "timestamp": 1788744533.8624992,
+  "matched_context_gate": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/matched_context_gate.json",
+  "aggregate_root": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/aggregate"
+}

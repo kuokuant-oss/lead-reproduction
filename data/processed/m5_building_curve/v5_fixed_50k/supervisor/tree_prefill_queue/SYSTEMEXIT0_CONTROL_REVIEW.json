@@ -1,0 +1,26 @@
+{
+  "automatic_retry": false,
+  "complete_path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/supervisor/tree_prefill_queue/COMPLETE.json",
+  "complete_preceded_failure": true,
+  "complete_sha256": "4f94cefd5ee9423ea18cc1343147430b5763868dfe7aba268e22cbcd127b2dd4",
+  "complete_to_failure_milliseconds": 22.928623,
+  "contexts_or_checkpoints_changed": false,
+  "control_fix": "successful SystemExit(0) now bypasses FAILED.json creation",
+  "diagnosis": "successful SystemExit(0) was caught by the controller's broad BaseException handler",
+  "models_retried": 0,
+  "original_failure_path": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/supervisor/tree_prefill_queue/FAILED_CONTROL_REVIEWED_SYSTEMEXIT0_20260827T142008Z.json",
+  "original_failure_payload": {
+    "automatic_retry": false,
+    "controller_pid": 28424,
+    "exception_message": "0",
+    "exception_type": "SystemExit",
+    "failed_at_utc": "2026-08-27T14:20:08.863439+00:00",
+    "status": "FAILED"
+  },
+  "original_failure_sha256": "51d38c750302a8b47d8ab50a9914bd6e9ea5f4aa4dbfe74326ef8a4f5aa805a0",
+  "reviewed_at_utc": "2026-08-27T14:54:01.752447+00:00",
+  "scientific_failure": false,
+  "status": "REVIEWED_NON_MODEL_CONTROL_FAILURE",
+  "tree_cell_census": "40/40",
+  "tree_model_processes": 0
+}

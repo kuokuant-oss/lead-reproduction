@@ -1,0 +1,8 @@
+{
+  "automatic_retry": false,
+  "controller_pid": 28424,
+  "exception_message": "0",
+  "exception_type": "SystemExit",
+  "failed_at_utc": "2026-08-27T14:20:08.863439+00:00",
+  "status": "FAILED"
+}

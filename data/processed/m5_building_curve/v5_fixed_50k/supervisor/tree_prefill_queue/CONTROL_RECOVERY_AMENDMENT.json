@@ -1,0 +1,23 @@
+{
+  "active_tabpfn_preserved": true,
+  "automatic_retry": false,
+  "diagnosis": "v1 unnecessarily attempted SIGSTOP on the tmux foreground process-group leader; the scheduler did not remain stopped, so the controller exited before launching any Tree model",
+  "experiment_models_affected": false,
+  "original_failure": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/supervisor/tree_prefill_queue/FAILED_CONTROL_REVIEWED_20260827T094829Z.json",
+  "original_failure_payload": {
+    "automatic_retry": false,
+    "controller_pid": 28044,
+    "exception_message": "original scheduler is not uniquely present in stopped state",
+    "exception_type": "RuntimeError",
+    "failed_at_utc": "2026-08-27T09:48:29.243885+00:00",
+    "status": "FAILED"
+  },
+  "original_failure_sha256": "346330b160f8a375e5f45e0dcc7c16a2d0a38f2fbee2afbbe0d09d5adfca3ce1",
+  "replacement_control": "tree_prefill_parallel_v2_no_scheduler_pause",
+  "reviewed_at_utc": "2026-08-27T09:56:51.504412+00:00",
+  "scheduler_preserved": true,
+  "scientific_settings_changed": false,
+  "status": "REVIEWED_NON_MODEL_CONTROL_FAILURE",
+  "tree_models_launched": 0,
+  "user_clarification": "parallelism authorization concerns available computer performance; do not pause the existing scheduler"
+}

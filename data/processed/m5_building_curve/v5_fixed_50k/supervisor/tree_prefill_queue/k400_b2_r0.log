@@ -1,0 +1,12 @@
+2026-08-27T10:15:29.404231+00:00 command_start ["/home/kuant_kuo/projects/lead-reproduction/.venv/bin/python", "scripts/run_m5_building_count_v5_tree_cell.py", "--building-manifest", "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/experiments/m5_building_count_v4_fixed_10k/audit/building_ladder_seed2.json", "--balanced-context-manifest", "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/experiments/m5_building_count_v5_fixed_50k/audit/contexts/k400_b2_r0.json", "--building-budget", "400", "--features", "137", "--model-seed", "42", "--mode", "formal", "--resume", "--out-root", "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed2/row_seed0/tree_no_es_k400_f137"]
+m5_building_count_v5_fixed_50k K=400: available buildings=400; tree early stopping=disabled; frozen balanced rows are fit rows
+Loaded M3 frame (20216100, 21) in 0.2 min
+Building timestamp-merge features for selected even buildings
+Fitted lightgbm in 14.985s
+Fitted xgboost in 15.754s
+Fitted catboost in 4.427s
+Fitted hist_gradient_boosting in 2.798s
+Loaded M3 frame (20216100, 21) in 0.2 min
+Building timestamp-merge features for odd canonical holdout
+Wrote /home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed2/row_seed0/tree_no_es_k400_f137/cell.json and /home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k/model_runs/building_seed2/row_seed0/tree_no_es_k400_f137/predictions.npz
+2026-08-27T10:23:29.592082+00:00 command_exit returncode=0

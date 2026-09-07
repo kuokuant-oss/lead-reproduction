@@ -1,0 +1,44 @@
+\documentclass[10pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{newtxtext,newtxmath}
+\usepackage[paperwidth=8.5in,paperheight=11in,margin=0.55in]{geometry}
+\usepackage{booktabs,tabularx,siunitx}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage[active,tightpage]{preview}
+\setlength\PreviewBorder{10pt}
+\sisetup{detect-all}
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.12}
+\pagestyle{empty}
+\begin{document}
+\begin{preview}\begin{minipage}{\linewidth}
+\centering
+\captionof{table}{Experiment B protocol: source-building scarcity.}
+\label{tab:m5-exp-b-setup}
+\begin{tabularx}{\linewidth}{p{0.17\linewidth}p{0.23\linewidth}X}
+\toprule
+Section & Setting & Value \\
+\midrule
+Design & Scarcity variable & Distinct source buildings, K \\
+ & Budget levels & K=50, 100, 200, 400, 725 \\
+ & Context construction & Strictly nested building prefixes within each seed \\
+ & Building seeds & 0--4; K=725 has none \\
+ & Row seeds & 0 and 1; K=725 uses 0--4 \\
+ & Random generator & NumPy PCG64 \\
+ & Building sampling & One permutation per seed, then strict K prefixes \\
+ & Selection constraint & None \\
+ & Labeled rows & 50{,}000 at every K \\
+ & Class ratio & Anomaly:normal = 1:1; 25{,}000 each, without replacement \\
+\addlinespace[2pt]
+Reproducibility & Uncertainty & Row seeds averaged within building seed; mean and standard error across building seeds \\
+\addlinespace[2pt]
+Data and models & Features & 137 engineered features \\
+ & Models & Tree Ensemble; TabPFN (8 estimators) \\
+ & Modeling seed & 42 \\
+\addlinespace[2pt]
+Evaluation & Holdout & Odd-ID buildings; 4{,}102{,}084 rows \\
+ & Metric & PR-AUC by meter; chilled water, steam, hot water \\
+\bottomrule
+\end{tabularx}
+\end{minipage}\end{preview}
+\end{document}

@@ -259,3 +259,13 @@ m32a-m33-prompt.md
 
 # Local reference PDFs that exceed the repo large-file gate
 docs/reference/papers/bdg2-miller-2020.pdf
+
+# M5 building-count V5 fixed-50K：納入小型結果檔，排除大型預測陣列
+!data/processed/m5_building_curve/v5_fixed_50k/supervisor/**
+data/processed/m5_building_curve/v5_fixed_50k/supervisor/heartbeat.json
+!data/processed/m5_building_curve/v5_fixed_50k/matched_context_gate.json
+!data/processed/m5_building_curve/v5_fixed_50k/aggregate/summary.json
+!data/processed/m5_building_curve/v5_fixed_50k/aggregate/metrics.csv
+!data/processed/m5_building_curve/v5_fixed_50k/aggregate/building_seed_summary.csv
+!data/processed/m5_building_curve/v5_fixed_50k/model_runs/**/cell.json
+!data/processed/m5_building_curve/v5_fixed_50k/model_runs/**/COMPLETE.json
