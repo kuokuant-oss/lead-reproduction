@@ -1,0 +1,1727 @@
+<title>熱水零讀數切分</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@500;600;700&family=Noto+Serif+TC:wght@400;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+:root{
+  --surface:#FBFAF7; --surface-2:#F4F1EB; --surface-3:#E9E4DA;
+  --ink:#1C1A17; --ink-2:#56504A; --ink-3:#8A8279;
+  --rule:#DFD9CF; --rule-strong:#C3BBAE;
+  --tree:#B0521C; --tabpfn:#3A4D9F;
+  --band:#1C1A17; --band-ink:#F6F3EE; --band-ink-2:#B3ABA0; --band-rule:#39342D;
+  --ff-display:"Archivo","Noto Sans TC","Helvetica Neue",Arial,sans-serif;
+  --ff-body:"Source Serif 4","Noto Serif TC",Georgia,"Times New Roman",serif;
+  --ff-mono:"IBM Plex Mono","Noto Sans TC",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --prose:38em; --track:1120px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --surface:#17161A; --surface-2:#1F1E24; --surface-3:#2A2931;
+    --ink:#EDEAE4; --ink-2:#A8A29B; --ink-3:#79736C;
+    --rule:#2E2D35; --rule-strong:#464451;
+    --tree:#CE7C36; --tabpfn:#7480DC;
+    --band:#0F0E12; --band-ink:#EDEAE4; --band-ink-2:#8C867F; --band-rule:#2A2931;
+  }
+}
+:root[data-theme="dark"]{
+  --surface:#17161A; --surface-2:#1F1E24; --surface-3:#2A2931;
+  --ink:#EDEAE4; --ink-2:#A8A29B; --ink-3:#79736C;
+  --rule:#2E2D35; --rule-strong:#464451;
+  --tree:#CE7C36; --tabpfn:#7480DC;
+  --band:#0F0E12; --band-ink:#EDEAE4; --band-ink-2:#8C867F; --band-rule:#2A2931;
+}
+
+*{box-sizing:border-box}
+body{background:var(--surface);color:var(--ink);font-family:var(--ff-body);
+  font-size:17px;line-height:1.78;-webkit-font-smoothing:antialiased}
+.wrap{max-width:var(--track);margin:0 auto;padding:0 24px 96px}
+.prose{max-width:var(--prose)}
+p{margin:0 0 1.1em}
+a{color:var(--tree);text-decoration:none;border-bottom:1px solid var(--rule-strong)}
+a:hover{border-bottom-color:var(--tree)}
+:focus-visible{outline:2px solid var(--tree);outline-offset:3px}
+strong{font-weight:600}
+em{font-style:normal;border-bottom:1px dotted var(--rule-strong)}
+code,.mono{font-family:var(--ff-mono);font-variant-numeric:tabular-nums}
+code{font-size:.9em;background:var(--surface-2);padding:.08em .32em;border-radius:2px}
+
+.eyebrow{font-family:var(--ff-mono);font-size:11.5px;font-weight:500;letter-spacing:.1em;
+  color:var(--ink-3)}
+
+/* ---------- masthead ---------- */
+.mast{padding:64px 0 0}
+.mast h1{font-family:var(--ff-display);font-weight:700;font-size:clamp(40px,6.6vw,72px);
+  line-height:1.1;letter-spacing:.01em;margin:18px 0 0;text-wrap:balance;max-width:14em}
+.mast .sub{font-size:20px;line-height:1.72;color:var(--ink-2);margin:22px 0 0;max-width:32em}
+.mast .sub b{color:var(--ink);font-weight:600}
+.byline{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:26px;
+  font-family:var(--ff-mono);font-size:12px;color:var(--ink-3)}
+
+/* ---------- verification strip ---------- */
+.verify{margin:44px 0 0;border-top:2px solid var(--ink);border-bottom:1px solid var(--rule)}
+.verify-h{display:flex;align-items:baseline;gap:12px;padding:12px 0 14px;flex-wrap:wrap}
+.verify-h .tag{font-family:var(--ff-mono);font-size:11px;font-weight:600;letter-spacing:.08em;
+  background:var(--ink);color:var(--surface);padding:4px 8px;border-radius:2px}
+.verify-h .txt{font-family:var(--ff-mono);font-size:12.5px;color:var(--ink-2)}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  border-top:1px solid var(--rule)}
+.vcell{padding:16px 20px 18px;border-left:1px solid var(--rule)}
+.vcell:first-child{border-left:0;padding-left:0}
+.vcell .n{font-family:var(--ff-mono);font-size:21px;font-weight:600;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;display:block}
+.vcell .l{font-size:14px;color:var(--ink-2);line-height:1.66;display:block;margin-top:6px}
+
+/* ---------- sections ---------- */
+section{margin-top:76px}
+.shead{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:start;
+  border-top:1px solid var(--rule-strong);padding-top:16px}
+.snum{font-family:var(--ff-mono);font-size:12px;font-weight:600;color:var(--tree);
+  letter-spacing:.06em;padding-top:11px}
+.shead h2{font-family:var(--ff-display);font-weight:600;font-size:clamp(26px,3vw,36px);
+  line-height:1.34;letter-spacing:.005em;margin:0;text-wrap:balance;max-width:20em}
+.shead .dek{font-size:16px;color:var(--ink-2);margin:10px 0 0;max-width:34em;line-height:1.7}
+.body{margin-top:26px}
+h3{font-family:var(--ff-display);font-weight:600;font-size:20px;letter-spacing:.005em;
+  margin:40px 0 12px;line-height:1.5}
+h3:first-child{margin-top:0}
+
+/* ---------- figures ---------- */
+figure{margin:34px 0 0}
+.figbox{border:1px solid var(--rule);border-radius:3px;background:var(--surface);
+  padding:20px 20px 14px}
+.fightop{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;
+  gap:8px 20px;margin-bottom:6px}
+.figttl{font-family:var(--ff-display);font-weight:600;font-size:15.5px;letter-spacing:.005em}
+figcaption{font-size:14.5px;color:var(--ink-2);line-height:1.76;margin-top:12px;max-width:48em}
+figcaption b{color:var(--ink);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-family:var(--ff-mono);font-size:11.5px;
+  color:var(--ink-2);align-items:center}
+.lg{display:inline-flex;align-items:center;gap:6px}
+.sw{width:16px;height:3px;border-radius:2px;flex:0 0 auto}
+.swd{width:11px;height:11px;border-radius:50%;flex:0 0 auto}
+.svgwrap{overflow-x:auto}
+svg{display:block;width:100%;height:auto}
+svg text{font-family:var(--ff-mono);font-variant-numeric:tabular-nums}
+.axis{fill:var(--ink-3);font-size:10.5px}
+.axlab{fill:var(--ink-2);font-size:10.5px;font-weight:500;letter-spacing:.04em}
+.dlab{fill:var(--ink);font-size:10.5px;font-weight:600}
+.facet-t{fill:var(--ink);font-family:var(--ff-display);font-size:12.5px;font-weight:600}
+.grid{stroke:var(--rule);stroke-width:1}
+.zero{stroke:var(--rule-strong);stroke-width:1.5}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media (max-width:760px){.twocol{grid-template-columns:1fr}}
+
+
+
+/* ---------- tables ---------- */
+.tblwrap{overflow-x:auto;margin-top:22px;border:1px solid var(--rule);border-radius:3px}
+table{border-collapse:collapse;width:100%;font-family:var(--ff-mono);font-size:12.5px;
+  font-variant-numeric:tabular-nums}
+caption{text-align:left;font-family:var(--ff-display);font-weight:600;font-size:15px;
+  padding:16px 16px 4px;color:var(--ink);line-height:1.5}
+caption .cd{display:block;font-family:var(--ff-body);font-weight:400;font-size:14px;
+  color:var(--ink-2);margin-top:6px;line-height:1.72}
+th,td{padding:7px 12px;text-align:right;white-space:nowrap;border-top:1px solid var(--rule)}
+th{color:var(--ink-2);font-weight:500;font-size:11px;letter-spacing:.05em}
+thead th{border-top:1px solid var(--rule-strong);border-bottom:1px solid var(--rule-strong)}
+th:first-child,td:first-child,th.t,td.t{text-align:left}
+tbody tr:hover{background:var(--surface-2)}
+td.k{font-weight:600;color:var(--ink)}
+.grp{border-left:1px solid var(--rule)}
+.win{color:var(--tree);font-weight:600}
+.lose{color:var(--tabpfn);font-weight:600}
+.se{color:var(--ink-3);font-weight:400}
+.tnote{font-family:var(--ff-body);font-size:13.5px;color:var(--ink-2);padding:12px 16px 15px;
+  border-top:1px solid var(--rule);line-height:1.75}
+
+/* segmented control */
+.seg{display:inline-flex;border:1px solid var(--rule-strong);border-radius:3px;overflow:hidden;
+  font-family:var(--ff-mono);font-size:11.5px}
+.seg button{appearance:none;background:transparent;border:0;border-left:1px solid var(--rule);
+  color:var(--ink-2);padding:6px 13px;cursor:pointer;font:inherit;letter-spacing:.03em}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface);font-weight:600}
+.ctlrow{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;margin:24px 0 0}
+.ctlrow .lbl{font-family:var(--ff-mono);font-size:11px;letter-spacing:.08em;color:var(--ink-3)}
+
+/* ---------- the correction band ---------- */
+.band{background:var(--band);color:var(--band-ink);margin-top:84px;padding:60px 0 64px}
+.band .wrap{padding-bottom:0}
+.band .eyebrow{color:var(--band-ink-2)}
+.band h2{font-family:var(--ff-display);font-weight:700;font-size:clamp(28px,4vw,46px);
+  line-height:1.3;letter-spacing:.005em;margin:14px 0 0;max-width:18em;text-wrap:balance}
+.band p{color:var(--band-ink-2);max-width:34em}
+.band p b,.band strong{color:var(--band-ink);font-weight:600}
+.band em{border-bottom-color:var(--band-ink-2)}
+.band .figbox{border-color:var(--band-rule);background:transparent}
+.band figcaption{color:var(--band-ink-2)}
+.band figcaption b{color:var(--band-ink)}
+.band .legend{color:var(--band-ink-2)}
+.band svg text.axis{fill:var(--band-ink-2)}
+.band svg text.axlab{fill:var(--band-ink-2)}
+.band svg text.dlab{fill:var(--band-ink)}
+.band .grid{stroke:var(--band-rule)}
+.band .zero{stroke:var(--band-ink-2);stroke-width:1.5}
+.band .figttl{color:var(--band-ink)}
+.band .tblwrap{border-color:var(--band-rule)}
+.band th{color:var(--band-ink-2)}
+.band th,.band td{border-top-color:var(--band-rule)}
+.band thead th{border-top-color:var(--band-ink-2);border-bottom-color:var(--band-ink-2)}
+.band td.k{color:var(--band-ink)}
+.band tbody tr:hover{background:rgba(255,255,255,.04)}
+.band caption{color:var(--band-ink)}
+.band caption .cd{color:var(--band-ink-2)}
+.band .tnote{color:var(--band-ink-2);border-top-color:var(--band-rule)}
+.bandgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:44px;
+  align-items:start;margin-top:30px}
+@media (max-width:860px){.bandgrid{grid-template-columns:1fr;gap:30px}}
+
+/* ---------- conclusion list ---------- */
+.claims{list-style:none;padding:0;margin:28px 0 0;display:grid;gap:0}
+.claims li{display:grid;grid-template-columns:auto 1fr;gap:18px;padding:24px 0;
+  border-top:1px solid var(--rule)}
+.claims li:last-child{border-bottom:1px solid var(--rule)}
+.claims .cn{font-family:var(--ff-mono);font-size:12px;font-weight:600;color:var(--tree);padding-top:7px}
+.claims h4{font-family:var(--ff-display);font-weight:600;font-size:18.5px;margin:0 0 8px;
+  letter-spacing:.005em;line-height:1.45}
+.claims p{margin:0;font-size:15.5px;color:var(--ink-2);max-width:36em;line-height:1.78}
+.claims p b{color:var(--ink);font-weight:600}
+
+.lims{margin:22px 0 0;padding:0 0 0 1.6em;max-width:38em}
+.lims li{margin-bottom:16px;font-size:15.5px;color:var(--ink-2);line-height:1.78}
+.lims li::marker{font-family:var(--ff-mono);font-size:13px;color:var(--tree);font-weight:600}
+.lims li b{color:var(--ink);font-weight:600}
+.warn{list-style:none;padding:0;margin:26px 0 0}
+.warn li{position:relative;padding:0 0 0 30px;margin-bottom:18px;font-size:15.5px;
+  color:var(--ink-2);max-width:38em;line-height:1.78}
+.warn li b{color:var(--ink);font-weight:600}
+.warn li::before{content:"×";position:absolute;left:6px;top:2px;font-family:var(--ff-mono);
+  font-size:15px;font-weight:600;color:var(--tree)}
+
+/* ---------- provenance ---------- */
+.prov{margin-top:80px;border-top:2px solid var(--ink);padding-top:22px}
+.provgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:26px;margin-top:18px}
+.provgrid h5{font-family:var(--ff-mono);font-size:11px;letter-spacing:.08em;
+  color:var(--ink-3);margin:0 0 10px;font-weight:600}
+.provgrid ul{list-style:none;padding:0;margin:0;font-family:var(--ff-mono);font-size:12px;
+  line-height:1.9;color:var(--ink-2)}
+.provgrid code{background:transparent;padding:0}
+
+/* ---------- tooltip ---------- */
+.tip{position:fixed;z-index:50;pointer-events:none;opacity:0;transition:opacity .1s;
+  background:var(--ink);color:var(--surface);font-family:var(--ff-mono);font-size:11.5px;
+  line-height:1.65;padding:8px 11px;border-radius:3px;max-width:290px;
+  box-shadow:0 4px 14px rgba(0,0,0,.22);font-variant-numeric:tabular-nums}
+.tip b{color:var(--surface);font-weight:600}
+.tip .d{color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+<header class="mast">
+  <div class="eyebrow">LEAD · meter 3（hot water）· holdout 636,121 列 · 73 棟建築</div>
+  <h1>熱水零讀數切分</h1>
+  <p class="sub">Tree ensemble 在熱水上勝過 TabPFN 的部分，幾乎全部落在
+  <b>meter_reading = 0</b> 的列：以精確恆等式分解，K ≤ 400 時該半承擔了合併 PR-AUC 差距的
+  <b>95–100%</b>。非零那半的差距則集中於單一棟建築（§4.3）。</p>
+  <div class="byline">
+    <span>重新分析 · 2026-09-08</span>
+    <span>錨定於 <code>m5_building_count_v5_fixed_50k</code>（FINAL）</span>
+    <span>90 / 90 model cells</span>
+  </div>
+</header>
+
+<div class="verify">
+  <div class="verify-h">
+    <span class="tag">錨點 · PASS</span>
+    <span class="txt">以下每個數字都由 <code>predictions.npz</code> 重新計算；未沿用任何既有結果</span>
+  </div>
+  <div class="vgrid">
+    <div class="vcell"><span class="n">2.22e-16</span><span class="l">與已定稿圖表的最大絕對差。比對層級是<em>逐 building seed、逐 row seed</em>，涵蓋 PR-AUC 與 ROC-AUC 全部 20 個 (K, model) 點 —— 這個量級就是浮點捨入。</span></div>
+    <div class="vcell"><span class="n">90 / 90</span><span class="l">model cell 全數載入，無缺漏。每個 cell 的 <code>anomaly[meter==3]</code> 都與 side-info 標籤在原始順序下逐元素相等，含 Colab 的 row seed 2–4。</span></div>
+    <div class="vcell"><span class="n">&lt; 1e-9</span><span class="l">平均精確度恆等式 <code>AP = mean(precision@own threshold)</code> 對 scikit-learn 的逐 cell 殘差 —— 後面的 gap 歸因就建立在這個恆等式上。</span></div>
+    <div class="vcell"><span class="n">50,000</span><span class="l"><em>每一個</em> K 的 context 列數都固定（25k 異常 / 25k 正常）。K 只改變 context 取自幾棟建築，不改變它的大小。</span></div>
+  </div>
+</div>
+
+<figure>
+  <div class="figbox">
+    <div class="fightop">
+      <span class="figttl">圖 1 · 熱水異常實際上長什麼樣</span>
+      <span class="legend">
+        <span class="lg"><span class="sw" style="background:var(--ink)"></span>meter_reading</span>
+        <span class="lg"><span class="swd" style="border-radius:2px;background:var(--surface-3);border:1px solid var(--rule-strong)"></span>被標為異常的小時</span>
+      </span>
+    </div>
+    <div class="twocol">
+      <div><div class="svgwrap"><svg id="fig1a" viewBox="0 0 520 250" role="img"
+        aria-label="建築 1235 的熱水讀數從約 1500 掉到剛好 0，並持續 418 小時，全部被標為異常。"></svg></div></div>
+      <div><div class="svgwrap"><svg id="fig1b" viewBox="0 0 520 250" role="img"
+        aria-label="建築 1237 的熱水讀數崩落，經過剛好 0，之後連續 240 小時卡在 0.08，全部被標為異常。"></svg></div></div>
+    </div>
+    <figcaption>兩條真實的逐時資料，依時間排序。<b>左：</b>建築 1235 在兩週內維持約 1,500，之後掉到
+    <em>剛好 0</em> 並持續 418 小時 —— 標籤翻轉的那一小時，正是掉落的那一小時。
+    <b>右：</b>建築 1237 的讀數崩落、經過剛好 0，然後連續 240 小時被釘在 <b>0.08</b>。
+    同一個物理故障，卻因為 0.08 大於 0 而落進 <em>reading ≠ 0</em> 那一半，
+    鄰近的整數 0 則落進 <em>reading = 0</em> 那一半。本頁量測的是這條切分線造成的差異。</figcaption>
+  </div>
+</figure>
+
+<section id="halves">
+  <div class="shead">
+    <div class="snum">01</div>
+    <div>
+      <h2>兩半其實是兩種不同的偵測問題</h2>
+      <p class="dek">零讀數佔 26.6% 的列，卻承載 89.1% 的異常，且其中 97.1% 落在整段皆異常的長區塊內。</p>
+    </div>
+  </div>
+  <div class="body">
+    <div class="tblwrap" style="margin-top:0">
+      <table>
+        <caption>熱水 holdout 的組成
+          <span class="cd">兩半的盛行率差了 22 倍，所以 PR-AUC 與 F1 在兩半之間永遠不可比。
+          跨子集的判讀只用 ROC-AUC。</span></caption>
+        <thead><tr><th></th><th>reading = 0</th><th>reading ≠ 0</th></tr></thead>
+        <tbody>
+          <tr><td>列數</td><td>169,386 <span class="se">(26.6%)</span></td><td>466,735 <span class="se">(73.4%)</span></td></tr>
+          <tr><td>異常數</td><td>80,776</td><td>9,915</td></tr>
+          <tr><td>盛行率</td><td>47.7%</td><td>2.12%</td></tr>
+          <tr><td>佔全部異常</td><td class="k">89.07%</td><td>10.93%</td></tr>
+          <tr><td>佔全部正常</td><td>16.25%</td><td class="k">83.75%</td></tr>
+        </tbody>
+      </table>
+      <div class="tnote">ROC-AUC 由負樣本主導、PR-AUC 由正樣本主導，而這兩半各自握著其中一種的絕大多數 ——
+      因此合併後的 ROC 曲線與 PR 曲線可以在方向上互相矛盾，背後卻沒有任何能力差異。第 6 節會回到這一點。</div>
+    </div>
+
+    <h3>零讀數的訊號來自區塊長度</h3>
+    <p class="prose">把零讀數的列切成「建築內連續零讀數小時的最大區塊」—— 這麼做是合法的，因為列在建築內
+    嚴格逐時且依時間排序（已驗證：連續列剛好前進 +1 小時的比例為 1.0000）—— 異常會集中在少數幾個
+    極長的區塊裡。<strong>14,466 個</strong>零讀數區塊中只有 <strong>718 個</strong>整段為異常，
+    卻裝了 <strong>78,450</strong> 個零讀數小時：全部 80,776 個零異常的 <strong>97.1%</strong>。</p>
+
+    <figure>
+      <div class="figbox">
+        <div class="fightop">
+          <span class="figttl">圖 2 · 斷得越久，越可能是異常</span>
+          <span class="legend"><span class="lg">長條長度 = 該區間的零讀數小時中被標為異常的比例</span></span>
+        </div>
+        <div class="svgwrap"><svg id="fig2" viewBox="0 0 1000 250" role="img"
+          aria-label="依區塊長度看零讀數小時中被標為異常的比例：1 小時為 5.2%，2 到 3 小時為 2.4%，4 到 24 小時為 6.2%，1 到 7 天為 33.2%，超過 7 天為 71.9%。"></svg></div>
+        <figcaption>只持續一兩個小時的 0 幾乎都是合法的 —— 機組本來就關著。超過一週就更可能是故障：
+        <b>101 個長度超過 7 天的區塊</b>涵蓋 98,224 個零讀數小時，其中 <b>71.9%</b> 為異常，
+        單這一項就佔了 holdout 中每個零異常的約 <b>87%</b>。
+        最長的單一零讀數區塊是 8,051 小時 —— 335 天。</figcaption>
+      </div>
+    </figure>
+
+    <p class="prose">相對地，hour-of-day 在這裡幾乎沒用。24 個小時之間，零讀數列被標為異常的比例只在
+    <strong>45.7%</strong> 到 <strong>51.1%</strong> 之間移動 —— 全距 5.5 個百分點。
+    要分辨故障的 0 與合法的 0，可用的訊號是時序脈絡與區塊長度。</p>
+
+    <h3>個案：兩個季節，各兩個月的逐時讀數</h3>
+    <p class="prose">上面都是總量統計。實際攤開來看，「讀數為 0 的異常」長什麼樣、以及它和「合法的 0」
+    差在哪裡，比任何摘要都清楚。每張圖上半部是逐時讀數，下半部共用同一條時間軸放 Tree 與 TabPFN 的
+    異常分數（K = 400，5 個 building seed × 2 個 row seed 共 10 個 cell 的平均 —— 這等於已定稿的
+    嵌套平均）。兩個個案的讀數量級不同，各自使用獨立的 Y 軸，圖間高度不可比。
+    30 天視窗都對齊到午夜，時間戳由 raw <code>train.csv</code> 取得並驗證過（該建築的 raw 列數與
+    holdout 列數相同、讀數逐值相等）。</p>
+    <p class="prose">兩個視窗都取固定日曆區間：夏季 7/1–8/31（62 天）與冬季 11/1–12/31（61 天），
+    分別是逐月 gap 最大與模型絕對水準最高的兩段（§2）。建築的挑選以該視窗內
+    reading = 0 的 ROC-AUC 差為準，取符合該方向者的<b>中位數</b>建築，並要求兩類零讀數各至少
+    50 小時，因此圖中呈現的是該組的中段而非極端值。
+    逐建築的離散度值得一併記住：全年可評分的 29 棟建築中 Tree 領先 20 棟，AUC 差中位數
+    <strong>+0.019</strong>、四分位距 −0.001 到 +0.044、全距 −0.151 到 +0.163。</p>
+
+    <figure>
+      <div class="figbox">
+        <div class="fightop">
+          <span class="figttl">圖 3a · 夏季，Tree 領先明顯 —— building 167（Lodging/residential），2016-07-01 ~ 08-31（62 天）</span>
+          <span class="legend" id="lg-case"></span>
+        </div>
+        <div class="svgwrap"><svg id="c_summer2" viewBox="0 0 1000 420" role="img"
+          aria-label="建築 167 在 2016 年 7 到 8 月共 62 天的逐時熱水讀數折線圖：該期間有 1062 小時讀數為 0，其中 744 小時標為異常、318 小時標為正常；下方 Tree 對異常的零給平均 0.687，TabPFN 只給 0.457 也就是低於 0.50 的操作點，兩者對合法的零都給 0.227。"></svg></div>
+        <figcaption id="cap_summer2"></figcaption>
+      </div>
+    </figure>
+
+    <figure>
+      <div class="figbox">
+        <div class="fightop">
+          <span class="figttl">圖 3b · 冬季對照，兩者都高 —— building 255（Education），2016-11-01 ~ 12-31（61 天）</span>
+        </div>
+        <div class="svgwrap"><svg id="c_winter" viewBox="0 0 1000 420" role="img"
+          aria-label="建築 255 在 2016 年 11 到 12 月共 61 天的逐時熱水讀數折線圖：該期間有 716 小時讀數為 0，其中 443 小時標為異常、273 小時標為正常，標籤翻轉五次；下方 Tree 對異常的零給平均 0.926，TabPFN 給 0.634，兩者都在 0.50 以上。"></svg></div>
+        <figcaption id="cap_winter"></figcaption>
+      </div>
+    </figure>
+
+    <div class="tblwrap">
+      <table id="tblcases">
+        <caption>三個個案的數字
+          <span class="cd">「模型分數」為 Tree K = 725、5 個 row seed 平均，分別在該類小時上取平均。
+          分數 ≥ 0.50 在報告的固定操作點下會被標記。</span></caption>
+      </table>
+      <div class="tnote" id="tblcasesnote"></div>
+    </div>
+
+    <h3>非零讀數的主要樣態是卡住的錶與讀數掉落</h3>
+    <p class="prose">在非零那一側，主要樣態是凍結不動的數值。<strong>44.1%</strong> 的非零異常位於
+    「連續三個以上完全相同讀數」的區塊內，正常列只有 <strong>16.8%</strong>；相同值區塊長度的第 90 百分位
+    是異常 <strong>78 小時</strong>、正常 <strong>5 小時</strong>。若以各建築自身非零讀數的中位數與 IQR
+    計算 robust z 分數，尖峰方向兩類幾乎相同（z&nbsp;&gt;&nbsp;3 為 3.1% 對 2.6%），
+    偏低方向則相差六倍（z&nbsp;&lt;&nbsp;−1 為 <strong>11.3%</strong> 對 <strong>1.9%</strong>），
+    兩者中位數重合。這一半 PR-AUC 偏低可歸因於此分布重疊。</p>
+
+    <h3>非零異常集中於單一棟建築</h3>
+    <p class="prose">73 棟建築中只有 48 棟含有任何非零異常。其中一棟，
+    <code>building_id = 1241</code>（Healthcare），就握有 <strong>9,915 個中的 5,198 個</strong> ——
+    52.4% —— 而它只佔熱水列數的 1.4%。前五棟合計佔 66.4%。
+    請把這件事放在心上；它決定了第 4 節該怎麼讀。</p>
+
+    <div class="tblwrap">
+      <table id="tblconc">
+        <caption>9,915 個非零異常分布在哪裡
+          <span class="cd">依非零異常數排序的前十棟；有非零異常的建築共 48 棟。</span></caption>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="discrimination">
+  <div class="shead">
+    <div class="snum">02</div>
+    <div>
+      <h2>分成兩半看鑑別力</h2>
+      <p class="dek">標準指標，聚合方式與已定稿的圖表完全一致。Tree 在零讀數上每個 K 都領先；
+      非零那一欄則來回擺盪。</p>
+    </div>
+  </div>
+  <div class="body">
+    <figure style="margin-top:0">
+      <div class="figbox">
+        <div class="fightop">
+          <span class="figttl">圖 4 · 分子集的 ROC-AUC 對 context 建築數</span>
+          <span class="legend">
+            <span class="lg"><span class="sw" style="background:var(--tree)"></span>Tree <span class="se">(ensemble)</span></span>
+            <span class="lg"><span class="sw" style="background:var(--tabpfn)"></span>TabPFN</span>
+            <span class="lg">誤差棒 = ±1 SE</span>
+          </span>
+        </div>
+        <div class="svgwrap"><svg id="fig3" viewBox="0 0 1000 330" role="img"
+          aria-label="兩個面板呈現 ROC-AUC 對 K。在 reading 等於 0 上，Tree 從 0.649 上升到 0.877，TabPFN 從 0.622 上升到 0.857，Tree 在每個 K 都領先，差距在 K 等於 400 時最大。在 reading 不等於 0 上，Tree 在所有 K 都在 0.80 到 0.82 之間持平，TabPFN 則從 0.726 一路上升到 0.878 並在 K 等於 725 時反超。"></svg></div>
+        <figcaption>跨面板比較用 ROC-AUC，因為它不隨盛行率移動。
+        <b>左：</b>兩個模型在零讀數上都穩定進步，Tree 全程領先，而 TabPFN 在 K = 200 到 400 之間停住
+        （+0.005，同期 Tree 是 +0.073），到 725 才追上。
+        <b>右：</b>Tree 在非零讀數上隨 K 基本持平，TabPFN 則單調上升並超過它。
+        第 4 節會說明右邊這個面板其實是一棟建築。</figcaption>
+      </div>
+    </figure>
+
+    <div class="ctlrow">
+      <span class="lbl">指標</span>
+      <span class="seg" id="segmetric" role="group" aria-label="選擇指標">
+        <button type="button" data-v="roc" aria-pressed="true">ROC-AUC</button>
+        <button type="button" data-v="pr" aria-pressed="false">PR-AUC</button>
+      </span>
+    </div>
+    <div class="tblwrap" style="margin-top:14px">
+      <table id="tblmetric"></table>
+      <div class="tnote" id="tblmetricnote"></div>
+    </div>
+
+    <h3>零讀數那半的鑑別力存在於建築內部</h3>
+    <p class="prose">reading = 0 子集內有 <strong>98.7%</strong> 的排序配對來自<em>不同</em>建築 ——
+    7 棟建築從未出現異常的零讀數，16 棟的零讀數全為異常。把每一個比較限制在同一棟建築內之後，
+    同棟建築內的 ROC-AUC 與合併值相當或更高（K = 725：Tree 0.8718 對 0.8772），
+    因此該鑑別力可歸因於建築內部的時序脈絡。<b>合併值與逐建築值之間的落差則來自跨建築的分數尺度</b>，
+    這條性質在後續各節（季節性、§4.2、§4.3）反覆出現，以下不再重述其成因。</p>
+
+    <div class="tblwrap">
+      <table id="tblstrat">
+        <caption>合併 vs 同棟建築內的 ROC-AUC
+          <span class="cd">同棟建築內 = 在每棟建築內部計算 Mann–Whitney 一致性，再依配對數跨建築加權合併。
+          同分計 0.5。</span></caption>
+      </table>
+      <div class="tnote">零讀數上同棟建築內的數值與合併值一致，該鑑別力因此存在於建築內部。
+      非零讀數上同棟建築內的數值在每個 K 都<em>遠高於</em>合併值（+0.04 到 +0.10）：
+      合併值低估了兩個模型在單一棟建築內的排序能力，落差可歸因於跨建築的分數尺度。</div>
+    </div>
+
+    <h3>季節性：gap 隨月份變動達八倍，兩半方向相反</h3>
+    <p class="prose">分月拆解後，reading = 0 的 gap 從 1 月的 +0.019 上升到 6 月的 +0.161，
+    相差八倍；reading ≠ 0 的 gap 則在 11 月的 +0.129 與 8 月的 −0.102 之間換向。
+    月份不在 side-info 裡，所以每一列都對齊到 raw <code>train.csv</code> 的時間戳（逐建築檢查列數相同、
+    讀數逐值相等，73 棟全部通過），再用先前那份
+    <code>hot_water_month_coverage.md</code> 對帳：12 個月的列數、零讀數率、P(異常 | 零讀數)
+    <strong>逐格完全相符</strong>。</p>
+
+    <figure>
+      <div class="figbox">
+        <div class="fightop">
+          <span class="figttl">圖 5 · reading = 0 的鑑別力與 gap，逐月（K = 400）</span>
+          <span class="legend">
+            <span class="lg"><span class="sw" style="background:var(--tree)"></span>Tree</span>
+            <span class="lg"><span class="sw" style="background:var(--tabpfn)"></span>TabPFN</span>
+            <span class="lg"><span class="sw" style="background:var(--ink)"></span>reading = 0 的 gap</span>
+            <span class="lg"><span class="sw" style="background:var(--ink);height:0;border-top:2px dashed var(--ink)"></span>reading ≠ 0 的 gap</span>
+          </span>
+        </div>
+        <div class="svgwrap"><svg id="fig_month" viewBox="0 0 1000 420" role="img"
+          aria-label="上半部：reading 等於 0 的 ROC-AUC 逐月折線，兩個模型在冬季都接近 0.98，在七月都掉到 0.71 到 0.75，Tree 全年幾乎都在 TabPFN 之上。下半部：gap 逐月折線，reading 等於 0 的 gap 在夏季最大（六月 +0.161），冬季最小（一月 +0.019）；reading 不等於 0 的 gap 方向相反，冬季 Tree 領先（十一月 +0.129），夏季 TabPFN 領先（八月 −0.102）。"></svg></div>
+        <figcaption>上半部是絕對水準：<b>合併後的 reading = 0 鑑別力有強烈季節性</b> —— 冬天兩個模型都接近
+        天花板（2 月 Tree 0.990 / TabPFN 0.964），夏天兩個都崩（7 月 0.745 / 0.709）。
+        下半部是 gap：<b>reading = 0 的 gap 在夏季最大</b>（+0.108，逐月最大是 6 月 +0.161），
+        冬季最小（+0.031）；<b>reading ≠ 0 的 gap 季節方向相反</b>，冬季 Tree 領先 +0.093，
+        夏季 TabPFN 領先 −0.067。
+        <b>這些是族群層面的量</b>，下面會拆出它的來源（組成）與逐建築的量級 ——
+        合併 gap 比逐建築中位數大約六倍，多出來的部分來自跨建築的分數尺度。</figcaption>
+      </div>
+    </figure>
+
+    <div class="ctlrow">
+      <span class="lbl">budget</span>
+      <span class="seg" id="segmonthk" role="group" aria-label="選擇 budget">
+        <button type="button" data-v="400" aria-pressed="true">K = 400</button>
+        <button type="button" data-v="725" aria-pressed="false">K = 725</button>
+      </span>
+    </div>
+    <div class="tblwrap" style="margin-top:14px">
+      <table id="tblmonth"></table>
+      <div class="tnote" id="tblmonthnote"></div>
+    </div>
+
+    <h3>情境的普遍度與季節性的來源</h3>
+    <p class="prose">下表以「73 棟建築中有多少棟處於該情境」量化這個季節性的規模：</p>
+
+    <div class="tblwrap">
+      <table id="tblseasonsit">
+        <caption>夏季 reading = 0 的情境有多普遍
+          <span class="cd">夏季 = 6/7/8 月，冬季 = 12/1/2 月。前四列是純資料事實，不涉及模型；
+          最後一列是模型側，門檻為該建築夏季的零讀數中兩類各 ≥ 10 小時。</span></caption>
+      </table>
+      <div class="tnote" id="tblseasonsitnote"></div>
+    </div>
+
+    <p class="prose">季節性的來源在「夏季零讀數中異常占比」的分布：它呈<b>雙峰</b> ——
+    中位數 48.6%，p25 為 <b>0%</b>、p75 為 <b>100%</b>，其中 <b>17 棟</b>建築夏季的零讀數
+    <em>全部</em>合法。建築因此分為兩群：夏季的零讀數或全為合法（機組停機），或全為異常。
+    而夏季有 <b>49 / 73 棟</b>建築的零讀數多於冬季，新增的多屬前一群，
+    <code>P(異常 | reading = 0)</code> 隨之由 1 月的 57.6% 降至 7 月的 35.5%。
+    夏季絕對水準的下降可歸因於這層組成變化。</p>
+
+    <p class="prose">合併值與逐建築值的量級差異在此同樣可見：夏季 reading = 0 的合併 gap 為
+    <b>+0.108</b>，逐建築 gap 中位數為 <b>+0.018</b>（18 棟可評分，Tree 領先 11 棟），
+    方向一致而量級相差六倍；逐建築全距為 −0.388 到 +0.183。</p>
+
+  </div>
+</section>
+
+<section id="operating">
+  <div class="shead">
+    <div class="snum">03</div>
+    <div>
+      <h2>在可用的操作點上</h2>
+      <p class="dek">固定閾值 0.50 在合併集上可比：兩個模型都標記 9–18% 的列，真實異常率 14.26%。
+      在兩個子集上，最佳閾值分別落在別處，且 F1 的絕對值不可跨半比較。</p>
+    </div>
+  </div>
+  <div class="body">
+    <p class="prose">無技巧規則（標記每一列）得到 precision = 盛行率、recall = 1，即
+    <span class="mono">F1₀ = 2π/(1+π)</span>；隨機排序在前 r 比例切一刀得
+    <span class="mono">2πr/(π+r)</span>，對 r 遞增，故 F1₀ 即為無技巧上限。
+    這條基準隨盛行率劇烈變動，同一個 F1 值在兩半因而代表不同的技巧水準。</p>
+    <p class="prose">直接除以基準線（lift）的天花板為 <span class="mono">1/F1₀</span>，
+    在零讀數那半為 1.5×、在非零那半為 24×，兩者的可達範圍相差 16 倍。
+    可跨盛行率比較的量為上限固定於 1 的 skill score
+    <span class="mono">(F1 − F1₀)/(1 − F1₀)</span>，或隨機恆為 0 的 MCC：</p>
+    <div class="tblwrap">
+      <table id="tbltriv">
+        <caption>把 F1 放回基準線上（K = 725，Tree）
+          <span class="cd">「無技巧 F1₀」= 全部標記所能得到的 F1。「lift 天花板」= 1/F1₀，即 lift 這個比值
+          在該盛行率下的最大可能值。F1 skill 與 MCC 的上限在任何盛行率下都是 1，隨機則分別為 0。
+          AP gain = (AP − π)/(1 − π)。</span></caption>
+      </table>
+      <div class="tnote">直覺上「零讀數 0.78 很好、非零 0.32 很差」的讀法是錯的；但反過來說「非零那半是基準的
+      11 倍所以更強」也是錯的 —— 那是拿一個最多 24× 的數字比一個最多 1.5× 的數字。
+      正規化之後兩半其實<b>差不多</b>：F1 skill 0.440 對 0.435，都走完了無技巧到完美之間約 44% 的路。
+      不同正規化會給出不同排序（lift 偏袒低盛行率、skill 與 MCC 較中性），這正是不該把它壓成單一數字的原因。
+      <b>唯一在所有正規化下都一致的是：排除 building 1241 後的非零那半（skill 0.721 / MCC 0.734 /
+      AP gain 0.733）與合併集一樣強，而含 1241 的版本（0.435 / 0.505 / 0.370）才是弱的那個。</b></div>
+    </div>
+
+    <div class="ctlrow">
+      <span class="lbl">子集</span>
+      <span class="seg" id="segsub" role="group" aria-label="選擇子集">
+        <button type="button" data-v="conf_all" aria-pressed="true">合併</button>
+        <button type="button" data-v="conf_r0" aria-pressed="false">reading = 0</button>
+        <button type="button" data-v="conf_rN" aria-pressed="false">reading ≠ 0</button>
+      </span>
+    </div>
+    <div class="tblwrap" style="margin-top:14px">
+      <table id="tblop"></table>
+      <div class="tnote" id="tblopnote"></div>
+    </div>
+
+    <h3>0.50 的偏差源於平衡 context 的 prior shift</h3>
+    <p class="prose">閾值偏差的來源在實驗設計：<b>context 為 25,000 異常 / 25,000 正常，先驗 50%，
+    而評估資料的盛行率是合併 14.26%、非零那半 2.12%</b>。此為標準的 prior shift，
+    其後果是分數系統性高估。K = 725 的校準情形如下：</p>
+    <div class="tblwrap">
+      <table id="tblcalib">
+        <caption>校準：模型說的機率 vs 實際發生率
+          <span class="cd">依分數分箱，箱內平均預測值對照箱內實際異常比例。已校準的分數會落在對角線上。
+          ECE 為各箱以列數加權的平均絕對偏差。</span></caption>
+      </table>
+      <div class="tnote">分數 0.5–0.6 那一箱，模型在非零子集上說 <b>0.547</b>，實際異常率是 <b>0.030</b> ——
+      高估約 18 倍。這就是 0.50 一刀切下去 precision 崩掉的直接原因。
+      先驗換算也一致：50% 先驗下的分數要對應到 π 先驗的 0.5 後驗，原始分數得是 <span class="mono">1−π</span>
+      —— 合併集 0.857、非零那半 <b>0.979</b>。實測 F1 最佳閾值（0.72 與 0.75）落在 0.50 與這兩個值之間，
+      位置正確，因為 F1 比 accuracy 容忍更多 false positive。
+      <b>0.50 的偏差量因此由「平衡 context 訓練、不平衡資料評估」這個設計決定，屬於系統性偏差。</b>
+      部署用的操作點需在驗證集重調，並按目標盛行率做先驗校正。</div>
+    </div>
+
+    <h3>同樣的告警預算，不用閾值</h3>
+    <p class="prose">標記的列數剛好等於真實異常數 —— 依分數取前 14.26%，此時 precision 等於 recall ——
+    就把閾值完全從比較裡移除。Tree 在每個 K 都領先，而 K = 725 的
+    <strong>+0.041 ± 0.005</strong> 約為 8.6 個標準誤，儘管該處合併 PR-AUC 只差 +0.008、
+    合併 ROC-AUC 甚至偏向 TabPFN。原因是排序最前段幾乎全是 reading = 0 的列。</p>
+    <div class="tblwrap">
+      <table id="tblrp">
+        <caption>R-precision（標記前 90,691 列）
+          <span class="cd">在每個 building seed（K ≤ 400）或 row seed（K = 725）內配對後再平均。</span></caption>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="attribution">
+  <div class="shead">
+    <div class="snum">04</div>
+    <div>
+      <h2>合併後的 gap 從哪裡來</h2>
+      <p class="dek">平均精確度可對兩半的正樣本做精確拆分，這份歸因因此是一個恆等式。</p>
+    </div>
+  </div>
+  <div class="body">
+    <p class="prose">平均精確度等於「對每個正樣本，取其自身分數為閾值時所得的 precision，再取平均」。
+    依每個正樣本落在哪一半來拆這個平均，就得到一個精確分解，</p>
+    <p class="prose mono" style="font-size:14px;background:var(--surface-2);padding:14px 16px;border-radius:3px;color:var(--ink);line-height:1.7">
+      AP = w₀·C₀ + w<sub>N</sub>·C<sub>N</sub> &nbsp;&nbsp;&nbsp; w₀ = 80,776 / 90,691 = 0.8907 &nbsp;&nbsp; w<sub>N</sub> = 0.1093</p>
+    <p class="prose">從而也得到兩個模型差值的精確分解，
+    <span class="mono">ΔAP = w₀·ΔC₀ + w<sub>N</sub>·ΔC<sub>N</sub></span>。兩者都做過數值檢查：
+    恆等式在全部 90 個 cell 上與 scikit-learn 的 <code>average_precision_score</code> 相差小於 1e-9，
+    差值形式的殘差小於 1e-12。</p>
+
+    <figure>
+      <div class="figbox">
+        <div class="fightop">
+          <span class="figttl">圖 6 · 合併 PR-AUC 的 gap，依正樣本落在哪一半拆開</span>
+          <span class="legend">
+            <span class="lg"><span class="swd" style="border-radius:2px;background:var(--ink)"></span>來自 reading = 0 正樣本</span>
+            <span class="lg"><span class="swd" id="swhatch" style="border-radius:2px"></span>來自 reading ≠ 0 正樣本</span>
+            <span class="lg"><span class="swd" style="width:9px;height:9px;transform:rotate(45deg);border-radius:0;border:2px solid var(--tree)"></span>ΔAP 合計（含 ±1 SE）</span>
+          </span>
+        </div>
+        <div class="svgwrap"><svg id="fig4" viewBox="0 0 1000 320" role="img"
+          aria-label="合併平均精確度 gap 依子集拆開的分組長條圖。reading 等於 0 的貢獻在 K 等於 50、100、200、400 時分別佔整個 gap 的 95%、97%、98% 與 100%，在 K 等於 725 時佔 73%，此時非零的貢獻轉為負值。"></svg></div>
+        <figcaption>每一組的兩根長條精確加總為菱形。在 K ≤ 400 時，reading = 0 的正樣本承擔了整個合併 gap 的
+        <b>95%、97%、98% 與 100%</b>；非零正樣本的貢獻是 0.003 AP 點以下。
+        到 K = 725 兩者互相抵銷 —— 零讀數 <b>+0.0127</b>、非零 <b>−0.0048</b> ——
+        只剩下 +0.0079 的合併 gap。</figcaption>
+      </div>
+    </figure>
+
+    <p class="prose">reading = 0 握有 89% 的正樣本，在以正樣本加權的指標上本就佔主導，
+    上述佔比因此含有結構成分。移除該權重的做法是讓每棟建築各投一票：
+    在每棟建築內部計算兩個模型的 ROC-AUC、取差值、再計數。</p>
+
+    <div class="tblwrap">
+      <table id="tblsign">
+        <caption>每棟建築一票：未加權平均差與符號檢定
+          <span class="cd">對 p = 0.5 的雙尾精確二項檢定。只有當子集內該建築同時含兩個類別時才計入。</span></caption>
+      </table>
+      <div class="tnote">reading = 0 是唯一在<em>每一個</em> K 都由 Tree 領先的子集，效果量 +0.024 到 +0.058，
+      且 K = 50–400 的 p ≤ 2.5e-3。非零讀數上的效果很小（+0.003 到 +0.025），K = 50 時更是擲硬幣
+      （48 棟中 24 棟）—— 但方向仍然偏向 Tree，包含 K = 725，而合併後的數字在那裡說的正好相反。</div>
+    </div>
+  </div>
+</section>
+</div>
+
+<div class="band">
+  <div class="wrap">
+    <div class="eyebrow">更正 · 引用非零那一欄之前請先讀這段</div>
+    <h2>非零讀數的結果是一棟建築</h2>
+    <div class="bandgrid">
+      <div>
+        <p>建築 1241 佔熱水列數的 1.4%，卻佔<b>全部非零異常的 52.4%</b>。把它移除後重算：合併後的
+        reading ≠ 0 ROC-AUC gap 在<em>每一個</em> K 都塌到零的 ±0.01 以內，
+        <b>包含 K = 725 那個讓 TabPFN 看起來在非零讀數上更強的 −0.064</b>。而 reading = 0 的 gap
+        完全沒有移動 —— 變動小於 0.0005 —— 因為 80,776 個零異常中只有 197 個屬於那棟建築。</p>
+        <p>逐建築來看，Tree 在 K = 725 的非零讀數上仍然贏 48 棟中的 37 棟。所以這裡沒有任何模型層面的
+        發現需要解釋：<b>「TabPFN 更會處理非零讀數」這句話撐不過移除一棟 Healthcare 建築。</b></p>
+        <p>同一個移除動作也改變了這一半看起來有多難。1241 在裡面時，Tree 在 K = 725 的非零 PR-AUC 是
+        0.383。移除之後，在 1.03% 的盛行率下是 <b>0.736</b> —— 約 71 倍 lift —— ROC-AUC 是
+        <b>0.973</b>。以操作點來看更直接：在該子集自身的最佳閾值上，Tree 拿到
+        <b>precision 0.837 / recall 0.643</b>（max-F1 <b>0.727</b>，只標記 0.79% 的列），
+        而該子集的無技巧 F1 上限只有 0.020 —— 相當於基準的 36 倍。
+        非零讀數本身並不難偵測；那個印象同樣是一棟建築造成的。</p>
+      </div>
+      <div>
+        <figure style="margin:0">
+          <div class="figbox">
+            <div class="fightop">
+              <span class="figttl">圖 7 · reading ≠ 0 的 ROC-AUC gap，含與不含建築 1241</span>
+              <span class="legend">
+                <span class="lg"><span class="swd" style="background:transparent;border:2px solid var(--band-ink)"></span>全 73 棟</span>
+                <span class="lg"><span class="swd" style="background:var(--band-ink)"></span>排除 1241</span>
+              </span>
+            </div>
+            <div class="svgwrap"><svg id="fig5" viewBox="0 0 560 320" role="img"
+              aria-label="reading 不等於 0 的 ROC-AUC gap 啞鈴圖。含全部 73 棟時，gap 從 K 等於 50 的 +0.077 一路降到 K 等於 725 的 −0.064；排除建築 1241 後，每個值都落在 +0.009 與 −0.004 之間。"></svg></div>
+            <figcaption>每一列是一個 K。空心圈是全 73 棟的 gap，實心點是移除建築 1241 後的同一個 gap，
+            中間的連接線就是那一棟建築佔了結果的多少。誤差棒為聚合層級上的 ±1 SE。</figcaption>
+          </div>
+        </figure>
+      </div>
+    </div>
+    <div class="tblwrap">
+      <table id="tbldrop">
+        <caption>配對 ROC-AUC gap（Tree − TabPFN），兩個子集，含與不含建築 1241
+          <span class="cd">正值代表偏向 Tree。在每個 building seed（K ≤ 400）或 row seed（K = 725）內配對後，
+          跨聚合層級取 mean ± SE。</span></caption>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+<section id="conclusions" style="margin-top:76px">
+  <div class="shead">
+    <div class="snum">05</div>
+    <div><h2>數字支持的結論</h2></div>
+  </div>
+  <ol class="claims">
+    <li><span class="cn">01</span><div>
+      <h4>這個 gap 是 reading = 0 的 gap。</h4>
+      <p>依精確分解，它在 K ≤ 400 承擔了合併 PR-AUC 差距的 <b>95–100%</b>；而在每棟建築各投一票之後，
+      reading = 0 是唯一每個 K 都由 Tree 領先的子集（ROC-AUC +0.024 到 +0.058，K = 50–400 的
+      p ≤ 2.5e-3）。分層檢定確認它是同棟建築內的排序差異（§2）。</p></div></li>
+    <li><span class="cn">02</span><div>
+      <h4>差距最大的格子是 K = 400，而 TabPFN 在那裡於零讀數上停住。</h4>
+      <p>從 K = 200 到 400，Tree 的 reading = 0 ROC-AUC 由 0.789 走到 <b>0.862</b>，TabPFN 則由 0.774
+      走到 <b>0.779</b>，而且 Tree 在 5 個 building seed 全勝。合併 PR-AUC 差
+      <b>+0.0856 ± 0.0243</b>，是全表最大。context 大小在每個 K 都固定在 50,000 列，
+      所以跨 K 改變的只有建築多樣性 —— TabPFN 在 K = 400 沒有把多出來的多樣性轉換成零讀數那半的增益，
+      到 725 才追上（0.857）。此處僅陳述觀察，機制尚待驗證。</p></div></li>
+    <li><span class="cn">03</span><div>
+      <h4>非零那一欄由單一棟建築決定。</h4>
+      <p>移除建築 1241 後，合併的 reading ≠ 0 gap 在每個 K 都塌到 ±0.01 以內，包含 K = 725 的那次反轉。
+      逐建築來看，Tree 在那裡仍然領先 48 棟中的 37 棟。</p></div></li>
+    <li><span class="cn">04</span><div>
+      <h4>兩半是不同的任務，而分界線是任意的。</h4>
+      <p>零讀數是斷供偵測：97% 的零異常位於整段皆異常的區塊內，超過 7 天的區塊有 71.9% 為異常，
+      而 3 小時以下的區塊只有 2–5%，且 hour-of-day 幾乎不帶資訊（45.7–51.1%）。
+      非零異常的主要樣態是卡住的錶與偏低的讀數（%z&gt;3 為 3.1% 對 2.6%）。圖 1 裡那支錶被釘在 0.08 長達 240 小時 ——
+      與剛好為 0 是同一個故障，卻因為兩百分之一的差距被分到了另外一半。</p></div></li>
+  </ol>
+</section>
+
+<section id="cautions">
+  <div class="shead">
+    <div class="snum">06</div>
+    <div><h2>限制與後續方向</h2></div>
+  </div>
+  <p class="prose" style="margin-top:26px">本次分析有五項限制，依影響範圍排序如下。</p>
+  <ol class="lims">
+    <li><b>非零那半的模型差距由單一棟建築決定。</b>建築 1241 佔熱水列數的 1.4%，
+    卻含 52.4% 的非零異常；移除後合併 reading ≠ 0 的 ROC-AUC gap 在每個 K 都落在 ±0.01 內
+    （K = 725 由 −0.064 變為 −0.004）。該半的任何模型層面結論都需在排除該建築後重新確認，
+    後續實驗宜將其列為獨立分層。</li>
+    <li><b>合併指標含有可觀的跨建築成分。</b>reading = 0 子集內 98.7% 的排序配對來自不同建築；
+    夏季合併 gap +0.108 對逐建築中位數 +0.018，量級相差六倍。
+    模型比較宜同時報告逐建築配對結果，或改用建築內分層指標。</li>
+    <li><b>固定 0.50 的操作點受平衡 context 的 prior shift 影響。</b>context 先驗為 50%、
+    評估盛行率為 14.26%（非零半 2.12%），分數因而系統性高估：
+    非零子集在 0.5–0.6 箱的預測值 0.547 對實際 0.030。
+    reading ≠ 0 的最佳閾值落在 0.64–0.76，0.50 下的表現變化多為閾值假象。
+    部署前的操作點需在驗證集重調並依目標盛行率做先驗校正。</li>
+    <li><b>兩個子集的指標絕對值不可跨半比較。</b>盛行率為 47.7% 對 2.12%，
+    無技巧 F1 上限分別為 0.646 與 0.042，相差 15 倍；lift 形式的天花板也隨盛行率變動
+    （1.5× 對 24×）。跨子集比較宜採 skill score、MCC 或 ROC-AUC。</li>
+    <li><b>季節性目前只在族群層面成立。</b>逐建築配對檢定受限於樣本：
+    reading = 0 兩季都可評分的建築僅 1 棟，reading ≠ 0 為 24 棟且方向符合者 10 棟（p = 0.54）。
+    要把季節性提升為建築內部的機制主張，需要跨年度資料以取得同一棟建築的多個冬夏配對。</li>
+  </ol>
+</section>
+
+<div class="prov">
+  <div class="eyebrow">出處與方法</div>
+  <div class="provgrid">
+    <div>
+      <h5>聚合方式（與已定稿圖表一致）</h5>
+      <ul>
+        <li>K = 50/100/200/400 —— 先在每個 building seed 內平均 row seed，再跨 5 個 building seed 取 mean ± 樣本SD/√5</li>
+        <li>K = 725 —— 跨 row seed 0–4 取 mean ± 樣本SD/√5</li>
+        <li>Tree 分數欄 <code>ensemble</code>，TabPFN 為 <code>tabpfn</code></li>
+      </ul>
+    </div>
+    <div>
+      <h5>資料來源</h5>
+      <ul>
+        <li><code>v5_fixed_50k/model_runs</code></li>
+        <li><code>…_k725_row_seed_extension</code>（Tree r2–4）</li>
+        <li><code>…_k725_colab/model_results</code>（TabPFN r2–4）</li>
+        <li><code>hotwater_sideinfo.npz</code> —— 標籤、reading、建築、hour、use</li>
+      </ul>
+    </div>
+    <div>
+      <h5>腳本</h5>
+      <ul>
+        <li><code>extract_cell_metrics.py</code></li>
+        <li><code>aggregate_and_anchor.py</code> —— 錨點對帳</li>
+        <li><code>extract_opoint_and_apdecomp.py</code></li>
+        <li><code>within_building.py</code> · <code>subset_structure.py</code></li>
+        <li><code>locate_gap.py</code> · <code>robustness.py</code></li>
+      </ul>
+    </div>
+    <div>
+      <h5>未沿用的東西</h5>
+      <ul>
+        <li>前一個 session 的所有詮釋</li>
+        <li>它自創的「≥ 異常分數中位數的比例」指標</li>
+        <li>prevalence-matched 操作點</li>
+        <li>它的子集數字<em>確實</em>重現到小數第四位 —— 問題在判讀，不在算術</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="tip" id="tip" role="status" aria-live="polite"></div>
+
+<script>
+const D = /*__DATA__*/;
+const K = [50,100,200,400,725];
+const $ = s => document.querySelector(s);
+const NS = "http://www.w3.org/2000/svg";
+const el = (n, a={}, p=null) => { const e = document.createElementNS(NS, n);
+  for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+const txt = (p, x, y, s, cls, extra={}) => { const t = el("text", Object.assign({x, y, class:cls}, extra), p);
+  t.textContent = s; return t; };
+/* Approximate advance width at a given font size: CJK ~1em, Latin ~0.6em in the
+   mono face. Used to keep labels from colliding -- the SVGs are built in JS so
+   there is no layout pass to consult, and getBBox is unavailable when the page
+   is rendered in a sandboxed frame. Slightly generous on purpose.            */
+const textW = (s, fs = 10.5) => [...String(s)]
+  .reduce((a, ch) => a + (ch.codePointAt(0) > 0x2e80 ? fs : fs * 0.62), 0);
+
+/* A row of labels sharing one y band: place left-to-right, skip any that would
+   come within `padX` of one already placed. Returns the placed strings.      */
+function labelRow(svg, y, items, cls = "axis", padX = 6) {
+  const placed = [];
+  for (const it of items) {
+    const w = textW(it.s, it.fs || 10.5);
+    const anchor = it.anchor || "start";
+    const x0 = anchor === "end" ? it.x - w : anchor === "middle" ? it.x - w / 2 : it.x;
+    if (placed.some(p => x0 < p.x1 + padX && x0 + w > p.x0 - padX)) continue;
+    placed.push({x0, x1: x0 + w, s: it.s});
+    txt(svg, it.x, y, it.s, it.cls || cls,
+      Object.assign({"text-anchor": anchor}, it.extra || {}));
+  }
+  return placed;
+}
+
+/* Same idea vertically: nudge labels apart so a column of direct labels at
+   data-point heights never overlaps. Mutates and returns the y values.       */
+function spreadY(ys, minGap = 12) {
+  const order = ys.map((y, i) => [y, i]).sort((a, b) => a[0] - b[0]);
+  for (let k = 1; k < order.length; k++)
+    if (order[k][0] - order[k - 1][0] < minGap) order[k][0] = order[k - 1][0] + minGap;
+  const out = ys.slice();
+  for (const [y, i] of order) out[i] = y;
+  return out;
+}
+
+const f = (v, d=3) => v == null ? "—" : v.toFixed(d);
+const fpm = (pr, d=3) => pr == null ? "—" : f(pr[0], d) + (pr[1] == null ? "" : ` <span class="se">±${f(pr[1], d)}</span>`);
+const fsg = (v, d=4) => (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(d);
+
+/* ---------------- tooltip ---------------- */
+const tip = $("#tip");
+function showTip(ev, html){ tip.innerHTML = html; tip.style.opacity = 1;
+  const r = tip.getBoundingClientRect();
+  let x = ev.clientX + 14, y = ev.clientY - r.height - 12;
+  if (x + r.width > innerWidth - 8) x = ev.clientX - r.width - 14;
+  if (y < 8) y = ev.clientY + 18;
+  tip.style.left = x + "px"; tip.style.top = y + "px"; }
+function hideTip(){ tip.style.opacity = 0; }
+function hoverable(node, html){
+  node.addEventListener("pointermove", e => showTip(e, html));
+  node.addEventListener("pointerleave", hideTip);
+  node.style.cursor = "crosshair";
+}
+addEventListener("scroll", hideTip, {passive:true});
+
+/* ---------------- shared defs ---------------- */
+function hatchDefs(svg, id){
+  const d = el("defs", {}, svg);
+  const p = el("pattern", {id, width:5, height:5, patternTransform:"rotate(45)",
+    patternUnits:"userSpaceOnUse"}, d);
+  el("rect", {width:5, height:5, fill:"var(--surface-2)"}, p);
+  el("line", {x1:0, y1:0, x2:0, y2:5, stroke:"var(--ink-2)", "stroke-width":2.4}, p);
+}
+
+/* ================= 圖 1：真實 trace ================= */
+function trace(id, t, opts){
+  const svg = $(id); svg.innerHTML = "";
+  const W = 520, H = 250, m = {t:34, r:12, b:34, l:52};
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const v = t.v, a = t.a, n = v.length;
+  const vmax = Math.max(...v) * 1.08;
+  const X = i => m.l + (i / (n - 1)) * iw;
+  const Y = q => m.t + ih - (q / vmax) * ih;
+
+  let i = 0;
+  while (i < n){
+    if (a[i] === 1){
+      let j = i; while (j + 1 < n && a[j+1] === 1) j++;
+      const r = el("rect", {x:X(i), y:m.t, width:Math.max(1.5, X(j) - X(i)), height:ih,
+        fill:"var(--surface-3)"}, svg);
+      hoverable(r, `<b>連續 ${j - i + 1} 小時被標為異常</b><br><span class="d">視窗內第 ${i}–${j} 小時</span>`);
+      i = j + 1;
+    } else i++;
+  }
+  const ticks = [0, vmax/2, vmax*0.9166];
+  for (const q of ticks){
+    el("line", {x1:m.l, x2:m.l+iw, y1:Y(q), y2:Y(q), class:"grid",
+      "stroke-dasharray": q === 0 ? "" : "2 3"}, svg);
+    txt(svg, m.l - 8, Y(q) + 3.5, q === 0 ? "0" : Math.round(q).toLocaleString(), "axis", {"text-anchor":"end"});
+  }
+  el("polyline", {points:v.map((q, i) => `${X(i).toFixed(1)},${Y(q).toFixed(1)}`).join(" "),
+    fill:"none", stroke:"var(--ink)", "stroke-width":1.3, "stroke-linejoin":"round"}, svg);
+  txt(svg, m.l, 15, opts.title, "facet-t");
+  txt(svg, m.l, 28, opts.subtitle, "axis");
+  txt(svg, m.l, H - 8, "小時 →", "axlab");
+  txt(svg, m.l + iw, H - 8, `${n} 小時視窗`, "axis", {"text-anchor":"end"});
+  const ax = X(opts.markAt);
+  el("line", {x1:ax, x2:ax, y1:m.t - 6, y2:m.t + ih, stroke:"var(--tree)", "stroke-width":1.6,
+    "stroke-dasharray":"3 2"}, svg);
+  const right = ax > m.l + iw*0.6;
+  txt(svg, right ? ax - 6 : ax + 6, m.t + 12, opts.markLabel, "dlab",
+    {"text-anchor": right ? "end" : "start", fill:"var(--tree)"});
+  const hit = el("rect", {x:m.l, y:m.t, width:iw, height:ih, fill:"transparent"}, svg);
+  const cur = el("line", {x1:m.l, x2:m.l, y1:m.t, y2:m.t+ih, stroke:"var(--ink-3)",
+    "stroke-width":1, opacity:0}, svg);
+  hit.style.cursor = "crosshair";
+  hit.addEventListener("pointermove", e => {
+    const bb = svg.getBoundingClientRect();
+    const px = (e.clientX - bb.left) / bb.width * W;
+    const idx = Math.max(0, Math.min(n - 1, Math.round((px - m.l) / iw * (n - 1))));
+    cur.setAttribute("x1", X(idx)); cur.setAttribute("x2", X(idx)); cur.setAttribute("opacity", 1);
+    showTip(e, `第 <b>${idx}</b> / ${n} 小時<br>讀數 <b>${v[idx].toLocaleString()}</b><br>` +
+      `<span class="d">標記為${a[idx] ? "異常" : "正常"}</span>`);
+  });
+  hit.addEventListener("pointerleave", () => { cur.setAttribute("opacity", 0); hideTip(); });
+}
+
+/* ================= 圖 3a–c：個案逐時折線 ================= */
+/* Two stacked panels sharing one time axis -- never a second y-scale on the same
+   plot. Top: meter_reading (each case its own scale, stated in the caption).
+   Bottom: the Tree K=725 score, 0-1, with the 0.50 operating point marked.
+   Hours where the reading is EXACTLY 0 get a thick bar on the zero line, so
+   "flat at zero" is distinguishable from "small but non-zero".              */
+function fmtNum(v) {
+  if (v === 0) return "0";
+  if (Math.abs(v) >= 10000) return (v / 1000).toFixed(0) + "k";
+  if (Math.abs(v) >= 1000) return (v / 1000).toFixed(1) + "k";
+  if (Math.abs(v) >= 10) return v.toFixed(0);
+  return v.toFixed(1);
+}
+
+function caseLines(id, c) {
+  const svg = $(id);
+  if (!svg) return;
+  svg.innerHTML = "";
+  const W = 1000, H = 420;
+  const m = { l: 62, r: 14, t: 36 };
+  const hTop = 190, gap = 40, hBot = 112;
+  const iw = W - m.l - m.r;
+  const nd = Math.max(...c.day) + 1;
+  const X = i => m.l + (c.day[i] * 24 + c.hh[i]) / (nd * 24 - 1) * iw;
+  const XT = t => m.l + t / (nd * 24 - 1) * iw;
+  const vmax = Math.max(...c.v) || 1;
+  const top = vmax * 1.12;
+  const YV = v => m.t + hTop - (v / top) * hTop;
+  const yb0 = m.t + hTop + gap;
+  const YS = s => yb0 + hBot - s * hBot;
+
+  // ---- anomalous spans, behind both panels
+  let i = 0;
+  while (i < c.a.length) {
+    if (c.a[i] === 1) {
+      let j = i;
+      while (j + 1 < c.a.length && c.a[j + 1] === 1) j++;
+      const x0 = X(i), x1 = X(j);
+      const r = el("rect", { x: x0, y: m.t, width: Math.max(1.5, x1 - x0),
+        height: hTop + gap + hBot, fill: "var(--surface-3)" }, svg);
+      hoverable(r, `<b>連續 ${j - i + 1} 小時標為異常</b><br>` +
+        `<span class="d">${c.day_labels[c.day[i]]} ${String(c.hh[i]).padStart(2, "0")}:00 → ` +
+        `${c.day_labels[c.day[j]]} ${String(c.hh[j]).padStart(2, "0")}:00</span>`);
+      i = j + 1;
+    } else i++;
+  }
+
+  // ---- top panel: reading
+  txt(svg, 0, 13, "讀數 meter_reading（kWh / 小時）", "axlab");
+  txt(svg, W - 2, 13, `該月最大 ${c.v.reduce((a, b) => Math.max(a, b), 0).toLocaleString()}`,
+    "axis", { "text-anchor": "end" });
+  for (let k = 0; k <= 4; k++) {
+    const v = top * k / 4;
+    const zero = k === 0;
+    el("line", { x1: m.l, x2: m.l + iw, y1: YV(v), y2: YV(v), class: zero ? "zero" : "grid",
+      "stroke-dasharray": zero ? "" : "2 3" }, svg);
+    txt(svg, m.l - 8, YV(v) + 3.5, fmtNum(v), "axis", { "text-anchor": "end" });
+  }
+  el("polyline", { points: c.v.map((v, k) => `${X(k).toFixed(1)},${YV(v).toFixed(1)}`).join(" "),
+    fill: "none", stroke: "var(--ink)", "stroke-width": 1.2, "stroke-linejoin": "round" }, svg);
+
+  // exactly-zero runs, as a thick bar on the zero line
+  i = 0;
+  while (i < c.v.length) {
+    if (c.v[i] === 0) {
+      let j = i;
+      while (j + 1 < c.v.length && c.v[j + 1] === 0) j++;
+      const x0 = X(i), x1 = X(j);
+      const na = c.a.slice(i, j + 1).reduce((a, b) => a + b, 0);
+      const g = el("rect", { x: x0, y: YV(0) - 2, width: Math.max(1.5, x1 - x0), height: 4,
+        fill: "var(--ink)", rx: 1 }, svg);
+      hoverable(g, `<b>連續 ${j - i + 1} 小時讀數剛好 0</b><br>` +
+        `${na === j - i + 1 ? "全部標為異常" : na === 0 ? "全部標為正常"
+          : `其中 ${na} 小時標為異常`}<br>` +
+        `<span class="d">${c.day_labels[c.day[i]]} ${String(c.hh[i]).padStart(2, "0")}:00 → ` +
+        `${c.day_labels[c.day[j]]} ${String(c.hh[j]).padStart(2, "0")}:00</span>`);
+      i = j + 1;
+    } else i++;
+  }
+
+  // ---- bottom panel: both models' scores, same 0-1 axis
+  txt(svg, 0, yb0 - 9, `異常分數（K = ${c.budget}）`, "axlab");
+  for (const s of [0, 0.25, 0.5, 0.75, 1]) {
+    const half = s === 0.5;
+    el("line", { x1: m.l, x2: m.l + iw, y1: YS(s), y2: YS(s),
+      class: s === 0 ? "zero" : "grid", "stroke-dasharray": half ? "5 3" : (s === 0 ? "" : "2 3"),
+      stroke: half ? "var(--ink-2)" : undefined, "stroke-width": half ? 1.3 : undefined }, svg);
+    txt(svg, m.l - 8, YS(s) + 3.5, s.toFixed(2), "axis", { "text-anchor": "end" });
+  }
+  txt(svg, m.l + iw, YS(0.5) - 5, "0.50 操作點", "axis",
+    { "text-anchor": "end", fill: "var(--ink-2)" });
+  for (const [arr, col, nm] of [[c.sp, "var(--tabpfn)", "TabPFN"], [c.st, "var(--tree)", "Tree"]])
+    el("polyline", { points: arr.map((s, k) => `${X(k).toFixed(1)},${YS(s).toFixed(1)}`).join(" "),
+      fill: "none", stroke: col, "stroke-width": 1.4, "stroke-linejoin": "round",
+      opacity: nm === "TabPFN" ? 0.9 : 1 }, svg);
+
+  // ---- shared time axis: tick step chosen so the date labels cannot touch
+  const stepD = Math.max(1, Math.ceil(nd / Math.max(1, Math.floor(iw / 58))));
+  const dayItems = [];
+  for (let d = 0; d < nd; d += stepD) {
+    const x = XT(d * 24);
+    el("line", { x1: x, x2: x, y1: yb0 + hBot, y2: yb0 + hBot + 4, class: "grid" }, svg);
+    dayItems.push({ x, s: (c.day_labels[d] || "").slice(5), anchor: "middle" });
+  }
+  labelRow(svg, yb0 + hBot + 16, dayItems, "axis", 8);
+  txt(svg, 0, yb0 + hBot + 16, "日期", "axlab");
+
+  // ---- label-flip markers: draw every line, but never stack the dated labels.
+  const flips = c.flips || [];
+  for (const fl of flips) {
+    const x = X(fl.i);
+    el("line", { x1: x, x2: x, y1: m.t - 6, y2: yb0 + hBot, stroke: "var(--ink-3)",
+      "stroke-width": 1.4, "stroke-dasharray": "3 2" }, svg);
+  }
+  if (flips.length === 1) {
+    const fl = flips[0], x = X(fl.i);
+    const right = x > m.l + iw * 0.65;
+    txt(svg, right ? x - 5 : x + 5, m.t - 13,
+      `${fl.to ? "→ 異常" : "→ 正常"} ${c.day_labels[c.day[fl.i]].slice(5)} ` +
+      `${String(c.hh[fl.i]).padStart(2, "0")}:00`, "dlab",
+      { "text-anchor": right ? "end" : "start" });
+  }
+  // >1 flip: no in-figure label at all (it collided with the top-right note);
+  // the count goes in the caption and the legend explains the dashed line.
+
+  // ---- hover readout across the whole plot
+  const hit = el("rect", { x: m.l, y: m.t, width: iw, height: hTop + gap + hBot,
+    fill: "transparent" }, svg);
+  const cur = el("line", { x1: m.l, x2: m.l, y1: m.t, y2: yb0 + hBot,
+    stroke: "var(--ink-3)", "stroke-width": 1, opacity: 0 }, svg);
+  hit.style.cursor = "crosshair";
+  hit.addEventListener("pointermove", e => {
+    const bb = svg.getBoundingClientRect();
+    const px = (e.clientX - bb.left) / bb.width * W;
+    const t = Math.max(0, Math.min(nd * 24 - 1,
+      Math.round((px - m.l) / iw * (nd * 24 - 1))));
+    let k = 0, best = Infinity;
+    for (let q = 0; q < c.v.length; q++) {
+      const d = Math.abs(c.day[q] * 24 + c.hh[q] - t);
+      if (d < best) { best = d; k = q; }
+    }
+    cur.setAttribute("x1", X(k)); cur.setAttribute("x2", X(k)); cur.setAttribute("opacity", 1);
+    const flag = v => v >= 0.5 ? " ◀ 會被標記" : "";
+    showTip(e, `${c.day_labels[c.day[k]]} ${String(c.hh[k]).padStart(2, "0")}:00<br>` +
+      `讀數 <b>${c.v[k] === 0 ? "剛好 0" : c.v[k].toLocaleString()}</b>　` +
+      `標籤 <b>${c.a[k] ? "異常" : "正常"}</b><br>` +
+      `Tree <b>${c.st[k].toFixed(3)}</b>${flag(c.st[k])}<br>` +
+      `TabPFN <b>${c.sp[k].toFixed(3)}</b>${flag(c.sp[k])}<br>` +
+      `<span class="d">差 ${(c.st[k] - c.sp[k] >= 0 ? "+" : "−")}` +
+      `${Math.abs(c.st[k] - c.sp[k]).toFixed(3)}（Tree − TabPFN）</span>`);
+  });
+  hit.addEventListener("pointerleave", () => { cur.setAttribute("opacity", 0); hideTip(); });
+}
+
+const CASE_KEYS = [["summer", "c_summer2", "cap_summer2"], ["winter", "c_winter", "cap_winter"]];
+
+function renderCases() {
+  const S2 = D.season2 || {};
+  for (const [k, svgId, capId] of CASE_KEYS)
+    if (S2[k]) caseLines("#" + svgId, S2[k]);
+
+  $("#lg-case").innerHTML =
+    `<span class="lg"><span class="sw" style="background:var(--ink)"></span>讀數</span>` +
+    `<span class="lg"><span class="sw" style="background:var(--ink);height:5px"></span>讀數剛好 0</span>` +
+    `<span class="lg"><span class="swd" style="border-radius:2px;background:var(--surface-3);` +
+    `border:1px solid var(--rule-strong)"></span>標為異常的小時</span>` +
+    `<span class="lg"><span class="sw" style="background:var(--tree)"></span>Tree</span>` +
+    `<span class="lg"><span class="sw" style="background:var(--tabpfn)"></span>TabPFN</span>` +
+    `<span class="lg"><span class="sw" style="background:transparent;height:0;` +
+    `border-top:2px dashed var(--ink-3)"></span>標籤翻轉</span>`;
+
+  const f = (x, d = 3) => x == null ? "—" : x.toFixed(d);
+  const sg = x => x == null ? "—" : (x >= 0 ? "+" : "−") + Math.abs(x).toFixed(3);
+  const w = S2.winter, s = S2.summer;
+  if (!w || !s) return;
+  const wt = w.stats["400|tree"], wp = w.stats["400|tabpfn"];
+  const st = s.stats["400|tree"], sp = s.stats["400|tabpfn"];
+
+  $("#cap_summer2").innerHTML =
+    `<b>夏季是 Tree 領先最明顯的季節，這一格就是它的樣子。</b>
+     7–8 月 reading = 0 可評分的 ${s.n_scorable} 棟建築中 Tree 領先 <b>${s.n_expect} 棟</b>，
+     這棟的 gap <b>${sg(s.win.gap)}</b>（AUC ${f(s.win.auc_tree)} vs ${f(s.win.auc_tabpfn)}）
+     落在該組中段，屬於代表性的中位案例。
+     這 62 天裡有 <b>${s.win_zeros.toLocaleString()}</b> 小時讀數為 0 ——
+     <b>${s.win_zeros_anom}</b> 標為異常、<b>${s.win_zeros_norm}</b> 標為正常。
+     兩個模型對合法的 0 給的分數<em>完全一樣</em>（都是 ${f(st.zero_norm)}），
+     差別全在異常那一群：<b>Tree 給 ${f(st.zero_anom)}，TabPFN 只給 ${f(sp.zero_anom)}</b>。
+     <b>而 ${f(sp.zero_anom)} 在 0.50 之下</b> —— 在報告用的固定操作點上，
+     TabPFN 會把這 ${s.win_zeros_anom} 小時整片漏掉，Tree 抓到。
+     為什麼夏天難：這個視窗的零讀數率是 <b>${(s.pooled.zero_rate * 100).toFixed(1)}%</b>，
+     但其中只有 <b>${(s.pooled.p_anom_zero * 100).toFixed(1)}%</b> 是異常 ——
+     0 很多而且多半合法，模型必須從一大片一樣的 0 裡挑出少數幾個。`;
+
+  $("#cap_winter").innerHTML =
+    `<b>冬季對照。</b>同樣是 reading = 0，同樣兩個月，同樣 Tree 領先
+     （gap <b>${sg(w.win.gap)}</b>，AUC ${f(w.win.auc_tree)} vs ${f(w.win.auc_tabpfn)}），
+     但差別在於<b>兩個模型都被推高了</b>：
+     Tree 對異常的 0 給 <b>${f(wt.zero_anom)}</b>、TabPFN 給 <b>${f(wp.zero_anom)}</b> ——
+     TabPFN 這次<em>在 0.50 之上</em>，不會像夏季那樣整片漏掉。
+     這 61 天有 <b>${w.win_zeros.toLocaleString()}</b> 小時讀數為 0
+     （${w.win_zeros_anom} 異常 / ${w.win_zeros_norm} 正常），標籤來回翻轉 ${w.flips.length} 次。
+     為什麼冬天比較容易：零讀數率只有 <b>${(w.pooled.zero_rate * 100).toFixed(1)}%</b>
+     （夏季是 ${(s.pooled.zero_rate * 100).toFixed(1)}%），而其中
+     <b>${(w.pooled.p_anom_zero * 100).toFixed(1)}%</b> 是異常
+     （夏季只有 ${(s.pooled.p_anom_zero * 100).toFixed(1)}%）——
+     <b>冬天的 0 少而且多半就是異常，所以「看到 0 就可疑」這條規則在冬天幾乎夠用。</b>
+     兩個模型都靠近天花板，剩給 gap 的空間就小了：這正是上面那張季節表裡
+     冬季 +0.031、夏季 +0.108 的來源。`;
+
+  // ---- table: the two windows, pooled + the picked building, both budgets
+  const rows = [];
+  for (const [k, lab] of [["summer", "夏 7–8 月"], ["winter", "冬 11–12 月"]]) {
+    const c = S2[k];
+    rows.push([td(lab, "t k"), td("合併（全 73 棟）", "t"),
+      td(f(c.pooled["400|r0"].tree), "grp"), td(f(c.pooled["400|r0"].tabpfn)),
+      td(sg(c.pooled["400|r0"].gap), c.pooled["400|r0"].gap > 0 ? "win" : "lose"),
+      td(f(c.pooled["400|rN"].tree), "grp"), td(f(c.pooled["400|rN"].tabpfn)),
+      td(sg(c.pooled["400|rN"].gap), c.pooled["400|rN"].gap > 0 ? "win" : "lose"),
+      td((c.pooled.p_anom_zero * 100).toFixed(1) + "%", "grp"),
+      td((c.pooled.zero_rate * 100).toFixed(1) + "%")]);
+    rows.push([td("", "t"), td(`逐建築中位數（${c.n_scorable} 棟可評分）`, "t se"),
+      td("—", "grp"), td("—"), td(sg(c.median_gap), c.median_gap > 0 ? "win" : "lose"),
+      td("—", "grp"), td("—"), td("—"), td("—", "grp"), td("—")]);
+    rows.push([td("", "t"), td(`個案 b${c.bid}（${c.use}）`, "t"),
+      td(f(c.win.auc_tree), "grp k"), td(f(c.win.auc_tabpfn), "k"),
+      td(sg(c.win.gap), "k " + (c.win.gap > 0 ? "win" : "lose")),
+      td("—", "grp"), td("—"), td("—"),
+      td("—", "grp"), td("—")]);
+  }
+  tbl("#tblcases",
+    [["視窗"], ["層級", ' class="t"'],
+     ["r0 Tree", ' class="grp"'], ["r0 TabPFN"], ["r0 gap"],
+     ["rN Tree", ' class="grp"'], ["rN TabPFN"], ["rN gap"],
+     ["P(異常|0)", ' class="grp"'], ["零讀數率"]],
+    rows,
+    `<caption>兩個視窗：合併、逐建築中位數、以及圖中的個案<span class="cd">K = 400。
+     合併列是該視窗全部 73 棟的列一起算；逐建築中位數只在該視窗可評分的建築上取
+     （reading = 0 兩類各 ≥ 10 小時）。最後兩欄是資料事實，用來解釋難度差異。</span></caption>`);
+  $("#tblcasesnote").innerHTML =
+    `表中三個層級指向同一方向而量級不同。r0 上合併與逐建築中位數皆偏 Tree：冬季
+     ${sg(w.pooled["400|r0"].gap)} 對 ${sg(w.median_gap)}，夏季 ${sg(s.pooled["400|r0"].gap)}
+     對 ${sg(s.median_gap)}，差額來自跨建築的分數尺度（§2）。<br>
+     季節方向換向出現在 reading ≠ 0：冬季 ${sg(w.pooled["400|rN"].gap)}、
+     夏季 ${sg(s.pooled["400|rN"].gap)}。該半的 gap 幾乎全數來自 building 1241（§4.3），
+     此換向的解釋需以排除該建築後的結果為準。<br>
+     最後兩欄給出難度的資料來源：冬季零讀數率 ${(w.pooled.zero_rate * 100).toFixed(1)}%、
+     其中 ${(w.pooled.p_anom_zero * 100).toFixed(1)}% 為異常；夏季零讀數率
+     ${(s.pooled.zero_rate * 100).toFixed(1)}%、其中僅 ${(s.pooled.p_anom_zero * 100).toFixed(1)}% 為異常。
+     整體而言，夏季 r0 絕對水準的下降可歸因於零讀數變多且多數合法。`;
+}
+
+/* ================= 圖 5：逐月 ================= */
+function figMonth(budget) {
+  const svg = $("#fig_month");
+  if (!svg) return;
+  svg.innerHTML = "";
+  const R = D.month.rows.filter(r => r.budget === budget);
+  const MN = D.month.months;
+  const W = 1000, H = 420, m = { l: 62, r: 90, t: 34 };
+  const hTop = 176, gap = 46, hBot = 108;
+  const iw = W - m.l - m.r;
+  const X = i => m.l + (i + 0.5) / MN.length * iw;
+  const y0 = 0.60, y1 = 1.0;
+  const YA = v => m.t + hTop - (v - y0) / (y1 - y0) * hTop;
+  const yb0 = m.t + hTop + gap;
+  const glo = -0.20, ghi = 0.20;
+  const YG = v => yb0 + hBot - (v - glo) / (ghi - glo) * hBot;
+
+  // ---- top: r0 ROC-AUC levels
+  txt(svg, 0, 13, "reading = 0 的 ROC-AUC", "axlab");
+  txt(svg, W - 2, 13, `K = ${budget}`, "axis", { "text-anchor": "end" });
+  for (let v = y0; v <= y1 + 1e-9; v += 0.1) {
+    el("line", { x1: m.l, x2: m.l + iw, y1: YA(v), y2: YA(v),
+      class: Math.abs(v - y0) < 1e-9 ? "zero" : "grid",
+      "stroke-dasharray": Math.abs(v - y0) < 1e-9 ? "" : "2 3" }, svg);
+    txt(svg, m.l - 8, YA(v) + 3.5, v.toFixed(1), "axis", { "text-anchor": "end" });
+  }
+  for (const [mo, col, nm] of [["tabpfn", "var(--tabpfn)", "TabPFN"], ["tree", "var(--tree)", "Tree"]]) {
+    const pts = R.map((r, i) => r.r0 ? `${X(i).toFixed(1)},${YA(r.r0[mo]).toFixed(1)}` : null)
+      .filter(Boolean).join(" ");
+    el("polyline", { points: pts, fill: "none", stroke: col, "stroke-width": 2,
+      "stroke-linejoin": "round" }, svg);
+    R.forEach((r, i) => {
+      if (!r.r0) return;
+      const c = el("circle", { cx: X(i), cy: YA(r.r0[mo]), r: 3.8, fill: col,
+        stroke: "var(--surface)", "stroke-width": 1.8 }, svg);
+      hoverable(c, `<b>${nm}</b> · ${r.month} · reading = 0<br>ROC-AUC <b>${r.r0[mo].toFixed(3)}</b>` +
+        `<br><span class="d">該月零讀數 ${r.zero_rate.toLocaleString(undefined,
+          { style: "percent", maximumFractionDigits: 1 })}，其中異常 ` +
+        `${r.p_anom_zero.toLocaleString(undefined, { style: "percent", maximumFractionDigits: 1 })}</span>`);
+    });
+    const last = R[R.length - 1];
+    if (last.r0) txt(svg, m.l + iw + 8, YA(last.r0[mo]) + 3.5, nm, "dlab", { fill: col });
+  }
+
+  // ---- bottom: the gap, both subsets
+  txt(svg, 0, yb0 - 11, "gap（Tree − TabPFN）", "axlab");
+  for (let v = glo; v <= ghi + 1e-9; v += 0.1) {
+    const z = Math.abs(v) < 1e-9;
+    el("line", { x1: m.l, x2: m.l + iw, y1: YG(v), y2: YG(v), class: z ? "zero" : "grid",
+      "stroke-dasharray": z ? "" : "2 3" }, svg);
+    txt(svg, m.l - 8, YG(v) + 3.5, (v > 0 ? "+" : v < 0 ? "−" : " ") + Math.abs(v).toFixed(1),
+      "axis", { "text-anchor": "end" });
+  }
+  for (const [tag, dash, nm] of [["r0", "", "reading = 0"], ["rN", "5 3", "reading ≠ 0"]]) {
+    const pts = R.map((r, i) => r[tag] ? `${X(i).toFixed(1)},${YG(r[tag].gap).toFixed(1)}` : null)
+      .filter(Boolean).join(" ");
+    el("polyline", { points: pts, fill: "none", stroke: "var(--ink)", "stroke-width": 1.8,
+      "stroke-dasharray": dash, "stroke-linejoin": "round" }, svg);
+    R.forEach((r, i) => {
+      if (!r[tag]) return;
+      const c = el("circle", { cx: X(i), cy: YG(r[tag].gap), r: 3.4,
+        fill: tag === "r0" ? "var(--ink)" : "var(--surface)",
+        stroke: "var(--ink)", "stroke-width": 1.6 }, svg);
+      hoverable(c, `<b>${nm}</b> · ${r.month}<br>gap <b>${(r[tag].gap >= 0 ? "+" : "−")}` +
+        `${Math.abs(r[tag].gap).toFixed(3)}</b><br>` +
+        `<span class="d">Tree ${r[tag].tree.toFixed(3)} · TabPFN ${r[tag].tabpfn.toFixed(3)}</span>`);
+    });
+    const last = R[R.length - 1];
+    if (last[tag]) txt(svg, m.l + iw + 8, YG(last[tag].gap) + 3.5,
+      tag === "r0" ? "r = 0" : "r ≠ 0", "dlab");
+  }
+
+  // ---- month axis
+  MN.forEach((nm, i) => txt(svg, X(i), yb0 + hBot + 18, nm, "axis", { "text-anchor": "middle" }));
+  const SEASON_X = [[0, 1, 11], [2, 3, 4], [5, 6, 7], [8, 9, 10]];
+  for (const idx of [[2, "春"], [5, "夏"], [8, "秋"]]) {
+    const x = X(idx[0]) - iw / 24;
+    el("line", { x1: x, x2: x, y1: m.t, y2: yb0 + hBot, class: "grid" }, svg);
+  }
+}
+
+function renderMonthTable(budget) {
+  const R = D.month.rows.filter(r => r.budget === budget);
+  const S = D.month.seasons.filter(r => r.budget === budget);
+  const g = v => (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(3);
+  const rows = R.map(r => [
+    td(r.month, "k"), td(r.n.toLocaleString(), "grp"),
+    td((r.zero_rate * 100).toFixed(1) + "%"), td((r.p_anom_zero * 100).toFixed(1) + "%"),
+    td(r.r0 ? r.r0.tree.toFixed(3) : "—", "grp"), td(r.r0 ? r.r0.tabpfn.toFixed(3) : "—"),
+    td(r.r0 ? g(r.r0.gap) : "—", r.r0 && r.r0.gap > 0 ? "win" : "lose"),
+    td(r.rN ? r.rN.tree.toFixed(3) : "—", "grp"), td(r.rN ? r.rN.tabpfn.toFixed(3) : "—"),
+    td(r.rN ? g(r.rN.gap) : "—", r.rN && r.rN.gap > 0 ? "win" : "lose"),
+    td(r.all ? g(r.all.gap) : "—", "grp" + (r.all && r.all.gap > 0 ? " win" : " lose"))]);
+  for (const s of S)
+    rows.push([td(s.season, "t k"), td(s.n.toLocaleString(), "grp"), td(""), td(""),
+      td(s.r0.tree.toFixed(3), "grp k"), td(s.r0.tabpfn.toFixed(3), "k"),
+      td(g(s.r0.gap), "k " + (s.r0.gap > 0 ? "win" : "lose")),
+      td(s.rN.tree.toFixed(3), "grp k"), td(s.rN.tabpfn.toFixed(3), "k"),
+      td(g(s.rN.gap), "k " + (s.rN.gap > 0 ? "win" : "lose")),
+      td(g(s.all.gap), "grp k " + (s.all.gap > 0 ? "win" : "lose"))]);
+  tbl("#tblmonth",
+    [["月"], ["列數", ' class="grp"'], ["零讀數率"], ["P(異常|0)"],
+     ["r0 Tree", ' class="grp"'], ["r0 TabPFN"], ["r0 gap"],
+     ["rN Tree", ' class="grp"'], ["rN TabPFN"], ["rN gap"], ["合併 gap", ' class="grp"']],
+    rows,
+    `<caption>逐月 ROC-AUC，K = ${budget}<span class="cd">最後四列是季節匯總。
+     「零讀數率」與「P(異常|0)」是資料事實，用來解釋為什麼絕對水準有季節性。
+     月份對齊已對帳 <code>hot_water_month_coverage.md</code>，12 個月逐格相符。</span></caption>`);
+  $("#tblmonthnote").innerHTML = budget === 400
+    ? `reading = 0 的 gap 全年<b>都是正的</b>（Tree 領先），但幅度差八倍：1 月 +0.019、6 月 +0.161。
+       它跟該月的難度同向 —— P(異常|0) 越低（夏天）任務越難、gap 越大；冬天兩個模型都在 0.98 左右的
+       天花板上，就擠不出差距。<b>reading ≠ 0 的 gap 則有五個月是負的</b>，而且季節方向與 r0 相反。
+       所以「哪個模型比較好」同時取決於<b>看哪一半</b>與<b>看哪個月</b>。`
+    : `到 K = 725，reading = 0 的 gap 幾乎全年被壓平（−0.026 到 +0.093，冬季三個月轉負），
+       而 reading ≠ 0 的 gap 在 6–10 月變得明顯偏向 TabPFN（−0.13 到 −0.17）。
+       這正是 §4 那張合併圖在 K = 725 反轉的來源 —— 但別忘了 §4.3：非零那半的 gap 幾乎全是 building 1241。`;
+}
+
+/* ---- 情境有多普遍 ---- */
+function renderSeasonSit() {
+  const C = D.season_sit;
+  const pct = (h, d) => d ? (h / d * 100).toFixed(0) + "%" : "—";
+  const rows = [
+    ["S1", "夏季零讀數率 ≥ 50% —— 整季錶大多停在 0", C.S1_summer_zero_ge50],
+    ["S2", "夏季零讀數率 > 冬季 —— 合併季節性的組成來源", C.S2_summer_gt_winter_zero],
+    ["S3", "夏季有任何「異常的 0」—— 貢獻夏季正樣本者", C.S3_has_summer_anom_zero],
+    ["S4", "「整季幾乎全 0、只有少數異常」：夏季零讀數率 ≥ 50% 且其中 1–20% 是異常", C.S4_haystack],
+    ["S4′", "放寬：夏季零讀數率 ≥ 30% 且異常占比 0–30%", C.S4b_haystack_loose],
+  ].map(([tag, desc, e]) => [td(tag, "t k"), td(desc, "t"),
+    td(`${e.hits} / ${e.denom}`, "grp k"), td(pct(e.hits, e.denom)), td("—"), td("—")]);
+  const sc = C.S5_summer_r0_scorable, ah = C.S5_summer_r0_tree_ahead;
+  const sg = v => (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(3);
+  rows.push([td("S5", "t k"), td("夏季 reading = 0 可評分（兩類各 ≥ 10 小時）", "t"),
+    td(`${sc.hits} / ${sc.denom}`, "grp k"), td(pct(sc.hits, sc.denom)),
+    td(`Tree 領先 ${ah.hits} / ${ah.denom}`, ah.hits * 2 > ah.denom ? "win" : "lose"),
+    td(`中位數 ${sg(ah.median_gap)}`, ah.median_gap > 0 ? "win" : "lose")]);
+  tbl("#tblseasonsit",
+    [["情境"], ["敘述", ' class="t"'], ["棟數", ' class="grp"'], ["占 73 棟"],
+     ["模型側"], ["gap"]],
+    rows, null);
+  const d = C.summer_anom_share_dist;
+  $("#tblseasonsitnote").innerHTML =
+    `<b>S1–S3 給出情境的普遍度</b>：三分之一的建築整個夏季錶幾乎都停在 0，
+     三分之二的建築夏天的 0 比冬天多，而其中 ${C.S3_has_summer_anom_zero.hits} 棟確實貢獻了「異常的 0」。<br>
+     <b>S4 是一個更極端的子情境</b>：同時滿足「整季幾乎全 0」與「其中只有少數是異常」的
+     只有 ${C.S4_haystack.hits} 棟（放寬到 30% 門檻是 ${C.S4b_haystack_loose.hits} 棟）。
+     圖 3a 的 building 167 不屬於這一類（它的異常占比是 70%），所以它比 S4 那三棟更接近一般情況。<br>
+     <b>S5 是模型側</b>：夏季 reading = 0 可評分的 ${sc.hits} 棟中 Tree 領先 ${ah.hits} 棟，
+     gap 中位數 ${sg(ah.median_gap)}，範圍 ${sg(ah.min_gap)} 到 ${sg(ah.max_gap)}。
+     方向與族群一致，但量級（+0.018）遠小於合併值（+0.108）。`;
+}
+
+
+$("#segmonthk").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  [...e.currentTarget.children].forEach(c => c.setAttribute("aria-pressed", String(c === b)));
+  figMonth(+b.dataset.v);
+  renderMonthTable(+b.dataset.v);
+});
+
+/* ================= 圖 2：區塊長度 ================= */
+function fig2(){
+  const svg = $("#fig2"); svg.innerHTML = "";
+  const W = 1000, H = 250, m = {t:26, b:38};
+  const L = 152, R = 132, iw = W - L - R, ih = H - m.t - m.b;
+  const rows = D.runbuckets, bh = ih / rows.length, bar = Math.min(26, bh * 0.56);
+  const X = q => L + q * iw;
+  for (let p = 0; p <= 0.8; p += 0.2){
+    el("line", {x1:X(p), x2:X(p), y1:m.t - 6, y2:m.t + ih, class:"grid",
+      "stroke-dasharray": p === 0 ? "" : "2 3"}, svg);
+    txt(svg, X(p), H - 16, Math.round(p*100) + "%", "axis", {"text-anchor":"middle"});
+  }
+  txt(svg, 0, 14, "零讀數區塊長度", "axlab");
+  txt(svg, X(0.8), 14, "該區間零讀數小時中被標為異常的比例", "axlab", {"text-anchor":"end"});
+  txt(svg, W, 14, "涵蓋零讀數小時", "axlab", {"text-anchor":"end"});
+  const LBL = {"1 h":"1 小時", "2–3 h":"2–3 小時", "4–24 h":"4–24 小時",
+    "1–7 d":"1–7 天", "> 7 d":"> 7 天"};
+  rows.forEach((r, i) => {
+    const cy = m.t + i * bh + bh / 2;
+    const label = LBL[r.label] || r.label;
+    txt(svg, L - 14, cy + 4, label, "dlab", {"text-anchor":"end"});
+    const hi = r.frac > 0.6;
+    const g = el("g", {}, svg);
+    el("rect", {x:L, y:cy - bar/2, width:Math.max(2, X(r.frac) - L), height:bar,
+      fill: hi ? "var(--tree)" : "var(--ink-3)", rx:2}, g);
+    txt(svg, X(r.frac) + 9, cy + 4, (r.frac*100).toFixed(1) + "%", "dlab");
+    txt(svg, W, cy + 4, r.hours.toLocaleString() + " 小時", "axis", {"text-anchor":"end"});
+    hoverable(g, `長度 <b>${label}</b> 的零讀數區塊<br>${r.runs.toLocaleString()} 個區塊 · ` +
+      `${r.hours.toLocaleString()} 個零讀數小時<br>其中 <b>${(r.frac*100).toFixed(1)}%</b> 為異常`);
+  });
+}
+
+/* ================= 圖 3：ROC-AUC 雙面板 ================= */
+function fig3(){
+  const svg = $("#fig3"); svg.innerHTML = "";
+  const W = 1000, H = 330, m = {t:44, b:52};
+  const gap = 76, right = 58, pw = (W - 56 - gap - right) / 2, ih = H - m.t - m.b;
+  const y0 = 0.55, y1 = 0.90;
+  const lx = Math.log(50), lr = Math.log(725) - Math.log(50);
+  const panels = [
+    {x0:56, sub:"r0", title:"reading = 0", note:"盛行率 47.7% · 佔全部異常 89.1%"},
+    {x0:56 + pw + gap, sub:"rN", title:"reading ≠ 0", note:"盛行率 2.12% · 佔全部正常 83.8%"}
+  ];
+  const Y = q => m.t + ih - (q - y0) / (y1 - y0) * ih;
+  const NAME = {tree:"Tree", tabpfn:"TabPFN"};
+  panels.forEach((p, pi) => {
+    const X = k => p.x0 + (Math.log(k) - lx) / lr * pw;
+    for (let q = y0; q <= y1 + 1e-9; q += 0.05){
+      el("line", {x1:p.x0, x2:p.x0 + pw, y1:Y(q), y2:Y(q), class:"grid",
+        "stroke-dasharray": Math.abs(q - y0) < 1e-9 ? "" : "2 3"}, svg);
+      if (pi === 0) txt(svg, p.x0 - 10, Y(q) + 3.5, q.toFixed(2), "axis", {"text-anchor":"end"});
+    }
+    K.forEach(k => txt(svg, X(k), m.t + ih + 20, String(k), "axis", {"text-anchor":"middle"}));
+    txt(svg, p.x0 + pw/2, m.t + ih + 40, "context 取自幾棟建築（K，對數軸）", "axlab",
+      {"text-anchor":"middle"});
+    txt(svg, p.x0, 18, p.title, "facet-t");
+    txt(svg, p.x0, 32, p.note, "axis");
+    for (const mo of ["tree", "tabpfn"]){
+      const s = D.subset[`${p.sub}_roc_${mo}`], col = `var(--${mo})`;
+      el("polyline", {points:s.map((d, i) => `${X(K[i]).toFixed(1)},${Y(d[0]).toFixed(1)}`).join(" "),
+        fill:"none", stroke:col, "stroke-width":2, "stroke-linejoin":"round"}, svg);
+      s.forEach((d, i) => {
+        if (d[1] != null)
+          el("line", {x1:X(K[i]), x2:X(K[i]), y1:Y(d[0]-d[1]), y2:Y(d[0]+d[1]), stroke:col,
+            "stroke-width":1.4, opacity:.75}, svg);
+        const c = el("circle", {cx:X(K[i]), cy:Y(d[0]), r:4.2, fill:col,
+          stroke:"var(--surface)", "stroke-width":2}, svg);
+        const o = D.subset[`${p.sub}_roc_${mo === "tree" ? "tabpfn" : "tree"}`][i];
+        hoverable(c, `<b>${NAME[mo]}</b> · K = ${K[i]} · ${p.title}<br>` +
+          `ROC-AUC <b>${f(d[0], 4)}</b>${d[1] != null ? ` ± ${f(d[1], 4)}` : ""}<br>` +
+          `<span class="d">另一個模型 ${f(o[0], 4)}</span>`);
+      });
+      const last = s[s.length-1];
+      txt(svg, X(725) + 8, Y(last[0]) + 3.5, NAME[mo], "dlab", {fill:col});
+    }
+  });
+  txt(svg, 8, m.t - 14, "ROC-AUC", "axlab");
+}
+
+/* ================= 圖 4：AP gap 分解 ================= */
+function fig4(){
+  const svg = $("#fig4"); svg.innerHTML = "";
+  hatchDefs(svg, "hatchA");
+  const W = 1000, H = 320, m = {t:62, r:20, b:58, l:74};
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const rows = D.ap.gap_rows;
+  const lo = -0.02, hi = 0.12;
+  const Y = q => m.t + ih - (q - lo) / (hi - lo) * ih;
+  const gw = iw / rows.length, bw = Math.min(46, gw * 0.26);
+  for (let q = lo; q <= hi + 1e-9; q += 0.02){
+    const isZero = Math.abs(q) < 1e-9;
+    el("line", {x1:m.l, x2:m.l + iw, y1:Y(q), y2:Y(q), class: isZero ? "zero" : "grid",
+      "stroke-dasharray": isZero ? "" : "2 3"}, svg);
+    txt(svg, m.l - 10, Y(q) + 3.5, (q >= 0 ? "+" : "−") + Math.abs(q).toFixed(2), "axis",
+      {"text-anchor":"end"});
+  }
+  txt(svg, 8, m.t - 42, "AP 點數・正值代表 Tree 領先", "axlab");
+  txt(svg, m.l, m.t - 22, "合併 gap 中來自 reading = 0 正樣本的比例", "axis");
+  rows.forEach((r, i) => {
+    const cx = m.l + gw * i + gw / 2;
+    txt(svg, cx, m.t - 6, (r.share0 * 100).toFixed(0) + "%", "dlab",
+      {"text-anchor":"middle", fill:"var(--tree)", "font-size":"13"});
+    txt(svg, cx, m.t + ih + 22, "K = " + r.k, "dlab", {"text-anchor":"middle"});
+    txt(svg, cx, m.t + ih + 38, `${r.wins}/${r.n} 個 seed 由 Tree 勝`, "axis", {"text-anchor":"middle"});
+    const bars = [
+      {v:r.d0[0], se:r.d0[1], x:cx - bw - 3, fill:"var(--ink)",
+       lab:"reading = 0 正樣本", w:D.ap.w0, dc:r.d0[0]/D.ap.w0},
+      {v:r.dN[0], se:r.dN[1], x:cx + 3, fill:"url(#hatchA)",
+       lab:"reading ≠ 0 正樣本", w:D.ap.wN, dc:r.dN[0]/D.ap.wN}
+    ];
+    bars.forEach(b => {
+      const top = Math.min(Y(b.v), Y(0)), h = Math.max(2, Math.abs(Y(b.v) - Y(0)));
+      const g = el("g", {}, svg);
+      el("rect", {x:b.x, y:top, width:bw, height:h, fill:b.fill,
+        stroke: b.fill.startsWith("url") ? "var(--ink-2)" : "none",
+        "stroke-width":1.2, rx:2}, g);
+      hoverable(g, `<b>${b.lab}</b> · K = ${r.k}<br>對 ΔAP 的貢獻 <b>${fsg(b.v)}</b>` +
+        `${b.se != null ? ` ± ${b.se.toFixed(4)}` : ""}<br>` +
+        `<span class="d">權重 ${b.w.toFixed(4)} × 子集內差值 ${fsg(b.dc)}</span>`);
+      if (Math.abs(b.v) > 0.012)
+        txt(svg, b.x + bw/2, Y(b.v) - 6, fsg(b.v, 3), "dlab", {"text-anchor":"middle"});
+    });
+    const dy = Y(r.dap[0]), s = 5.5;
+    el("line", {x1:cx, x2:cx, y1:Y(r.dap[0] - r.dap[1]), y2:Y(r.dap[0] + r.dap[1]),
+      stroke:"var(--tree)", "stroke-width":1.4, opacity:.8}, svg);
+    const dm = el("polygon", {points:`${cx},${dy-s} ${cx+s},${dy} ${cx},${dy+s} ${cx-s},${dy}`,
+      fill:"var(--surface)", stroke:"var(--tree)", "stroke-width":2}, svg);
+    hoverable(dm, `<b>ΔAP 合計</b> · K = ${r.k}<br>合併 gap <b>${fsg(r.dap[0])}</b> ± ${r.dap[1].toFixed(4)}<br>` +
+      `<span class="d">其中 ${(r.share0*100).toFixed(0)}% 來自 reading = 0 正樣本</span>`);
+  });
+  el("line", {x1:m.l, x2:m.l + iw, y1:m.t - 16, y2:m.t - 16, class:"grid"}, svg);
+}
+
+/* ================= 圖 5：1241 啞鈴圖 ================= */
+function fig5(){
+  const svg = $("#fig5"); svg.innerHTML = "";
+  const W = 560, H = 320, m = {t:46, r:56, b:52, l:60};
+  const iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const lo = -0.10, hi = 0.14;
+  const X = q => m.l + (q - lo) / (hi - lo) * iw;
+  const rh = ih / K.length;
+  for (let q = -0.08; q <= 0.121; q += 0.04){
+    const z = Math.abs(q) < 1e-9;
+    el("line", {x1:X(q), x2:X(q), y1:m.t - 10, y2:m.t + ih, class: z ? "zero" : "grid",
+      "stroke-dasharray": z ? "" : "2 3"}, svg);
+    txt(svg, X(q), m.t + ih + 20, (q > 0 ? "+" : q < 0 ? "−" : "") + Math.abs(q).toFixed(2),
+      "axis", {"text-anchor":"middle"});
+  }
+  txt(svg, m.l, m.t + ih + 40, "← TabPFN 領先", "axlab");
+  txt(svg, m.l + iw, m.t + ih + 40, "Tree 領先 →", "axlab", {"text-anchor":"end"});
+  txt(svg, 14, 12, "reading ≠ 0 的 gap（Tree − TabPFN）", "axlab");
+
+  K.forEach((k, i) => {
+    const cy = m.t + rh * i + rh / 2;
+    txt(svg, m.l - 12, cy + 4, "K " + k, "dlab", {"text-anchor":"end"});
+    const A = D.drop.rN_all[i], B = D.drop.rN_no1241[i];
+    el("line", {x1:X(A[0]), x2:X(B[0]), y1:cy, y2:cy, stroke:"var(--band-ink-2)",
+      "stroke-width":2, opacity:.55}, svg);
+    [[A, false], [B, true]].forEach(([d, filled]) => {
+      if (d[1] != null)
+        el("line", {x1:X(d[0]-d[1]), x2:X(d[0]+d[1]), y1:cy, y2:cy, stroke:"var(--band-ink)",
+          "stroke-width":1.2, opacity:.6}, svg);
+      const c = el("circle", {cx:X(d[0]), cy, r:5.6,
+        fill: filled ? "var(--band-ink)" : "var(--band)",
+        stroke:"var(--band-ink)", "stroke-width":2}, svg);
+      hoverable(c, `<b>K = ${k}</b> · reading ≠ 0<br>${filled ? "排除建築 1241" : "全 73 棟"}` +
+        `<br>配對差 <b>${fsg(d[0])}</b> ± ${d[1].toFixed(4)}`);
+    });
+    txt(svg, m.l + iw + 8, cy + 4, fsg(A[0], 3), "axis");
+  });
+}
+
+/* ================= 表格 ================= */
+function tbl(id, head, rows, caption){
+  const t = $(id); t.innerHTML = "";
+  if (caption) t.insertAdjacentHTML("beforeend", caption);
+  t.insertAdjacentHTML("beforeend",
+    "<thead><tr>" + head.map(h => `<th${h[1] || ""}>${h[0]}</th>`).join("") + "</tr></thead>");
+  t.insertAdjacentHTML("beforeend", "<tbody>" + rows.map(r => "<tr>" + r.join("") + "</tr>").join("") + "</tbody>");
+}
+const td = (s, cls="", attr="") => `<td${cls ? ` class="${cls}"` : ""}${attr}>${s}</td>`;
+
+// 非零異常集中度
+tbl("#tblconc",
+  [["建築"], ["primary use", ' class="t"'], ["非零異常數", ' class="grp"'], ["非零列數"],
+   ["比率"], ["累計佔比"]],
+  (() => { let c = 0; return D.conc.map(r => { c += r.anom; return [
+    td(r.bid, "k"), td(r.use, "t"), td(r.anom.toLocaleString(), "grp"), td(r.rows.toLocaleString()),
+    td((r.anom / r.rows * 100).toFixed(1) + "%"),
+    td((c / D.conc_total * 100).toFixed(1) + "%", r.bid === 1241 ? "win" : "")];}); })(),
+  null);
+
+// 指標表（可切換）
+function renderMetric(met){
+  const name = met === "roc" ? "ROC-AUC" : "PR-AUC";
+  const rows = K.map((k, i) => {
+    const cells = [td(k, "k")];
+    ["all", "r0", "rN"].forEach(sub => {
+      const t = D.subset[`${sub}_${met}_tree`][i], p = D.subset[`${sub}_${met}_tabpfn`][i];
+      const g = D.subset[`${sub}_${met}_gap`][i];
+      cells.push(td(fpm(t, 4), "grp"), td(fpm(p, 4)),
+        td(fsg(g[0]) + ` <span class="se">±${g[1].toFixed(4)}</span>`, g[0] > 0 ? "win" : "lose"));
+    });
+    return cells;
+  });
+  tbl("#tblmetric",
+    [["K"], ["合併 · Tree", ' class="grp"'], ["TabPFN"], ["配對差"],
+     ["reading = 0 · Tree", ' class="grp"'], ["TabPFN"], ["配對差"],
+     ["reading ≠ 0 · Tree", ' class="grp"'], ["TabPFN"], ["配對差"]],
+    rows,
+    `<caption>分子集的 ${name}，Tree 對 TabPFN<span class="cd">已定稿聚合層級上的 mean ± SE。
+     「配對差」是在每個聚合單位內先配對再取 Tree − TabPFN，所以它不等於兩個四捨五入後平均值的相減。
+     正值代表偏向 Tree。</span></caption>`);
+  $("#tblmetricnote").innerHTML = met === "roc"
+    ? `合併 ROC-AUC 精確重現已定稿圖表（最大差 2.22e-16）。reading = 0 這一欄是兩個模型都隨 K
+       同向移動的那一欄；reading ≠ 0 這一欄在 K = 400 與 725 之間反轉 —— 第 4 節會說明為什麼那個反轉
+       不該被採信。`
+    : `PR-AUC 只能<em>沿著同一欄</em>比較，絕不能<em>跨三個區塊</em>比較：合併的盛行率是 14.26%、
+       零讀數是 47.7%、非零是 2.12%。合併值精確重現已定稿圖表。`;
+}
+$("#segmetric").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  [...e.currentTarget.children].forEach(c => c.setAttribute("aria-pressed", String(c === b)));
+  renderMetric(b.dataset.v);
+});
+renderMetric("roc");
+
+// 分層
+tbl("#tblstrat",
+  [["K · 模型"], ["reading = 0 合併", ' class="grp"'], ["同棟建築內"], ["差"],
+   ["reading ≠ 0 合併", ' class="grp"'], ["同棟建築內"], ["差"]],
+  D.strat.filter(r => r.model === "tree").map(rt =>
+    [rt, D.strat.find(x => x.budget === rt.budget && x.model === "tabpfn")]
+  ).flatMap(([rt, rp]) => [rt, rp].map((r, j) => [
+    td(`${r.budget} · ${j ? "TabPFN" : "Tree"}`, j ? "" : "k"),
+    td(f(r.r0_pooled, 4), "grp"), td(f(r.r0_within, 4)), td(fsg(r.r0_within - r.r0_pooled, 3)),
+    td(f(r.rN_pooled, 4), "grp"), td(f(r.rN_within, 4)), td(fsg(r.rN_within - r.rN_pooled, 3))
+  ])), null);
+
+// 基準線與各種正規化
+(() => {
+  const SUB = [["pooled", "合併熱水"], ["r0", "reading = 0"],
+               ["rN", "reading ≠ 0（全 73 棟）"], ["rN_no1241", "reading ≠ 0（排除 1241）"]];
+  tbl("#tbltriv",
+    [["子集"], ["盛行率 π", ' class="grp"'], ["無技巧 F1₀"], ["lift 天花板"],
+     ["max-F1", ' class="grp"'], ["lift"], ["F1 skill", ' class="grp"'], ["max-MCC"], ["AP gain"]],
+    SUB.map(([key, name]) => {
+      const b = D.alt.subsets[key], r = b.rows["725|tree"];
+      const hl = key === "rN_no1241" ? " win" : "";
+      return [td(name, "t" + (key === "rN" ? " k" : "")),
+        td((b.pi * 100).toFixed(2) + "%", "grp"), td(b.f1_trivial.toFixed(4)),
+        td(b.ratio_ceiling.toFixed(1) + "×", "se"),
+        td(r.max_f1.toFixed(3), "grp"), td(r.x_trivial.toFixed(1) + "×", "se"),
+        td(r.f1_skill.toFixed(3), "grp" + hl), td(r.max_mcc.toFixed(3), hl),
+        td(r.ap_gain.toFixed(3), hl)];
+    }), null);
+})();
+
+// 校準
+(() => {
+  const T = D.alt.calib["pooled|tree"], N = D.alt.calib["rN|tree"];
+  const byLo = c => Object.fromEntries(c.bins.map(b => [b.lo.toFixed(1), b]));
+  const t = byLo(T), n = byLo(N);
+  const los = ["0.0","0.1","0.2","0.3","0.4","0.5","0.6","0.7","0.8","0.9"];
+  tbl("#tblcalib",
+    [["分數區間"], ["合併：平均預測", ' class="grp"'], ["實際異常率"], ["偏差"],
+     ["reading ≠ 0：平均預測", ' class="grp"'], ["實際異常率"], ["偏差"]],
+    los.map(lo => {
+      const a = t[lo], b = n[lo];
+      if (!a || !b) return null;
+      const hot = lo === "0.5";
+      return [td(`${lo}–${(+lo + 0.1).toFixed(1)}`, hot ? "k" : ""),
+        td(a.pred.toFixed(3), "grp"), td(a.obs.toFixed(3)), td(fsg(a.pred - a.obs, 3), "se"),
+        td(b.pred.toFixed(3), "grp" + (hot ? " k" : "")),
+        td(b.obs.toFixed(3), hot ? "lose" : ""), td(fsg(b.pred - b.obs, 3), hot ? "win" : "se")];
+    }).filter(Boolean).concat([[
+      td("整體", "k"), td(T.mean_score.toFixed(3), "grp"), td(T.pi.toFixed(3)),
+      td(`ECE ${T.ece.toFixed(3)}`, "se"),
+      td(N.mean_score.toFixed(3), "grp"), td(N.pi.toFixed(3)), td(`ECE ${N.ece.toFixed(3)}`, "se")]]),
+    null);
+})();
+
+// 操作點（可切換）
+function renderOp(sub){
+  const label = {conf_all:"合併（636,121 列 · 90,691 異常 · 14.26%）",
+    conf_r0:"reading = 0（169,386 列 · 80,776 異常 · 47.7%）",
+    conf_rN:"reading ≠ 0（466,735 列 · 9,915 異常 · 2.12%）"}[sub];
+  const fk = {conf_all:"all", conf_r0:"r0", conf_rN:"rN"}[sub];
+  const triv = D.f1.trivial[fk];
+  const rows = K.map((k, i) => {
+    const cells = [td(k, "k")];
+    ["precision", "recall", "f1"].forEach(key => {
+      const t = D.op[`${sub}_${key}_tree`][i], p = D.op[`${sub}_${key}_tabpfn`][i];
+      cells.push(td(fpm(t), "grp"), td(fpm(p), t[0] > p[0] ? "" : "lose"));
+    });
+    const ft = D.f1.rows[`${fk}|${k}|tree`], fp = D.f1.rows[`${fk}|${k}|tabpfn`];
+    cells.push(td(fpm([ft.max_f1, ft.max_f1_se]), "grp"),
+      td(fpm([fp.max_f1, fp.max_f1_se]), ft.max_f1 > fp.max_f1 ? "" : "lose"),
+      td(ft.thr_at_max.toFixed(2) + " / " + fp.thr_at_max.toFixed(2), "grp se"));
+    return cells;
+  });
+  tbl("#tblop",
+    [["K"], ["precision · Tree", ' class="grp"'], ["TabPFN"], ["recall · Tree", ' class="grp"'],
+     ["TabPFN"], ["F1@0.50 · Tree", ' class="grp"'], ["TabPFN"],
+     ["max-F1 · Tree", ' class="grp"'], ["TabPFN"], ["最佳閾值 T / P", ' class="grp"']],
+    rows,
+    `<caption>閾值 score ≥ 0.50 —— ${label}<span class="cd">已定稿聚合層級上的 mean ± SE。
+     「max-F1」是掃過所有可實現閾值後該模型自身 ranking 能達到的最佳 F1，用來把「閾值選得好不好」
+     與「ranking 好不好」分開。此子集的無技巧上限為 <b>F1 = ${triv.toFixed(4)}</b>。</span></caption>`);
+  $("#tblopnote").innerHTML = sub === "conf_rN"
+    ? `<b>此子集的最佳閾值落在 0.64–0.76，0.50 明顯偏低。</b>在固定 0.50 下 Tree 的 F1 由
+       K = 200 的 0.388 降至 K = 725 的 0.324；其 max-F1 則<em>單調上升</em>
+       （0.288 → 0.412 → 0.424 → 0.451 → 0.458）。相對地，K = 725 時 TabPFN 在 F1@0.50 上的
+       0.354 對 0.324 領先，在 max-F1 下換向為 0.426 對 0.458。
+       兩處變化可歸因於分數分布隨 K 整體上移，使同一條 0.50 逐漸寬鬆。
+       整體而言，此子集的模型比較宜採 max-F1 或重調後的操作點（§6 限制三）。`
+    : sub === "conf_r0"
+    ? `這一半承載了合併後的結果：佔全部熱水異常的 89.07%。Tree 在每個 K 的 F1@0.50 都領先 0.02 到 0.09，
+       而且 K ≥ 200 之後 0.50 已經接近最佳（headroom ≤ 0.04）。注意最佳閾值在這裡是<em>往下</em>走的
+       （K = 50 時低到 0.10，標記 83% 的列）—— 在 47.7% 的盛行率下大量標記才是對的。
+       兩個子集的最佳閾值方向相反，這也是單一合併閾值必然是折衷的原因。`
+    : `兩個模型在此閾值下標記 9% 到 18% 的列，彼此相差 1–3 個百分點，
+       真實率為 14.26%（K = 725 時分別標記 18.01% 與 17.90%），headroom 為 0.01–0.16。
+       0.50 因此在合併集上構成可比的操作點。此可比性不傳遞到子集，見另外兩個分頁。`;
+}
+$("#segsub").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  [...e.currentTarget.children].forEach(c => c.setAttribute("aria-pressed", String(c === b)));
+  renderOp(b.dataset.v);
+});
+renderOp("conf_all");
+
+// R-precision
+tbl("#tblrp",
+  [["K"], ["Tree", ' class="grp"'], ["TabPFN"], ["配對差"]],
+  K.map((k, i) => [td(k, "k"), td(fpm(D.op.rprec_tree[i], 4), "grp"),
+    td(fpm(D.op.rprec_tabpfn[i], 4)),
+    td(fsg(D.op.rprec_gap[i][0]) + ` <span class="se">±${D.op.rprec_gap[i][1].toFixed(4)}</span>`, "win")]),
+  null);
+
+// 符號檢定
+tbl("#tblsign",
+  [["K"], ["reading = 0 平均差", ' class="grp"'], ["Tree 勝出"], ["p"],
+   ["reading ≠ 0 平均差", ' class="grp"'], ["Tree 勝出"], ["p"]],
+  D.sign.r0.map((r0, i) => {
+    const rN = D.sign.rN[i];
+    const pf = p => p < 1e-3 ? p.toExponential(1) : p.toFixed(3);
+    return [td(r0.k, "k"),
+      td(fsg(r0.mean) + ` <span class="se">±${r0.se.toFixed(4)}</span>`, "grp win"),
+      td(`${r0.wins}/${r0.n}`), td(pf(r0.p), r0.p < 0.05 ? "win" : "se"),
+      td(fsg(rN.mean) + ` <span class="se">±${rN.se.toFixed(4)}</span>`, "grp " + (rN.mean > 0 ? "win" : "lose")),
+      td(`${rN.wins}/${rN.n}`), td(pf(rN.p), rN.p < 0.05 ? "win" : "se")];
+  }), null);
+
+// 移除 1241
+tbl("#tbldrop",
+  [["K"], ["reading ≠ 0 · 全 73 棟", ' class="grp"'], ["排除 1241"], ["1241 佔了多少"],
+   ["reading = 0 · 全 73 棟", ' class="grp"'], ["排除 1241"], ["變動"]],
+  K.map((k, i) => {
+    const a = D.drop.rN_all[i], b = D.drop.rN_no1241[i];
+    const c = D.drop.r0_all[i], d = D.drop.r0_no1241[i];
+    return [td(k, "k"),
+      td(fsg(a[0]) + ` <span class="se">±${a[1].toFixed(4)}</span>`, "grp"),
+      td(fsg(b[0]) + ` <span class="se">±${b[1].toFixed(4)}</span>`),
+      td(fsg(a[0] - b[0]), "win"),
+      td(fsg(c[0]) + ` <span class="se">±${c[1].toFixed(4)}</span>`, "grp"),
+      td(fsg(d[0]) + ` <span class="se">±${d[1].toFixed(4)}</span>`),
+      td(fsg(c[0] - d[0]), "se")];
+  }),
+  null);
+
+/* ---------------- 執行 ---------------- */
+trace("#fig1a", D.traces.outage, {
+  title:`建築 ${D.traces.outage.bid} · ${D.traces.outage.use}`,
+  subtitle:`${D.traces.outage.run_hours} 小時的零讀數區塊 —— reading = 0 的情況`,
+  markAt:D.traces.outage.start_hour_in_window, markLabel:"掉到剛好 0"});
+trace("#fig1b", D.traces.flatline, {
+  title:`建築 ${D.traces.flatline.bid} · ${D.traces.flatline.use}`,
+  subtitle:`連續 ${D.traces.flatline.flat_hours} 小時釘在 ${D.traces.flatline.flat_value} —— reading ≠ 0 的情況`,
+  markAt:D.traces.flatline.flat_start, markLabel:`卡在 ${D.traces.flatline.flat_value}`});
+fig2(); renderCases(); fig3(); figMonth(400); renderMonthTable(400);
+renderSeasonSit(); fig4(); fig5();
+
+(() => { const s = $("#swhatch");
+  s.style.background = "repeating-linear-gradient(45deg, var(--ink-2) 0 2px, var(--surface-2) 2px 5px)";
+  s.style.border = "1px solid var(--ink-3)"; })();
+</script>

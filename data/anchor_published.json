@@ -1,0 +1,89 @@
+{
+ "source": "m5_exp_b_building_count_meter_{pr,roc}_auc_v5_fixed50k_provisional_data.json",
+ "status": "FINAL",
+ "aggregation": {
+  "K725": "mean and sample-SD/sqrt(5) standard error across row seeds 0..4",
+  "TabPFN_K100_200_400": "mean across currently available paired row seeds within each building seed; then mean and sample-SD/sqrt(n) standard error across building-seed means",
+  "Tree_K50_100_200_400": "mean across all complete Tree row seeds within each building seed; then mean and sample-SD/sqrt(n) standard error across building-seed means",
+  "n_equals_one": "point retained; standard error undefined and omitted from figure"
+ },
+ "context_rows": 50000,
+ "class_balance": {
+  "anomaly": 25000,
+  "normal": 25000
+ },
+ "hot_water": {
+  "400|ensemble": {
+   "mean_pr_auc": 0.7998141774148838,
+   "by_building_seed_pr_auc": {
+    "0": 0.8229967554426387,
+    "1": 0.8000596059591984,
+    "2": 0.7801314973987707,
+    "3": 0.8193724649379366,
+    "4": 0.7765105633358746
+   },
+   "mean_roc_auc": 0.9455652687857556,
+   "by_building_seed_roc_auc": {
+    "0": 0.9431392274430255,
+    "1": 0.9497616696426272,
+    "2": 0.9458424194142969,
+    "3": 0.9565719281575695,
+    "4": 0.9325110992712583
+   }
+  },
+  "400|tabpfn": {
+   "mean_pr_auc": 0.7142381565460806,
+   "by_building_seed_pr_auc": {
+    "0": 0.742006800952829,
+    "1": 0.7100031803121235,
+    "2": 0.7168795019361649,
+    "3": 0.6482702297520446,
+    "4": 0.754031069777241
+   },
+   "mean_roc_auc": 0.9199392078327477,
+   "by_building_seed_roc_auc": {
+    "0": 0.9191816020114829,
+    "1": 0.9211731725508812,
+    "2": 0.9215763330740099,
+    "3": 0.9211276913658164,
+    "4": 0.9166372401615484
+   }
+  },
+  "725|ensemble": {
+   "mean_pr_auc": 0.8236175803473167,
+   "by_row_seed_pr_auc": {
+    "0": 0.832950748934498,
+    "1": 0.8230296958454524,
+    "2": 0.8203580045639796,
+    "3": 0.8251540955744122,
+    "4": 0.8165953568182411
+   },
+   "mean_roc_auc": 0.949414638967145,
+   "by_row_seed_roc_auc": {
+    "0": 0.9508982835459286,
+    "1": 0.9479913358918484,
+    "2": 0.9499777104760598,
+    "3": 0.947108977496435,
+    "4": 0.9510968874254533
+   }
+  },
+  "725|tabpfn": {
+   "mean_pr_auc": 0.8157019892596986,
+   "by_row_seed_pr_auc": {
+    "0": 0.8105022082172519,
+    "1": 0.8189862515904212,
+    "2": 0.8210116507562961,
+    "3": 0.8092756096778446,
+    "4": 0.8187342260566796
+   },
+   "mean_roc_auc": 0.9521120156294792,
+   "by_row_seed_roc_auc": {
+    "0": 0.9541415154894255,
+    "1": 0.9510283987072531,
+    "2": 0.9540245200639025,
+    "3": 0.9494634722671417,
+    "4": 0.9519021716196727
+   }
+  }
+ }
+}
