@@ -1,0 +1,193 @@
+{
+  "schema_version": 2,
+  "experiment": "m5_building_count_v5_fixed_50k_tree_cell",
+  "mode": "FORMAL",
+  "experiment_version": "m5_building_count_v5_fixed_50k",
+  "manifest": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_k725_row_seed_extension/audit/contexts/k725_full_r3.json",
+  "manifest_sha256": "4b611c2987fa1a8de09a7c02997f1884a7c758f29e64f52e3328c404df5c980a",
+  "sampling_profile": "reused_v4_nested_buildings_new_fixed_50k_global_50_50",
+  "row_policy": "frozen_balanced_context_artifact",
+  "average_rows_per_building_limit": null,
+  "context_limit": null,
+  "building_budget": 725,
+  "features": 137,
+  "building_seed": 725,
+  "row_seed": 3,
+  "role_seed": null,
+  "model_seed": 42,
+  "seed": 42,
+  "training_sampling": "frozen_unique_global_label_50_50_without_replacement",
+  "class_ratio_policy": "exact_global_25000_anomaly_25000_normal",
+  "tree_role_policy": "ignored_for_fit_all_K_buildings_used",
+  "early_stopping": false,
+  "early_stopping_policy": "disabled_frozen_iteration_contract",
+  "context_row_sha256": "37dd6441cd8b88ade250420177257482dab051a297155f71d8f300974c6d8fd1",
+  "fit_row_sha256": "37dd6441cd8b88ade250420177257482dab051a297155f71d8f300974c6d8fd1",
+  "holdout_row_sha256": "a9f2dd9e49ac57c3b6fe94a12032951f6c1d4d192bcc0505a20bd943ba672f56",
+  "context_rows": 50000,
+  "holdout_rows": 4102084,
+  "matrix_dtype": "float32",
+  "prediction_dtype": "float32",
+  "caps": {
+    "context": null,
+    "holdout": null
+  },
+  "source_building_manifest": "/home/kuant_kuo/projects/lead-reproduction-v4-fixed-10k/data/processed/m5_building_curve/v5_fixed_50k_k725_row_seed_extension/audit/building_support_full_725.json",
+  "source_building_manifest_sha256": "d3d7b027cbfce0b323aa0dcf6fee15f68bde9cdc220bf0549c77e2aad2451b05",
+  "context_label_sha256": "0a130a876da597a8bd577b79ef46f495b804a99183759234ee2ca0817a20438d",
+  "validation_feature_scope": "complete_selected_building_histories",
+  "context_feature_matrix_sha256": "9d77deeec8c70401ef75ae042b909713b0731664589493c3a015b6a9f1f09345",
+  "score_names": [
+    "lightgbm",
+    "xgboost",
+    "catboost",
+    "hist_gradient_boosting",
+    "ensemble"
+  ],
+  "available_buildings": 725,
+  "fit_buildings": 725,
+  "early_stop_buildings": 0,
+  "manifest_roles_ignored_for_training": true,
+  "metrics": {
+    "lightgbm": {
+      "roc_auc": 0.9678985413774037,
+      "pr_auc": 0.7456189888225575,
+      "threshold_0_5": {
+        "precision": 0.5339874667425244,
+        "recall": 0.9094286793151847,
+        "f1": 0.6728808153862779,
+        "confusion_matrix": {
+          "tn": 3598571,
+          "fp": 222795,
+          "fn": 25425,
+          "tp": 255293
+        }
+      }
+    },
+    "xgboost": {
+      "roc_auc": 0.966841337116407,
+      "pr_auc": 0.7403279112048852,
+      "threshold_0_5": {
+        "precision": 0.5435944064442206,
+        "recall": 0.8923439180957402,
+        "f1": 0.6756183802765618,
+        "confusion_matrix": {
+          "tn": 3611047,
+          "fp": 210319,
+          "fn": 30221,
+          "tp": 250497
+        }
+      }
+    },
+    "catboost": {
+      "roc_auc": 0.9670588223577286,
+      "pr_auc": 0.7428956212870833,
+      "threshold_0_5": {
+        "precision": 0.5237049607814731,
+        "recall": 0.9014348919556281,
+        "f1": 0.6625117160705216,
+        "confusion_matrix": {
+          "tn": 3591225,
+          "fp": 230141,
+          "fn": 27669,
+          "tp": 253049
+        }
+      }
+    },
+    "hist_gradient_boosting": {
+      "roc_auc": 0.9712458394394967,
+      "pr_auc": 0.7339137508779945,
+      "threshold_0_5": {
+        "precision": 0.5272088964815412,
+        "recall": 0.9190575595437414,
+        "f1": 0.6700498649490962,
+        "confusion_matrix": {
+          "tn": 3590000,
+          "fp": 231366,
+          "fn": 22722,
+          "tp": 257996
+        }
+      }
+    },
+    "ensemble": {
+      "roc_auc": 0.9712389033878223,
+      "pr_auc": 0.7557410026987628,
+      "threshold_0_5": {
+        "precision": 0.5371726932668329,
+        "recall": 0.9085309812694591,
+        "f1": 0.6751563860850137,
+        "confusion_matrix": {
+          "tn": 3601623,
+          "fp": 219743,
+          "fn": 25677,
+          "tp": 255041
+        }
+      }
+    }
+  },
+  "predictions": "predictions.npz",
+  "fit": {
+    "experiment_version": "m5_building_count_v5_fixed_50k",
+    "training_sampling": "frozen_unique_global_label_50_50_without_replacement",
+    "class_ratio_policy": "exact_global_25000_anomaly_25000_normal",
+    "fit_rows": 50000,
+    "fit_row_sha256": "37dd6441cd8b88ade250420177257482dab051a297155f71d8f300974c6d8fd1",
+    "context_feature_matrix_sha256": "9d77deeec8c70401ef75ae042b909713b0731664589493c3a015b6a9f1f09345",
+    "early_stopping": false,
+    "model_contract": {
+      "lightgbm": {
+        "class": "LGBMClassifier",
+        "params": {
+          "n_estimators": 100,
+          "verbose": -1,
+          "random_state": 42
+        }
+      },
+      "xgboost": {
+        "class": "XGBClassifier",
+        "params": {
+          "n_estimators": 100,
+          "eval_metric": "logloss",
+          "verbosity": 0,
+          "random_state": 42
+        }
+      },
+      "catboost": {
+        "class": "CatBoostClassifier",
+        "params": {
+          "iterations": 1000,
+          "verbose": false,
+          "random_seed": 42,
+          "allow_writing_files": false
+        }
+      },
+      "hist_gradient_boosting": {
+        "class": "HistGradientBoostingClassifier",
+        "params": {
+          "max_iter": 100,
+          "random_state": 42
+        }
+      }
+    },
+    "fit_seconds": {
+      "lightgbm": 82.8125513450068,
+      "xgboost": 24.60529898799723,
+      "catboost": 5.530830870004138,
+      "hist_gradient_boosting": 206.24548012200103
+    }
+  },
+  "support_id": "full_725",
+  "building_draw_seed": null,
+  "evaluation_meter_ids": [
+    1,
+    2,
+    3
+  ],
+  "excluded_evaluation_meter_ids": [
+    0
+  ],
+  "provenance": {
+    "commit": "4397050376b135ffd1f14d856b6e696767d2588f",
+    "generated_at_utc": "2026-08-27T08:17:00.324268+00:00"
+  }
+}

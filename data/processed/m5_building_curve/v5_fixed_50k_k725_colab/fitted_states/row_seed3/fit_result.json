@@ -1,0 +1,44 @@
+{
+  "artifact_type": "m5_v5_k725_colab_fitted_state",
+  "building_draw_seed": null,
+  "building_seed": 725,
+  "compute_capability": [
+    8,
+    0
+  ],
+  "context_feature_matrix_sha256": "9d77deeec8c70401ef75ae042b909713b0731664589493c3a015b6a9f1f09345",
+  "context_rows": 50000,
+  "created_at_utc": "2026-08-27T05:16:11.983847+00:00",
+  "elapsed_seconds": 8.73420912000006,
+  "fit_seconds": 1.6506730069997957,
+  "fit_state": "model.tabpfn_fit",
+  "fit_state_bytes": 15195783,
+  "fit_state_sha256": "ce6a6912308d7372b46cd857cc34b8b1796db29d2b8e00a032b4bea823d69b69",
+  "foundation_checkpoint_path": "/content/m5_v5_k725_shared/tabpfn-v3-classifier-v3_default.ckpt",
+  "foundation_checkpoint_sha256": "d0d865d54dfbc524f5703104be90620182dca7e5fb2c16de72e9959ea18f3988",
+  "gpu_name": "NVIDIA A100-SXM4-40GB",
+  "input_manifest_sha256": "b88c5aeaaf1616447c76996c3ad9bbb117330bf50ed031aa10948fbf8696e3eb",
+  "model_seed": 42,
+  "n_estimators": 8,
+  "n_features": 137,
+  "packages": {
+    "joblib": "1.5.3",
+    "numpy": "2.4.6",
+    "psutil": "7.2.2",
+    "scikit-learn": "1.8.0",
+    "scipy": "1.17.1",
+    "tabpfn": "8.0.8",
+    "torch": "2.12.1+cu126"
+  },
+  "row_seed": 3,
+  "sample_subsampling": null,
+  "scaled_context_matrix_sha256": "dcbaa52184f4996912d0cb2505c60cf3faa7235cd0a1e5f416ef440dfa295f8a",
+  "scaler_sha256": "16a370f560c75bcdea513cd867f7f5aa646253c80c738b6f444b2959dc389360",
+  "schema_version": 1,
+  "status": "PASSED",
+  "verification": {
+    "context_rows": 50000,
+    "estimators": 8,
+    "sample_subsampling": null
+  }
+}
